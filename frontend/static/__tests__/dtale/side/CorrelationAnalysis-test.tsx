@@ -64,7 +64,10 @@ describe('CorrelationAnalysis', () => {
     loadAnalysisSpy.mockResolvedValue({ ...ANALYSIS, success: true });
     serverStateSpy = jest.spyOn(serverState, 'deleteColumns');
     serverStateSpy.mockResolvedValue(Promise.resolve({ success: true }));
-    store = mockStore({ dataId: '1' });
+  });
+
+  const buildWrapper = async (state?: Record<string, any>): Promise<void> => {
+    store = mockStore({ dataId: '1', ...state });
     wrapper = await act(async (): Promise<RenderResult> => {
       return render(
         <Provider store={store}>
@@ -72,7 +75,7 @@ describe('CorrelationAnalysis', () => {
         </Provider>,
       );
     });
-  });
+  };
 
   afterEach(jest.resetAllMocks);
 
@@ -81,17 +84,19 @@ describe('CorrelationAnalysis', () => {
     dimensions.afterAll();
   });
 
-  it('renders successfully', () => {
+  it('renders successfully', async () => {
+    await buildWrapper();
     expect(screen.getByRole('grid').getAttribute('aria-rowcount')).toBe('3');
   });
 
   it('handles sorts', async () => {
+    await buildWrapper();
     await act(async () => {
       fireEvent.click(wrapper.container.querySelector('div.headerCell.pointer')!);
     });
     expect([...wrapper.container.querySelectorAll('div.headerCell.pointer')].map((div) => div.textContent)).toEqual([
       '▲ Column',
-      'Max Correlation w/ Other Columns',
+      'Max Correlation\nw/ Other Columns',
       'Correlations\nAbove Threshold',
       'Missing Rows',
     ]);
@@ -100,7 +105,7 @@ describe('CorrelationAnalysis', () => {
     });
     expect([...wrapper.container.querySelectorAll('div.headerCell.pointer')].map((div) => div.textContent)).toEqual([
       '▼ Column',
-      'Max Correlation w/ Other Columns',
+      'Max Correlation\nw/ Other Columns',
       'Correlations\nAbove Threshold',
       'Missing Rows',
     ]);
@@ -110,13 +115,14 @@ describe('CorrelationAnalysis', () => {
     });
     expect([...wrapper.container.querySelectorAll('div.headerCell.pointer')].map((div) => div.textContent)).toEqual([
       'Column',
-      'Max Correlation w/ Other Columns',
+      'Max Correlation\nw/ Other Columns',
       'Correlations\nAbove Threshold',
       '▲ Missing Rows',
     ]);
   });
 
   it('handles deselection of columns', async () => {
+    await buildWrapper();
     const openChartSpy = jest.spyOn(chartActions, 'openChart');
     await act(async () => {
       fireEvent.click(wrapper.container.querySelector('i.ico-check-box')!);
@@ -139,6 +145,7 @@ describe('CorrelationAnalysis', () => {
   });
 
   it('handles threshold updates', async () => {
+    await buildWrapper();
     const thumb = screen.getByRole('slider');
     await act(async () => {
       await fireEvent(thumb, new FakeMouseEvent('mousedown', { bubbles: true, pageX: 0, pageY: 0 }));
@@ -150,5 +157,10 @@ describe('CorrelationAnalysis', () => {
       await fireEvent.mouseUp(thumb);
     });
     expect(screen.getByRole('grid').getAttribute('aria-rowcount')).toBe('3');
+  });
+
+  it('does not allow dropping columns when using ArcticDB', async () => {
+    await buildWrapper({ isArcticDB: 100 });
+    expect(wrapper.container.querySelectorAll('i.ico-check-box')).toHaveLength(0);
   });
 });

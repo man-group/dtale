@@ -129,6 +129,12 @@ describe('GridCell', () => {
     expect(divs[divs.length - 1]).toHaveClass('resized');
   });
 
+  it('does not add editable class to cell when ArcticDB is active', async () => {
+    await buildMock(undefined, { isArcticDB: 100 }, true);
+    const divs = container.getElementsByTagName('div');
+    expect(divs[divs.length - 1]).not.toHaveClass('editable');
+  });
+
   it('renders checkbox for boolean column', async () => {
     await buildMock(
       { columnIndex: 2, data: { 0: { bar: { raw: 'True', view: 'True' } } } },

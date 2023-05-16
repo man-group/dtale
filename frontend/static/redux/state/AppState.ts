@@ -144,6 +144,7 @@ export enum PopupType {
   CHARTS = 'charts',
   DESCRIBE = 'describe',
   EXPORT = 'export',
+  ARCTICDB = 'arcticdb',
 }
 
 /** Configuration for any data for a popup */
@@ -287,6 +288,9 @@ export type CustomFilterPopupData = PopupData<typeof PopupType.FILTER>;
 /** Popup configuration for Upload popup */
 export type UploadPopupData = PopupData<typeof PopupType.UPLOAD>;
 
+/** Popup configuration for ArcticDB popup */
+export type ArcticDBPopupData = PopupData<typeof PopupType.ARCTICDB>;
+
 /** Popup configuration for Replacement popup */
 export interface ReplacementPopupData extends PopupData<typeof PopupType.REPLACEMENT>, HasColumnSelection {
   propagateState: DataViewerPropagateState;
@@ -327,7 +331,8 @@ export type Popups =
   | CreateTypeConversionPopupData
   | CreateCleanersPopupData
   | InstancesPopupData
-  | ExportPopupData;
+  | ExportPopupData
+  | ArcticDBPopupData;
 
 /** Sort directions */
 export enum SortDir {
@@ -404,6 +409,7 @@ export interface AppSettings {
   language: string;
   pythonVersion: Version | null;
   isVSCode: boolean;
+  isArcticDB: number;
   maxColumnWidth: number | null;
   maxRowHeight: number | null;
   mainTitle: string | null;

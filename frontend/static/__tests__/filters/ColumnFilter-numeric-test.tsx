@@ -1,7 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 
 import { mockColumnDef } from '../mocks/MockColumnDef';
-import { selectOption } from '../test-utils';
+import { selectOption, tick } from '../test-utils';
 
 import * as TestSupport from './ColumnFilter.test.support';
 
@@ -48,6 +48,9 @@ describe('ColumnFilter numeric tests', () => {
     });
     expect(result.getElementsByClassName('Select__control--is-disabled').length).toBe(0);
     await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 1);
+    await act(async () => {
+      await tick(300);
+    });
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: '=', value: [1] });
     await act(async () => {
       await fireEvent.click(screen.getByText('\u2260'));
@@ -60,7 +63,13 @@ describe('ColumnFilter numeric tests', () => {
       await fireEvent.change(result.getElementsByClassName('numeric-filter')[0], { target: { value: 'a' } });
     });
     await act(async () => {
+      await tick(300);
+    });
+    await act(async () => {
       await fireEvent.change(result.getElementsByClassName('numeric-filter')[0], { target: { value: '0' } });
+    });
+    await act(async () => {
+      await tick(300);
     });
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', operand: '>', value: 0 });
   });
@@ -84,6 +93,9 @@ describe('ColumnFilter numeric tests', () => {
     await act(async () => {
       await fireEvent.change(numericInput(), { target: { value: '1.1' } });
     });
+    await act(async () => {
+      await tick(300);
+    });
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float', operand: '=', value: 1.1 });
     await act(async () => {
       await fireEvent.click(screen.getByText('()'));
@@ -91,13 +103,53 @@ describe('ColumnFilter numeric tests', () => {
     await act(async () => {
       await fireEvent.change(numericInput(0), { target: { value: '1.2' } });
     });
+    await act(async () => {
+      await tick(300);
+    });
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float', operand: '()', min: 1.2, max: 3 });
     await act(async () => {
       await fireEvent.change(numericInput(0), { target: { value: 'a' } });
     });
     await act(async () => {
+      await tick(300);
+    });
+    await act(async () => {
       await fireEvent.change(numericInput(1), { target: { value: 'b' } });
     });
+    await act(async () => {
+      await tick(300);
+    });
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col2', { type: 'float' });
+  });
+
+  it('ColumnFilter int rendering w/ ArcticDB', async () => {
+    result = await spies.setupWrapper(
+      {
+        selectedCol: 'col1',
+        columns: [mockColumnDef({ name: 'col1', dtype: 'int64' })],
+      },
+      { isArcticDB: '100' },
+    );
+    const filterInputs = result.getElementsByClassName('numeric-filter-inputs')[0];
+    expect(Array.from(filterInputs.getElementsByTagName('button')).map((b) => b.textContent)).toEqual([
+      '=',
+      '≠',
+      '<',
+      '>',
+      '<=',
+      '>=',
+    ]);
+    expect(result.getElementsByClassName('Select')).toHaveLength(1);
+  });
+
+  it('ColumnFilter int rendering w/ large ArcticDB', async () => {
+    result = await spies.setupWrapper(
+      {
+        selectedCol: 'col1',
+        columns: [mockColumnDef({ name: 'col1', dtype: 'int64' })],
+      },
+      { isArcticDB: '3000000' },
+    );
+    expect(result.querySelector('input[type="text"]')).toBeDefined();
   });
 });

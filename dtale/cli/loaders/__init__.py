@@ -6,6 +6,7 @@ import click
 
 from dtale.cli.loaders import (
     arctic_loader,
+    arcticdb_loader,
     csv_loader,
     excel_loader,
     json_loader,
@@ -13,6 +14,7 @@ from dtale.cli.loaders import (
     r_loader,
     sqlite_loader,
 )
+from dtale.utils import make_list
 
 logger = getLogger(__name__)
 
@@ -84,6 +86,7 @@ def custom_module_loader():
 
 LOADERS = {
     arctic_loader.LOADER_KEY: arctic_loader,
+    arcticdb_loader.LOADER_KEY: arcticdb_loader,
     csv_loader.LOADER_KEY: csv_loader,
     excel_loader.LOADER_KEY: excel_loader,
     json_loader.LOADER_KEY: json_loader,
@@ -135,11 +138,15 @@ def setup_loader_options():
                             prop_name, help="Override {}".format(prop_name)
                         )(f)
                     elif isinstance(p, dict):
-                        p_name = p.get("name")
-                        if len(p_name):
-                            prop_name = "{}-{}".format(prop_name, p_name)
+                        p_names = make_list(p.get("name"))
+                        prop_names = []
+                        for p_name in p_names:
+                            if len(p_name):
+                                prop_names.append("{}-{}".format(prop_name, p_name))
+                            else:
+                                prop_names.append(prop_name)
                         opt_kwargs = {k: v for k, v in p.items() if k != "name"}
-                        f = click.option(prop_name, **opt_kwargs)(f)
+                        f = click.option(*prop_names, **opt_kwargs)(f)
                     else:
                         raise NotImplementedError(
                             "You have specified an unknown type for a value in {} LOADER_PROPS: {}".format(

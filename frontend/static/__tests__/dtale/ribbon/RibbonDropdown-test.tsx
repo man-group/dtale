@@ -43,11 +43,15 @@ describe('RibbonDropdown', () => {
     innerHeight: 500,
   });
 
-  const setupElementAndDropdown = async (name: RibbonDropdownType, dims?: Partial<DOMRect>): Promise<void> => {
+  const setupElementAndDropdown = async (
+    name: RibbonDropdownType,
+    dims?: Partial<DOMRect>,
+    hiddenProps?: Record<string, string>,
+  ): Promise<void> => {
     const rectSpy = jest.spyOn(HTMLDivElement.prototype, 'getBoundingClientRect');
     rectSpy.mockImplementation(() => ({ left: 5, top: 5, width: 10, ...dims } as DOMRect));
     store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '', predefinedFilters: PREDEFINED_FILTERS }, store);
+    buildInnerHTML({ settings: '', predefinedFilters: PREDEFINED_FILTERS, ...hiddenProps }, store);
     element = { getBoundingClientRect: () => ({ left: 5, top: 5, width: 10, ...dims } as DOMRect) } as HTMLElement;
     store.dispatch({ type: ActionType.OPEN_RIBBON_DROPDOWN, name, element });
     wrapper = await act(async (): Promise<RenderResult> => {
@@ -217,5 +221,119 @@ describe('RibbonDropdown', () => {
     });
     expect(window.open).toHaveBeenCalledWith('/dtale/popup/merge', '_blank');
     expect(mockDispatch.mock.calls.filter((call) => call[0].type === ActionType.HIDE_RIBBON_MENU)).toHaveLength(1);
+  });
+
+  describe('ArcticDB active', () => {
+    beforeEach(() => {
+      const funcsSpy = jest.spyOn(menuFuncs, 'buildHotkeyHandlers');
+      funcsSpy.mockImplementation(() => ({
+        openTab: jest.fn(),
+        openPopup: jest.fn(),
+        toggleBackground: jest.fn(),
+        toggleOutlierBackground: jest.fn(),
+        CODE: jest.fn(),
+        SHUTDOWN: jest.fn(),
+        BUILD: jest.fn(),
+        FILTER: jest.fn(),
+        DESCRIBE: jest.fn(),
+        DUPLICATES: jest.fn(),
+        CHARTS: jest.fn(),
+        NETWORK: jest.fn(),
+        MENU: jest.fn(),
+        CLEAN: jest.fn(),
+        ABOUT: jest.fn(),
+        LOGOUT: jest.fn(),
+      }));
+    });
+
+    it('renders main successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.MAIN, undefined, { isArcticDB: '100' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['Load ArcticDB Data', 'Code Export', 'Export', 'Reload Data', 'About', 'Shutdown']);
+    });
+
+    it('renders actions successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.ACTIONS, undefined, { isArcticDB: '100' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['show_hide', 'Feature Analysis']);
+    });
+
+    it('renders visualize successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.VISUALIZE, undefined, { isArcticDB: '100' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual([
+        ...['Describe', 'Duplicates', 'Missing Analysis', 'Correlations', 'Predictive Power Score'],
+        ...['Time Series Analysis', 'Charts', 'Network Viewer', 'gage_rnr'],
+      ]);
+    });
+  });
+
+  describe('Large ArcticDB active', () => {
+    beforeEach(() => {
+      const funcsSpy = jest.spyOn(menuFuncs, 'buildHotkeyHandlers');
+      funcsSpy.mockImplementation(() => ({
+        openTab: jest.fn(),
+        openPopup: jest.fn(),
+        toggleBackground: jest.fn(),
+        toggleOutlierBackground: jest.fn(),
+        CODE: jest.fn(),
+        SHUTDOWN: jest.fn(),
+        BUILD: jest.fn(),
+        FILTER: jest.fn(),
+        DESCRIBE: jest.fn(),
+        DUPLICATES: jest.fn(),
+        CHARTS: jest.fn(),
+        NETWORK: jest.fn(),
+        MENU: jest.fn(),
+        CLEAN: jest.fn(),
+        ABOUT: jest.fn(),
+        LOGOUT: jest.fn(),
+      }));
+    });
+
+    it('renders main successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.MAIN, undefined, { isArcticDB: '3000000' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['Load ArcticDB Data', 'Code Export', 'Export', 'Reload Data', 'About', 'Shutdown']);
+    });
+
+    it('renders actions successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.ACTIONS, undefined, { isArcticDB: '3000000' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['show_hide']);
+    });
+
+    it('renders visualize successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.VISUALIZE, undefined, { isArcticDB: '3000000' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['Describe', 'Charts', 'Network Viewer']);
+    });
+
+    it('renders highlight successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.HIGHLIGHT, undefined, { isArcticDB: '3000000' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['Highlight Dtypes', 'Highlight Missing', 'Highlight Range']);
+    });
   });
 });

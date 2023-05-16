@@ -43,13 +43,21 @@ class DtaleInstance(object):
     _history = None
     _settings = None
     _name = ""
+    _rows = 0
 
     def __init__(self, data):
         self._data = data
+        self._rows = 0 if self._data is None else len(data)
+
+    def load_data(self):
+        return self._data
+
+    def rows(self, **kwargs):
+        return self._rows
 
     @property
     def data(self):
-        return self._data
+        return self.load_data()
 
     @property
     def name(self):
@@ -126,9 +134,152 @@ class DtaleInstance(object):
         self._settings = settings
 
 
+LARGE_ARCTICDB = 1000000
+
+
+class DtaleArcticDBInstance(DtaleInstance):
+    def __init__(self, data, lib, symbol, parent):
+        super(DtaleArcticDBInstance, self).__init__(data)
+        self.lib = lib
+        self.symbol = symbol
+        self._rows = 0
+        if self.lib and self.symbol and self.symbol in parent.symbols:
+            self._rows = self.lib._nvs.get_num_rows(self.symbol)
+
+    def load_data(self, **kwargs):
+        from arcticdb.version_store._store import VersionedItem
+
+        if not self.lib.has_symbol(self.symbol):
+            raise ValueError(
+                "{} does not exist in {}!".format(self.symbol, self.lib.name)
+            )
+
+        data = self.lib._nvs.read(self.symbol, **kwargs)
+        if isinstance(data, VersionedItem):
+            return data.data
+        return data
+
+    def rows(self, **kwargs):
+        if kwargs.get("query_builder"):
+            version_query, read_options, read_query = self.lib._nvs._get_queries(
+                None, None, None, None, query_builder=kwargs["query_builder"]
+            )
+            read_result = self.lib._nvs._read_dataframe(
+                self.symbol, version_query, read_query, read_options
+            )
+            return len(read_result.frame_data.value.data[0])
+        return self._rows
+
+    @property
+    def data(self):
+        return self.load_data()
+
+    @data.setter
+    def data(self, data):
+        try:
+            self.lib.write(self.symbol, data)
+        except BaseException:
+            pass
+
+
+class DtaleBaseStore(dict):
+    def build_instance(self, data_id, data=None):
+        return DtaleInstance(data)
+
+
+class DtaleArcticDB(DtaleBaseStore):
+    """Interface allowing dtale to use 'arcticdb' databases for global data storage."""
+
+    def __init__(self, uri=None, library=None, **kwargs):
+        from arcticdb import Arctic
+
+        self._db = dict()
+        self.uri = uri
+        self.conn = Arctic(self.uri)
+        self.lib = None
+        self._libraries = []
+        self._symbols = {}
+        self.load_libraries()
+        self.update_library(library)
+
+    def update_library(self, library=None):
+        if self.lib and library == self.lib.name:  # library already selected
+            return
+        if library in self._libraries:
+            self.lib = self.conn[library]
+            self._db.clear()
+            self.load_symbols()
+        elif library is not None:
+            raise ValueError("Library '{}' does not exist!".format(library))
+
+    def load_libraries(self):
+        self._libraries = self.conn.list_libraries()
+
+    @property
+    def libraries(self):
+        return self._libraries
+
+    def load_symbols(self, library=None):
+        self._symbols[library or self.lib.name] = (
+            self.conn[library] if library else self.lib
+        ).list_symbols()
+
+    @property
+    def symbols(self):
+        return self._symbols[self.lib.name]
+
+    def build_instance(self, data_id, data=None):
+        if data_id is None:
+            return DtaleInstance(data)
+        return DtaleArcticDBInstance(data, self.lib, data_id, self)
+
+    def get(self, key, **kwargs):
+        if key is None:
+            return self.build_instance(key)
+        key = str(key)
+        if key not in self._db:
+            self._db[key] = self.build_instance(key)
+        return self._db[key]
+
+    def __setitem__(self, key, value):
+        if key is None:
+            return
+        key = str(key)
+        self._db[key] = value
+
+    def __delitem__(self, key):
+        if key is None:
+            return
+        key = str(key)
+        # TODO: should we actually delete from ArcticDB???
+        del self._db[key]
+
+    def __contains__(self, key):
+        key = str(key)
+        return key in self._db
+
+    def clear(self):
+        pass
+
+    def to_dict(self):
+        return dict(self._db)
+
+    def items(self):
+        return self.to_dict().items()
+
+    def keys(self):
+        return self.to_dict().keys()
+
+    def __len__(self):
+        return len(self.keys())
+
+    def save_db(self):
+        raise NotImplementedError
+
+
 class DefaultStore(object):
     def __init__(self):
-        self._data_store = dict()
+        self._data_store = DtaleBaseStore()
         self._data_names = dict()
 
     # Use int for data_id for easier sorting
@@ -146,6 +297,10 @@ class DefaultStore(object):
         if not len(ids):
             return "1"
         return str(max(ids) + 1)
+
+    @property
+    def is_arcticdb(self):
+        return isinstance(self._data_store, DtaleArcticDB)
 
     # exposing  _data_store for custom data store plugins.
     @property
@@ -173,8 +328,11 @@ class DefaultStore(object):
 
     def get_data_inst(self, data_id):
         # handle non-exist data_id
-        if data_id is None or str(data_id) not in self._data_store:
-            return DtaleInstance(None)
+        if data_id is None:
+            return self._data_store.build_instance(data_id)
+
+        if str(data_id) not in self._data_store:
+            self._data_store[str(data_id)] = self._data_store.build_instance(data_id)
 
         return self._data_store.get(str(data_id))
 
@@ -182,12 +340,12 @@ class DefaultStore(object):
         if data_id is None:
             data_id = self.build_data_id()
         data_id = str(data_id)
-        new_data = instance or DtaleInstance(None)
+        new_data = instance or self._data_store.build_instance(data_id)
         self._data_store[data_id] = new_data
         return data_id
 
-    def get_data(self, data_id):
-        return self.get_data_inst(data_id).data
+    def get_data(self, data_id, **kwargs):
+        return self.get_data_inst(data_id).load_data(**kwargs)
 
     def get_data_id_by_name(self, data_name):
         data_id = next(
@@ -318,17 +476,20 @@ fn_list = list(
         [x[0] for x in inspect.getmembers(DefaultStore)],
     )
 )
+
 for fn_name in fn_list:
     globals()[fn_name] = getattr(_default_store, fn_name)
 
 
 # for tests. default_store is always initialized.
 def use_default_store():
-    new_store = dict()
+    new_store = DtaleBaseStore()
     for k, v in _as_dict(_default_store.store).items():
         new_store[str(k)] = v
     _default_store.store.clear()
     _default_store.store = new_store
+    globals()["is_arcticdb"] = getattr(_default_store, "is_arcticdb")
+    globals()["store"] = getattr(_default_store, "store")
     pass
 
 
@@ -442,7 +603,7 @@ def _as_dict(store):
     :param store: data store (dict, redis connection, etc.)
     :return: dict
     """
-    return dict(store) if isinstance(store, MutableMapping) else store.to_dict()
+    return dict(store.items()) if isinstance(store, MutableMapping) else store.to_dict()
 
 
 def use_store(store_class, create_store):
@@ -503,6 +664,8 @@ def use_store(store_class, create_store):
         return new_store
 
     _default_store.store = convert(_default_store.store, "default_store")
+    globals()["is_arcticdb"] = getattr(_default_store, "is_arcticdb")
+    globals()["store"] = getattr(_default_store, "store")
 
 
 def use_shelve_store(directory):
@@ -518,7 +681,7 @@ def use_shelve_store(directory):
     from os.path import join
     from threading import Thread
 
-    class DtaleShelf(object):
+    class DtaleShelf(DtaleBaseStore):
         """Interface allowing dtale to use 'shelf' databases for global data storage."""
 
         def __init__(self, filename):
@@ -593,28 +756,41 @@ def use_redis_store(directory, *args, **kwargs):
     except ImportError:
         raise Exception("redislite must be installed")
 
-    class DtaleRedis(Redis):
+    class DtaleRedis(DtaleBaseStore, Redis):
         """Wrapper class around Redis() to make it work as a global data store in dtale."""
 
+        def __init__(self, file_path, *args, **kwargs):
+            super(Redis, self).__init__(file_path, *args, **kwargs)
+
+        def __setitem__(self, key, value):
+            key = str(key)
+            self.set(key, value)
+
+        def __delitem__(self, key):
+            key = str(key)
+            super(Redis, self).__delitem__(str(key))
+
+        def __contains__(self, key):
+            key = str(key)
+            return super(Redis, self).__contains__(str(key))
+
         def get(self, name, *args, **kwargs):
-            value = super(DtaleRedis, self).get(name, *args, **kwargs)
+            value = super(Redis, self).get(name, *args, **kwargs)
             if value is not None:
                 return pickle.loads(value)
 
         def keys(self):
-            return [str(k) for k in super(DtaleRedis, self).keys()]
+            return [str(k) for k in super(Redis, self).keys()]
 
         def set(self, name, value, *args, **kwargs):
             value = pickle.dumps(value)
-            return super(DtaleRedis, self).set(name, value, *args, **kwargs)
+            return super(Redis, self).set(name, value, *args, **kwargs)
 
         def clear(self):
             self.flushdb()
 
         def to_dict(self):
-            return {
-                k.decode("utf-8"): self.get(k) for k in super(DtaleRedis, self).keys()
-            }
+            return {k.decode("utf-8"): self.get(k) for k in super(Redis, self).keys()}
 
         def items(self):
             return self.to_dict().items()
@@ -627,3 +803,22 @@ def use_redis_store(directory, *args, **kwargs):
         return DtaleRedis(file_path, *args, **kwargs)
 
     use_store(DtaleRedis, create_redis)
+
+
+def use_arcticdb_store(*args, **kwargs):
+    """
+    Configure dtale to use arcticdb for a persistent global data store.
+
+    :param uri: URI that arcticdb will connect to (local file storage: lmdb:///<path>)
+    :type uri: str
+    :param library: default library to load from arcticdb URI
+    :type library: str
+    :param symbol: defualt symbol to load from library
+    :type symbol: str
+    :return: None
+    """
+
+    def create_arcticdb(name):
+        return DtaleArcticDB(**kwargs)
+
+    use_store(DtaleArcticDB, create_arcticdb)

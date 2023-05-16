@@ -12,10 +12,11 @@ interface DtaleSelectProps {
   onChange?: (state: BaseOption<any> | Array<BaseOption<any>> | undefined) => void;
   noOptionsMessage?: string;
   placeholder?: string | null;
+  menuPortalTarget?: boolean;
 }
 
 export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
-  ({ options, value, onChange, noOptionsMessage, isMulti, isClearable, placeholder }, ref) => (
+  ({ options, value, onChange, noOptionsMessage, isMulti, isClearable, placeholder, menuPortalTarget }, ref) => (
     <Select
       ref={ref as any}
       className="Select is-clearable is-searchable Select--single"
@@ -35,7 +36,7 @@ export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
       isMulti={isMulti}
       isClearable={isClearable}
       placeholder={placeholder}
-      menuPortalTarget={document.body}
+      {...(menuPortalTarget ? { menuPortalTarget: document.body } : {})}
       menuPlacement="auto"
     />
   ),

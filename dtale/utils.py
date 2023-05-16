@@ -7,6 +7,7 @@ import socket
 import sys
 import time
 import traceback
+import urllib
 from builtins import map, object
 from logging import getLogger
 
@@ -39,6 +40,20 @@ def running_with_flask_debug():
     :rtype: bool
     """
     return os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+
+
+def get_url_unquote():
+    """
+    Returns URL unquote based on whether Python 2 or 3 is being used.
+    """
+    return urllib.parse.unquote if PY3 else urllib.unquote
+
+
+def get_url_quote():
+    """
+    Returns URL quote based on whether Python 2 or 3 is being used.
+    """
+    return urllib.parse.quote if PY3 else urllib.quote
 
 
 def get_host(host=None):
@@ -796,3 +811,97 @@ def read_file(file_path, encoding="utf-8"):
         if not PY3 and encoding:
             return output.decode(encoding)
         return output
+
+
+def unique_count(s):
+    return int(len(s.dropna().unique()))
+
+
+def format_data(data, inplace=False, drop_index=False):
+    """
+    Helper function to build globally managed state pertaining to a D-Tale instances data.  Some updates being made:
+     - convert all column names to strings
+     - drop any indexes back into the dataframe so what we are left is a natural index [0,1,2,...,n]
+     - convert inputs that are indexes into dataframes
+     - replace any periods in column names with underscores
+
+    :param data: dataframe to build data type information for
+    :type data: :class:`pandas:pandas.DataFrame`
+    :param allow_cell_edits: If false, this will not allow users to edit cells directly in their D-Tale grid
+    :type allow_cell_edits: bool, optional
+    :param inplace: If true, this will call `reset_index(inplace=True)` on the dataframe used as a way to save memory.
+                    Otherwise this will create a brand new dataframe, thus doubling memory but leaving the dataframe
+                    input unchanged.
+    :type inplace: bool, optional
+    :param drop_index: If true, this will drop any pre-existing index on the dataframe input.
+    :type drop_index: bool, optional
+    :return: formatted :class:`pandas:pandas.DataFrame` and a list of strings constituting what columns were originally
+             in the index
+    :raises: Exception if the dataframe contains two columns of the same name
+    """
+    if isinstance(data, (pd.DatetimeIndex, pd.MultiIndex)):
+        data = data.to_frame(index=False)
+
+    if isinstance(data, (np.ndarray, list, dict)):
+        try:
+            data = pd.DataFrame(data)
+        except BaseException:
+            data = pd.Series(data).to_frame()
+
+    index = [
+        str(i) for i in make_list(data.index.name or data.index.names) if i is not None
+    ]
+    drop = True
+    if not len(index) and not data.index.equals(pd.RangeIndex(0, len(data))):
+        drop = False
+        index = ["index"]
+
+    if inplace:
+        data.reset_index(inplace=True, drop=drop_index)
+    else:
+        data = data.reset_index(drop=drop_index)
+
+    if drop:
+        if inplace:
+            data.drop("index", axis=1, errors="ignore", inplace=True)
+        else:
+            data = data.drop("index", axis=1, errors="ignore")
+
+    def _format_colname(colname):
+        if isinstance(colname, tuple):
+            formatted_vals = [
+                find_dtype_formatter(type(v).__name__)(v, as_string=True)
+                for v in colname
+            ]
+            return "_".join([v for v in formatted_vals if v])
+        return str(colname).strip()
+
+    data.columns = [_format_colname(c) for c in data.columns]
+    if len(data.columns) > len(set(data.columns)):
+        distinct_cols = set()
+        dupes = set()
+        for c in data.columns:
+            if c in distinct_cols:
+                dupes.add(c)
+            distinct_cols.add(c)
+        raise Exception(
+            "data contains duplicated column names: {}".format(", ".join(sorted(dupes)))
+        )
+
+    for col in data.columns:
+        dtype = find_dtype(data[col])
+        all_null = data[col].isnull().all()
+        if dtype.startswith("mixed") and not all_null:
+            try:
+                unique_count(data[col])
+            except TypeError:
+                # convert any columns with complex data structures (list, dict, etc...) to strings
+                data.loc[:, col] = data[col].astype("str")
+        elif dtype.startswith("period") and not all_null:
+            # convert any pandas period_range columns to timestamps
+            data.loc[:, col] = data[col].apply(lambda x: x.to_timestamp())
+        elif dtype.startswith("datetime") and not all_null:
+            # remove timezone information for filtering purposes
+            data.loc[:, col] = data[col].dt.tz_localize(None)
+
+    return data, index

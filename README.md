@@ -8,14 +8,14 @@
 
 -----------------
 
-[![CircleCI](https://circleci.com/gh/man-group/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/man-group/dtale)
+[![CircleCI](https://circleci.com/gh/man-group/dtale.svg?style=shield)](https://circleci.com/gh/man-group/dtale)
 [![PyPI Python Versions](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
 [![PyPI](https://img.shields.io/pypi/v/dtale)](https://pypi.org/project/dtale/)
 [![Conda](https://img.shields.io/conda/v/conda-forge/dtale)](https://anaconda.org/conda-forge/dtale)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
 [![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
 [![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
-[![Open in VS Code](https://img.shields.io/badge/Visual_Studio_Code-0078D4?style=for-the-badge&logo=visual%20studio%20code&logoColor=white)](https://open.vscode.dev/man-group/dtale)
+[![Open in VS Code](https://img.shields.io/badge/Visual_Studio_Code-0078D4?style=flat&logo=visual%20studio%20code&logoColor=white)](https://open.vscode.dev/man-group/dtale)
 
 ## What is it?
 
@@ -406,9 +406,17 @@ Base CLI options (run `dtale --help` to see all options available)
 |`--open-browser`|flag to automatically open up your server's default browser to your D-Tale instance|
 |`--force`|flag to force D-Tale to try an kill any pre-existing process at the port you've specified so it can use it|
 
+Loading data from [**ArcticDB**(high performance, serverless DataFrame database)](https://github.com/man-group/ArcticDB) (this requires either installing **arcticdb** or **dtale[arcticdb]**)
+```bash
+dtale --arcticdb-uri lmdb:///<path> --arcticdb-library jdoe.my_lib --arcticdb-symbol my_symbol
+```
+If you would like to change your storage mechanism to ArcticDB then add the `--arcticdb-use_store` flag
+```bash
+dtale --arcticdb-uri lmdb:///<path> --arcticdb-library my_lib --arcticdb-symbol my_symbol --arcticdb-use_store
+```
 Loading data from [**arctic**(high performance datastore for pandas dataframes)](https://github.com/man-group/arctic) (this requires either installing **arctic** or **dtale[arctic]**)
 ```bash
-dtale --arctic-host mongodb://localhost:27027 --arctic-library jdoe.my_lib --arctic-node my_node --arctic-start 20130101 --arctic-end 20161231
+dtale --arctic-uri mongodb://localhost:27027 --arctic-library my_lib --arctic-symbol my_symbol --arctic-start 20130101 --arctic-end 20161231
 ```
 Loading data from **CSV**
 ```bash
@@ -443,7 +451,7 @@ Loading data from a **Custom** loader
 - Any python module containing the global variables LOADER_KEY & LOADER_PROPS will be picked up as a custom loader
   - LOADER_KEY: the key that will be associated with your loader.  By default you are given **arctic** & **csv** (if you use one of these are your key it will override these)
   - LOADER_PROPS: the individual props available to be specified.
-    - For example, with arctic we have host, library, node, start & end.
+    - For example, with arctic we have host, library, symbol, start & end.
     - If you leave this property as an empty list your loader will be treated as a flag.  For example, instead of using all the arctic properties we would simply specify `--arctic` (this wouldn't work well in arctic's case since it depends on all those properties)
 - You will also need to specify a function with the following signature `def find_loader(kwargs)` which returns a function that returns a dataframe or `None`
 - Here is an example of a custom loader:
@@ -724,7 +732,68 @@ I am pleased to announce that all CLI loaders will be available within notebooks
 - `dtale.show_json(path='http://json-endpoint', parse_dates=['date'])`
 - `dtale.show_json(path='test.json', parse_dates=['date'])`
 - `dtale.show_r(path='text.rda')`
-- `dtale.show_arctic(host='host', library='library', node='node', start_date='20200101', end_date='20200101')`
+- `dtale.show_arctic(uri='uri', library='library', symbol='symbol', start='20200101', end='20200101')`
+- `dtale.show_arcticdb(uri='uri', library='library', symbol='symbol', start='20200101', end='20200101', use_store=True)`
+
+### Using ArcticDB as your data store for D-Tale
+So one of the major drawbacks of using D-Tale is that it stores a copy of your dataframe in memory (unless you specify the `inplace=True` when calling `dtale.show`). One way around this is to switch your storage mechanism to ArcticDB. This will use ArcticDB's [QueryBuilder](https://docs.arcticdb.io/api/query_builder) to perform all data loading and filtering.  This will significantly drop your memory footprint, but it will remove a lot of the original D-Tale functionality:
+- Custom Filtering
+- Range filtering in Numeric Column Filters
+- Regex filtering on String Column Filters
+- Editing Cells
+- Data Reshaping
+- Dataframe Functions
+- Drop Filtered Rows
+- Sorting
+
+If the symbol you're loading from ArcticDB contains more than 1,000,000 rows then you will also lose the following:
+- Column Filtering using dropdowns of unique values (you'll have to manually type your values)
+- Outlier Highlighting
+- Most of the details in the "Describe" screen
+
+In order to update your storage mechanism there are a few options, the first being `use_arcticdb_store`:
+```python
+import dtale.global_state as global_state
+import dtale
+
+global_state.use_arcticdb_store(uri='lmdb:///<path>')
+dtale.show_arcticdb(library='my_lib', symbol='my_symbol')
+```
+
+Or you can set your library ahead of time so you can use `dtale.show`:
+```python
+import dtale.global_state as global_state
+import dtale
+
+global_state.use_arcticdb_store(uri='lmdb:///<path>', library='my_lib')
+dtale.show('my_symbol')
+```
+
+You can also do everything using `dtale.show_arcticdb`:
+```python
+import dtale
+
+dtale.show_arcticdb(uri='lmdb:///<path>', library='my_lib', symbol='my_symbol', use_store=True)
+```
+
+### Navigating to different libraries/symbols in your ArcticDB database
+
+When starting D-Tale with no data
+```python
+import dtale.global_state as global_state
+import dtale
+
+global_state.use_arcticdb_store(uri='lmdb:///<path>')
+dtale.show()
+```
+
+you'll be presented with this screen on startup
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/arcticdb/select_library_and_symbol.png)
+
+Once you choose a library and a symbol you can click "Load" and it will bring you to the main grid comprised of the data for that symbol.
+
+You can also view information about the symbol you've selected before loading it by clicking the "Info" button
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/arcticdb/description.png)
 
 ## UI
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser

@@ -43,7 +43,7 @@ def test_startup(unittest):
     global_state.clear_store()
 
     instance = views.startup(URL)
-    assert instance._data_id == 1
+    assert instance._data_id == "1"
 
     with pytest.raises(views.NoDataLoadedException) as error:
         views.startup(URL, data_loader=lambda: None)
@@ -79,6 +79,7 @@ def test_startup(unittest):
             hide_header_editor=True,
             lock_header_menu=True,
             locked=["date", "security_id"],
+            indexes=["date", "security_id"],
             precision=2,
             sortInfo=[("security_id", "ASC")],
             rangeHighlight=None,
@@ -99,6 +100,7 @@ def test_startup(unittest):
             hide_header_editor=False,
             lock_header_menu=True,
             locked=["date", "security_id"],
+            indexes=["date", "security_id"],
             precision=2,
             sortInfo=[("security_id", "ASC")],
             rangeHighlight=None,
@@ -106,7 +108,7 @@ def test_startup(unittest):
             verticalHeaders=False,
             highlightFilter=False,
         ),
-        "should lock index columns",
+        "should hide header editor",
     )
 
     test_data = test_data.reset_index()
@@ -148,6 +150,7 @@ def test_startup(unittest):
             allow_cell_edits=False,
             columnFormats={},
             locked=[],
+            indexes=[],
             precision=6,
             rangeHighlight=range_highlights,
             backgroundMode=None,
@@ -167,6 +170,7 @@ def test_startup(unittest):
             allow_cell_edits=True,
             columnFormats={},
             locked=["security_id"],
+            indexes=["security_id"],
             precision=2,
             rangeHighlight=None,
             backgroundMode=None,
@@ -184,6 +188,7 @@ def test_startup(unittest):
         dict(
             allow_cell_edits=True,
             locked=[],
+            indexes=[],
             precision=2,
             columnFormats={},
             rangeHighlight=None,
@@ -191,7 +196,7 @@ def test_startup(unittest):
             verticalHeaders=False,
             highlightFilter=False,
         ),
-        "should lock index columns",
+        "should not lock index columns",
     )
 
     test_data = pd.MultiIndex.from_arrays([[1, 2], [3, 4]], names=("a", "b"))
@@ -202,6 +207,7 @@ def test_startup(unittest):
         dict(
             allow_cell_edits=True,
             locked=[],
+            indexes=[],
             precision=2,
             columnFormats={},
             rangeHighlight=None,
@@ -209,7 +215,7 @@ def test_startup(unittest):
             verticalHeaders=False,
             highlightFilter=False,
         ),
-        "should lock index columns",
+        "should not lock index columns",
     )
 
     test_data = pd.DataFrame(
@@ -309,7 +315,7 @@ def test_startup(unittest):
         ["object", "category"],
     )
 
-    if PY3:
+    if PY3 and parse_version(pd.__version__) >= parse_version("0.25.0"):
         s_int = pd.Series([1, 2, 3, 4, 5], index=list("abcde"), dtype=pd.Int64Dtype())
         s2_int = s_int.reindex(["a", "b", "c", "f", "u"])
         ints = pd.Series([1, 2, 3, 4, 5], index=list("abcfu"))
@@ -2728,6 +2734,7 @@ def test_save_column_filter(unittest, custom_data):
                 "caseSensitive": False,
                 "operand": "=",
                 "raw": None,
+                "meta": {"classification": "B", "column": "bool_val", "type": "string"},
             },
         )
         response = c.get(
@@ -2747,6 +2754,7 @@ def test_save_column_filter(unittest, custom_data):
                 "caseSensitive": False,
                 "operand": "=",
                 "raw": None,
+                "meta": {"classification": "S", "column": "str_val", "type": "string"},
             },
         )
         for col, f_type in [
@@ -2771,6 +2779,7 @@ def test_save_column_filter(unittest, custom_data):
         response_data = response.get_json()
         assert "error" in response_data
 
+        meta = {"classification": "I", "column": "int_val", "type": "int"}
         for operand in ["=", "<", ">", "<=", ">="]:
             response = c.get(
                 "/dtale/save-column-filter/{}".format(c.port),
@@ -2782,7 +2791,7 @@ def test_save_column_filter(unittest, custom_data):
             query = "`int_val` {} 5".format("==" if operand == "=" else operand)
             unittest.assertEqual(
                 response.get_json()["currFilters"]["int_val"],
-                {"query": query, "value": "5", "operand": operand},
+                {"query": query, "value": "5", "operand": operand, "meta": meta},
             )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2793,7 +2802,12 @@ def test_save_column_filter(unittest, custom_data):
         )
         unittest.assertEqual(
             response.get_json()["currFilters"]["int_val"],
-            {"query": "`int_val` in (5, 4)", "value": ["5", "4"], "operand": "="},
+            {
+                "query": "`int_val` in (5, 4)",
+                "value": ["5", "4"],
+                "operand": "=",
+                "meta": meta,
+            },
         )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2811,6 +2825,7 @@ def test_save_column_filter(unittest, custom_data):
                 "min": "4",
                 "max": "5",
                 "operand": "[]",
+                "meta": meta,
             },
         )
         response = c.get(
@@ -2829,6 +2844,7 @@ def test_save_column_filter(unittest, custom_data):
                 "min": "4",
                 "max": "5",
                 "operand": "()",
+                "meta": meta,
             },
         )
         response = c.get(
@@ -2842,7 +2858,7 @@ def test_save_column_filter(unittest, custom_data):
         )
         unittest.assertEqual(
             response.get_json()["currFilters"]["int_val"],
-            {"query": "`int_val` > 4", "min": "4", "operand": "()"},
+            {"query": "`int_val` > 4", "min": "4", "operand": "()", "meta": meta},
         )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2855,7 +2871,7 @@ def test_save_column_filter(unittest, custom_data):
         )
         unittest.assertEqual(
             response.get_json()["currFilters"]["int_val"],
-            {"query": "`int_val` < 5", "max": "5", "operand": "()"},
+            {"query": "`int_val` < 5", "max": "5", "operand": "()", "meta": meta},
         )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2868,7 +2884,13 @@ def test_save_column_filter(unittest, custom_data):
         )
         unittest.assertEqual(
             response.get_json()["currFilters"]["int_val"],
-            {"query": "`int_val` == 4", "min": "4", "max": "4", "operand": "()"},
+            {
+                "query": "`int_val` == 4",
+                "min": "4",
+                "max": "4",
+                "operand": "()",
+                "meta": meta,
+            },
         )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2879,9 +2901,15 @@ def test_save_column_filter(unittest, custom_data):
                 ),
             ),
         )
+        meta = {"classification": "D", "column": "date", "type": "date"}
         unittest.assertEqual(
             response.get_json()["currFilters"]["date"],
-            {"query": "`date` == '20000101'", "start": "20000101", "end": "20000101"},
+            {
+                "query": "`date` == '20000101'",
+                "start": "20000101",
+                "end": "20000101",
+                "meta": meta,
+            },
         )
         response = c.get(
             "/dtale/save-column-filter/{}".format(c.port),
@@ -2898,6 +2926,7 @@ def test_save_column_filter(unittest, custom_data):
                 "query": "`date` >= '20000101' and `date` <= '20000102'",
                 "start": "20000101",
                 "end": "20000102",
+                "meta": meta,
             },
         )
         response = c.get(

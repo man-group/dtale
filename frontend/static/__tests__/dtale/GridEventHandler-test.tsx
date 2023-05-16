@@ -168,4 +168,28 @@ describe('RibbonDropdown', () => {
       expect.objectContaining({ type: ActionType.SET_RANGE_STATE, selectedRow: 1 }),
     );
   });
+
+  it('does edit cell on double-click', async () => {
+    buildMock(undefined, { allowCellEdits: true }, <div className="cell" {...{ cell_idx: '1|2' }} />, true);
+    const cell = container.getElementsByClassName('cell')[0];
+    const myEvent = createEvent.click(cell);
+    fireEvent(cell, myEvent);
+    fireEvent(cell, myEvent);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ type: ActionType.EDIT_CELL, editedCell: '1|2' }),
+    );
+  });
+
+  it('does not edit cell when ArcitcDB is active', async () => {
+    buildMock(
+      undefined,
+      { allowCellEdits: true, isArcticDB: 100 },
+      <div className="cell" {...{ cell_idx: '1|2' }} />,
+      true,
+    );
+    const cell = container.getElementsByClassName('cell')[0];
+    const myEvent = createEvent.dblClick(cell);
+    fireEvent(cell, myEvent);
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
 });

@@ -53,7 +53,7 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
     settings,
     lockHeaderMenu,
   } = useSelector((state: AppState) => ({
-    allowCellEdits: state.allowCellEdits,
+    allowCellEdits: state.allowCellEdits && !state.isArcticDB,
     dataId: state.dataId,
     ribbonMenuOpen: state.ribbonMenuOpen,
     menuPinned: state.menuPinned,

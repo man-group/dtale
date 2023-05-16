@@ -12,6 +12,12 @@ export interface ColumnNavigationProps {
 export const ColumnNavigation: React.FC<ColumnNavigationProps> = ({ dtypes, selectedIndex, setSelected }) => {
   React.useEffect(() => {
     const keyPress = (e: KeyboardEvent): void => {
+      const elements = document.querySelectorAll('.Select');
+      for (const element of Array.from(elements)) {
+        if ((element as Element).contains(e.target as Element)) {
+          return;
+        }
+      }
       if (e.key === 'ArrowUp') {
         if (selectedIndex > 0) {
           setSelected(dtypes.find((col) => col.index === selectedIndex - 1));

@@ -99,7 +99,10 @@ def test_load_flag(unittest, test_data):
 @pytest.mark.unit
 def test_as_dict(unittest):
     """Should only work if object is an instance of MutableMapping or it implements to_dict"""
-    mutable_mapping_instance = dict(a=1, b=2)
+
+    from dtale.global_state import DtaleBaseStore
+
+    mutable_mapping_instance = DtaleBaseStore(a=1, b=2)
     unittest.assertEqual(
         mutable_mapping_instance, global_state._as_dict(mutable_mapping_instance)
     )

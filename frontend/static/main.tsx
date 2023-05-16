@@ -6,6 +6,7 @@ import { Store } from 'redux';
 import { DataViewer } from './dtale/DataViewer';
 import './i18n';
 import ColumnAnalysis from './popups/analysis/ColumnAnalysis';
+import LibrarySymbolSelector from './popups/arcticdb/LibrarySymbolSelector';
 import { CodeExport } from './popups/CodeExport';
 import CodePopup from './popups/CodePopup';
 import { Correlations } from './popups/correlations/Correlations';
@@ -119,6 +120,9 @@ if (pathname.indexOf('/dtale/popup') === 0) {
       break;
     case 'code-export':
       rootNode = <CodeExport />;
+      break;
+    case 'arcticdb':
+      rootNode = <LibrarySymbolSelector />;
       break;
     case 'upload':
     default:

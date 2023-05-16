@@ -87,8 +87,7 @@ def test_show_excel(unittest):
         dtale.show_excel(path="http://test-excel.xlsx", sheet="blah")
         mock_show.call_args[1]["data_loader"]()
         unittest.assertEqual(
-            mock_read_excel.call_args[1],
-            {"sheet_name": "blah", "engine": "openpyxl"},
+            mock_read_excel.call_args[1], {"sheet_name": "blah", "engine": "openpyxl"}
         )
         mock_show.mock_reset()
         mock_read_excel.mock_reset()
@@ -175,3 +174,45 @@ def test_show_sqlite():
                 "You must specify a table name in order to use sqlite loader!"
                 in str(error.value)
             )
+
+
+@pytest.mark.unit
+def test_show_arcticdb(arcticdb_path, arcticdb):
+    pytest.importorskip("arcticdb")
+    import dtale
+    from dtale.views import startup
+    import dtale.global_state as global_state
+
+    with mock.patch("dtale.cli.loaders.arcticdb_loader.show", mock.Mock()) as mock_show:
+        dtale.show_arcticdb(uri=arcticdb_path, library="dtale", symbol="df1")
+        df = mock_show.call_args[1]["data_loader"]()
+        assert len(df) == 3
+
+    with ExitStack() as stack:
+        mock_show = stack.enter_context(
+            mock.patch("dtale.cli.loaders.arcticdb_loader.show", mock.Mock())
+        )
+
+        mock_startup = stack.enter_context(
+            mock.patch("dtale.views.startup", mock.Mock(side_effect=startup))
+        )
+
+        dtale.show_arcticdb(
+            uri=arcticdb_path, library="dtale", symbol="df1", use_store=True
+        )
+        show_output = mock_show.call_args[1]["data_loader"]()
+        assert show_output == "df1"
+
+        df = mock_startup.call_args[1]["data"]
+        assert len(df) == 1
+
+        global_state.cleanup()
+        global_state.use_default_store()  # make sure we switch the default store back
+
+    with mock.patch("dtale.cli.loaders.arcticdb_loader.show", mock.Mock()) as mock_show:
+        dtale.show_arcticdb(uri=arcticdb_path, library="dtale", use_store=True)
+        df = mock_show.call_args[1]["data_loader"]()
+        assert df is None
+
+        global_state.cleanup()
+        global_state.use_default_store()  # make sure we switch the default store back

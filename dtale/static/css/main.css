@@ -10923,7 +10923,9 @@ div.container-fluid.login > #content {
   height: 100%;
   padding-top: 3.5em;
 }
-
+div.container-fluid.arcticdb > div#popup-content > div.modal-body {
+    height: calc(100vh - 76px);
+}
 div.modal-dialog div.modal-body.describe-body {
   height: 500px;
   overflow-y: auto;

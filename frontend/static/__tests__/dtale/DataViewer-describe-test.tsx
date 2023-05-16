@@ -41,7 +41,7 @@ describe('DataViewer tests', () => {
     const store = reduxUtils.createDtaleStore();
     store.dispatch({ type: ActionType.OPEN_CHART, chartData: { visible: true } });
     buildInnerHTML({ settings: '' }, store);
-    await act(() => {
+    await act(async () => {
       const result = render(
         <Provider store={store}>
           <Describe />
@@ -104,12 +104,12 @@ describe('DataViewer tests', () => {
     expect(header('Column Name').getElementsByTagName('path')[0]?.getAttribute('d')).toBeUndefined();
     await act(async () => {
       const buttons = [...screen.getByTestId('describe-filters').getElementsByTagName('button')];
-      fireEvent.click(buttons.find((btn) => btn.textContent === 'Histogram')!);
+      await fireEvent.click(buttons.find((btn) => btn.textContent === 'Histogram')!);
     });
     expect(container.getElementsByTagName('canvas')).toHaveLength(1);
     await act(async () => {
       const buttons = [...screen.getByTestId('describe-filters').getElementsByTagName('button')];
-      fireEvent.click(buttons.find((btn) => btn.textContent === 'Categories')!);
+      await fireEvent.click(buttons.find((btn) => btn.textContent === 'Categories')!);
     });
     const categorySelect = (): HTMLElement =>
       screen.getByTestId('category-col').getElementsByClassName('Select')[0] as HTMLElement;

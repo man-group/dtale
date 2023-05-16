@@ -42,6 +42,7 @@ from dtale.utils import (
     dict_merge,
     fix_url_path,
     get_host,
+    get_url_unquote,
     is_app_root_defined,
     make_list,
     running_with_flask_debug,
@@ -497,6 +498,9 @@ def build_app(
     def handle_data_id(_endpoint, values):
         if values and "data_id" in values:
             # https://github.com/man-group/dtale/commit/536691d365b69a580df836e617978eb563402ac5
+            values["data_id"] = get_url_unquote()(
+                values["data_id"]
+            )  # for handling back-slashes in arcticDB symbols
             data_id_from_name = global_state.get_data_id_by_name(values["data_id"])
             values["data_id"] = data_id_from_name or values["data_id"]
 

@@ -6,6 +6,7 @@ import { ColumnAnalysisPopupData, CreateColumnPopupData, Popups, PopupType } fro
 
 import About from './About';
 import ColumnAnalysis from './analysis/ColumnAnalysis';
+import LibrarySymbolSelector from './arcticdb/LibrarySymbolSelector';
 import Confirmation from './Confirmation';
 import { CopyRangeToClipboard } from './CopyRangeToClipboard';
 import { Correlations } from './correlations/Correlations';
@@ -298,6 +299,17 @@ const buildUpload = (props: BuilderInput): BuilderOutput => {
   return { title, body };
 };
 
+const buildArcticDB = (props: BuilderInput): BuilderOutput => {
+  const title = (
+    <React.Fragment>
+      <i className="fa-solid fa-database" />
+      <strong>{props.t('Load ArcticDB Data', { ns: 'menu' })}</strong>
+    </React.Fragment>
+  );
+  const body = <LibrarySymbolSelector />;
+  return { title, body };
+};
+
 const buildDuplicates = (props: BuilderInput): BuilderOutput => {
   const title = (
     <React.Fragment>
@@ -337,6 +349,7 @@ const POPUP_MAP: Record<PopupType, (props: BuilderInput) => BuilderOutput> = {
   [PopupType.HIDDEN]: () => ({}),
   [PopupType.DESCRIBE]: () => ({}),
   [PopupType.CHARTS]: () => ({}),
+  [PopupType.ARCTICDB]: buildArcticDB,
 };
 
 export const buildBodyAndTitle = (props: BuilderInput): BuilderOutput =>

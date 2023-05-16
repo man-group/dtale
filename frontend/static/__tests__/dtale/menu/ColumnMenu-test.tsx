@@ -57,17 +57,6 @@ describe('ColumnMenu', () => {
     hideColumnMenuSpy = jest.spyOn(actions, 'hideColumnMenu');
     const loadFilterDataSpy = jest.spyOn(ColumnFilterRepository, 'loadFilterData');
     loadFilterDataSpy.mockResolvedValue(undefined);
-    store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
-    store.dispatch({ type: ActionType.TOGGLE_COLUMN_MENU, colName: 'col1' });
-    wrapper = await act(
-      async () =>
-        await render(
-          <Provider store={store}>
-            <ColumnMenu columns={[...reduxUtils.DTYPES.dtypes]} propagateState={propagateState} />)
-          </Provider>,
-        ),
-    );
   });
 
   afterEach(() => jest.clearAllMocks());
@@ -77,7 +66,22 @@ describe('ColumnMenu', () => {
     jest.restoreAllMocks();
   });
 
+  const buildWrapper = async (colName = 'col1', hiddenProps?: Record<string, string>): Promise<void> => {
+    store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '', ...hiddenProps }, store);
+    store.dispatch({ type: ActionType.TOGGLE_COLUMN_MENU, colName });
+    wrapper = await act(
+      async () =>
+        await render(
+          <Provider store={store}>
+            <ColumnMenu columns={[...reduxUtils.DTYPES.dtypes]} propagateState={propagateState} />)
+          </Provider>,
+        ),
+    );
+  };
+
   it('has global hotkey to close menu', async () => {
+    await buildWrapper();
     await act(async () => {
       await fireEvent.keyDown(wrapper.container, { keyCode: 27 });
     });
@@ -88,6 +92,7 @@ describe('ColumnMenu', () => {
   });
 
   it('opens side panel on describe', async () => {
+    await buildWrapper();
     await act(async () => {
       await fireEvent.click(wrapper.container.getElementsByClassName('ico-visibility-off')[0]);
     });
@@ -104,6 +109,7 @@ describe('ColumnMenu', () => {
   });
 
   it('correctly hides column', async () => {
+    await buildWrapper();
     await act(async () => {
       await fireEvent.click(wrapper.container.getElementsByClassName('ico-view-column')[0]);
     });
@@ -112,5 +118,26 @@ describe('ColumnMenu', () => {
       view: SidePanelType.DESCRIBE,
       column: props.selectedCol,
     });
+  });
+
+  it('correctly hides functions for ArcticDB', async () => {
+    await buildWrapper('col2', { isArcticDB: '100' });
+    expect(
+      [...document.getElementById('column-menu-div')!.querySelectorAll('ul li span.font-weight-bold')].map(
+        (s) => s.textContent,
+      ),
+    ).toEqual([
+      ...['Lock', 'Hide', 'Duplicates', 'Describe(Column Analysis)', 'Variance Report', 'Formats'],
+      ...['Heat Map'],
+    ]);
+  });
+
+  it('correctly hides functions for large ArcticDB', async () => {
+    await buildWrapper('col2', { isArcticDB: '3000000' });
+    expect(
+      [...document.getElementById('column-menu-div')!.querySelectorAll('ul li span.font-weight-bold')].map(
+        (s) => s.textContent,
+      ),
+    ).toEqual(['Lock', 'Hide', 'Duplicates', 'Describe(Column Analysis)', 'Formats']);
   });
 });

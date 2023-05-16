@@ -38,7 +38,7 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
   propagateState,
   t,
 }) => {
-  const { editedCell, allowCellEdits, settings, ...rangeState } = useSelector((state: AppState) => state);
+  const { editedCell, allowCellEdits, isArcticDB, settings, ...rangeState } = useSelector((state: AppState) => state);
   const dispatch = useDispatch();
   const showTooltip = (element: HTMLElement, content: React.ReactNode): ShowMenuTooltipAction =>
     dispatch({ type: ActionType.SHOW_MENU_TOOLTIP, element, content });
@@ -64,7 +64,7 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
 
   const buildCellClassName = (): string => {
     const classes = ['cell'];
-    if (gu.isCellEditable(allowCellEdits, colCfg)) {
+    if (!isArcticDB && gu.isCellEditable(allowCellEdits, colCfg)) {
       classes.push('editable');
     }
     if (isInRange(columnIndex, rowIndex, rangeState)) {

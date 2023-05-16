@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.0.0 (2023-6-9)
+* Added support for ArcticDB as the storage mechanism for pandas dataframes
+
 ### 2.16.0 (2023-5-16)
 * [#759](https://github.com/man-group/dtale/issues/759): freeze header menu option
 * Updated data_id storage to use strings rather than numbers
