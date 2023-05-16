@@ -81,6 +81,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     }
     return options;
   }, [dtype, cols, selectedCol, t]);
+
   const colOptions: Array<BaseOption<string>> = React.useMemo(
     () =>
       cols

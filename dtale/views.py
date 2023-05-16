@@ -59,8 +59,10 @@ from dtale.code_export import build_code_export
 from dtale.query import (
     build_col_key,
     build_query,
+    build_query_builder,
     handle_predefined,
     load_filterable_data,
+    load_index_filter,
     run_query,
 )
 from dtale.timeseries_analysis import TimeseriesAnalysis
@@ -77,12 +79,14 @@ from dtale.utils import (
     export_to_csv_buffer,
     find_dtype,
     find_dtype_formatter,
+    format_data,
     format_grid,
     get_bool_arg,
     get_dtypes,
     get_int_arg,
     get_json_arg,
     get_str_arg,
+    get_url_quote,
     grid_columns,
     grid_formatter,
     json_date,
@@ -93,11 +97,12 @@ from dtale.utils import (
     jsonify_error,
     read_file,
     make_list,
+    optimize_df,
     retrieve_grid_params,
     running_with_flask_debug,
     running_with_pytest,
     sort_df_for_grid,
-    optimize_df,
+    unique_count,
 )
 from dtale.translations import text
 
@@ -155,8 +160,9 @@ class NoDataLoadedException(Exception):
 def head_endpoint(popup_type=None):
     data_keys = global_state.keys()
     if not len(data_keys):
-        return "popup/upload"
+        return "popup/{}".format("arcticdb" if global_state.is_arcticdb else "upload")
     head_id = sorted(data_keys)[0]
+    head_id = get_url_quote()(get_url_quote()(head_id, safe=""))
     if popup_type:
         return "popup/{}/{}".format(popup_type, head_id)
     return "main/{}".format(head_id)
@@ -566,7 +572,9 @@ class DtaleData(object):
         yaxis=None,
         filepath=None,
         title=None,
+        # fmt: off
         **kwargs
+        # fmt: on
     ):
         """
         Builds the HTML for a plotly chart figure to saved to a file or output to a jupyter notebook
@@ -664,10 +672,6 @@ class DtaleData(object):
             logger.debug("You must ipython>=5.0 installed to use this functionality")
 
 
-def unique_count(s):
-    return int(len(s.dropna().unique()))
-
-
 def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
     """
     Helper function to build formatter for the descriptive information about each column in the dataframe you
@@ -697,10 +701,14 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             dtype=dtype,
             index=col_index,
             visible=visible,
-            unique_ct=unique_count(s),
-            hasMissing=int(s.isnull().sum()),
             hasOutliers=0,
+            hasMissing=1,
         )
+        if global_state.is_arcticdb:
+            return dtype_data
+
+        dtype_data["unique_ct"] = unique_count(s)
+        dtype_data["hasMissing"] = int(s.isnull().sum())
         classification = classify_type(dtype)
         if (
             classification in ["F", "I"] and not s.isnull().all() and col in data_ranges
@@ -780,100 +788,9 @@ def build_dtypes_state(data, prev_state=None, ranges=None):
     """
     prev_dtypes = {c["name"]: c for c in prev_state or []}
     dtypes = get_dtypes(data)
-    dtype_f = dtype_formatter(
-        data, dtypes, ranges or calc_data_ranges(data, dtypes), prev_dtypes
-    )
+    loaded_ranges = ranges or calc_data_ranges(data, dtypes)
+    dtype_f = dtype_formatter(data, dtypes, loaded_ranges, prev_dtypes)
     return [dtype_f(i, c) for i, c in enumerate(data.columns)]
-
-
-def format_data(data, inplace=False, drop_index=False):
-    """
-    Helper function to build globally managed state pertaining to a D-Tale instances data.  Some updates being made:
-     - convert all column names to strings
-     - drop any indexes back into the dataframe so what we are left is a natural index [0,1,2,...,n]
-     - convert inputs that are indexes into dataframes
-     - replace any periods in column names with underscores
-
-    :param data: dataframe to build data type information for
-    :type data: :class:`pandas:pandas.DataFrame`
-    :param allow_cell_edits: If false, this will not allow users to edit cells directly in their D-Tale grid
-    :type allow_cell_edits: bool, optional
-    :param inplace: If true, this will call `reset_index(inplace=True)` on the dataframe used as a way to save memory.
-                    Otherwise this will create a brand new dataframe, thus doubling memory but leaving the dataframe
-                    input unchanged.
-    :type inplace: bool, optional
-    :param drop_index: If true, this will drop any pre-existing index on the dataframe input.
-    :type drop_index: bool, optional
-    :return: formatted :class:`pandas:pandas.DataFrame` and a list of strings constituting what columns were originally
-             in the index
-    :raises: Exception if the dataframe contains two columns of the same name
-    """
-    if isinstance(data, (pd.DatetimeIndex, pd.MultiIndex)):
-        data = data.to_frame(index=False)
-
-    if isinstance(data, (np.ndarray, list, dict)):
-        try:
-            data = pd.DataFrame(data)
-        except BaseException:
-            data = pd.Series(data).to_frame()
-
-    index = [
-        str(i) for i in make_list(data.index.name or data.index.names) if i is not None
-    ]
-    drop = True
-    if not len(index) and not data.index.equals(pd.RangeIndex(0, len(data))):
-        drop = False
-        index = ["index"]
-
-    if inplace:
-        data.reset_index(inplace=True, drop=drop_index)
-    else:
-        data = data.reset_index(drop=drop_index)
-
-    if drop:
-        if inplace:
-            data.drop("index", axis=1, errors="ignore", inplace=True)
-        else:
-            data = data.drop("index", axis=1, errors="ignore")
-
-    def _format_colname(colname):
-        if isinstance(colname, tuple):
-            formatted_vals = [
-                find_dtype_formatter(type(v).__name__)(v, as_string=True)
-                for v in colname
-            ]
-            return "_".join([v for v in formatted_vals if v])
-        return str(colname).strip()
-
-    data.columns = [_format_colname(c) for c in data.columns]
-    if len(data.columns) > len(set(data.columns)):
-        distinct_cols = set()
-        dupes = set()
-        for c in data.columns:
-            if c in distinct_cols:
-                dupes.add(c)
-            distinct_cols.add(c)
-        raise Exception(
-            "data contains duplicated column names: {}".format(", ".join(sorted(dupes)))
-        )
-
-    for col in data.columns:
-        dtype = find_dtype(data[col])
-        all_null = data[col].isnull().all()
-        if dtype.startswith("mixed") and not all_null:
-            try:
-                unique_count(data[col])
-            except TypeError:
-                # convert any columns with complex data structures (list, dict, etc...) to strings
-                data.loc[:, col] = data[col].astype("str")
-        elif dtype.startswith("period") and not all_null:
-            # convert any pandas period_range columns to timestamps
-            data.loc[:, col] = data[col].apply(lambda x: x.to_timestamp())
-        elif dtype.startswith("datetime") and not all_null:
-            # remove timezone information for filtering purposes
-            data.loc[:, col] = data[col].dt.tz_localize(None)
-
-    return data, index
 
 
 def check_duplicate_data(data):
@@ -966,6 +883,7 @@ def startup(
     highlight_filter=False,
     hide_header_editor=None,
     lock_header_menu=None,
+    force_save=True,
 ):
     """
     Loads and stores data globally
@@ -1036,10 +954,39 @@ def startup(
     if (
         data_loader is None and data is None
     ):  # scenario where we'll force users to upload a CSV/TSV
-        return DtaleData(1, url, is_proxy=is_proxy, app_root=app_root)
+        return DtaleData("1", url, is_proxy=is_proxy, app_root=app_root)
 
     if data_loader is not None:
         data = data_loader()
+        if isinstance(data, string_types) and global_state.contains(data):
+            return DtaleData(data, url, is_proxy=is_proxy, app_root=app_root)
+        elif data is None and global_state.is_arcticdb:
+            return DtaleData("1", url, is_proxy=is_proxy, app_root=app_root)
+
+    if global_state.is_arcticdb and isinstance(data, string_types):
+        data_id = data
+        global_state.new_data_inst(data_id)
+        instance = global_state.store.get(data_id)
+        data = instance.load_data(row_range=[0, 1])
+        ret_data = startup(data=data, data_id=data_id, force_save=False)
+        startup_code = (
+            "from arcticdb import Arctic\n"
+            "from arcticdb.version_store._store import VersionedItem\n\n"
+            "conn = Arctic('{uri}')\n"
+            "lib = conn.get_library('{library}')\n"
+            "df = lib.read('{symbol}')\n"
+            "if isinstance(data, VersionedItem):\n"
+            "\tdf = df.data\n"
+        ).format(
+            uri=global_state.store.uri,
+            library=global_state.store.lib.name,
+            symbol=data_id,
+        )
+        curr_settings = global_state.get_settings(data_id)
+        global_state.set_settings(
+            data_id, dict_merge(curr_settings, dict(startup_code=startup_code))
+        )
+        return ret_data
 
     if data is not None:
         data = handle_koalas(data)
@@ -1097,7 +1044,7 @@ def startup(
 
         data, curr_index = format_data(data, inplace=inplace, drop_index=drop_index)
         # check to see if this dataframe has already been loaded to D-Tale
-        if data_id is None and not ignore_duplicate:
+        if data_id is None and not ignore_duplicate and not global_state.is_arcticdb:
             check_duplicate_data(data)
 
         logger.debug(
@@ -1126,6 +1073,7 @@ def startup(
         global_state.set_name(data_id, name)
         # in the case that data has been updated we will drop any sorts or filter for ease of use
         base_settings = dict(
+            indexes=curr_index,
             locked=curr_locked,
             allow_cell_edits=True if allow_cell_edits is None else allow_cell_edits,
             precision=precision,
@@ -1152,17 +1100,33 @@ def startup(
         if column_edit_options is not None:
             base_settings["column_edit_options"] = column_edit_options
         global_state.set_settings(data_id, base_settings)
-        if optimize_dataframe:
+        if optimize_dataframe and not global_state.is_arcticdb:
             data = optimize_df(data)
-        global_state.set_data(data_id, data)
-        dtypes_state = build_dtypes_state(data, global_state.get_dtypes(data_id) or [])
+        if force_save or (
+            global_state.is_arcticdb and not global_state.contains(data_id)
+        ):
+            global_state.set_data(data_id, data)
+        dtypes_data = data
+        ranges = None
+        if global_state.is_arcticdb:
+            instance = global_state.store.get(data_id)
+            if instance.rows() < global_state.LARGE_ARCTICDB:
+                dtypes_data = instance.load_data()
+                dtypes_data, _ = format_data(
+                    dtypes_data, inplace=inplace, drop_index=drop_index
+                )
+                ranges = calc_data_ranges(dtypes_data)
+        dtypes_state = build_dtypes_state(
+            dtypes_data, global_state.get_dtypes(data_id) or [], ranges=ranges
+        )
+
         if show_columns or hide_columns:
             for col in dtypes_state:
                 if show_columns and col["name"] not in show_columns:
                     col["visible"] = False
                 if hide_columns and col["name"] in hide_columns:
                     col["visible"] = False
-        if auto_hide_empty_columns:
+        if auto_hide_empty_columns and not global_state.is_arcticdb:
             is_empty = data.isnull().all()
             is_empty = list(is_empty[is_empty].index.values)
             for col in dtypes_state:
@@ -1209,9 +1173,15 @@ def base_render_template(template, data_id, **kwargs):
         lock_header_menu=lock_header_menu,
         github_fork=github_fork,
     )
+    is_arcticdb = 0
+    if global_state.is_arcticdb:
+        instance = global_state.store.get(data_id)
+        is_arcticdb = instance.rows()
     return render_template(
         template,
-        data_id=data_id,
+        data_id=get_url_quote()(get_url_quote()(data_id, safe=""))
+        if data_id is not None
+        else "",
         xarray=global_state.get_data_inst(data_id).is_xarray_dataset,
         xarray_dim=json.dumps(global_state.get_dataset_dim(data_id)),
         settings=json.dumps(curr_settings),
@@ -1222,7 +1192,10 @@ def base_render_template(template, data_id, **kwargs):
             [f.asdict() for f in predefined_filters.get_filters()]
         ),
         is_vscode=is_vscode(),
+        is_arcticdb=is_arcticdb,
+        # fmt: off
         **dict_merge(kwargs, curr_app_settings, app_overrides)
+        # fmt: on
     )
 
 
@@ -1301,6 +1274,7 @@ POPUP_TITLES = {
     "upload": "Load Data",
     "pps": "Predictive Power Score",
     "merge": "Merge & Stack",
+    "arcticdb": "Load ArcticDB Data",
 }
 
 
@@ -1317,7 +1291,7 @@ def view_popup(popup_type, data_id=None):
     :type data_id: str
     :return: HTML
     """
-    if data_id is None and popup_type not in ["upload", "merge"]:
+    if data_id is None and popup_type not in ["upload", "merge", "arcticdb"]:
         return redirect("/dtale/{}".format(head_endpoint(popup_type)))
     main_title = global_state.get_app_settings().get("main_title")
     title = main_title or "D-Tale"
@@ -2098,64 +2072,110 @@ def describe(data_id):
 
     """
     column = get_str_arg(request, "col")
-    data = load_filterable_data(data_id, request)
+    curr_settings = global_state.get_settings(data_id) or {}
+    columns_to_load = [column]
+    indexes = curr_settings.get("indexes", [])
+    # TODO: update this to use arcticdb's index function once it becomes available
+    if global_state.is_arcticdb and column in indexes:
+        column_to_load = next(
+            (
+                c
+                for c in global_state.get_dtypes(data_id) or []
+                if c["name"] not in indexes
+            ),
+            None,
+        )
+        columns_to_load = [column_to_load["name"]] if column_to_load else None
+    data = load_filterable_data(data_id, request, columns=columns_to_load)
     data = data[[column]]
     additional_aggs = None
     dtype = global_state.get_dtype_info(data_id, column)
     classification = classify_type(dtype["dtype"])
-    if classification in ["I", "F"]:
+    if classification == "I":
         additional_aggs = ["sum", "median", "mode", "var", "sem"]
+    elif classification == "F":
+        additional_aggs = ["sum", "median", "var", "sem"]
     code = build_code_export(data_id)
     desc, desc_code = load_describe(data[column], additional_aggs=additional_aggs)
     code += desc_code
     return_data = dict(describe=desc, success=True)
-    if "unique" not in return_data["describe"]:
+    if "unique" not in return_data["describe"] and "unique_ct" in dtype:
         return_data["describe"]["unique"] = json_int(dtype["unique_ct"], as_string=True)
     for p in ["skew", "kurt"]:
         if p in dtype:
             return_data["describe"][p] = dtype[p]
 
-    uniq_vals = data[column].value_counts().sort_values(ascending=False)
-    uniq_vals.index.name = "value"
-    uniq_vals.name = "count"
-    uniq_vals = uniq_vals.reset_index()
+    if (
+        classification != "F"
+        and global_state.store.get(data_id).rows() < global_state.LARGE_ARCTICDB
+    ):
+        uniq_vals = data[column].value_counts().sort_values(ascending=False)
+        uniq_vals.index.name = "value"
+        uniq_vals.name = "count"
+        uniq_vals = uniq_vals.reset_index()
 
-    # build top
-    top_freq = uniq_vals["count"].values[0]
-    top_vals = uniq_vals[uniq_vals["count"] == top_freq].sort_values("value").head(5)
-    top_vals_f = grid_formatter(grid_columns(top_vals), as_string=True)
-    top_vals = top_vals_f.format_lists(top_vals)
-    return_data["describe"]["top"] = ", ".join(top_vals["value"])
-    return_data["describe"]["freq"] = int(top_freq)
+        # build top
+        top_freq = uniq_vals["count"].values[0]
+        top_vals = (
+            uniq_vals[uniq_vals["count"] == top_freq].sort_values("value").head(5)
+        )
+        top_vals_f = grid_formatter(grid_columns(top_vals), as_string=True)
+        top_vals = top_vals_f.format_lists(top_vals)
+        return_data["describe"]["top"] = ", ".join(top_vals["value"])
+        return_data["describe"]["freq"] = int(top_freq)
 
-    code.append(
-        (
-            "uniq_vals = data['{}'].value_counts().sort_values(ascending=False)\n"
-            "uniq_vals.index.name = 'value'\n"
-            "uniq_vals.name = 'count'\n"
-            "uniq_vals = uniq_vals.reset_index()"
-        ).format(column)
-    )
-
-    if dtype["dtype"].startswith("mixed"):
-        uniq_vals["type"] = apply(uniq_vals["value"], lambda i: type(i).__name__)
-        dtype_counts = uniq_vals.groupby("type")["count"].sum().reset_index()
-        dtype_counts.columns = ["dtype", "count"]
-        return_data["dtype_counts"] = dtype_counts.to_dict(orient="records")
         code.append(
             (
-                "uniq_vals['type'] = uniq_vals['value'].apply( lambda i: type(i).__name__)\n"
-                "dtype_counts = uniq_vals.groupby('type')['count'].sum().reset_index()\n"
-                "dtype_counts.columns = ['dtype', 'count']"
-            )
-        )
-    else:
-        uniq_vals.loc[:, "type"] = find_dtype(uniq_vals["value"])
-        code.append(
-            "uniq_vals.loc[:, 'type'] = '{}'".format(uniq_vals["type"].values[0])
+                "uniq_vals = data['{}'].value_counts().sort_values(ascending=False)\n"
+                "uniq_vals.index.name = 'value'\n"
+                "uniq_vals.name = 'count'\n"
+                "uniq_vals = uniq_vals.reset_index()"
+            ).format(column)
         )
 
-    if classification in ["I", "F", "D"]:
+        if dtype["dtype"].startswith("mixed"):
+            uniq_vals["type"] = apply(uniq_vals["value"], lambda i: type(i).__name__)
+            dtype_counts = uniq_vals.groupby("type")["count"].sum().reset_index()
+            dtype_counts.columns = ["dtype", "count"]
+            return_data["dtype_counts"] = dtype_counts.to_dict(orient="records")
+            code.append(
+                (
+                    "uniq_vals['type'] = uniq_vals['value'].apply( lambda i: type(i).__name__)\n"
+                    "dtype_counts = uniq_vals.groupby('type')['count'].sum().reset_index()\n"
+                    "dtype_counts.columns = ['dtype', 'count']"
+                )
+            )
+        else:
+            uniq_vals.loc[:, "type"] = find_dtype(uniq_vals["value"])
+            code.append(
+                "uniq_vals.loc[:, 'type'] = '{}'".format(uniq_vals["type"].values[0])
+            )
+
+        return_data["uniques"] = {}
+        for uniq_type, uniq_grp in uniq_vals.groupby("type"):
+            total = len(uniq_grp)
+            top = total > 100
+            uniq_grp = (
+                uniq_grp[["value", "count"]]
+                .sort_values(["count", "value"], ascending=[False, True])
+                .head(100)
+            )
+            # pandas started supporting string dtypes in 1.1.0
+            conversion_type = (
+                uniq_type
+                if pandas_util.check_pandas_version("1.1.0") and uniq_type == "string"
+                else "object"
+            )
+            uniq_grp["value"] = uniq_grp["value"].astype(conversion_type)
+            uniq_f, _ = build_formatters(uniq_grp)
+            return_data["uniques"][uniq_type] = dict(
+                data=uniq_f.format_dicts(uniq_grp.itertuples()), total=total, top=top
+            )
+
+    if (
+        classification in ["I", "F", "D"]
+        and global_state.store.get(data_id).rows() < global_state.LARGE_ARCTICDB
+    ):
         sd_metrics, sd_code = build_sequential_diffs(data[column], column)
         return_data["sequential_diffs"] = sd_metrics
         code.append(sd_code)
@@ -2167,27 +2187,6 @@ def describe(data_id):
         )
         return_data["string_metrics"] = sm_metrics
         code += sm_code
-
-    return_data["uniques"] = {}
-    for uniq_type, uniq_grp in uniq_vals.groupby("type"):
-        total = len(uniq_grp)
-        top = total > 100
-        uniq_grp = (
-            uniq_grp[["value", "count"]]
-            .sort_values(["count", "value"], ascending=[False, True])
-            .head(100)
-        )
-        # pandas started supporting string dtypes in 1.1.0
-        conversion_type = (
-            "object"
-            if pandas_util.check_pandas_version("1.1.0") and uniq_type == "string"
-            else uniq_type
-        )
-        uniq_grp["value"] = uniq_grp["value"].astype(conversion_type)
-        uniq_f, _ = build_formatters(uniq_grp)
-        return_data["uniques"][uniq_type] = dict(
-            data=uniq_f.format_dicts(uniq_grp.itertuples()), total=total, top=top
-        )
 
     return_data["code"] = "\n".join(code)
     return jsonify(return_data)
@@ -2493,7 +2492,7 @@ def build_filter_vals(series, data_id, column, fmt):
         vals = sorted(vals)
     except BaseException:
         pass  # if there are mixed values (EX: strings with ints) this fails
-    if dtype_info["unique_ct"] > 500:
+    if dtype_info.get("unique_ct", 0) > 500:
         # columns with too many unique values will need to use asynchronous loading, so for now we'll give the
         # first 5 values
         vals = vals[:5]
@@ -2504,6 +2503,11 @@ def build_filter_vals(series, data_id, column, fmt):
 @dtale.route("/column-filter-data/<data_id>")
 @exception_decorator
 def get_column_filter_data(data_id):
+    if (
+        global_state.is_arcticdb
+        and global_state.store.get(data_id).rows() > global_state.LARGE_ARCTICDB
+    ):
+        return jsonify(dict(success=True, hasMissing=True))
     column = get_str_arg(request, "col")
     s = global_state.get_data(data_id)[column]
     dtype = find_dtype(s)
@@ -2570,17 +2574,6 @@ def get_data(data_id):
         success: True/False
     }
     """
-    data = global_state.get_data(data_id)
-
-    # this will check for when someone instantiates D-Tale programmatically and directly alters the internal
-    # state of the dataframe (EX: d.data['new_col'] = 'foo')
-    curr_dtypes = [c["name"] for c in global_state.get_dtypes(data_id)]
-    if any(c not in curr_dtypes for c in data.columns):
-        data, _ = format_data(data)
-        global_state.set_data(data_id, data)
-        global_state.set_dtypes(
-            data_id, build_dtypes_state(data, global_state.get_dtypes(data_id) or [])
-        )
 
     params = retrieve_grid_params(request)
     export = get_bool_arg(request, "export")
@@ -2589,61 +2582,172 @@ def get_data(data_id):
         return jsonify({})
 
     curr_settings = global_state.get_settings(data_id) or {}
-    col_types = global_state.get_dtypes(data_id)
-    f = grid_formatter(col_types, nan_display=curr_settings.get("nanDisplay", "nan"))
-    if curr_settings.get("sortInfo") != params.get("sort"):
-        data = sort_df_for_grid(data, params)
-        global_state.set_data(data_id, data)
-    if params.get("sort") is not None:
-        curr_settings = dict_merge(curr_settings, dict(sortInfo=params["sort"]))
-    else:
-        curr_settings = {k: v for k, v in curr_settings.items() if k != "sortInfo"}
     final_query = build_query(data_id, curr_settings.get("query"))
     highlight_filter = curr_settings.get("highlightFilter") or False
-    filtered_indexes = []
-    data = run_query(
-        handle_predefined(data_id),
-        final_query,
-        global_state.get_context_variables(data_id),
-        ignore_empty=True,
-        highlight_filter=highlight_filter,
-    )
-    if highlight_filter:
-        data, filtered_indexes = data
-    global_state.set_settings(data_id, curr_settings)
 
-    total = len(data)
-    results = {}
-    if total:
-        if export:
-            export_rows = get_int_arg(request, "export_rows")
-            if export_rows:
-                data = data.head(export_rows)
-            results = f.format_dicts(data.itertuples())
-            results = [dict_merge({IDX_COL: i}, r) for i, r in enumerate(results)]
+    if global_state.is_arcticdb:
+        col_types = global_state.get_dtypes(data_id)
+        f = grid_formatter(
+            col_types, nan_display=curr_settings.get("nanDisplay", "nan")
+        )
+
+        query_builder = build_query_builder(data_id)
+        date_range = load_index_filter(data_id)
+        instance = global_state.store.get(data_id)
+        total = instance.rows()
+        results = {}
+        if total:
+            if export:
+                export_rows = get_int_arg(request, "export_rows")
+                if export_rows:
+                    if query_builder:
+                        data = instance.load_data(
+                            query_builder=query_builder, **(date_range or {})
+                        )
+                        data = data.head(export_rows)
+                    elif date_range:
+                        data = instance.load_data(**date_range)
+                        data = data.head(export_rows)
+                    else:
+                        data = instance.load_data(row_range=[0, export_rows])
+                results = f.format_dicts(data.itertuples())
+                results = [dict_merge({IDX_COL: i}, r) for i, r in enumerate(results)]
+            elif query_builder:
+                df = instance.load_data(
+                    query_builder=query_builder, **(date_range or {})
+                )
+                total = len(df)
+                df, _ = format_data(df)
+                for sub_range in ids:
+                    sub_range = list(map(int, sub_range.split("-")))
+                    if len(sub_range) == 1:
+                        sub_df = df.iloc[sub_range[0] : sub_range[0] + 1]
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        results[sub_range[0]] = dict_merge(
+                            {IDX_COL: sub_range[0]}, sub_df[0]
+                        )
+                    else:
+                        [start, end] = sub_range
+                        sub_df = (
+                            df.iloc[start:]
+                            if end >= total - 1
+                            else df.iloc[start : end + 1]
+                        )
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        for i, d in zip(range(start, end + 1), sub_df):
+                            results[i] = dict_merge({IDX_COL: i}, d)
+            elif date_range:
+                df = instance.load_data(**date_range)
+                total = len(df)
+                df, _ = format_data(df)
+                for sub_range in ids:
+                    sub_range = list(map(int, sub_range.split("-")))
+                    if len(sub_range) == 1:
+                        sub_df = df.iloc[sub_range[0] : sub_range[0] + 1]
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        results[sub_range[0]] = dict_merge(
+                            {IDX_COL: sub_range[0]}, sub_df[0]
+                        )
+                    else:
+                        [start, end] = sub_range
+                        sub_df = (
+                            df.iloc[start:]
+                            if end >= total - 1
+                            else df.iloc[start : end + 1]
+                        )
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        for i, d in zip(range(start, end + 1), sub_df):
+                            results[i] = dict_merge({IDX_COL: i}, d)
+            else:
+                for sub_range in ids:
+                    sub_range = list(map(int, sub_range.split("-")))
+                    if len(sub_range) == 1:
+                        sub_df = instance.load_data(
+                            row_range=[sub_range[0], sub_range[0] + 1]
+                        )
+                        sub_df, _ = format_data(sub_df)
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        results[sub_range[0]] = dict_merge(
+                            {IDX_COL: sub_range[0]}, sub_df[0]
+                        )
+                    else:
+                        [start, end] = sub_range
+                        sub_df = instance.load_data(
+                            row_range=[start, total if end >= total else end + 1]
+                        )
+                        sub_df, _ = format_data(sub_df)
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        for i, d in zip(range(start, end + 1), sub_df):
+                            results[i] = dict_merge({IDX_COL: i}, d)
+    else:
+        data = global_state.get_data(data_id)
+
+        # this will check for when someone instantiates D-Tale programmatically and directly alters the internal
+        # state of the dataframe (EX: d.data['new_col'] = 'foo')
+        curr_dtypes = [c["name"] for c in global_state.get_dtypes(data_id)]
+        if any(c not in curr_dtypes for c in data.columns):
+            data, _ = format_data(data)
+            global_state.set_data(data_id, data)
+            global_state.set_dtypes(
+                data_id,
+                build_dtypes_state(data, global_state.get_dtypes(data_id) or []),
+            )
+
+        col_types = global_state.get_dtypes(data_id)
+        f = grid_formatter(
+            col_types, nan_display=curr_settings.get("nanDisplay", "nan")
+        )
+        if curr_settings.get("sortInfo") != params.get("sort"):
+            data = sort_df_for_grid(data, params)
+            global_state.set_data(data_id, data)
+        if params.get("sort") is not None:
+            curr_settings = dict_merge(curr_settings, dict(sortInfo=params["sort"]))
         else:
-            for sub_range in ids:
-                sub_range = list(map(int, sub_range.split("-")))
-                if len(sub_range) == 1:
-                    sub_df = data.iloc[sub_range[0] : sub_range[0] + 1]
-                    sub_df = f.format_dicts(sub_df.itertuples())
-                    results[sub_range[0]] = dict_merge(
-                        {IDX_COL: sub_range[0]}, sub_df[0]
-                    )
-                    if highlight_filter and sub_range[0] in filtered_indexes:
-                        results[sub_range[0]]["__filtered"] = True
-                else:
-                    [start, end] = sub_range
-                    sub_df = (
-                        data.iloc[start:]
-                        if end >= len(data) - 1
-                        else data.iloc[start : end + 1]
-                    )
-                    sub_df = f.format_dicts(sub_df.itertuples())
-                    for i, d in zip(range(start, end + 1), sub_df):
-                        results[i] = dict_merge({IDX_COL: i}, d)
-                        if highlight_filter and i in filtered_indexes:
-                            results[i]["__filtered"] = True
+            curr_settings = {k: v for k, v in curr_settings.items() if k != "sortInfo"}
+        filtered_indexes = []
+        data = run_query(
+            handle_predefined(data_id),
+            final_query,
+            global_state.get_context_variables(data_id),
+            ignore_empty=True,
+            highlight_filter=highlight_filter,
+        )
+        if highlight_filter:
+            data, filtered_indexes = data
+        global_state.set_settings(data_id, curr_settings)
+
+        total = len(data)
+        results = {}
+        if total:
+            if export:
+                export_rows = get_int_arg(request, "export_rows")
+                if export_rows:
+                    data = data.head(export_rows)
+                results = f.format_dicts(data.itertuples())
+                results = [dict_merge({IDX_COL: i}, r) for i, r in enumerate(results)]
+            else:
+                for sub_range in ids:
+                    sub_range = list(map(int, sub_range.split("-")))
+                    if len(sub_range) == 1:
+                        sub_df = data.iloc[sub_range[0] : sub_range[0] + 1]
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        results[sub_range[0]] = dict_merge(
+                            {IDX_COL: sub_range[0]}, sub_df[0]
+                        )
+                        if highlight_filter and sub_range[0] in filtered_indexes:
+                            results[sub_range[0]]["__filtered"] = True
+                    else:
+                        [start, end] = sub_range
+                        sub_df = (
+                            data.iloc[start:]
+                            if end >= total - 1
+                            else data.iloc[start : end + 1]
+                        )
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        for i, d in zip(range(start, end + 1), sub_df):
+                            results[i] = dict_merge({IDX_COL: i}, d)
+                            if highlight_filter and i in filtered_indexes:
+                                results[i]["__filtered"] = True
     columns = [
         dict(name=IDX_COL, dtype="int64", visible=True)
     ] + global_state.get_dtypes(data_id)
@@ -3991,3 +4095,85 @@ def get_timeseries_analysis(data_id):
     ts_rpt = TimeseriesAnalysis(data_id, report_type, cfg)
     data = ts_rpt.run()
     return jsonify(dict_merge(dict(success=True), data))
+
+
+@dtale.route("/arcticdb/libraries")
+@exception_decorator
+def get_arcticdb_libraries():
+    if get_bool_arg(request, "refresh"):
+        global_state.store.load_libraries()
+    ret_data = dict(success=True, libraries=global_state.store.libraries)
+    if global_state.store.lib is not None:
+        ret_data["library"] = global_state.store.lib.name
+    return jsonify(ret_data)
+
+
+@dtale.route("/arcticdb/<library>/symbols")
+@exception_decorator
+def get_arcticdb_symbols(library):
+    if get_bool_arg(request, "refresh") or library not in global_state.store._symbols:
+        global_state.store.load_symbols(library)
+    return jsonify(dict(success=True, symbols=global_state.store._symbols[library]))
+
+
+@dtale.route("/arcticdb/load-description")
+@exception_decorator
+def load_arcticdb_description():
+    from arcticc.pb2.descriptors_pb2 import _TYPEDESCRIPTOR_VALUETYPE
+
+    library = get_str_arg(request, "library")
+    symbol = get_str_arg(request, "symbol")
+
+    lib = global_state.store.conn[library]
+    description = lib.get_description(symbol)
+
+    columns = list(
+        map(
+            lambda c: "{} ({})".format(
+                c.name, _TYPEDESCRIPTOR_VALUETYPE.values[c.dtype.value_type].name
+            ),
+            sorted(description.columns, key=lambda c: c.name),
+        )
+    )
+    index = list(
+        map(
+            lambda i: "{} ({})".format(
+                i[0], _TYPEDESCRIPTOR_VALUETYPE.values[i[1].value_type].name
+            ),
+            zip(description.index.name, description.index.dtype),
+        )
+    )
+    description_str = (
+        "ROWS: {rows:,.0f}\n" "INDEX:\n" "\t- {index}\n" "COLUMNS:\n" "\t- {columns}\n"
+    ).format(
+        rows=description.row_count,
+        index="\n\t- ".join(index),
+        columns="\n\t- ".join(columns),
+    )
+    return jsonify(dict(success=True, symbol=symbol, description=description_str))
+
+
+@dtale.route("/arcticdb/load-symbol")
+@exception_decorator
+def load_arcticdb_symbol():
+    library = get_str_arg(request, "library")
+    symbol = get_str_arg(request, "symbol")
+
+    if not global_state.store.lib or global_state.store.lib.name != library:
+        global_state.store.update_library(library)
+
+    startup(data=symbol)
+    startup_code = (
+        "from arcticdb import Arctic\n"
+        "from arcticdb.version_store._store import VersionedItem\n\n"
+        "conn = Arctic('{uri}')\n"
+        "lib = conn.get_library('{library}')\n"
+        "df = lib.read('{symbol}')\n"
+        "if isinstance(data, VersionedItem):\n"
+        "\tdf = df.data\n"
+    ).format(uri=global_state.store.uri, library=library, symbol=symbol)
+    curr_settings = global_state.get_settings(symbol)
+    global_state.set_settings(
+        symbol, dict_merge(curr_settings, dict(startup_code=startup_code))
+    )
+    return dict(success=True, data_id=symbol)

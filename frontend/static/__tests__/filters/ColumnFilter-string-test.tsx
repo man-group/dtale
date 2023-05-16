@@ -18,16 +18,16 @@ describe('ColumnFilter string tests', () => {
       }
       return Promise.resolve(undefined);
     });
-    result = await spies.setupWrapper({
-      selectedCol: 'col3',
-      columns: [mockColumnDef({ name: 'col3' })],
-      columnFilters: { col3: { type: 'string', value: ['b'] } },
-    });
   });
 
   afterEach(jest.restoreAllMocks);
 
   it('ColumnFilter string rendering', async () => {
+    result = await spies.setupWrapper({
+      selectedCol: 'col3',
+      columns: [mockColumnDef({ name: 'col3' })],
+      columnFilters: { col3: { type: 'string', value: ['b'] } },
+    });
     expect(result.getElementsByClassName('string-filter-inputs').length).toBe(1);
     await act(async () => {
       await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
@@ -63,5 +63,30 @@ describe('ColumnFilter string tests', () => {
         value: ['a'],
       }),
     );
+  });
+
+  it('ColumnFilter int rendering w/ ArcticDB', async () => {
+    result = await spies.setupWrapper(
+      {
+        selectedCol: 'col3',
+        columns: [mockColumnDef({ name: 'col3' })],
+        columnFilters: { col3: { type: 'string', value: ['b'] } },
+      },
+      { isArcticDB: '100' },
+    );
+    expect(result.getElementsByClassName('Select__single-value--is-disabled')).toHaveLength(1);
+    expect(result.getElementsByClassName('Select')).toHaveLength(2);
+  });
+
+  it('ColumnFilter int rendering w/ large ArcticDB', async () => {
+    result = await spies.setupWrapper(
+      {
+        selectedCol: 'col3',
+        columns: [mockColumnDef({ name: 'col3' })],
+        columnFilters: { col3: { type: 'string', value: ['b'] } },
+      },
+      { isArcticDB: '3000000' },
+    );
+    expect(result.querySelector('input[type="text"]')).toBeDefined();
   });
 });

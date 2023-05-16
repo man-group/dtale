@@ -3,7 +3,7 @@ from pkg_resources import parse_version
 
 import dtale.global_state as global_state
 
-from dtale.utils import get_bool_arg
+from dtale.utils import format_data, get_bool_arg
 
 
 def build_col_key(col):
@@ -11,7 +11,7 @@ def build_col_key(col):
     return "`{}`".format(col)
 
 
-def build_query(data_id, query=None):
+def build_query(data_id, query=None, as_query_builder=False):
     curr_settings = global_state.get_settings(data_id) or {}
     return inner_build_query(curr_settings, query)
 
@@ -28,6 +28,64 @@ def inner_build_query(settings, query=None):
     if joined_query_segs and settings.get("invertFilter", False):
         joined_query_segs = "~({})".format(joined_query_segs)
     return joined_query_segs
+
+
+def load_index_filter(data_id):
+    curr_settings = global_state.get_settings(data_id) or {}
+    column_filters = curr_settings.get("columnFilters") or {}
+    indexes = curr_settings.get("indexes", [])
+    for col in indexes:
+        cfg = column_filters.get(col)
+        if cfg:
+            start, end = (cfg.get(p) for p in ["start", "end"])
+            if start and end:
+                return {"date_range": [pd.Timestamp(start), pd.Timestamp(end)]}
+            elif start:
+                return {"date_range": [pd.Timestamp(start), None]}
+            elif end:
+                return {"date_range": [None, pd.Timestamp(end)]}
+    return None
+
+
+def build_query_builder(data_id):
+    from arcticdb import QueryBuilder
+
+    curr_settings = global_state.get_settings(data_id) or {}
+    q = QueryBuilder()
+    result = inner_build_query_builder(curr_settings, q)
+    if result is not None:
+        return q[result]
+    return None
+
+
+def inner_build_query_builder(settings, query_builder):
+    from dtale.column_filters import ArcticDBColumnFilter
+
+    result = None
+    for p in ["columnFilters", "outlierFilters"]:
+        curr_filters = settings.get(p) or {}
+        filter_items = list(curr_filters.items())
+        idx = 0
+        if len(filter_items):
+            while result is None and idx < len(filter_items):
+                col, filter_cfg = filter_items[idx]
+                if col in settings.get("indexes", []):
+                    idx += 1
+                    continue
+                fltr = ArcticDBColumnFilter(filter_cfg)
+                result = fltr.builder.update_query_builder(query_builder)
+                idx += 1
+            for col, filter_cfg in filter_items[idx:]:
+                if col in settings.get("indexes", []):
+                    continue
+                fltr = ArcticDBColumnFilter(filter_cfg)
+                query_seg = fltr.builder.update_query_builder(query_builder)
+                if query_seg is not None:
+                    result &= query_seg
+
+    if result is not None and settings.get("invertFilter", False):
+        result = ~result
+    return result
 
 
 def run_query(
@@ -135,8 +193,17 @@ def handle_predefined(data_id, df=None):
     return df
 
 
-def load_filterable_data(data_id, req, query=None):
+def load_filterable_data(data_id, req, query=None, columns=None):
     filtered = get_bool_arg(req, "filtered")
+    if global_state.is_arcticdb:
+        query_builder = build_query_builder(data_id)
+        instance = global_state.store.get(data_id)
+        if filtered:
+            data = instance.load_data(query_builder=query_builder, columns=columns)
+        else:
+            data = instance.load_data(columns=columns)
+        data, _ = format_data(data)
+        return data
     curr_settings = global_state.get_settings(data_id) or {}
     if filtered:
         final_query = query or build_query(data_id, curr_settings.get("query"))

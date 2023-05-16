@@ -204,4 +204,11 @@ describe('FilterDisplay', () => {
       expect(updateSettingsSpy).toHaveBeenCalledWith({ columnFilters: {} }, '1');
     });
   });
+
+  it('correctly hides functions for ArcticDB', async () => {
+    await buildMock({ isArcticDB: 100 });
+    expect(wrapper.querySelectorAll('i.fas.fa-eraser')).toHaveLength(0);
+    expect(wrapper.querySelectorAll('i.fa.fa-filter')).toHaveLength(0);
+    expect(wrapper.querySelectorAll('i.fa-solid.fa-highlighter')).toHaveLength(0);
+  });
 });

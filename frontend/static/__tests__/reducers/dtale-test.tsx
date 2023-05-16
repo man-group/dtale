@@ -72,6 +72,7 @@ describe('reducer tests', () => {
       mainTitleFont: null,
       showAllHeatmapColumns: false,
       isVSCode: false,
+      isArcticDB: 0.0,
       queryEngine: 'python',
       openCustomFilterOnStartup: false,
       openPredefinedFiltersOnStartup: false,

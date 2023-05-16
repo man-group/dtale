@@ -175,6 +175,12 @@ const DtypesGrid: React.FC<DtypesGridProps & WithTranslation> = ({
           sortDirection={sort[1]}
           width={width}
           onRowClick={(info) => {
+            const elements = document.querySelectorAll('.Select');
+            for (const element of Array.from(elements)) {
+              if ((element as Element).contains(info.event.target as Element)) {
+                return;
+              }
+            }
             setData(data.map((d) => ({ ...d, selected: d.name === info.rowData.name })));
             setSelected(info.rowData);
           }}

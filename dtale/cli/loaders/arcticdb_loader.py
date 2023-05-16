@@ -12,11 +12,11 @@ logger = getLogger(__name__)
   When find loaders on startup it will search for any modules containing the global variable LOADER_KEY.
 """
 NOW = pd.Timestamp("now").strftime("%Y%m%d")
-LOADER_KEY = "arctic"
+LOADER_KEY = "arcticdb"
 LOADER_PROPS = [
-    dict(name=["host", "uri"], help="arctic URI"),
-    dict(name="library", help="library within --arctic-host"),
-    dict(name=["symbol", "node"], help="symbol within --arctic-library"),
+    dict(name="uri", help="arctic URI"),
+    dict(name="library", help="library within --arcticdb-uri"),
+    dict(name="symbol", help="symbol within --arcticdb-library"),
     dict(
         name="start",
         help="start-date of range to load if reading from ChunkStore (EX: {})".format(
@@ -29,6 +29,11 @@ LOADER_PROPS = [
             NOW
         ),
     ),
+    dict(
+        name="use_store",
+        help="Use this arcticdb host as the storage mechanism for D-Tale",
+        is_flag=True,
+    ),
 ]
 
 
@@ -38,20 +43,53 @@ def show_loader(**kwargs):
 
 
 def loader_func(**kwargs):
+    import dtale.global_state as global_state
+
     try:
-        from arctic import Arctic
-        from arctic.store.versioned_item import VersionedItem
+        from arcticdb import Arctic
+        from arcticdb.version_store._store import VersionedItem
     except ImportError:
-        raise ImportError("In order to use the arctic loader you must install arctic!")
-    host = Arctic(kwargs.get("arctic_host") or kwargs.get("host"))
-    lib = host.get_library(kwargs.get("library"))
+        raise ImportError(
+            "In order to use the arcticdb loader you must install arcticdb!"
+        )
+
     read_kwargs = {}
-    start, end = (kwargs.get(p) for p in ["start", "end"])
+    uri, library, symbol, start, end = (
+        kwargs.get(p) for p in ["uri", "library", "symbol", "start", "end"]
+    )
+    uri = kwargs.get("arcticdb_host") or uri
+    if not uri:
+        raise ValueError("--arcticdb-uri is a required parameter!")
     if start and end:
-        read_kwargs["chunk_range"] = pd.date_range(start, end)
-    data = lib.read(kwargs.get("symbol"), **read_kwargs)
+        read_kwargs["date_range"] = [pd.Timestamp(start), pd.Timestamp(end)]
+    conn = Arctic(uri)
+
+    if kwargs.get("use_store"):
+        global_state.use_arcticdb_store(
+            **dict(uri=uri, library=library, symbol=symbol, **read_kwargs)
+        )
+
+    if global_state.is_arcticdb:
+        from dtale.views import startup
+
+        if library and global_state.store.lib.name != library:
+            global_state.store.update_library(library)
+
+        if symbol is None:  # select symbol from the UI
+            return None
+
+        startup(data=symbol)
+        return symbol
+
+    if not library:
+        raise ValueError(
+            "Please specify a value for --arcticdb-library or use --arcticdb-use_store"
+        )
+    lib = conn.get_library(library)
+    data = lib.read(symbol, **read_kwargs)
     if isinstance(data, VersionedItem):
         data = data.data
+
     return data
 
 

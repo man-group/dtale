@@ -10,7 +10,7 @@ with warnings.catch_warnings():
             "\n`import dash_html_components as html` with `from dash import html`"
         ),
     )
-    warnings.filterwarnings("ignore", module="matplotlib\..*")  # noqa: W605
+    warnings.filterwarnings("ignore", module="matplotlib\\..*")  # noqa: W605
 
     dtale = Blueprint("dtale", __name__, url_prefix="/dtale")
 

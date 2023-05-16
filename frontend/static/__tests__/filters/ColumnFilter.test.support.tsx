@@ -54,11 +54,15 @@ export class Spies {
    * Build the initial wrapper.
    *
    * @param overrides component properties to pass to ColumnFilter
+   * @param hiddenProps hidden properties read in at startup
    * @return the wrapper for testing.
    */
-  public async setupWrapper(overrides?: Partial<ColumnFilterProps>): Promise<Element> {
+  public async setupWrapper(
+    overrides?: Partial<ColumnFilterProps>,
+    hiddenProps?: Record<string, string>,
+  ): Promise<Element> {
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
+    buildInnerHTML({ settings: '', ...hiddenProps }, store);
     const props: ColumnFilterProps = {
       selectedCol: 'col4',
       columns: [mockColumnDef({ name: 'col4', dtype: 'datetime64[ns]' })],

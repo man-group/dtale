@@ -12,6 +12,7 @@ import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 
 import AboutOption from './AboutOption';
+import ArcticDBOption from './ArcticDBOption';
 import BuildColumnOption from './BuildColumnOption';
 import ChartsOption from './ChartsOption';
 import CleanColumn from './CleanOption';
@@ -56,9 +57,10 @@ export interface DataViewerMenuProps {
 }
 
 const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, columns, rows, propagateState }) => {
-  const { dataId, menuPinned, mainTitle, mainTitleFont, isVSCode, settings, menuOpen } = useSelector(
+  const { dataId, menuPinned, mainTitle, mainTitleFont, isArcticDB, isVSCode, settings, menuOpen } = useSelector(
     (state: AppState) => state,
   );
+  const largeArcticDB = React.useMemo(() => isArcticDB >= 1_000_000, [isArcticDB]);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
@@ -110,24 +112,27 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
       >
         <ul>
           <NewTabOption />
-          <XArrayOption columns={columns.filter(({ name }) => name !== gu.IDX)} />
+          {!!isArcticDB && <ArcticDBOption open={openPopup({ type: PopupType.ARCTICDB, visible: true }, 450)} />}
+          {!isArcticDB && <XArrayOption columns={columns.filter(({ name }) => name !== gu.IDX)} />}
           <DescribeOption open={buttonHandlers.DESCRIBE} />
-          <FilterOption open={() => showSidePanel(SidePanelType.FILTER)} />
-          <PredefinedFiltersOption open={() => showSidePanel(SidePanelType.PREDEFINED_FILTERS)} />
+          {!isArcticDB && <FilterOption open={() => showSidePanel(SidePanelType.FILTER)} />}
+          {!isArcticDB && <PredefinedFiltersOption open={() => showSidePanel(SidePanelType.PREDEFINED_FILTERS)} />}
           <ShowHideColumnsOption open={() => showSidePanel(SidePanelType.SHOW_HIDE)} />
-          <BuildColumnOption open={buttonHandlers.BUILD} />
-          <CleanColumn open={buttonHandlers.CLEAN} />
-          <MergeOption open={() => window.open(menuFuncs.fullPath('/dtale/popup/merge'), '_blank')} />
-          <SummarizeOption open={openPopup({ type: PopupType.RESHAPE, title: 'Reshape', visible: true }, 400, 770)} />
-          <TimeseriesAnalysisOption open={() => showSidePanel(SidePanelType.TIMESERIES_ANALYSIS)} />
-          <DuplicatesOption open={buttonHandlers.DUPLICATES} />
-          <MissingOption open={() => showSidePanel(SidePanelType.MISSINGNO)} />
-          <CorrelationAnalysisOption open={() => showSidePanel(SidePanelType.CORR_ANALYSIS)} />
-          <CorrelationsOption open={() => showSidePanel(SidePanelType.CORRELATIONS)} />
-          <PPSOption open={() => showSidePanel(SidePanelType.PPS)} />
+          {!isArcticDB && <BuildColumnOption open={buttonHandlers.BUILD} />}
+          {!isArcticDB && <CleanColumn open={buttonHandlers.CLEAN} />}
+          {!isArcticDB && <MergeOption open={() => window.open(menuFuncs.fullPath('/dtale/popup/merge'), '_blank')} />}
+          {!isArcticDB && (
+            <SummarizeOption open={openPopup({ type: PopupType.RESHAPE, title: 'Reshape', visible: true }, 400, 770)} />
+          )}
+          {!largeArcticDB && <TimeseriesAnalysisOption open={() => showSidePanel(SidePanelType.TIMESERIES_ANALYSIS)} />}
+          {!largeArcticDB && <DuplicatesOption open={buttonHandlers.DUPLICATES} />}
+          {!largeArcticDB && <MissingOption open={() => showSidePanel(SidePanelType.MISSINGNO)} />}
+          {!largeArcticDB && <CorrelationAnalysisOption open={() => showSidePanel(SidePanelType.CORR_ANALYSIS)} />}
+          {!largeArcticDB && <CorrelationsOption open={() => showSidePanel(SidePanelType.CORRELATIONS)} />}
+          {!largeArcticDB && <PPSOption open={() => showSidePanel(SidePanelType.PPS)} />}
           <ChartsOption open={buttonHandlers.CHARTS} />
           <NetworkOption open={buttonHandlers.NETWORK} />
-          <HeatMapOption toggleBackground={updateBg} />
+          {!largeArcticDB && <HeatMapOption toggleBackground={updateBg} />}
           <HighlightOption
             open={() => updateBg('dtypes')}
             mode="dtypes"
@@ -140,24 +145,30 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
             label="Missing"
             current={settings.backgroundMode}
           />
-          <HighlightOption
-            open={() => updateBg('outliers')}
-            mode="outliers"
-            label="Outliers"
-            current={settings.backgroundMode}
-          />
+          {!largeArcticDB && (
+            <HighlightOption
+              open={() => updateBg('outliers')}
+              mode="outliers"
+              label="Outliers"
+              current={settings.backgroundMode}
+            />
+          )}
           <RangeHighlightOption columns={columns} />
-          <LowVarianceOption
-            toggleLowVarianceBackground={() => updateBg('lowVariance')}
-            backgroundMode={settings.backgroundMode}
-          />
-          <GageRnROption open={() => showSidePanel(SidePanelType.GAGE_RNR)} />
-          <InstancesOption
-            open={openPopup({ type: PopupType.INSTANCES, title: 'Instances', visible: true }, 450, 750)}
-          />
+          {!largeArcticDB && (
+            <LowVarianceOption
+              toggleLowVarianceBackground={() => updateBg('lowVariance')}
+              backgroundMode={settings.backgroundMode}
+            />
+          )}
+          {!largeArcticDB && <GageRnROption open={() => showSidePanel(SidePanelType.GAGE_RNR)} />}
+          {!isArcticDB && (
+            <InstancesOption
+              open={openPopup({ type: PopupType.INSTANCES, title: 'Instances', visible: true }, 450, 750)}
+            />
+          )}
           <CodeExportOption open={buttonHandlers.CODE} />
           <ExportOption rows={rows} />
-          <UploadOption open={openPopup({ type: PopupType.UPLOAD, visible: true }, 450)} />
+          {!isArcticDB && <UploadOption open={openPopup({ type: PopupType.UPLOAD, visible: true }, 450)} />}
           <MenuItem description={t('menu_description:widths')} onClick={refreshWidths}>
             <span className="toggler-action">
               <button className="btn btn-plain">

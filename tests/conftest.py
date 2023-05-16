@@ -31,6 +31,47 @@ def arctic(mongo_server_module):
 
 
 @pytest.fixture(scope="module")
+def arcticdb_path():
+    return "lmdb:///{}".format(os.path.join(os.path.dirname(__file__), "data/arcticdb"))
+
+
+@pytest.fixture(scope="module")
+def arcticdb(arcticdb_path):
+    try:
+        from arcticdb import Arctic
+    except BaseException:
+        return None
+
+    conn = Arctic(arcticdb_path)
+    libs = conn.list_libraries()
+    if "dtale" not in libs:
+        conn.create_library("dtale")
+
+    lib = conn["dtale"]
+    symbols = lib.list_symbols()
+    if "df1" not in symbols:
+        df = pd.DataFrame(
+            dict(str_val=["a", "b", "c"], int_val=[1, 2, 3], float_val=[1.1, 2.2, 3.3])
+        ).set_index(
+            pd.DatetimeIndex(
+                [
+                    pd.Timestamp("20000101"),
+                    pd.Timestamp("20000102"),
+                    pd.Timestamp("20000103"),
+                ]
+            )
+        )
+        lib.write("df1", df)
+        lib.write("slashed/df1", df)
+
+    if "large_df" not in symbols:
+        df = pd.DataFrame(dict(col1=list(range(3000000))))
+        lib.write("large_df", df)
+
+    return conn
+
+
+@pytest.fixture(scope="module")
 def mongo_host(arctic):
     return arctic.mongo_host
 

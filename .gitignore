@@ -43,3 +43,6 @@ custom_loaders/
 # django test app
 docs/django_test/dtale_test/db.sqlite3
 frontend/package-lock.json
+
+# arcticdb test data
+tests/data/arcticdb/*

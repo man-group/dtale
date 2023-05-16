@@ -3,7 +3,7 @@ import selectEvent from 'react-select-event';
 
 import { mockColumnDef } from '../mocks/MockColumnDef';
 import reduxTestUtils from '../redux-test-utils';
-import { selectOption } from '../test-utils';
+import { selectOption, tick } from '../test-utils';
 
 import * as TestSupport from './ColumnFilter.test.support';
 
@@ -64,6 +64,9 @@ describe('ColumnFilter numeric tests', () => {
       await selectEvent.openMenu(asyncSelect);
     });
     await selectOption(asyncSelect, '1');
+    await act(async () => {
+      await tick(300);
+    });
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col5', { type: 'int', operand: '=', value: [1] });
     await act(async () => {
       await fireEvent.click(screen.getByText('\u2260')); // not equal
@@ -76,7 +79,13 @@ describe('ColumnFilter numeric tests', () => {
       await fireEvent.change(result.getElementsByClassName('numeric-filter')[0], { target: { value: 'a' } });
     });
     await act(async () => {
+      await tick(300);
+    });
+    await act(async () => {
       await fireEvent.change(result.getElementsByClassName('numeric-filter')[0], { target: { value: '0' } });
+    });
+    await act(async () => {
+      await tick(300);
     });
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col5', { type: 'int', operand: '>', value: 0 });
   });

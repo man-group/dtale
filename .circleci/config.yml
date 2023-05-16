@@ -70,7 +70,7 @@ python_variables: &python_variables
   CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
   CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
   CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-  VERSION: 2.16.0
+  VERSION: 3.0.0
   PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
 python_formatting: &python_formatting
     parallelism: 1
@@ -191,7 +191,9 @@ python: &python
           command: |
             set -e
             . ci/bin/activate
-            pip install -e ".[arctic]"
+            if [ "${CIRCLE_JOB}" != "build_2_7" ]; then
+              pip install -e ".[arcticdb]"
+            fi
             pip install -e ".[dash-bio]"
             pip install -e ".[redis]"
             pip install -e ".[r]"

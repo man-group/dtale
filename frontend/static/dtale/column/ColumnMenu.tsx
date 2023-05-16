@@ -41,7 +41,9 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
     columnFilters: state.settings.columnFilters,
     outlierFilters: state.settings.outlierFilters,
     sortInfo: state.settings.sortInfo,
+    isArcticDB: state.isArcticDB,
   }));
+  const largeArcticDB = React.useMemo(() => reduxState.isArcticDB >= 1_000_000, [reduxState.isArcticDB]);
   const prevRibbonOpen = usePrevious(reduxState.ribbonMenuOpen);
 
   const dispatch = useDispatch();
@@ -134,7 +136,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
       {columnMenuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: 'esc' }} handlers={{ CLOSE_MENU: closeMenu }} />}
       <ColumnMenuHeader col={selectedCol} colCfg={colCfg} />
       <ul>
-        <SortOptions sortInfo={reduxState.sortInfo} selectedCol={selectedCol} />
+        {!reduxState.isArcticDB && <SortOptions sortInfo={reduxState.sortInfo} selectedCol={selectedCol} />}
         <li>
           <span className="toggler-action">
             <i className="ico-swap-horiz" />
@@ -169,30 +171,38 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
           />
         )}
         <ColumnMenuOption open={hideCol} label={t('column_menu:Hide')} iconClass="ico-visibility-off" />
-        <ColumnMenuOption open={deleteCol} label={t('column_menu:Delete')} iconClass="ico-delete" />
-        <ColumnMenuOption open={renameCol} label={t('column_menu:Rename')} iconClass="ico-edit" />
-        <ColumnMenuOption
-          open={openAction({
-            type: PopupType.REPLACEMENT,
-            selectedCol,
-            propagateState,
-            title: 'Replacement',
-            visible: true,
-          })}
-          label={t('column_menu:Replacements')}
-          iconClass="fas fa-backspace mr-3"
-        />
-        <ColumnMenuOption
-          open={openAction({
-            type: PopupType.TYPE_CONVERSION,
-            selectedCol,
-            title: 'Type Conversion',
-            visible: true,
-          })}
-          label={t('Type Conversion', { ns: 'builders' })}
-          iconClass="ico-swap-horiz"
-        />
-        {gu.findColType(colCfg.dtype) === gu.ColumnType.STRING && (
+        {!reduxState.isArcticDB && (
+          <ColumnMenuOption open={deleteCol} label={t('column_menu:Delete')} iconClass="ico-delete" />
+        )}
+        {!reduxState.isArcticDB && (
+          <ColumnMenuOption open={renameCol} label={t('column_menu:Rename')} iconClass="ico-edit" />
+        )}
+        {!reduxState.isArcticDB && (
+          <ColumnMenuOption
+            open={openAction({
+              type: PopupType.REPLACEMENT,
+              selectedCol,
+              propagateState,
+              title: 'Replacement',
+              visible: true,
+            })}
+            label={t('column_menu:Replacements')}
+            iconClass="fas fa-backspace mr-3"
+          />
+        )}
+        {!reduxState.isArcticDB && (
+          <ColumnMenuOption
+            open={openAction({
+              type: PopupType.TYPE_CONVERSION,
+              selectedCol,
+              title: 'Type Conversion',
+              visible: true,
+            })}
+            label={t('Type Conversion', { ns: 'builders' })}
+            iconClass="ico-swap-horiz"
+          />
+        )}
+        {gu.findColType(colCfg.dtype) === gu.ColumnType.STRING && !reduxState.isArcticDB && (
           <ColumnMenuOption
             open={openAction({
               type: PopupType.CLEANERS,
@@ -219,7 +229,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
           }
           iconClass="ico-view-column"
         />
-        {colCfg.lowVariance && (
+        {colCfg.lowVariance && !largeArcticDB && (
           <ColumnMenuOption
             open={openPopup({ type: PopupType.VARIANCE, selectedCol, title: 'Variance', visible: true })}
             label={t('Variance Report', { ns: 'column_menu' })}
@@ -227,7 +237,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
           />
         )}
         <ColumnMenuOption open={openFormatting} label={t('column_menu:Formats')} iconClass="ico-palette" />
-        <HeatMapOption {...{ propagateState, backgroundMode, selectedCol, colCfg }} />
+        {!largeArcticDB && <HeatMapOption {...{ propagateState, backgroundMode, selectedCol, colCfg }} />}
         <ColumnFilter
           columns={columns}
           columnFilters={reduxState.columnFilters}

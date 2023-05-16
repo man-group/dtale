@@ -68,6 +68,7 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
     outlierFilters: state.settings.outlierFilters ?? {},
     sortInfo: state.settings.sortInfo,
     highlightFilter: state.settings.highlightFilter ?? false,
+    isArcticDB: state.isArcticDB,
   }));
   const dispatch = useDispatch();
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
@@ -165,7 +166,7 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
         onClick={clearFilter()}
         title={t('Clear Filters') ?? ''}
       />
-      {!reduxState.hideDropRows && (
+      {!reduxState.hideDropRows && !reduxState.isArcticDB && (
         <i
           className="fas fa-eraser pl-3 pointer"
           style={{ marginTop: '-0.1em' }}
@@ -182,7 +183,7 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
         onClick={toggleInvert}
         title={t('Invert Filter') ?? ''}
       />
-      {(!!Object.keys(columnFilters).length || !!Object.keys(outlierFilters).length) && (
+      {!reduxState.isArcticDB && (!!Object.keys(columnFilters).length || !!Object.keys(outlierFilters).length) && (
         <i
           className="fa fa-filter pl-3 pointer"
           style={{ marginTop: '-0.1em' }}
@@ -190,15 +191,17 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
           title={t('Move Filters To Custom') ?? ''}
         />
       )}
-      <i
-        className="fa-solid fa-highlighter pl-3 pointer"
-        style={{
-          marginTop: '-0.1em',
-          opacity: reduxState.highlightFilter ? 1 : 0.5,
-        }}
-        onClick={saveHighlightFilter}
-        title={t(reduxState.highlightFilter ? 'Hide Filtered Rows' : 'Highlight Filtered Rows') ?? ''}
-      />
+      {!reduxState.isArcticDB && (
+        <i
+          className="fa-solid fa-highlighter pl-3 pointer"
+          style={{
+            marginTop: '-0.1em',
+            opacity: reduxState.highlightFilter ? 1 : 0.5,
+          }}
+          onClick={saveHighlightFilter}
+          title={t(reduxState.highlightFilter ? 'Hide Filtered Rows' : 'Highlight Filtered Rows') ?? ''}
+        />
+      )}
     </>
   );
 

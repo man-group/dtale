@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
+import * as serverState from '../../dtale/serverStateManagement';
 import { CreateColumnType, SaveAs } from '../../popups/create/CreateColumnState';
 import * as CreateColumnRepository from '../../repository/CreateColumnRepository';
 import DimensionsHelper from '../DimensionsHelper';
@@ -26,12 +27,15 @@ describe('Column operations in an iframe', () => {
     offsetWidth: 500,
     offsetHeight: 500,
   });
+  let serverStateSpy: jest.SpyInstance;
 
   beforeAll(() => dimensions.beforeAll());
 
   beforeEach(async () => {
     (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
     (axios.post as any).mockResolvedValue(Promise.resolve({ data: undefined }));
+    serverStateSpy = jest.spyOn(serverState, 'deleteColumn');
+    serverStateSpy.mockResolvedValue(Promise.resolve({ success: true }));
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', iframe: 'True' }, store);
     result = await act(
@@ -67,6 +71,7 @@ describe('Column operations in an iframe', () => {
     await clickColMenuButton('Delete');
     await executeConfirm();
     validateHeaders(['col1', 'col2', 'col3']);
+    expect(serverStateSpy).toHaveBeenCalledWith('1', 'col4');
   });
 
   it('sorts columns', async () => {

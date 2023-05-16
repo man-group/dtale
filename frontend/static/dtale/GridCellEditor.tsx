@@ -101,6 +101,7 @@ export const GridCellEditor: React.FC<GridCellEditorProps> = ({
           onChange={(state: BaseOption<string> | Array<BaseOption<any>> | undefined) =>
             setValue((state as BaseOption<string>)?.value ?? '')
           }
+          menuPortalTarget={true}
         />
       </div>
     );
@@ -131,6 +132,7 @@ export const GridCellEditor: React.FC<GridCellEditorProps> = ({
           onChange={(state: BaseOption<string> | Array<BaseOption<any>> | undefined) =>
             setValue((state as BaseOption<string>)?.value ?? '')
           }
+          menuPortalTarget={true}
         />
       </div>
     );

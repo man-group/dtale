@@ -114,14 +114,14 @@ def get_loader_options(key, properties, options):
         return option.split("{}_".format(key))[-1]
 
     final_key = "_".join(key.split("-"))
-    selected_opts = (
-        [final_key]
-        if not len(make_list(properties))
-        else [
-            "{}_{}".format(final_key, prop["name"] if isinstance(prop, dict) else prop)
-            for prop in properties
-        ]
-    )
+    selected_opts = []
+    if not len(make_list(properties)):
+        selected_opts = [final_key]
+    else:
+        for prop in properties:
+            p_names = make_list(prop["name"] if isinstance(prop, dict) else prop)
+            for p_name in p_names:
+                selected_opts.append("{}_{}".format(final_key, p_name))
 
     return dict(
         (

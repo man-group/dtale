@@ -53,7 +53,7 @@ const buildData = (
   }));
 
 const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
-  const dataId = useSelector((state: AppState) => state.dataId);
+  const { dataId, isArcticDB } = useSelector((state: AppState) => state);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const reduxDropColumns = (columns: string[]): DataViewerUpdateAction =>
@@ -168,7 +168,7 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
             onAfterChange={(value) => updateThreshold(value as number)}
           />
         </div>
-        {hasUnselected && (
+        {!isArcticDB && hasUnselected && (
           <button className="btn btn-primary float-right pt-2 pb-2 d-inline-block" onClick={dropColumns}>
             <span>{t('Drop Unselected Columns', { ns: 'corr_analysis' })}?</span>
           </button>
@@ -190,19 +190,21 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
                     rowCount={data.length}
                     width={width}
                   >
-                    <Column
-                      dataKey="selected"
-                      label={t('corr_analysis:Keep')}
-                      headerRenderer={headerRenderer}
-                      width={60}
-                      style={{ textAlign: 'left', paddingLeft: '.5em' }}
-                      className="cell"
-                      cellRenderer={(props: TableCellProps) => (
-                        <div onClick={toggleSelected(props.rowData)} className="text-center pointer">
-                          <i className={`ico-check-box${selections[props.rowData.column] ? '' : '-outline-blank'}`} />
-                        </div>
-                      )}
-                    />
+                    {!isArcticDB && (
+                      <Column
+                        dataKey="selected"
+                        label={t('corr_analysis:Keep')}
+                        headerRenderer={headerRenderer}
+                        width={60}
+                        style={{ textAlign: 'left', paddingLeft: '.5em' }}
+                        className="cell"
+                        cellRenderer={(props: TableCellProps) => (
+                          <div onClick={toggleSelected(props.rowData)} className="text-center pointer">
+                            <i className={`ico-check-box${selections[props.rowData.column] ? '' : '-outline-blank'}`} />
+                          </div>
+                        )}
+                      />
+                    )}
                     <Column
                       dataKey="column"
                       label={t('corr_analysis:Column')}
@@ -214,9 +216,9 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
                     />
                     <Column
                       dataKey="score"
-                      label={t('Max Correlation w/ Other Columns', {
+                      label={`${t('Max Correlation', { ns: 'corr_analysis' })}\n${t('w/ Other Columns', {
                         ns: 'corr_analysis',
-                      })}
+                      })}`}
                       headerRenderer={headerRenderer}
                       width={100}
                       flexGrow={1}
@@ -228,7 +230,9 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
                     />
                     <Column
                       dataKey="corrs"
-                      label={`${t('corr_analysis:Correlations')}\n${t('Above Threshold', { ns: 'corr_analysis' })}`}
+                      label={`${t('Correlations', { ns: 'corr_analysis' })}\n${t('Above Threshold', {
+                        ns: 'corr_analysis',
+                      })}`}
                       headerRenderer={headerRenderer}
                       width={100}
                       flexGrow={1}

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 
+import { Bouncer } from '../../Bouncer';
 import { ChartObj } from '../../chartUtils';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { AppState } from '../../redux/state/AppState';
@@ -61,6 +62,7 @@ export const DetailsCharts: React.FC<DetailsChartsProps> = ({ details, detailCod
         }
         props.propagateState(proppedState);
       };
+      setChart(<Bouncer />);
       await dataLoader(
         { chartData: { selectedCol: col }, height: 400, dataId, filtered },
         { chartParams: { type, ...chartParams }, type },
