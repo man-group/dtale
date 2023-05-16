@@ -1,5 +1,10 @@
 ## Changelog
 
+### 2.16.0 (2023-5-16)
+* [#759](https://github.com/man-group/dtale/issues/759): freeze header menu option
+* Updated data_id storage to use strings rather than numbers
+* Fixed bug where calling 'cleanup' didn't cleanup instance name reference
+
 ### 2.15.2 (2023-5-1)
 * tweaked requirements for older versions of python
 
@@ -8,7 +13,7 @@
 * requirement tweaks to werkzeug
 
 ### 2.15.0 (2023-4-28)
-* https://github.com/man-group/dtale/issues/490: stratified random sample in charts
+* [#490](https://github.com/man-group/dtale/issues/490): stratified random sample in charts
 * Updated sklearn column_builders to handle import failures
 
 ### 2.14.4 (2023-4-19)
