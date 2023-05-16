@@ -28,6 +28,19 @@ export const hideHeaderEditor = (state = false, action: AppActionTypes): boolean
   }
 };
 
+export const lockHeaderMenu = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('lock_header_menu'));
+    case ActionType.UPDATE_LOCK_HEADER_MENU:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return true;
+    default:
+      return state;
+  }
+};
+
 export const openCustomFilterOnStartup = (state = false, action: AppActionTypes): boolean => {
   switch (action.type) {
     case ActionType.INIT_PARAMS:

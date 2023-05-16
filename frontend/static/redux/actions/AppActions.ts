@@ -59,6 +59,7 @@ export enum ActionType {
   UPDATE_HIDE_SHUTDOWN = 'update-hide-shutdown',
   UPDATE_ALLOW_CELL_EDITS = 'update-allow-cell-edits',
   UPDATE_HIDE_HEADER_EDITOR = 'update-hide-header-editor',
+  UPDATE_LOCK_HEADER_MENU = 'update-lock-header-menu',
 }
 
 /** Action fired when a range is selected */
@@ -233,6 +234,11 @@ export interface UpdateHideHeaderEditor extends Action<typeof ActionType.UPDATE_
   value: boolean;
 }
 
+/** Action fired when updating the lock_header_menu flag */
+export interface UpdateLockHeaderMenu extends Action<typeof ActionType.UPDATE_LOCK_HEADER_MENU> {
+  value: boolean;
+}
+
 /** Type definition encompassing all application actions */
 export type AppActionTypes =
   | InitAction
@@ -274,7 +280,8 @@ export type AppActionTypes =
   | SetRangeStateAction
   | UpdateHideShutdown
   | UpdateAllowCellEdits
-  | UpdateHideHeaderEditor;
+  | UpdateHideHeaderEditor
+  | UpdateLockHeaderMenu;
 
 /** Type definition for redux application actions */
 export type AppActions<R> = ThunkAction<R, AppState, Record<string, unknown>, AnyAction>;

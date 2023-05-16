@@ -685,6 +685,9 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :type hide_drop_rows: bool, optional
     :param hide_header_editor: If true, this will hide the header editor when editing cells
     :type hide_header_editor: bool, optional
+    :param lock_header_menu: if true, this will always the display the header menu which usually only displays when you
+                             hover over the top
+    :type lock_header_menu: bool, optional
     :param column_edit_options: The options to allow on the front-end when editing a cell for the columns specified
     :type column_edit_options: dict, optional
     :param auto_hide_empty_columns: if True, then auto-hide any columns on the front-end that are comprised entirely of
@@ -773,6 +776,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             auto_hide_empty_columns=final_options.get("auto_hide_empty_columns"),
             highlight_filter=final_options.get("highlight_filter"),
             hide_header_editor=final_options.get("hide_header_editor"),
+            lock_header_menu=final_options.get("lock_header_menu"),
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)

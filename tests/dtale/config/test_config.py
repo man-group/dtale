@@ -23,6 +23,7 @@ def test_load_app_settings():
         "max_column_width": 50,
         "query_engine": "numexpr",
         "hide_header_editor": True,
+        "lock_header_menu": True,
     }
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.APP_SETTINGS", settings))
@@ -35,6 +36,7 @@ def test_load_app_settings():
         assert settings["max_column_width"] == 50
         assert settings["query_engine"] == "numexpr"
         assert settings["hide_header_editor"]
+        assert settings["lock_header_menu"]
 
         load_app_settings(
             load_config_state(os.path.join(os.path.dirname(__file__), "dtale.ini"))
@@ -48,6 +50,7 @@ def test_load_app_settings():
         assert settings["main_title_font"] == "Arial"
         assert settings["query_engine"] == "python"
         assert not settings["hide_header_editor"]
+        assert not settings["lock_header_menu"]
 
 
 @pytest.mark.unit
@@ -61,6 +64,7 @@ def test_load_app_settings_w_missing_props():
         "max_column_width": None,
         "query_engine": "python",
         "hide_header_editor": True,
+        "lock_header_menu": True,
     }
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.APP_SETTINGS", settings))
@@ -71,6 +75,7 @@ def test_load_app_settings_w_missing_props():
         assert settings["language"] == "cn"
         assert settings["max_column_width"] is None
         assert settings["hide_header_editor"]
+        assert settings["lock_header_menu"]
 
         load_app_settings(
             load_config_state(
@@ -82,6 +87,7 @@ def test_load_app_settings_w_missing_props():
         assert settings["language"] == "cn"
         assert settings["max_column_width"] is None
         assert not settings["hide_header_editor"]
+        assert not settings["lock_header_menu"]
 
 
 @pytest.mark.unit

@@ -51,6 +51,7 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
     rowRange,
     ctrlRows,
     settings,
+    lockHeaderMenu,
   } = useSelector((state: AppState) => ({
     allowCellEdits: state.allowCellEdits,
     dataId: state.dataId,
@@ -65,6 +66,7 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
     rowRange: state.rowRange,
     ctrlRows: state.ctrlRows,
     settings: state.settings,
+    lockHeaderMenu: state.settings?.lock_header_menu ?? state.lockHeaderMenu,
   }));
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
@@ -157,6 +159,9 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
   };
 
   React.useEffect(() => {
+    if (lockHeaderMenu) {
+      return;
+    }
     if (currY !== undefined && currY <= 5) {
       if (hideTimeout.current) {
         clearTimeout(hideTimeout.current);

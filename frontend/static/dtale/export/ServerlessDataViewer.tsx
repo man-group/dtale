@@ -45,7 +45,7 @@ export const ServerlessDataViewer: React.FC<ServerlessDataViewerProps> = ({ resp
     theme: state.theme,
     settings: state.settings,
     menuPinned: state.menuPinned,
-    ribbonMenuOpen: state.ribbonMenuOpen,
+    ribbonMenuOpen: state.ribbonMenuOpen || (state.settings?.lock_header_menu ?? state.lockHeaderMenu),
     maxColumnWidth: state.maxColumnWidth || undefined,
     maxRowHeight: state.maxRowHeight || undefined,
     editedTextAreaHeight: state.editedTextAreaHeight,

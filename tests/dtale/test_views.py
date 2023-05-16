@@ -66,6 +66,7 @@ def test_startup(unittest):
         sort=[("security_id", "ASC")],
         hide_header_editor=True,
         hide_shutdown=True,
+        lock_header_menu=True,
     )
 
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
@@ -76,6 +77,7 @@ def test_startup(unittest):
             columnFormats={},
             hide_shutdown=True,
             hide_header_editor=True,
+            lock_header_menu=True,
             locked=["date", "security_id"],
             precision=2,
             sortInfo=[("security_id", "ASC")],
@@ -95,6 +97,7 @@ def test_startup(unittest):
             columnFormats={},
             hide_shutdown=True,
             hide_header_editor=False,
+            lock_header_menu=True,
             locked=["date", "security_id"],
             precision=2,
             sortInfo=[("security_id", "ASC")],
@@ -144,8 +147,6 @@ def test_startup(unittest):
         dict(
             allow_cell_edits=False,
             columnFormats={},
-            hide_shutdown=False,
-            hide_header_editor=False,
             locked=[],
             precision=6,
             rangeHighlight=range_highlights,
@@ -165,8 +166,6 @@ def test_startup(unittest):
         dict(
             allow_cell_edits=True,
             columnFormats={},
-            hide_shutdown=False,
-            hide_header_editor=False,
             locked=["security_id"],
             precision=2,
             rangeHighlight=None,
@@ -187,8 +186,6 @@ def test_startup(unittest):
             locked=[],
             precision=2,
             columnFormats={},
-            hide_shutdown=False,
-            hide_header_editor=False,
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,
@@ -207,8 +204,6 @@ def test_startup(unittest):
             locked=[],
             precision=2,
             columnFormats={},
-            hide_shutdown=False,
-            hide_header_editor=False,
             rangeHighlight=None,
             backgroundMode=None,
             verticalHeaders=False,

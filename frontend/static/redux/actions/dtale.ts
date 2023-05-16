@@ -45,6 +45,14 @@ export const loadHideHeaderEditor = (store: Store<AppState, AnyAction>): void =>
   });
 };
 
+export const loadLockHeaderMenu = (store: Store<AppState, AnyAction>): void => {
+  const { settings, lockHeaderMenu } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_LOCK_HEADER_MENU,
+    value: lockHeaderMenu ?? settings.lock_header_menu ?? lockHeaderMenu,
+  });
+};
+
 export const openCustomFilter = (): SidePanelAction => ({
   type: ActionType.SHOW_SIDE_PANEL,
   view: SidePanelType.FILTER,
