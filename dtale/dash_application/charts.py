@@ -2544,28 +2544,30 @@ def funnel_builder(data_id, export=False, **inputs):
                     continue
 
                 layout = build_layout(build_title(selected_label, y2, group=series_key))
-                chart = chart_builder(
-                    graph_wrapper(
-                        figure={
-                            "data": [
-                                go.Funnel(
-                                    **dict_merge(
-                                        dict(x=series[y2], y=series["x"]),
-                                        name_builder(y2, series_key),
-                                    )
+                chart = graph_wrapper(
+                    figure={
+                        "data": [
+                            go.Funnel(
+                                **dict_merge(
+                                    dict(x=series[y2], y=series["x"]),
+                                    name_builder(y2, series_key),
                                 )
-                            ],
-                            "layout": layout,
-                        },
-                        modal=inputs.get("modal", False),
-                    ),
-                    group_filter=dict_merge(
-                        dict(y=y2),
-                        {}
-                        if series_key == "all"
-                        else dict(group=series.get("_filter_")),
-                    ),
+                            )
+                        ],
+                        "layout": layout,
+                    },
+                    modal=inputs.get("modal", False),
                 )
+                if not export:
+                    chart = chart_builder(
+                        chart,
+                        group_filter=dict_merge(
+                            dict(y=y2),
+                            {}
+                            if series_key == "all"
+                            else dict(group=series.get("_filter_")),
+                        ),
+                    )
                 if len(negative_values):
                     error_title = (
                         "The following negative values could not be represented within the {}Funnel chart"
@@ -2600,13 +2602,16 @@ def funnel_builder(data_id, export=False, **inputs):
             title["title"]["text"] += " stacked by {}".format(", ".join(group))
             layout = build_layout(title)
 
-            yield chart_builder(
-                graph_wrapper(
-                    figure={"data": stacked_data, "layout": layout},
-                    modal=inputs.get("modal", False),
-                ),
-                group_filter=dict(y=final_cols[0]),
+            chart = graph_wrapper(
+                figure={"data": stacked_data, "layout": layout},
+                modal=inputs.get("modal", False),
             )
+            if not export:
+                chart = chart_builder(
+                    chart,
+                    group_filter=dict(y=final_cols[0]),
+                )
+            yield chart
 
     if export:
         return next(build_charts())

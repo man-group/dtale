@@ -2,9 +2,9 @@ import re
 
 import pandas as pd
 import pytest
-from pkg_resources import parse_version
 
 from dtale.column_filters import DateFilter, NumericFilter, StringFilter
+from dtale.pandas_util import check_pandas_version
 
 
 @pytest.mark.unit
@@ -34,7 +34,7 @@ def test_date():
 
 @pytest.mark.unit
 def test_string():
-    is_pandas25 = parse_version(pd.__version__) >= parse_version("0.25.0")
+    is_pandas25 = check_pandas_version("0.25.0")
 
     def build_query(fltr):
         query = fltr.build_filter()["query"]

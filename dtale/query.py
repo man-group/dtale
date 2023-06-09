@@ -1,8 +1,8 @@
 import pandas as pd
-from pkg_resources import parse_version
 
 import dtale.global_state as global_state
 
+from dtale.pandas_util import check_pandas_version
 from dtale.utils import format_data, get_bool_arg
 
 
@@ -142,7 +142,7 @@ def run_query(
             return _load_pct(df), []
         return _load_pct(df)
 
-    is_pandas25 = parse_version(pd.__version__) >= parse_version("0.25.0")
+    is_pandas25 = check_pandas_version("0.25.0")
     curr_app_settings = global_state.get_app_settings()
     engine = curr_app_settings.get("query_engine", "python")
     filtered_indexes = []

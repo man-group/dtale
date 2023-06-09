@@ -5,11 +5,11 @@ from imp import reload
 import mock
 import pandas as pd
 import pytest
-from pkg_resources import parse_version
 from six import PY3
 
 from dtale.cli import loaders, script
 from dtale.cli.clickutils import run
+from dtale.pandas_util import check_pandas_version
 from tests import ExitStack, pdt
 
 
@@ -92,7 +92,7 @@ def test_main(unittest):
             df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load csv"
         )
 
-    if PY3 and parse_version(pd.__version__) >= parse_version("0.25.0"):
+    if PY3 and check_pandas_version("0.25.0"):
         with ExitStack() as stack:
             mock_show = stack.enter_context(
                 mock.patch("dtale.cli.script.show", mock.Mock())

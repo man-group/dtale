@@ -148,8 +148,9 @@ def test_get_correlations(unittest, test_data, rolling_data):
 
 
 @pytest.mark.skipif(
-    parse_version(platform.python_version()) < parse_version("3.6.0"),
-    reason="requires python 3.6 or higher",
+    parse_version(platform.python_version()) < parse_version("3.6.0")
+    or not pandas_util.check_pandas_version("1.0.0"),
+    reason="requires python 3.6 or higher and pandas 1.0.0 or higher",
 )
 def test_get_pps_matrix(unittest, test_data):
     import dtale.views as views
@@ -210,7 +211,10 @@ corr_ts = corr_ts[corr_ts.column == 'foo'][['date', 'bar']]
 corr_ts.columns = ['date', 'corr']"""
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(
+    not pandas_util.check_pandas_version("1.0.0"),
+    reason="requires pandas 1.0.0 or higher",
+)
 def test_get_correlations_ts(unittest, rolling_data):
     import dtale.views as views
 
@@ -340,7 +344,10 @@ only_in_s0 = len(scatter_data[scatter_data['foo'].isnull()])
 only_in_s1 = len(scatter_data[scatter_data['bar'].isnull()])"""
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(
+    not pandas_util.check_pandas_version("1.0.0"),
+    reason="requires pandas 1.0.0 or higher",
+)
 def test_get_scatter(unittest, rolling_data):
     import dtale.views as views
 

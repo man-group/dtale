@@ -373,7 +373,10 @@ def test_exponential_smoothing(rolling_data):
     verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(
+    not pandas_util.check_pandas_version("0.24.0"),
+    reason="requires pandas 0.24.0 or higher",
+)
 def test_shift(rolling_data):
     import dtale.views as views
 

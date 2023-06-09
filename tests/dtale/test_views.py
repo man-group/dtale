@@ -14,6 +14,7 @@ from six import PY3
 import dtale.pandas_util as pandas_util
 
 from dtale.app import build_app
+from dtale.pandas_util import check_pandas_version
 from dtale.utils import DuplicateDataError
 from tests import ExitStack, pdt
 from tests.dtale import build_data_inst, build_settings, build_dtypes
@@ -315,7 +316,7 @@ def test_startup(unittest):
         ["object", "category"],
     )
 
-    if PY3 and parse_version(pd.__version__) >= parse_version("0.25.0"):
+    if PY3 and check_pandas_version("0.25.0"):
         s_int = pd.Series([1, 2, 3, 4, 5], index=list("abcde"), dtype=pd.Int64Dtype())
         s2_int = s_int.reindex(["a", "b", "c", "f", "u"])
         ints = pd.Series([1, 2, 3, 4, 5], index=list("abcfu"))

@@ -110,6 +110,8 @@ def test_seasonal_decompose(unittest, ts_analysis_data):
 
 @pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
 def test_stl(unittest, ts_analysis_data):
+    pytest.importorskip("statsmodels", minversion="0.11.0")
+
     import dtale.views as views
 
     df, _ = views.format_data(ts_analysis_data)

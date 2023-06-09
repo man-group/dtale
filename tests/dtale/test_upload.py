@@ -6,6 +6,7 @@ import pytest
 from six import BytesIO, PY3
 
 from dtale.app import build_app
+from dtale.pandas_util import check_pandas_version
 from tests import ExitStack
 from tests.dtale import build_data_inst
 
@@ -70,7 +71,7 @@ def test_upload(unittest):
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
         assert global_state.size() == 1
-        if PY3:
+        if PY3 and check_pandas_version("0.25.0"):
             c.post(
                 "/dtale/upload",
                 data={

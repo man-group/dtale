@@ -3859,7 +3859,8 @@ def network_data(data_id):
     edges.columns = ["to", "from"]
     if weight:
         edges.loc[:, "value"] = df[weight]
-    edges = edges.to_dict(orient="records")
+    edge_f = grid_formatter(grid_columns(edges), nan_display="nan")
+    edges = edge_f.format_dicts(edges.itertuples())
 
     def build_mapping(col):
         if col:

@@ -4,8 +4,10 @@ import pandas as pd
 
 import mock
 import pytest
+
 from six import PY3
 
+from dtale.pandas_util import check_pandas_version
 from tests import ExitStack
 
 
@@ -51,7 +53,7 @@ def test_show_excel(unittest):
     excel_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.xlsx")
 
     mock_show = mock.Mock()
-    if PY3:
+    if PY3 and check_pandas_version("0.25.0"):
         with mock.patch("dtale.cli.loaders.excel_loader.show", mock_show):
             dtale.show_excel(path=excel_path)
             mock_show.call_args[1]["data_loader"]()

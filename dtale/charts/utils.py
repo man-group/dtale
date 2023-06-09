@@ -758,13 +758,23 @@ def build_base_chart(
             classifier = classify_type(find_dtype(data[col]))
             if classifier == "F" or (classifier == "I" and group_type == "bins"):
                 if bin_type == "width":
-                    data.loc[:, col] = pd.qcut(
-                        data[col], q=bins_val, duplicates="drop"
-                    ).astype("str")
+                    kwargs = (
+                        {"duplicates": "drop"}
+                        if pandas_util.check_pandas_version("0.23.0")
+                        else {}
+                    )
+                    data.loc[:, col] = pd.qcut(data[col], q=bins_val, **kwargs).astype(
+                        "str"
+                    )
+                    kwargs_str = (
+                        ', duplicates="drop"'
+                        if pandas_util.check_pandas_version("0.23.0")
+                        else ""
+                    )
                     code.append(
                         (
-                            "chart_data.loc[:, '{col}'] = pd.qcut(chart_data['{col}'], q={bins}, duplicates=\"drop\")"
-                        ).format(col=col, bins=bins_val)
+                            "chart_data.loc[:, '{col}'] = pd.qcut(chart_data['{col}'], q={bins}{kwargs})"
+                        ).format(col=col, bins=bins_val, kwargs=kwargs_str)
                     )
                 else:
                     bins_data = data[col].dropna()
@@ -774,18 +784,28 @@ def build_base_chart(
                         np.arange(npt),
                         np.sort(bins_data),
                     )
+                    kwargs = (
+                        {"duplicates": "drop"}
+                        if pandas_util.check_pandas_version("0.23.0")
+                        else {}
+                    )
                     data.loc[:, col] = pd.cut(
-                        data[col], bins=equal_freq_bins, duplicates="drop"
+                        data[col], bins=equal_freq_bins, **kwargs
                     ).astype("str")
+                    cut_kwargs_str = (
+                        ', duplicates="drop"'
+                        if pandas_util.check_pandas_version("0.23.0")
+                        else ""
+                    )
                     code.append(
                         (
                             "bins_data = data['{col}'].dropna()\n"
                             "npt = len(bins_data)\n"
                             "equal_freq_bins = np.interp(np.linspace(0, npt, {bins}), np.arange(npt), "
                             "np.sort(bins_data))\n"
-                            "chart_data.loc[:, '{col}'] = pd.cut(chart_data['{col}'], bins=equal_freq_bins, "
-                            'duplicates="drop")'
-                        ).format(col=col, bins=bins_val + 1)
+                            "chart_data.loc[:, '{col}'] = pd.cut(chart_data['{col}'], bins=equal_freq_bins"
+                            "{cut_kwargs})"
+                        ).format(col=col, bins=bins_val + 1, cut_kwargs=cut_kwargs_str)
                     )
 
         main_group = group_col

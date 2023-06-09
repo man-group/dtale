@@ -174,8 +174,11 @@ class ReplaceColumnBuilder(object):
             self.cfg.get(p)
             for p in ["col", "search", "replacement", "caseSensitive", "regex"]
         )
+        kwargs = dict(case=case)
+        if pandas_util.check_pandas_version("0.23.0"):
+            kwargs["regex"] = regex
         return pd.Series(
-            data[col].str.replace(search, replacement, case=case, regex=regex),
+            data[col].str.replace(search, replacement, **kwargs),
             index=data.index,
             name=self.name,
         )
@@ -185,12 +188,16 @@ class ReplaceColumnBuilder(object):
             self.cfg.get(p)
             for p in ["col", "search", "replacement", "caseSensitive", "regex"]
         )
-        return "data['{col}'].str.replace('{search}', '{replacement}', case={case}, regex={regex})".format(
+        kwargs = ""
+        if pandas_util.check_pandas_version("0.23.0"):
+            kwargs = ", regex='{}'".format("True" if regex else "False")
+
+        return "data['{col}'].str.replace('{search}', '{replacement}', case={case}{kwargs})".format(
             col=col,
             search=search,
             replacement=replacement,
             case="True" if case else "False",
-            regex="True" if regex else "False",
+            kwargs=kwargs,
         )
 
 
@@ -1473,7 +1480,7 @@ class ShiftBuilder(object):
             self.cfg.get(p) for p in ["col", "periods", "fillValue", "dtype"]
         )
         kwargs = {}
-        if fill_value is not None:
+        if fill_value is not None and pandas_util.check_pandas_version("0.24.0"):
             fill_formatter = find_dtype_formatter(dtype)
             kwargs["fill_value"] = fill_formatter(fill_value)
         return pd.Series(
@@ -1485,7 +1492,7 @@ class ShiftBuilder(object):
             self.cfg.get(p) for p in ["col", "periods", "fillValue", "dtype"]
         )
         kwargs = ""
-        if fill_value is not None:
+        if fill_value is not None and pandas_util.check_pandas_version("0.24.0"):
             if classify_type(dtype) == "S":
                 kwargs = ", fill_value='{}'".format(fill_value)
             else:

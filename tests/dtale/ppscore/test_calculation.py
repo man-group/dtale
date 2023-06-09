@@ -7,6 +7,7 @@ import numpy as np
 import sys
 
 import dtale.ppscore as pps
+from dtale.pandas_util import check_pandas_version
 
 
 @pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python 3.6 or higher")
@@ -49,7 +50,10 @@ def test__determine_case_and_prepare_df():
         df["Pclass_integer"], infer_datetime_format=True
     )
     df["Survived_boolean"] = df["Survived_integer"].astype(bool)
-    df["Cabin_string"] = pd.Series(df["Cabin"].apply(str), dtype="string")
+    df["Cabin_string"] = pd.Series(
+        df["Cabin"].apply(str),
+        dtype="string" if check_pandas_version("1.1.0") else "object",
+    )
 
     # check regression
     assert _determine_case_and_prepare_df(df, "x", "Age_float")[1] == "regression"
@@ -112,7 +116,8 @@ def test_score():
     df["x_greater_0_boolean"] = df["x"] > 0
     # df["x_greater_0_string"] = df["x_greater_0_boolean"].astype(str)
     df["x_greater_0_string"] = pd.Series(
-        df["x_greater_0_boolean"].apply(str), dtype="string"
+        df["x_greater_0_boolean"].apply(str),
+        dtype="string" if check_pandas_version("1.1.0") else "object",
     )
     df["x_greater_0_string_object"] = df["x_greater_0_string"].astype("object")
     df["x_greater_0_string_category"] = df["x_greater_0_string"].astype("category")
@@ -174,89 +179,92 @@ def test_score():
             duplicate_column_names_df, "unique_column_name", "duplicate_column_name"
         )
 
-    # check cross_validation
-    # if more folds than data, there is an error
-    with pytest.raises(ValueError):
-        assert pps.score(df, "x", "y", cross_validation=2000, catch_errors=False)
+    if check_pandas_version("1.0.0"):
+        # check cross_validation
+        # if more folds than data, there is an error
+        with pytest.raises(ValueError):
+            assert pps.score(df, "x", "y", cross_validation=2000, catch_errors=False)
 
-    # check random_seed
-    assert pps.score(df, "x", "y", random_seed=1) == pps.score(
-        df, "x", "y", random_seed=1
-    )
-    assert pps.score(df, "x", "y", random_seed=1) != pps.score(
-        df, "x", "y", random_seed=2
-    )
-    # the random seed that is drawn automatically is smaller than <1000
-    assert pps.score(df, "x", "y") != pps.score(df, "x", "y", random_seed=123456)
+        # check random_seed
+        assert pps.score(df, "x", "y", random_seed=1) == pps.score(
+            df, "x", "y", random_seed=1
+        )
+        assert pps.score(df, "x", "y", random_seed=1) != pps.score(
+            df, "x", "y", random_seed=2
+        )
+        # the random seed that is drawn automatically is smaller than <1000
+        assert pps.score(df, "x", "y") != pps.score(df, "x", "y", random_seed=123456)
 
-    # check invalid_score
-    invalid_score = -99
-    assert (
-        pps.score(df, "nan", "y", invalid_score=invalid_score)["ppscore"]
-        == invalid_score
-    )
+        # check invalid_score
+        invalid_score = -99
+        assert (
+            pps.score(df, "nan", "y", invalid_score=invalid_score)["ppscore"]
+            == invalid_score
+        )
 
-    # check catch_errors using the cross_validation error from above
-    assert (
-        pps.score(
-            df,
-            "x",
-            "y",
-            cross_validation=2000,
-            invalid_score=invalid_score,
-            catch_errors=True,
-        )["ppscore"]
-        == invalid_score
-    )
+        # check catch_errors using the cross_validation error from above
+        assert (
+            pps.score(
+                df,
+                "x",
+                "y",
+                cross_validation=2000,
+                invalid_score=invalid_score,
+                catch_errors=True,
+            )["ppscore"]
+            == invalid_score
+        )
 
-    # check case discrimination
-    assert pps.score(df, "x", "y")["case"] == "regression"
-    assert pps.score(df, "x", "x_greater_0_string")["case"] == "classification"
-    assert pps.score(df, "x", "constant")["case"] == "target_is_constant"
-    assert pps.score(df, "x", "x")["case"] == "predict_itself"
-    assert pps.score(df, "x", "id")["case"] == "target_is_id"
-    assert pps.score(df, "nan", "y")["case"] == "empty_dataframe_after_dropping_na"
+        # check case discrimination
+        assert pps.score(df, "x", "y")["case"] == "regression"
+        assert pps.score(df, "x", "x_greater_0_string")["case"] == "classification"
+        assert pps.score(df, "x", "constant")["case"] == "target_is_constant"
+        assert pps.score(df, "x", "x")["case"] == "predict_itself"
+        assert pps.score(df, "x", "id")["case"] == "target_is_id"
+        assert pps.score(df, "nan", "y")["case"] == "empty_dataframe_after_dropping_na"
 
-    # check scores
-    # feature is id
-    assert pps.score(df, "id", "y")["ppscore"] == 0
+        # check scores
+        # feature is id
+        assert pps.score(df, "id", "y")["ppscore"] == 0
 
-    # numeric feature and target
-    assert pps.score(df, "x", "y")["ppscore"] > 0.5
-    assert pps.score(df, "y", "x")["ppscore"] < 0.05
+        # numeric feature and target
+        assert pps.score(df, "x", "y")["ppscore"] > 0.5
+        assert pps.score(df, "y", "x")["ppscore"] < 0.05
 
-    # boolean feature or target
-    assert pps.score(df, "x", "x_greater_0_boolean")["ppscore"] > 0.6
-    assert pps.score(df, "x_greater_0_boolean", "x")["ppscore"] < 0.6
+        # boolean feature or target
+        assert pps.score(df, "x", "x_greater_0_boolean")["ppscore"] > 0.6
+        assert pps.score(df, "x_greater_0_boolean", "x")["ppscore"] < 0.6
 
-    # string feature or target
-    assert pps.score(df, "x", "x_greater_0_string")["ppscore"] > 0.6
-    assert pps.score(df, "x_greater_0_string", "x")["ppscore"] < 0.6
+        # string feature or target
+        assert pps.score(df, "x", "x_greater_0_string")["ppscore"] > 0.6
+        assert pps.score(df, "x_greater_0_string", "x")["ppscore"] < 0.6
 
-    # object feature or target
-    assert pps.score(df, "x", "x_greater_0_string_object")["ppscore"] > 0.6
-    assert pps.score(df, "x_greater_0_string_object", "x")["ppscore"] < 0.6
+        # object feature or target
+        assert pps.score(df, "x", "x_greater_0_string_object")["ppscore"] > 0.6
+        assert pps.score(df, "x_greater_0_string_object", "x")["ppscore"] < 0.6
 
-    # category feature or target
-    assert pps.score(df, "x", "x_greater_0_string_category")["ppscore"] > 0.6
-    assert pps.score(df, "x_greater_0_string_category", "x")["ppscore"] < 0.6
+        # category feature or target
+        assert pps.score(df, "x", "x_greater_0_string_category")["ppscore"] > 0.6
+        assert pps.score(df, "x_greater_0_string_category", "x")["ppscore"] < 0.6
 
-    # object feature or target
-    assert pps.score(df, "x", "x_greater_0_boolean_object")["ppscore"] > 0.6
-    assert pps.score(df, "x_greater_0_boolean_object", "x")["ppscore"] < 0.6
+        # object feature or target
+        assert pps.score(df, "x", "x_greater_0_boolean_object")["ppscore"] > 0.6
+        assert pps.score(df, "x_greater_0_boolean_object", "x")["ppscore"] < 0.6
 
-    # category feature or target
-    assert pps.score(df, "x", "x_greater_0_boolean_category")["ppscore"] > 0.6
-    assert pps.score(df, "x_greater_0_boolean_category", "x")["ppscore"] < 0.6
+        # category feature or target
+        assert pps.score(df, "x", "x_greater_0_boolean_category")["ppscore"] > 0.6
+        assert pps.score(df, "x_greater_0_boolean_category", "x")["ppscore"] < 0.6
 
-    # check special dtypes
-    # pd.IntegerArray e.g. Int64, Int8, etc
-    assert (
-        pps.score(dtypes_df, "Survived_Int64", "Sex_object")["is_valid_score"] is True
-    )
-    assert (
-        pps.score(dtypes_df, "Sex_object", "Survived_Int64")["is_valid_score"] is True
-    )
+        # check special dtypes
+        # pd.IntegerArray e.g. Int64, Int8, etc
+        assert (
+            pps.score(dtypes_df, "Survived_Int64", "Sex_object")["is_valid_score"]
+            is True
+        )
+        assert (
+            pps.score(dtypes_df, "Sex_object", "Survived_Int64")["is_valid_score"]
+            is True
+        )
 
 
 @pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python 3.6 or higher")
