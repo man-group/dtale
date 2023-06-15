@@ -4,7 +4,7 @@ import inspect
 
 from six import PY3
 
-from dtale.utils import dict_merge
+from dtale.utils import dict_merge, format_data
 
 try:
     from collections.abc import MutableMapping
@@ -54,6 +54,10 @@ class DtaleInstance(object):
 
     def rows(self, **kwargs):
         return self._rows
+
+    @property
+    def is_large(self):
+        return False
 
     @property
     def data(self):
@@ -138,18 +142,29 @@ LARGE_ARCTICDB = 1000000
 
 
 class DtaleArcticDBInstance(DtaleInstance):
-    def __init__(self, data, lib, symbol, parent):
+    def __init__(self, data, data_id, parent):
         super(DtaleArcticDBInstance, self).__init__(data)
-        self.lib = lib
+        self.parent = parent
+        data_id_segs = (data_id or "").split("|")
+        symbol = data_id_segs[-1]
+        if len(data_id_segs) > 1:
+            lib_name = data_id_segs[0]
+            if not parent.lib or lib_name != parent.lib.name:
+                parent.update_library(lib_name)
+        self.lib = parent.lib
         self.symbol = symbol
         self._rows = 0
-        if self.lib and self.symbol and self.symbol in parent.symbols:
+        self._cols = 0
+        self._base_df = None
+        if self.lib and self.symbol and self.symbol in self.parent.symbols:
             self._rows = self.lib._nvs.get_num_rows(self.symbol)
+            self._base_df = self.load_data(row_range=[0, 1])
+            self._cols = len(format_data(self._base_df)[0].columns)
 
     def load_data(self, **kwargs):
         from arcticdb.version_store._store import VersionedItem
 
-        if not self.lib.has_symbol(self.symbol):
+        if self.symbol not in self.parent.symbols:
             raise ValueError(
                 "{} does not exist in {}!".format(self.symbol, self.lib.name)
             )
@@ -169,6 +184,18 @@ class DtaleArcticDBInstance(DtaleInstance):
             )
             return len(read_result.frame_data.value.data[0])
         return self._rows
+
+    @property
+    def base_df(self):
+        return self._base_df
+
+    @property
+    def is_large(self):
+        if self.rows() > LARGE_ARCTICDB:
+            return True
+        if self._cols > 50:
+            return True
+        return False
 
     @property
     def data(self):
@@ -207,22 +234,22 @@ class DtaleArcticDB(DtaleBaseStore):
             return
         if library in self._libraries:
             self.lib = self.conn[library]
-            self._db.clear()
-            self.load_symbols()
+            if library not in self._symbols:
+                self.load_symbols()
         elif library is not None:
             raise ValueError("Library '{}' does not exist!".format(library))
 
     def load_libraries(self):
-        self._libraries = self.conn.list_libraries()
+        self._libraries = sorted(self.conn.list_libraries())
 
     @property
     def libraries(self):
         return self._libraries
 
     def load_symbols(self, library=None):
-        self._symbols[library or self.lib.name] = (
-            self.conn[library] if library else self.lib
-        ).list_symbols()
+        self._symbols[library or self.lib.name] = sorted(
+            (self.conn[library] if library else self.lib).list_symbols()
+        )
 
     @property
     def symbols(self):
@@ -231,7 +258,7 @@ class DtaleArcticDB(DtaleBaseStore):
     def build_instance(self, data_id, data=None):
         if data_id is None:
             return DtaleInstance(data)
-        return DtaleArcticDBInstance(data, self.lib, data_id, self)
+        return DtaleArcticDBInstance(data, data_id, self)
 
     def get(self, key, **kwargs):
         if key is None:

@@ -60,7 +60,13 @@ describe('LibrarySymbolSelector tests', () => {
         return Promise.resolve({ data: { symbols: SYMBOLS.baz } });
       } else if (url.startsWith('/dtale/arcticdb/load-description')) {
         const params = parseUrlParams(url);
-        return Promise.resolve({ data: { description: 'Test Description', symbol: params.symbol } });
+        return Promise.resolve({
+          data: {
+            description: 'Test Description',
+            library: params.library,
+            symbol: params.symbol,
+          },
+        });
       } else if (url.startsWith('/dtale/arcticdb/load-symbol')) {
         return Promise.resolve({ data: { data_id: '2' } });
       }
@@ -89,7 +95,7 @@ describe('LibrarySymbolSelector tests', () => {
       await fireEvent.click(screen.getByText('View Info'));
     });
     expect(loadDescriptionSpy).toHaveBeenCalledWith('foo', 'foo1');
-    expect(result.getElementsByTagName('b')[0].textContent).toBe('foo1 Description');
+    expect(result.getElementsByTagName('b')[0].textContent).toBe('foo - foo1 Description');
     expect(result.getElementsByTagName('pre')[0].textContent).toBe('Test Description');
 
     const librariesSpy = jest.spyOn(ArcticDBRepository, 'libraries');

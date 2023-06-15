@@ -35,6 +35,7 @@ import dtale.global_state as global_state
 import dtale.config as dtale_config
 from dtale import dtale
 from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
+from dtale.dash_application import views as dash_views
 from dtale.utils import (
     DuplicateDataError,
     build_shutdown_url,
@@ -507,8 +508,6 @@ def build_app(
     auth.setup_auth(app)
 
     with app.app_context():
-        from .dash_application import views as dash_views
-
         app = dash_views.add_dash(app)
         return app
 

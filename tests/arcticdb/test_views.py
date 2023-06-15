@@ -58,7 +58,7 @@ def test_loading_data(unittest, arcticdb_path, arcticdb):
     startup(data="df1")
 
     with app.test_client() as c:
-        validate_data_load("df1", unittest, c)
+        validate_data_load("dtale|df1", unittest, c)
 
 
 @pytest.mark.unit
@@ -71,7 +71,7 @@ def test_loading_data_w_slashed_symbol(unittest, arcticdb_path, arcticdb):
 
     with app.test_client() as c:
         response = c.get("/")
-        assert response.location.endswith("/dtale/main/slashed%252Fdf1")
+        assert response.location.endswith("/dtale/main/dtale%257Cslashed%252Fdf1")
         data_id = response.location.split("/")[-1]
         validate_data_load(data_id, unittest, c)
 
@@ -86,12 +86,14 @@ def test_loading_data_w_filters(unittest, arcticdb_path, arcticdb):
 
     with app.test_client() as c:
         c.get(
-            "/dtale/save-column-filter/df1",
+            "/dtale/save-column-filter/dtale%257Cdf1",
             query_string=dict(
                 col="str_val", cfg=json.dumps({"type": "string", "value": ["b"]})
             ),
         )
-        response = c.get("/dtale/data/df1", query_string=dict(ids=json.dumps(["0"])))
+        response = c.get(
+            "/dtale/data/dtale%257Cdf1", query_string=dict(ids=json.dumps(["0"]))
+        )
         response_data = response.get_json()
         expected_results = {
             "0": {
@@ -107,17 +109,19 @@ def test_loading_data_w_filters(unittest, arcticdb_path, arcticdb):
         unittest.assertEqual(response_data["final_query"], "`str_val` == 'b'")
 
         c.get(
-            "/dtale/save-column-filter/df1",
+            "/dtale/save-column-filter/dtale%257Cdf1",
             query_string=dict(col="str_val", cfg=json.dumps({"type": "string"})),
         )
         c.get(
-            "/dtale/save-column-filter/df1",
+            "/dtale/save-column-filter/dtale%257Cdf1",
             query_string=dict(
                 col="int_val",
                 cfg=json.dumps({"type": "int", "value": [3], "operand": "="}),
             ),
         )
-        response = c.get("/dtale/data/df1", query_string=dict(ids=json.dumps(["0"])))
+        response = c.get(
+            "/dtale/data/dtale%257Cdf1", query_string=dict(ids=json.dumps(["0"]))
+        )
         response_data = response.get_json()
         expected_results = {
             "0": {
@@ -133,17 +137,19 @@ def test_loading_data_w_filters(unittest, arcticdb_path, arcticdb):
         unittest.assertEqual(response_data["final_query"], "`int_val` == 3")
 
         c.get(
-            "/dtale/save-column-filter/df1",
+            "/dtale/save-column-filter/dtale%257Cdf1",
             query_string=dict(col="int_val", cfg=json.dumps({"type": "int"})),
         )
         c.get(
-            "/dtale/save-column-filter/df1",
+            "/dtale/save-column-filter/dtale%257Cdf1",
             query_string=dict(
                 col="float_val",
                 cfg=json.dumps({"type": "float", "value": 1.1, "operand": "="}),
             ),
         )
-        response = c.get("/dtale/data/df1", query_string=dict(ids=json.dumps(["0"])))
+        response = c.get(
+            "/dtale/data/dtale%257Cdf1", query_string=dict(ids=json.dumps(["0"]))
+        )
         response_data = response.get_json()
         expected_results = {
             "0": {
@@ -159,11 +165,11 @@ def test_loading_data_w_filters(unittest, arcticdb_path, arcticdb):
         unittest.assertEqual(response_data["final_query"], "`float_val` == 1.1")
 
         c.get(
-            "/dtale/save-column-filter/df1",
+            "/dtale/save-column-filter/dtale%257Cdf1",
             query_string=dict(col="float_val", cfg=json.dumps({"type": "float"})),
         )
         c.get(
-            "/dtale/save-column-filter/df1",
+            "/dtale/save-column-filter/dtale%257Cdf1",
             query_string=dict(
                 col="index",
                 cfg=json.dumps(
@@ -171,7 +177,9 @@ def test_loading_data_w_filters(unittest, arcticdb_path, arcticdb):
                 ),
             ),
         )
-        response = c.get("/dtale/data/df1", query_string=dict(ids=json.dumps(["0"])))
+        response = c.get(
+            "/dtale/data/dtale%257Cdf1", query_string=dict(ids=json.dumps(["0"]))
+        )
         response_data = response.get_json()
         unittest.assertEqual(response_data["results"], expected_results)
         unittest.assertEqual(response_data["total"], 1)
@@ -187,7 +195,9 @@ def test_describe(unittest, arcticdb_path, arcticdb):
     startup(data="df1")
 
     with app.test_client() as c:
-        response = c.get("/dtale/describe/df1", query_string=dict(col="int_val"))
+        response = c.get(
+            "/dtale/describe/dtale%257Cdf1", query_string=dict(col="int_val")
+        )
         response_data = response.get_json()
         unittest.assertEqual(
             response_data["uniques"],
@@ -214,7 +224,9 @@ def test_large_describe(arcticdb_path, arcticdb):
     startup(data="large_df")
 
     with app.test_client() as c:
-        response = c.get("/dtale/describe/large_df", query_string=dict(col="col1"))
+        response = c.get(
+            "/dtale/describe/dtale%257Clarge_df", query_string=dict(col="col1")
+        )
         response_data = response.get_json()
         assert "uniques" not in response_data
 
@@ -229,7 +241,7 @@ def test_column_filter_data(unittest, arcticdb_path, arcticdb):
 
     with app.test_client() as c:
         response = c.get(
-            "/dtale/column-filter-data/df1", query_string=dict(col="int_val")
+            "/dtale/column-filter-data/dtale%257Cdf1", query_string=dict(col="int_val")
         )
         response_data = response.get_json()
         unittest.assertEqual(
@@ -254,7 +266,8 @@ def test_large_column_filter_data(unittest, arcticdb_path, arcticdb):
 
     with app.test_client() as c:
         response = c.get(
-            "/dtale/column-filter-data/large_df", query_string=dict(col="col1")
+            "/dtale/column-filter-data/dtale%257Clarge_df",
+            query_string=dict(col="col1"),
         )
         response_data = response.get_json()
         unittest.assertEqual(response_data, {"hasMissing": True, "success": True})
@@ -334,6 +347,6 @@ def test_load_arcticdb_symbol(unittest, arcticdb_path, arcticdb):
             query_string=dict(library="dtale", symbol="df1"),
         )
         response_data = response.get_json()
-        assert response_data["data_id"] == "df1"
+        assert response_data["data_id"] == "dtale|df1"
 
-        validate_data_load("df1", unittest, c)
+        validate_data_load("dtale|df1", unittest, c)

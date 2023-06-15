@@ -144,7 +144,7 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
             {!!description && (
               <div className="row">
                 <div className="col">
-                  <b>{`${description?.symbol} ${t('Description')}`}</b>
+                  <b>{`${description?.library} - ${description?.symbol} ${t('Description')}`}</b>
                   <pre style={{ maxHeight: 600, overflowY: 'auto' }}>{description?.description ?? ''}</pre>
                 </div>
               </div>

@@ -16,6 +16,7 @@ export interface SymbolsResponse extends GenericRepository.BaseResponse {
 /** Axios response for loading symbol */
 export interface LoadDescriptionResponse extends GenericRepository.BaseResponse {
   description: string;
+  library: string;
   symbol: string;
 }
 

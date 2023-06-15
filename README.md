@@ -769,6 +769,15 @@ global_state.use_arcticdb_store(uri='lmdb:///<path>', library='my_lib')
 dtale.show('my_symbol')
 ```
 
+Or you can set your library using `dtale.show` with a pipe-delimited identifier:
+```python
+import dtale.global_state as global_state
+import dtale
+
+global_state.use_arcticdb_store(uri='lmdb:///<path>')
+dtale.show('my_lib|my_symbol')
+```
+
 You can also do everything using `dtale.show_arcticdb`:
 ```python
 import dtale

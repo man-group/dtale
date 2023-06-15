@@ -607,7 +607,13 @@ def chart_wrapper(data_id, data, url_params=None):
                 export_png_link,
                 export_csv_link,
             ],
-            style={"position": "absolute", "zIndex": 5, "left": 5, "top": 2},
+            style={
+                "position": "absolute",
+                "zIndex": 5,
+                "left": 5,
+                "top": 2,
+                "height": "100%",
+            },
         )
         return html.Div(
             [links] + make_list(chart), style={"position": "relative", "height": "100%"}
@@ -706,12 +712,14 @@ def cpg_chunker(charts, columns=2):
         return charts
 
     def _formatter(chart):
-        if hasattr(chart, "style"):
-            chart.style.pop("height", None)
         return html.Div(chart, className="col-md-6")
 
     return [
-        html.Div([_formatter(c) for c in chunk], className="row pb-3")
+        html.Div(
+            [_formatter(c) for c in chunk],
+            className="row pb-3",
+            style={"height": "100%"},
+        )
         for chunk in divide_chunks(charts, columns)
     ]
 

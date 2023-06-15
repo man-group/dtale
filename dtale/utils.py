@@ -861,6 +861,9 @@ def format_data(data, inplace=False, drop_index=False):
     else:
         data = data.reset_index(drop=drop_index)
 
+    if drop_index:
+        index = []
+
     if drop:
         if inplace:
             data.drop("index", axis=1, errors="ignore", inplace=True)

@@ -78,7 +78,14 @@ def loader_func(**kwargs):
         if symbol is None:  # select symbol from the UI
             return None
 
-        startup(data=symbol)
+        if library is None and symbol is not None:
+            raise ValueError(
+                "When trying to load the symbol, {}, a library must be specified!".format(
+                    symbol
+                )
+            )
+
+        startup(data="{}|{}".format(library, symbol))
         return symbol
 
     if not library:

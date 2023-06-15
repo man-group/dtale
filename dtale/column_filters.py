@@ -32,7 +32,7 @@ class ColumnFilter(object):
         if not dtype:
             if global_state.is_arcticdb:
                 instance = global_state.store.get(data_id)
-                data, _ = format_data(instance.load_data(row_range=[0, 1]))
+                data, _ = format_data(instance.base_df)
                 s = data[column]
             else:
                 s = global_state.get_data(data_id, columns=[column])[column]

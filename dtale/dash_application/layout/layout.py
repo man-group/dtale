@@ -1407,10 +1407,12 @@ def build_slider_counts(df, data_id, query_value):
         )
     )
     slider_counts = {
-        v * 20: {"label": "{}% ({:,.0f})".format(v * 20, (v * 2) / 10 * record_ct)}
+        "{}".format(v * 20): {
+            "label": "{}% ({:,.0f})".format(v * 20, (v * 2) / 10 * record_ct)
+        }
         for v in range(1, 6)
     }
-    slider_counts[100]["style"] = {"white-space": "nowrap"}
+    slider_counts["100"]["style"] = {"white-space": "nowrap"}
     return slider_counts
 
 
@@ -2645,7 +2647,8 @@ def charts_layout(df, settings, **inputs):
             id="chart-inputs",
         ),
         dcc.Loading(
-            html.Div(id="chart-content", style={"max-height": "69vh"}), type="circle"
+            html.Div(id="chart-content", style={"height": "calc(100vh - 380px"}),
+            type="circle",
         ),
         dcc.Textarea(id="copy-text", style=dict(position="absolute", left="-110%")),
     ]

@@ -243,8 +243,11 @@ class DtaleData(object):
         self.app_root = app_root
 
     def build_main_url(self, name=None):
+        quoted_data_id = get_url_quote()(
+            get_url_quote()(name or self._data_id, safe="")
+        )
         return "{}/dtale/main/{}".format(
-            self.app_root if self.is_proxy else self._url, name or self._data_id
+            self.app_root if self.is_proxy else self._url, quoted_data_id
         )
 
     @property
@@ -379,6 +382,10 @@ class DtaleData(object):
                 return ""
             self.notebook()
             return ""
+
+        if global_state.is_arcticdb and global_state.store.get(self._data_id).is_large:
+            return self.main_url()
+
         return self.data.__str__()
 
     def __repr__(self):
@@ -427,6 +434,7 @@ class DtaleData(object):
                 iframe_url = "{}?{}".format(iframe_url, params)
             else:
                 iframe_url = "{}?{}".format(iframe_url, url_encode_func()(params))
+
         return IFrame(iframe_url, width=width, height=height)
 
     def notebook(self, route="/dtale/iframe/", params=None, width="100%", height=475):
@@ -965,10 +973,47 @@ def startup(
 
     if global_state.is_arcticdb and isinstance(data, string_types):
         data_id = data
+        data_id_segs = data_id.split("|")
+        if len(data_id_segs) < 2:
+            if not global_state.store.lib:
+                raise ValueError(
+                    (
+                        "When specifying a data identifier for ArcticDB it must be comprised of a library and a symbol."
+                        "Use the following format: [library]|[symbol]"
+                    )
+                )
+            data_id = "{}|{}".format(global_state.store.lib.name, data_id)
         global_state.new_data_inst(data_id)
         instance = global_state.store.get(data_id)
-        data = instance.load_data(row_range=[0, 1])
-        ret_data = startup(data=data, data_id=data_id, force_save=False)
+        data = instance.base_df
+        ret_data = startup(
+            url=url,
+            data=data,
+            data_id=data_id,
+            force_save=False,
+            name=name,
+            context_vars=context_vars,
+            ignore_duplicate=ignore_duplicate,
+            allow_cell_edits=allow_cell_edits,
+            precision=precision,
+            show_columns=show_columns,
+            hide_columns=hide_columns,
+            column_formats=column_formats,
+            nan_display=nan_display,
+            sort=sort,
+            locked=locked,
+            background_mode=background_mode,
+            range_highlights=range_highlights,
+            app_root=app_root,
+            is_proxy=is_proxy,
+            vertical_headers=vertical_headers,
+            hide_shutdown=hide_shutdown,
+            column_edit_options=column_edit_options,
+            auto_hide_empty_columns=auto_hide_empty_columns,
+            highlight_filter=highlight_filter,
+            hide_header_editor=hide_header_editor,
+            lock_header_menu=lock_header_menu,
+        )
         startup_code = (
             "from arcticdb import Arctic\n"
             "from arcticdb.version_store._store import VersionedItem\n\n"
@@ -1105,17 +1150,22 @@ def startup(
         if force_save or (
             global_state.is_arcticdb and not global_state.contains(data_id)
         ):
+            data = data[curr_locked + [c for c in data.columns if c not in curr_locked]]
             global_state.set_data(data_id, data)
         dtypes_data = data
         ranges = None
         if global_state.is_arcticdb:
             instance = global_state.store.get(data_id)
-            if instance.rows() < global_state.LARGE_ARCTICDB:
+            if not instance.is_large:
                 dtypes_data = instance.load_data()
                 dtypes_data, _ = format_data(
                     dtypes_data, inplace=inplace, drop_index=drop_index
                 )
                 ranges = calc_data_ranges(dtypes_data)
+                dtypes_data = dtypes_data[
+                    curr_locked
+                    + [c for c in dtypes_data.columns if c not in curr_locked]
+                ]
         dtypes_state = build_dtypes_state(
             dtypes_data, global_state.get_dtypes(data_id) or [], ranges=ranges
         )
@@ -2105,10 +2155,7 @@ def describe(data_id):
         if p in dtype:
             return_data["describe"][p] = dtype[p]
 
-    if (
-        classification != "F"
-        and global_state.store.get(data_id).rows() < global_state.LARGE_ARCTICDB
-    ):
+    if classification != "F" and not global_state.store.get(data_id).is_large:
         uniq_vals = data[column].value_counts().sort_values(ascending=False)
         uniq_vals.index.name = "value"
         uniq_vals.name = "count"
@@ -2174,7 +2221,7 @@ def describe(data_id):
 
     if (
         classification in ["I", "F", "D"]
-        and global_state.store.get(data_id).rows() < global_state.LARGE_ARCTICDB
+        and not global_state.store.get(data_id).is_large
     ):
         sd_metrics, sd_code = build_sequential_diffs(data[column], column)
         return_data["sequential_diffs"] = sd_metrics
@@ -2503,10 +2550,7 @@ def build_filter_vals(series, data_id, column, fmt):
 @dtale.route("/column-filter-data/<data_id>")
 @exception_decorator
 def get_column_filter_data(data_id):
-    if (
-        global_state.is_arcticdb
-        and global_state.store.get(data_id).rows() > global_state.LARGE_ARCTICDB
-    ):
+    if global_state.is_arcticdb and global_state.store.get(data_id).is_large:
         return jsonify(dict(success=True, hasMissing=True))
     column = get_str_arg(request, "col")
     s = global_state.get_data(data_id)[column]
@@ -2582,6 +2626,7 @@ def get_data(data_id):
         return jsonify({})
 
     curr_settings = global_state.get_settings(data_id) or {}
+    curr_locked = curr_settings.get("locked", [])
     final_query = build_query(data_id, curr_settings.get("query"))
     highlight_filter = curr_settings.get("highlightFilter") or False
 
@@ -2610,6 +2655,10 @@ def get_data(data_id):
                         data = data.head(export_rows)
                     else:
                         data = instance.load_data(row_range=[0, export_rows])
+                data, _ = format_data(data)
+                data = data[
+                    curr_locked + [c for c in data.columns if c not in curr_locked]
+                ]
                 results = f.format_dicts(data.itertuples())
                 results = [dict_merge({IDX_COL: i}, r) for i, r in enumerate(results)]
             elif query_builder:
@@ -2618,6 +2667,7 @@ def get_data(data_id):
                 )
                 total = len(df)
                 df, _ = format_data(df)
+                df = df[curr_locked + [c for c in df.columns if c not in curr_locked]]
                 for sub_range in ids:
                     sub_range = list(map(int, sub_range.split("-")))
                     if len(sub_range) == 1:
@@ -2640,6 +2690,7 @@ def get_data(data_id):
                 df = instance.load_data(**date_range)
                 total = len(df)
                 df, _ = format_data(df)
+                df = df[curr_locked + [c for c in df.columns if c not in curr_locked]]
                 for sub_range in ids:
                     sub_range = list(map(int, sub_range.split("-")))
                     if len(sub_range) == 1:
@@ -2666,6 +2717,10 @@ def get_data(data_id):
                             row_range=[sub_range[0], sub_range[0] + 1]
                         )
                         sub_df, _ = format_data(sub_df)
+                        sub_df = sub_df[
+                            curr_locked
+                            + [c for c in sub_df.columns if c not in curr_locked]
+                        ]
                         sub_df = f.format_dicts(sub_df.itertuples())
                         results[sub_range[0]] = dict_merge(
                             {IDX_COL: sub_range[0]}, sub_df[0]
@@ -2676,6 +2731,10 @@ def get_data(data_id):
                             row_range=[start, total if end >= total else end + 1]
                         )
                         sub_df, _ = format_data(sub_df)
+                        sub_df = sub_df[
+                            curr_locked
+                            + [c for c in sub_df.columns if c not in curr_locked]
+                        ]
                         sub_df = f.format_dicts(sub_df.itertuples())
                         for i, d in zip(range(start, end + 1), sub_df):
                             results[i] = dict_merge({IDX_COL: i}, d)
@@ -2687,6 +2746,7 @@ def get_data(data_id):
         curr_dtypes = [c["name"] for c in global_state.get_dtypes(data_id)]
         if any(c not in curr_dtypes for c in data.columns):
             data, _ = format_data(data)
+            data = data[curr_locked + [c for c in data.columns if c not in curr_locked]]
             global_state.set_data(data_id, data)
             global_state.set_dtypes(
                 data_id,
@@ -4144,14 +4204,18 @@ def load_arcticdb_description():
             zip(description.index.name, description.index.dtype),
         )
     )
+    rows = description.row_count
+
     description_str = (
         "ROWS: {rows:,.0f}\n" "INDEX:\n" "\t- {index}\n" "COLUMNS:\n" "\t- {columns}\n"
     ).format(
-        rows=description.row_count,
+        rows=rows,
         index="\n\t- ".join(index),
         columns="\n\t- ".join(columns),
     )
-    return jsonify(dict(success=True, symbol=symbol, description=description_str))
+    return jsonify(
+        dict(success=True, library=library, symbol=symbol, description=description_str)
+    )
 
 
 @dtale.route("/arcticdb/load-symbol")
@@ -4159,11 +4223,12 @@ def load_arcticdb_description():
 def load_arcticdb_symbol():
     library = get_str_arg(request, "library")
     symbol = get_str_arg(request, "symbol")
+    data_id = "{}|{}".format(library, symbol)
 
     if not global_state.store.lib or global_state.store.lib.name != library:
         global_state.store.update_library(library)
 
-    startup(data=symbol)
+    startup(data=data_id)
     startup_code = (
         "from arcticdb import Arctic\n"
         "from arcticdb.version_store._store import VersionedItem\n\n"
@@ -4173,8 +4238,8 @@ def load_arcticdb_symbol():
         "if isinstance(data, VersionedItem):\n"
         "\tdf = df.data\n"
     ).format(uri=global_state.store.uri, library=library, symbol=symbol)
-    curr_settings = global_state.get_settings(symbol)
+    curr_settings = global_state.get_settings(data_id)
     global_state.set_settings(
-        symbol, dict_merge(curr_settings, dict(startup_code=startup_code))
+        data_id, dict_merge(curr_settings, dict(startup_code=startup_code))
     )
-    return dict(success=True, data_id=symbol)
+    return dict(success=True, data_id=data_id)

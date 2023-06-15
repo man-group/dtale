@@ -1365,7 +1365,7 @@ def init_callbacks(dash_app):
         settings = global_state.get_settings(params["data_id"]) or {}
         return html.Div(
             charts_layout(df, settings, **params) + saved_charts.build_layout(),
-            className="charts-body",
+            className="charts-body pb-0",
         )
 
     custom_geojson.init_callbacks(dash_app)
