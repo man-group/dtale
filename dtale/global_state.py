@@ -160,6 +160,12 @@ class DtaleArcticDBInstance(DtaleInstance):
             self._rows = self.lib._nvs.get_num_rows(self.symbol)
             self._base_df = self.load_data(row_range=[0, 1])
             self._cols = len(format_data(self._base_df)[0].columns)
+        elif self.lib and self.symbol and self.symbol not in self.parent.symbols:
+            raise ValueError(
+                "Symbol ({}) not in library, {}! Please select another symbol.".format(
+                    symbol, self.lib.name
+                )
+            )
 
     def load_data(self, **kwargs):
         from arcticdb.version_store._store import VersionedItem

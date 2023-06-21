@@ -1277,6 +1277,12 @@ def view_main(data_id=None):
     :return: HTML
     """
     if not global_state.contains(data_id):
+        if global_state.is_arcticdb:
+            try:
+                startup(data=data_id)
+                return _view_main(data_id)
+            except BaseException as ex:
+                logger.exception(ex)
         return redirect("/dtale/{}".format(head_endpoint()))
     return _view_main(data_id)
 
@@ -4207,10 +4213,15 @@ def load_arcticdb_description():
     rows = description.row_count
 
     description_str = (
-        "ROWS: {rows:,.0f}\n" "INDEX:\n" "\t- {index}\n" "COLUMNS:\n" "\t- {columns}\n"
+        "ROWS: {rows:,.0f}\n"
+        "INDEX:\n"
+        "\t- {index}\n"
+        "COLUMNS ({col_count}):\n"
+        "\t- {columns}\n"
     ).format(
         rows=rows,
         index="\n\t- ".join(index),
+        col_count=len(columns),
         columns="\n\t- ".join(columns),
     )
     return jsonify(
