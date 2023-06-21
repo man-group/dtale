@@ -95,7 +95,7 @@ describe('LibrarySymbolSelector tests', () => {
       await fireEvent.click(screen.getByText('View Info'));
     });
     expect(loadDescriptionSpy).toHaveBeenCalledWith('foo', 'foo1');
-    expect(result.getElementsByTagName('b')[0].textContent).toBe('foo - foo1 Description');
+    expect(result.getElementsByTagName('b')[0].textContent).toBe('foo - foo1');
     expect(result.getElementsByTagName('pre')[0].textContent).toBe('Test Description');
 
     const librariesSpy = jest.spyOn(ArcticDBRepository, 'libraries');
