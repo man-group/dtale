@@ -104,6 +104,15 @@ body,
   font-size: 20px;
   line-height: 20px;
 }
+.grid-menu .bouncer {
+  margin: auto;
+  height: 10px;
+  width: 10px;
+}
+.grid-menu .double-bounce1,
+.grid-menu .double-bounce2 {
+  margin-top: 3px;
+}
 .rows {
   position: absolute;
   bottom: 0;

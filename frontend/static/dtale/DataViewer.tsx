@@ -323,7 +323,11 @@ export const DataViewer: React.FC = () => {
 
   const cellRenderer = (props: GridCellProps): React.ReactNode => {
     const { columnIndex, key, rowIndex, style } = props;
-    return <GridCell {...{ columnIndex, key, rowIndex, style, data, columns, min, max, rowCount, propagateState }} />;
+    return (
+      <GridCell
+        {...{ loading, columnIndex, key, rowIndex, style, data, columns, min, max, rowCount, propagateState }}
+      />
+    );
   };
 
   const loadTimeout = React.useRef<NodeJS.Timeout | null>(null);

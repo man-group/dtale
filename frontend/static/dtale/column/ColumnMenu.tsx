@@ -42,8 +42,12 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
     outlierFilters: state.settings.outlierFilters,
     sortInfo: state.settings.sortInfo,
     isArcticDB: state.isArcticDB,
+    columnCount: state.columnCount,
   }));
-  const largeArcticDB = React.useMemo(() => reduxState.isArcticDB >= 1_000_000, [reduxState.isArcticDB]);
+  const largeArcticDB = React.useMemo(
+    () => reduxState.isArcticDB!! && (reduxState.isArcticDB >= 1_000_000 || reduxState.columnCount > 100),
+    [reduxState.isArcticDB, reduxState.columnCount],
+  );
   const prevRibbonOpen = usePrevious(reduxState.ribbonMenuOpen);
 
   const dispatch = useDispatch();

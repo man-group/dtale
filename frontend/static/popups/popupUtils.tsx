@@ -6,6 +6,7 @@ import { ColumnAnalysisPopupData, CreateColumnPopupData, Popups, PopupType } fro
 
 import About from './About';
 import ColumnAnalysis from './analysis/ColumnAnalysis';
+import JumpToColumn from './arcticdb/JumpToColumn';
 import LibrarySymbolSelector from './arcticdb/LibrarySymbolSelector';
 import Confirmation from './Confirmation';
 import { CopyRangeToClipboard } from './CopyRangeToClipboard';
@@ -310,6 +311,17 @@ const buildArcticDB = (props: BuilderInput): BuilderOutput => {
   return { title, body };
 };
 
+const buildJumpToColumn = (props: BuilderInput): BuilderOutput => {
+  const title = (
+    <React.Fragment>
+      <i className="fa-solid fa-magnifying-glass-plus" />
+      <strong>{props.t('Jump To Column', { ns: 'menu' })}</strong>
+    </React.Fragment>
+  );
+  const body = <JumpToColumn propagateState={props.propagateState} />;
+  return { title, body };
+};
+
 const buildDuplicates = (props: BuilderInput): BuilderOutput => {
   const title = (
     <React.Fragment>
@@ -350,6 +362,7 @@ const POPUP_MAP: Record<PopupType, (props: BuilderInput) => BuilderOutput> = {
   [PopupType.DESCRIBE]: () => ({}),
   [PopupType.CHARTS]: () => ({}),
   [PopupType.ARCTICDB]: buildArcticDB,
+  [PopupType.JUMP_TO_COLUMN]: buildJumpToColumn,
 };
 
 export const buildBodyAndTitle = (props: BuilderInput): BuilderOutput =>

@@ -6,6 +6,7 @@ export enum InfoMenuType {
   FILTER,
   SORT,
   HIDDEN,
+  ARCTICDB,
 }
 
 export const buildMenuHandler = (

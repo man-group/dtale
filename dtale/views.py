@@ -1170,12 +1170,15 @@ def startup(
             dtypes_data, global_state.get_dtypes(data_id) or [], ranges=ranges
         )
 
-        if show_columns or hide_columns:
-            for col in dtypes_state:
-                if show_columns and col["name"] not in show_columns:
-                    col["visible"] = False
-                if hide_columns and col["name"] in hide_columns:
-                    col["visible"] = False
+        for col in dtypes_state:
+            if show_columns and col["name"] not in show_columns:
+                col["visible"] = False
+                continue
+            if hide_columns and col["name"] in hide_columns:
+                col["visible"] = False
+                continue
+            if col["index"] > 100:
+                col["visible"] = False
         if auto_hide_empty_columns and not global_state.is_arcticdb:
             is_empty = data.isnull().all()
             is_empty = list(is_empty[is_empty].index.values)
@@ -1224,9 +1227,11 @@ def base_render_template(template, data_id, **kwargs):
         github_fork=github_fork,
     )
     is_arcticdb = 0
+    arctic_conn = ""
     if global_state.is_arcticdb:
         instance = global_state.store.get(data_id)
         is_arcticdb = instance.rows()
+        arctic_conn = global_state.store.uri
     return render_template(
         template,
         data_id=get_url_quote()(get_url_quote()(data_id, safe=""))
@@ -1243,6 +1248,8 @@ def base_render_template(template, data_id, **kwargs):
         ),
         is_vscode=is_vscode(),
         is_arcticdb=is_arcticdb,
+        arctic_conn=arctic_conn,
+        column_count=len(global_state.get_dtypes(data_id) or []),
         # fmt: off
         **dict_merge(kwargs, curr_app_settings, app_overrides)
         # fmt: on
@@ -2638,8 +2645,10 @@ def get_data(data_id):
 
     if global_state.is_arcticdb:
         col_types = global_state.get_dtypes(data_id)
+        columns_to_load = [c["name"] for c in col_types if c["visible"]]
         f = grid_formatter(
-            col_types, nan_display=curr_settings.get("nanDisplay", "nan")
+            [c for c in col_types if c["visible"]],
+            nan_display=curr_settings.get("nanDisplay", "nan"),
         )
 
         query_builder = build_query_builder(data_id)
@@ -2653,7 +2662,8 @@ def get_data(data_id):
                 if export_rows:
                     if query_builder:
                         data = instance.load_data(
-                            query_builder=query_builder, **(date_range or {})
+                            query_builder=query_builder,
+                            **(date_range or {}),
                         )
                         data = data.head(export_rows)
                     elif date_range:
@@ -2669,7 +2679,9 @@ def get_data(data_id):
                 results = [dict_merge({IDX_COL: i}, r) for i, r in enumerate(results)]
             elif query_builder:
                 df = instance.load_data(
-                    query_builder=query_builder, **(date_range or {})
+                    query_builder=query_builder,
+                    **(date_range or {}),
+                    columns=columns_to_load,
                 )
                 total = len(df)
                 df, _ = format_data(df)
@@ -2693,7 +2705,7 @@ def get_data(data_id):
                         for i, d in zip(range(start, end + 1), sub_df):
                             results[i] = dict_merge({IDX_COL: i}, d)
             elif date_range:
-                df = instance.load_data(**date_range)
+                df = instance.load_data(columns=columns_to_load, **date_range)
                 total = len(df)
                 df, _ = format_data(df)
                 df = df[curr_locked + [c for c in df.columns if c not in curr_locked]]
@@ -2720,7 +2732,8 @@ def get_data(data_id):
                     sub_range = list(map(int, sub_range.split("-")))
                     if len(sub_range) == 1:
                         sub_df = instance.load_data(
-                            row_range=[sub_range[0], sub_range[0] + 1]
+                            row_range=[sub_range[0], sub_range[0] + 1],
+                            columns=columns_to_load,
                         )
                         sub_df, _ = format_data(sub_df)
                         sub_df = sub_df[
@@ -2734,7 +2747,8 @@ def get_data(data_id):
                     else:
                         [start, end] = sub_range
                         sub_df = instance.load_data(
-                            row_range=[start, total if end >= total else end + 1]
+                            row_range=[start, total if end >= total else end + 1],
+                            columns=columns_to_load,
                         )
                         sub_df, _ = format_data(sub_df)
                         sub_df = sub_df[

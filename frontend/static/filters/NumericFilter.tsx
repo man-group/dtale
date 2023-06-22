@@ -51,8 +51,11 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
   max,
   t,
 }) => {
-  const { dataId, isArcticDB } = useSelector((state: AppState) => state);
-  const largeArcticDB = React.useMemo(() => isArcticDB >= 1_000_000, [isArcticDB]);
+  const { dataId, isArcticDB, columnCount } = useSelector((state: AppState) => state);
+  const largeArcticDB = React.useMemo(
+    () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
+    [isArcticDB, columnCount],
+  );
   const [operand, setOperand] = React.useState<ColumnFilterOperand>(columnFilter?.operand ?? '=');
   const [selected, setSelected] = React.useState<string[]>(
     ['=', 'ne'].includes(operand) ? (columnFilter?.value as string[]) : [],

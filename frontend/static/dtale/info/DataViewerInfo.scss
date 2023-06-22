@@ -12,6 +12,13 @@
   }
 }
 
+.info-link {
+  &:hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
 .data-viewer-error {
   overflow: hidden;
   margin: 0 !important;

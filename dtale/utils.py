@@ -852,9 +852,10 @@ def format_data(data, inplace=False, drop_index=False):
         str(i) for i in make_list(data.index.name or data.index.names) if i is not None
     ]
     drop = True
-    if not len(index) or not data.index.equals(pd.RangeIndex(0, len(data))):
+    if not data.index.equals(pd.RangeIndex(0, len(data))):
         drop = False
-        index = ["index"]
+        if not len(index):
+            index = ["index"]
 
     if inplace:
         data.reset_index(inplace=True, drop=drop_index)

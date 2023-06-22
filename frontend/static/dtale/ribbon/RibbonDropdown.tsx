@@ -87,14 +87,20 @@ export interface RibbonDropdownProps {
 }
 
 const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ columns, rows, propagateState, t }) => {
-  const { dataId, isVSCode, element, name, settings, visible, isArcticDB } = useSelector((state: AppState) => ({
-    ...state.ribbonDropdown,
-    dataId: state.dataId,
-    isVSCode: state.isVSCode,
-    settings: state.settings,
-    isArcticDB: state.isArcticDB,
-  }));
-  const largeArcticDB = React.useMemo(() => isArcticDB >= 1_000_000, [isArcticDB]);
+  const { dataId, isVSCode, element, name, settings, visible, isArcticDB, columnCount } = useSelector(
+    (state: AppState) => ({
+      ...state.ribbonDropdown,
+      dataId: state.dataId,
+      isVSCode: state.isVSCode,
+      settings: state.settings,
+      isArcticDB: state.isArcticDB,
+      columnCount: state.columnCount,
+    }),
+  );
+  const largeArcticDB = React.useMemo(
+    () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
+    [isArcticDB, columnCount],
+  );
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });

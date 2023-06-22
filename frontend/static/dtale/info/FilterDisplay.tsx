@@ -209,7 +209,7 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
     return (
       <>
         {label}
-        <div className="pl-3 d-inline-block filter-menu-toggle">{removeBackticks(filterSegs[0] ?? '')}</div>
+        <div className="pl-3 d-inline-block filter-menu-toggle info-link">{removeBackticks(filterSegs[0] ?? '')}</div>
         {allButtons}
       </>
     );

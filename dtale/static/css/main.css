@@ -8762,12 +8762,15 @@ caption {
 .column-toggle,
 .sort-menu-toggle,
 .filter-menu-toggle,
-.hidden-menu-toggle {
+.hidden-menu-toggle,
+.arctic-menu-toggle {
   position: relative;
   text-align: center;
 }
 
-.sort-menu-toggle .column-toggle__dropdown {
+.sort-menu-toggle .column-toggle__dropdown,
+.arctic-menu-toggle .column-toggle__dropdown
+{
   position: fixed;
   min-width: 11em;
   top: 1em;
