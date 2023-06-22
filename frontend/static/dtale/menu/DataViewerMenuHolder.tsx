@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { Bouncer } from '../../Bouncer';
 import { openMenu } from '../../menuUtils';
 import { ActionType } from '../../redux/actions/AppActions';
 import { AppState } from '../../redux/state/AppState';
@@ -9,20 +10,17 @@ import * as gu from '../gridUtils';
 
 /** Component properties for DataViewerMenuHolder */
 interface DatViewerMenuHolderProps {
+  loading: boolean;
   style: React.CSSProperties;
   columns: ColumnDef[];
   rowCount: number;
 }
 
-export const DataViewerMenuHolder: React.FC<DatViewerMenuHolderProps> = ({ style, columns, rowCount }) => {
-  const { theme, menuPinned, menuOpen, settings } = useSelector((state: AppState) => state);
+export const DataViewerMenuHolder: React.FC<DatViewerMenuHolderProps> = ({ loading, style, columns, rowCount }) => {
+  const { theme, menuPinned, menuOpen, columnCount } = useSelector((state: AppState) => state);
   const dispatch = useDispatch();
   const menuToggle = React.useRef<HTMLDivElement>(null);
 
-  const colCount = React.useMemo(
-    () => gu.getActiveCols(columns, settings.backgroundMode).length,
-    [columns, settings.backgroundMode],
-  );
   const menuHandler = openMenu(
     () => dispatch({ type: ActionType.OPEN_MENU }),
     () => dispatch({ type: ActionType.CLOSE_MENU }),
@@ -41,11 +39,12 @@ export const DataViewerMenuHolder: React.FC<DatViewerMenuHolderProps> = ({ style
             }}
             onClick={menuHandler}
           >
-            <span>&#8227;</span>
+            {!loading && <span>&#8227;</span>}
+            {loading && <Bouncer />}
           </div>
         )}
         <div className="rows">{Math.max(rowCount - 1, 0)}</div>
-        <div className="cols">{Math.max(colCount - 1, 0)}</div>
+        <div className="cols">{Math.max(columnCount, 0)}</div>
       </div>
     </div>
   );

@@ -24,9 +24,11 @@ export interface GridCellProps {
   min?: number;
   max?: number;
   propagateState: DataViewerPropagateState;
+  loading: boolean;
 }
 
 const GridCell: React.FC<GridCellProps & WithTranslation> = ({
+  loading,
   columnIndex,
   rowIndex,
   style,
@@ -53,6 +55,7 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
   if (rowIndex === 0) {
     return (
       <Header
+        loading={loading}
         columnIndex={columnIndex}
         style={style}
         columns={columns}

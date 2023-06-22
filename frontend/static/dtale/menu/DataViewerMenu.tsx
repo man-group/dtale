@@ -28,6 +28,7 @@ import GageRnROption from './GageRnROption';
 import HeatMapOption from './HeatMapOption';
 import HighlightOption from './HighlightOption';
 import InstancesOption from './InstancesOption';
+import JumpToColumnOption from './JumpToColumnOption';
 import LanguageOption from './LanguageOption';
 import LogoutOption from './LogoutOption';
 import LowVarianceOption from './LowVarianceOption';
@@ -57,10 +58,12 @@ export interface DataViewerMenuProps {
 }
 
 const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, columns, rows, propagateState }) => {
-  const { dataId, menuPinned, mainTitle, mainTitleFont, isArcticDB, isVSCode, settings, menuOpen } = useSelector(
-    (state: AppState) => state,
+  const { dataId, menuPinned, mainTitle, mainTitleFont, isArcticDB, isVSCode, settings, menuOpen, columnCount } =
+    useSelector((state: AppState) => state);
+  const largeArcticDB = React.useMemo(
+    () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
+    [isArcticDB, columnCount],
   );
-  const largeArcticDB = React.useMemo(() => isArcticDB >= 1_000_000, [isArcticDB]);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
@@ -76,7 +79,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
   const buttonHandlers = menuFuncs.buildHotkeyHandlers({ dataId, columns, openChart, openMenu, closeMenu, isVSCode });
   const { openPopup } = buttonHandlers;
   const refreshWidths = (): void => propagateState({ columns: columns.map((c) => ({ ...c })) });
-  const hasNoInfo = gu.hasNoInfo(settings, columns);
+  const hasNoInfo = gu.hasNoInfo({ ...settings, isArcticDB }, columns);
   const containerProps = menuPinned
     ? { className: 'pinned-data-viewer-menu' }
     : {
@@ -113,6 +116,9 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
         <ul>
           <NewTabOption />
           {!!isArcticDB && <ArcticDBOption open={openPopup({ type: PopupType.ARCTICDB, visible: true }, 450)} />}
+          {columnCount > 100 && (
+            <JumpToColumnOption open={openPopup({ type: PopupType.JUMP_TO_COLUMN, columns, visible: true }, 450)} />
+          )}
           {!isArcticDB && <XArrayOption columns={columns.filter(({ name }) => name !== gu.IDX)} />}
           <DescribeOption open={buttonHandlers.DESCRIBE} />
           {!isArcticDB && <FilterOption open={() => showSidePanel(SidePanelType.FILTER)} />}

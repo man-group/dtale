@@ -145,6 +145,7 @@ export enum PopupType {
   DESCRIBE = 'describe',
   EXPORT = 'export',
   ARCTICDB = 'arcticdb',
+  JUMP_TO_COLUMN = 'jump_to_column',
 }
 
 /** Configuration for any data for a popup */
@@ -204,6 +205,11 @@ export interface ExportPopupData extends PopupData<typeof PopupType.EXPORT> {
 
 /** Popup configuration for Error popup */
 export interface RenamePopupData extends PopupData<typeof PopupType.RENAME>, HasColumnSelection {
+  columns: ColumnDef[];
+}
+
+/** Popup configuration for JumpToColumn popup */
+export interface JumpToColumnPopupData extends PopupData<typeof PopupType.JUMP_TO_COLUMN> {
   columns: ColumnDef[];
 }
 
@@ -332,7 +338,8 @@ export type Popups =
   | CreateCleanersPopupData
   | InstancesPopupData
   | ExportPopupData
-  | ArcticDBPopupData;
+  | ArcticDBPopupData
+  | JumpToColumnPopupData;
 
 /** Sort directions */
 export enum SortDir {
@@ -371,6 +378,7 @@ export interface InstanceSettings {
   column_edit_options?: Record<string, string[]>;
   hide_header_editor: boolean;
   lock_header_menu: boolean;
+  isArcticDB?: number;
 }
 
 export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
@@ -410,6 +418,8 @@ export interface AppSettings {
   pythonVersion: Version | null;
   isVSCode: boolean;
   isArcticDB: number;
+  arcticConn: string;
+  columnCount: number;
   maxColumnWidth: number | null;
   maxRowHeight: number | null;
   mainTitle: string | null;

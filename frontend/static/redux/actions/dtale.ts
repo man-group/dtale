@@ -140,8 +140,8 @@ export const getParams = (): Record<string, string | string[]> => {
 export const updateFilteredRanges =
   (query: string): AppActions<Promise<void>> =>
   async (dispatch, getState) => {
-    const { dataId, filteredRanges, isArcticDB } = getState();
-    if (isArcticDB >= 1_000_000) {
+    const { dataId, filteredRanges, isArcticDB, columnCount } = getState();
+    if (!!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100)) {
       return;
     }
     const currQuery = filteredRanges?.query ?? '';

@@ -74,6 +74,7 @@ const cancelEvents = (e: DraggableEvent, func: () => void): void => {
 
 /** Component properties for Header */
 export interface HeaderProps {
+  loading: boolean;
   columns: ColumnDef[];
   rowCount: number;
   columnIndex: number;
@@ -83,6 +84,7 @@ export interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps & WithTranslation> = ({
+  loading,
   columns,
   rowCount,
   columnIndex,
@@ -189,7 +191,7 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   };
 
   if (columnIndex === 0) {
-    return <DataViewerMenuHolder style={style} columns={columns} rowCount={rowCount} />;
+    return <DataViewerMenuHolder loading={loading} style={style} columns={columns} rowCount={rowCount} />;
   }
 
   const copyHandler = buildCopyHandler();

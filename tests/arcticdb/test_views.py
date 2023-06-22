@@ -332,7 +332,7 @@ def test_load_arcticdb_description(unittest, arcticdb_path, arcticdb):
         response_data = response.get_json()
         assert response_data["description"] == (
             "ROWS: 3\nINDEX:\n\t- None (MICROS_UTC)\n"
-            "COLUMNS:\n\t- float_val (FLOAT)\n\t- int_val (INT)\n\t- str_val (DYNAMIC_STRING)\n"
+            "COLUMNS (3):\n\t- float_val (FLOAT)\n\t- int_val (INT)\n\t- str_val (DYNAMIC_STRING)\n"
         )
 
 

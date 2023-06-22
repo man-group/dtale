@@ -36,12 +36,16 @@ export interface DetailsProps {
 }
 
 const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, close, t }) => {
-  const { dataId, settings, isArcticDB } = useSelector((state: AppState) => ({
+  const { dataId, settings, isArcticDB, columnCount } = useSelector((state: AppState) => ({
     dataId: state.dataId,
     settings: state.settings,
     isArcticDB: state.isArcticDB,
+    columnCount: state.columnCount,
   }));
-  const largeArcticDB = React.useMemo(() => isArcticDB >= 1_000_000, [isArcticDB]);
+  const largeArcticDB = React.useMemo(
+    () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
+    [isArcticDB, columnCount],
+  );
   const dispatch = useDispatch();
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
     dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);

@@ -155,6 +155,28 @@ export const isArcticDB = (state = 0, action: AppActionTypes): number => {
   }
 };
 
+export const arcticConn = (state = '', action: AppActionTypes): string => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return getHiddenValue('arctic_conn') ?? '';
+    case ActionType.LOAD_PREVIEW:
+      return '';
+    default:
+      return state;
+  }
+};
+
+export const columnCount = (state = 0, action: AppActionTypes): number => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toFloat(getHiddenValue('column_count')) as number;
+    case ActionType.LOAD_PREVIEW:
+      return 0;
+    default:
+      return state;
+  }
+};
+
 export const maxColumnWidth = (state: number | null = null, action: AppActionTypes): number | null => {
   switch (action.type) {
     case ActionType.INIT_PARAMS:

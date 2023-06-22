@@ -194,6 +194,7 @@ export const calcColWidth = (
   sortInfo?: SortDef[],
   backgroundMode?: string,
   maxColumnWidth?: number,
+  isWide?: boolean,
 ): Partial<ColumnDef> => {
   const { name, dtype, hasMissing, hasOutliers, lowVariance, resized, width, headerWidth, dataWidth } = colCfg;
   if (resized === true) {
@@ -214,7 +215,12 @@ export const calcColWidth = (
     } else if (backgroundMode === 'lowVariance' && lowVariance) {
       updatedHeaderWidth += 15; // star emoji
     }
-    const updatedDataWidth = calcDataWidth(name, dtype, data) ?? DEFAULT_COL_WIDTH;
+    let updatedDataWidth = updatedHeaderWidth;
+    if (isWide) {
+      updatedDataWidth = updatedDataWidth < 100 ? 100 : updatedDataWidth;
+    } else {
+      updatedDataWidth = calcDataWidth(name, dtype, data) ?? DEFAULT_COL_WIDTH;
+    }
     w = updatedHeaderWidth > updatedDataWidth ? updatedHeaderWidth : updatedDataWidth;
     w = maxColumnWidth && w >= maxColumnWidth ? { width: maxColumnWidth, resized: true } : { width: w };
     w = { ...w, headerWidth: updatedHeaderWidth, dataWidth: updatedDataWidth };
@@ -283,7 +289,7 @@ export const noFilters = (state: Partial<InstanceSettings>): boolean =>
   !Object.keys(filterPredefined(state.predefinedFilters ?? {})).length;
 
 export const hasNoInfo = (settings: Partial<InstanceSettings>, columns: ColumnDef[]): boolean =>
-  !settings.sortInfo?.length && noFilters(settings) && noHidden(columns);
+  !settings.isArcticDB && !settings.sortInfo?.length && noFilters(settings) && noHidden(columns);
 
 export const convertCellIdxToCoords = (cellIdx: string): number[] =>
   (cellIdx ?? '').split('|').map((v) => parseInt(v, 10));
@@ -345,7 +351,12 @@ export const refreshColumns = (
     }));
   const updatedColumns = buildColMap(newColumns);
   const finalColumns = [
-    ...columns.map((c) => (c.dtype !== updatedColumns[c.name].dtype ? { ...c, ...updatedColumns[c.name] } : c)),
+    ...columns.map((c) => {
+      if (c.dtype !== updatedColumns[c.name].dtype) {
+        return { ...c, ...updatedColumns[c.name] };
+      }
+      return { ...c, visible: updatedColumns[c.name].visible };
+    }),
     ...newCols,
   ];
   return { columns: finalColumns, ...getTotalRange(finalColumns) };

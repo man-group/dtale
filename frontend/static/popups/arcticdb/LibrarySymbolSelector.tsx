@@ -13,7 +13,8 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
   const { dataId } = useSelector((state: AppState) => state);
 
   const currentSymbol = React.useMemo(() => {
-    return decodeURIComponent(dataId);
+    const dataIdSegs = decodeURIComponent(decodeURIComponent(dataId)).split('|');
+    return dataIdSegs[dataIdSegs.length - 1];
   }, [dataId]);
 
   const [library, setLibrary] = React.useState<BaseOption<string>>();

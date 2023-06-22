@@ -3,10 +3,15 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { AnyAction } from 'redux';
 
+import { OpenChartAction } from '../../redux/actions/AppActions';
+import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, InstanceSettings } from '../../redux/state/AppState';
+import { AppState, InstanceSettings, Popups, PopupType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
+import ArcticDBOption from '../menu/ArcticDBOption';
+import * as menuFuncs from '../menu/dataViewerMenuUtils';
+import JumpToColumnOption from '../menu/JumpToColumnOption';
 import * as serverState from '../serverStateManagement';
 
 import FilterDisplay from './FilterDisplay';
@@ -31,17 +36,41 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ colum
     predefinedFilters: state.settings.predefinedFilters,
     outlierFilters: state.settings.outlierFilters,
     sortInfo: state.settings.sortInfo,
+    isArcticDB: state.isArcticDB,
+    arcticConn: state.arcticConn,
+    isVSCode: state.isVSCode,
+    columnCount: state.columnCount,
   }));
   const dispatch = useDispatch();
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
     dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
 
   const [menuOpen, setMenuOpen] = React.useState<InfoMenuType>();
   const sortRef = React.useRef<HTMLDivElement>(null);
   const hideRef = React.useRef<HTMLDivElement>(null);
+  const arcticRef = React.useRef<HTMLDivElement>(null);
+
+  const arcticDBPopup = menuFuncs.openPopup(
+    { type: PopupType.ARCTICDB, visible: true },
+    reduxState.dataId,
+    openChart,
+    450,
+    500,
+    reduxState.isVSCode,
+  );
+
+  const jumpToColumnPopup = menuFuncs.openPopup(
+    { type: PopupType.JUMP_TO_COLUMN, columns, visible: true },
+    reduxState.dataId,
+    openChart,
+    450,
+    500,
+    reduxState.isVSCode,
+  );
 
   const renderSort = (): React.ReactNode => {
-    if (!reduxState.sortInfo?.length) {
+    if (!reduxState.sortInfo?.length || !!reduxState.isArcticDB) {
       return null;
     }
     const label = <div className="font-weight-bold d-inline-block">{t('Sort')}:</div>;
@@ -73,7 +102,7 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ colum
     return (
       <React.Fragment>
         {label}
-        <div ref={sortRef} className="pl-3 d-inline-block sort-menu-toggle" onClick={clickHandler}>
+        <div ref={sortRef} className="pl-3 d-inline-block sort-menu-toggle info-link" onClick={clickHandler}>
           <span className="pointer">{sortText}</span>
           <div className="column-toggle__dropdown" hidden={menuOpen !== InfoMenuType.SORT}>
             <ul>
@@ -134,24 +163,71 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ colum
     return (
       <React.Fragment>
         {label}
-        <div ref={hideRef} className="pl-3 d-inline-block hidden-menu-toggle" onClick={clickHandler}>
+        <div ref={hideRef} className="pl-3 d-inline-block hidden-menu-toggle info-link" onClick={clickHandler}>
           <span className="pointer">{hiddenText}</span>
           <div className="column-toggle__dropdown" hidden={menuOpen !== InfoMenuType.HIDDEN}>
-            <ul>
-              {hidden.map((col, i) => (
-                <li key={i}>
-                  <span className="toggler-action">
-                    <button className="btn btn-plain ignore-clicks" onClick={unhideCol(col)}>
-                      <i className="ico-cancel mr-4" />
-                    </button>
-                  </span>
-                  <span className="font-weight-bold text-nowrap">{col}</span>
-                </li>
-              ))}
-            </ul>
+            <div
+              style={{
+                maxHeight: 'calc(50vh)',
+                overflowY: 'scroll',
+                overflowX: 'hidden',
+              }}
+            >
+              <ul>
+                {hidden.map((col, i) => (
+                  <li key={i}>
+                    <span className="toggler-action">
+                      <button className="btn btn-plain ignore-clicks" onClick={unhideCol(col)}>
+                        <i className="ico-cancel mr-4" />
+                      </button>
+                    </span>
+                    <span className="font-weight-bold text-nowrap">{col}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
         {clearAll}
+      </React.Fragment>
+    );
+  };
+
+  const renderArctic = (): React.ReactNode => {
+    if (!reduxState.isArcticDB) {
+      return null;
+    }
+    const clickHandler = buildMenuHandler(InfoMenuType.ARCTICDB, setMenuOpen, arcticRef);
+    const dataSelection = decodeURIComponent(decodeURIComponent(reduxState.dataId));
+    const [library, symbol] = dataSelection.split('|');
+
+    return (
+      <React.Fragment>
+        <div className="font-weight-bold d-inline-block">{t('ArcticDB')}:</div>
+        <div ref={arcticRef} className="pl-3 d-inline-block arctic-menu-toggle info-link" onClick={clickHandler}>
+          <span>
+            <div className="d-inline-block info-link" style={{ maxWidth: 100, verticalAlign: 'bottom' }}>
+              <div className="resized" title={reduxState.arcticConn}>
+                {reduxState.arcticConn}
+              </div>
+            </div>
+            {` (`}
+            <b>lib</b>
+            {`: ${library}, `}
+            <b>symbol</b>
+            {`: ${symbol})`}
+          </span>
+          <div
+            className="column-toggle__dropdown"
+            hidden={menuOpen !== InfoMenuType.ARCTICDB}
+            style={{ minWidth: '12em' }}
+          >
+            <ul>
+              <ArcticDBOption open={arcticDBPopup} />
+              {reduxState.columnCount > 100 && <JumpToColumnOption open={jumpToColumnPopup} />}
+            </ul>
+          </div>
+        </div>
       </React.Fragment>
     );
   };
@@ -161,8 +237,14 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ colum
       <div className={`row data-viewer-error${error ? ' is-expanded' : ''}`}>
         <div className="col-md-12">{error}</div>
       </div>
-      <div className={`row text-center data-viewer-info${gu.hasNoInfo(reduxState, columns) ? '' : ' is-expanded'}`}>
-        <div className="col text-left">{renderSort()}</div>
+      <div
+        className={`row text-center data-viewer-info${gu.hasNoInfo(reduxState, columns) ? '' : ' is-expanded'}`}
+        style={!!reduxState.isArcticDB ? { background: '#FFE600' } : {}}
+      >
+        <div className="col text-left">
+          {renderSort()}
+          {renderArctic()}
+        </div>
         <div className="col-auto">
           <FilterDisplay menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
         </div>
