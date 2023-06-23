@@ -17,6 +17,7 @@ from flask import (
     Response,
 )
 
+import itertools
 import missingno as msno
 import networkx as nx
 import numpy as np
@@ -98,6 +99,7 @@ from dtale.utils import (
     read_file,
     make_list,
     optimize_df,
+    option,
     retrieve_grid_params,
     running_with_flask_debug,
     running_with_pytest,
@@ -1177,7 +1179,7 @@ def startup(
             if hide_columns and col["name"] in hide_columns:
                 col["visible"] = False
                 continue
-            if col["index"] > 100:
+            if col["index"] >= 100:
                 col["visible"] = False
         if auto_hide_empty_columns and not global_state.is_arcticdb:
             is_empty = data.isnull().all()
@@ -2589,10 +2591,6 @@ def get_async_column_filter_data(data_id):
     dtype = find_dtype(s)
     fmt = find_dtype_formatter(dtype)
     vals = s[s.astype("str").str.startswith(input)]
-
-    def option(v):
-        return dict(value=v, label="{}".format(v))
-
     vals = [option(fmt(v)) for v in sorted(vals.unique())[:5]]
     return jsonify(vals)
 
@@ -2662,11 +2660,10 @@ def get_data(data_id):
                 if export_rows:
                     if query_builder:
                         data = instance.load_data(
-                            query_builder=query_builder,
-                            **(date_range or {}),
+                            query_builder=query_builder, **date_range
                         )
                         data = data.head(export_rows)
-                    elif date_range:
+                    elif len(date_range):
                         data = instance.load_data(**date_range)
                         data = data.head(export_rows)
                     else:
@@ -2680,8 +2677,10 @@ def get_data(data_id):
             elif query_builder:
                 df = instance.load_data(
                     query_builder=query_builder,
-                    **(date_range or {}),
                     columns=columns_to_load,
+                    # fmt: off
+                    **date_range
+                    # fmt: on
                 )
                 total = len(df)
                 df, _ = format_data(df)
@@ -2704,7 +2703,7 @@ def get_data(data_id):
                         sub_df = f.format_dicts(sub_df.itertuples())
                         for i, d in zip(range(start, end + 1), sub_df):
                             results[i] = dict_merge({IDX_COL: i}, d)
-            elif date_range:
+            elif len(date_range):
                 df = instance.load_data(columns=columns_to_load, **date_range)
                 total = len(df)
                 df, _ = format_data(df)
@@ -4183,10 +4182,27 @@ def get_timeseries_analysis(data_id):
 def get_arcticdb_libraries():
     if get_bool_arg(request, "refresh"):
         global_state.store.load_libraries()
-    ret_data = dict(success=True, libraries=global_state.store.libraries)
+
+    libraries = global_state.store.libraries
+    is_async = False
+    if len(libraries) > 500:
+        is_async = True
+        libraries = libraries[:5]
+    ret_data = {"success": True, "libraries": libraries, "async": is_async}
     if global_state.store.lib is not None:
         ret_data["library"] = global_state.store.lib.name
     return jsonify(ret_data)
+
+
+@dtale.route("/arcticdb/async-libraries")
+@exception_decorator
+def get_async_arcticdb_libraries():
+    libraries = global_state.store.libraries
+    input = get_str_arg(request, "input")
+    vals = list(
+        itertools.islice((option(lib) for lib in libraries if lib.startswith(input)), 5)
+    )
+    return jsonify(vals)
 
 
 @dtale.route("/arcticdb/<library>/symbols")
@@ -4194,7 +4210,24 @@ def get_arcticdb_libraries():
 def get_arcticdb_symbols(library):
     if get_bool_arg(request, "refresh") or library not in global_state.store._symbols:
         global_state.store.load_symbols(library)
-    return jsonify(dict(success=True, symbols=global_state.store._symbols[library]))
+
+    symbols = global_state.store._symbols[library]
+    is_async = False
+    if len(symbols) > 500:
+        is_async = True
+        symbols = symbols[:5]
+    return jsonify({"success": True, "symbols": symbols, "async": is_async})
+
+
+@dtale.route("/arcticdb/<library>/async-symbols")
+@exception_decorator
+def get_async_arcticdb_symbols(library):
+    symbols = global_state.store._symbols[library]
+    input = get_str_arg(request, "input")
+    vals = list(
+        itertools.islice((option(sym) for sym in symbols if sym.startswith(input)), 5)
+    )
+    return jsonify(vals)
 
 
 @dtale.route("/arcticdb/load-description")

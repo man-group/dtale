@@ -4,9 +4,10 @@ import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import DataViewerInfo, { DataViewerInfoProps } from '../../../dtale/info/DataViewerInfo';
+import * as menuFuncs from '../../../dtale/menu/dataViewerMenuUtils';
 import * as serverState from '../../../dtale/serverStateManagement';
 import { ActionType } from '../../../redux/actions/AppActions';
-import { InstanceSettings, SortDir } from '../../../redux/state/AppState';
+import { InstanceSettings, PopupType, SortDir } from '../../../redux/state/AppState';
 import { RemovableError } from '../../../RemovableError';
 import * as GenericRepository from '../../../repository/GenericRepository';
 import reduxUtils from '../../redux-test-utils';
@@ -17,12 +18,15 @@ describe('DataViewerInfo tests', () => {
   let props: DataViewerInfoProps;
   let postSpy: jest.SpyInstance;
   let updateSettingsSpy: jest.SpyInstance;
+  let menuFuncsOpenPopupSpy: jest.SpyInstance;
 
   beforeEach(() => {
     updateSettingsSpy = jest.spyOn(serverState, 'updateSettings');
     updateSettingsSpy.mockResolvedValue(Promise.resolve({ settings: {} }));
     postSpy = jest.spyOn(GenericRepository, 'postDataToService');
     postSpy.mockResolvedValue(Promise.resolve({ data: {} }));
+    menuFuncsOpenPopupSpy = jest.spyOn(menuFuncs, 'openPopup');
+    menuFuncsOpenPopupSpy.mockImplementation(() => undefined);
   });
 
   afterEach(jest.restoreAllMocks);
@@ -30,10 +34,11 @@ describe('DataViewerInfo tests', () => {
   const buildInfo = async (
     additionalProps?: Partial<DataViewerInfoProps>,
     settings?: Partial<InstanceSettings>,
+    hiddenProps?: Record<string, string>,
   ): Promise<Element> => {
     props = { propagateState: jest.fn(), columns: [], ...additionalProps };
     store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
+    buildInnerHTML({ settings: '', ...hiddenProps }, store);
     if (settings) {
       store.dispatch({ type: ActionType.UPDATE_SETTINGS, settings });
     }
@@ -139,5 +144,41 @@ describe('DataViewerInfo tests', () => {
       ['bar', SortDir.DESC],
       ['baz', SortDir.ASC],
     ]);
+  });
+
+  it('DataViewerInfo rendering ArcticDB', async () => {
+    const result = await buildInfo(
+      undefined,
+      {
+        allow_cell_edits: true,
+        hide_shutdown: false,
+        precision: 2,
+        verticalHeaders: false,
+        predefinedFilters: {},
+        hide_header_editor: false,
+        isArcticDB: 100,
+      },
+      { dataId: 'lib|symbol', isArcticDB: '100', arcticConn: 'arctic_uri', columnCount: '101' },
+    );
+    expect(result.getElementsByClassName('data-viewer-info')[0]).toHaveStyle({ background: 'rgb(255, 230, 0)' });
+    const arcticToggle = result.getElementsByClassName('arctic-menu-toggle')[0];
+    expect(arcticToggle.getElementsByTagName('span')[0].textContent).toBe('arctic_uri (lib: lib, symbol: symbol)');
+    await act(async () => {
+      fireEvent.click(arcticToggle);
+    });
+    expect(screen.getByText('Load ArcticDB Data')).toBeDefined();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Load ArcticDB Data'));
+    });
+    expect(menuFuncsOpenPopupSpy.mock.calls[0][0]).toEqual({ type: PopupType.ARCTICDB, visible: true });
+    expect(screen.getByText('Jump To Column')).toBeDefined();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Jump To Column'));
+    });
+    expect(menuFuncsOpenPopupSpy.mock.calls[1][0]).toEqual({
+      type: PopupType.JUMP_TO_COLUMN,
+      columns: [],
+      visible: true,
+    });
   });
 });

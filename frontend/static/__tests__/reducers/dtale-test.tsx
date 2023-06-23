@@ -73,6 +73,8 @@ describe('reducer tests', () => {
       showAllHeatmapColumns: false,
       isVSCode: false,
       isArcticDB: 0.0,
+      arcticConn: '',
+      columnCount: 0,
       queryEngine: 'python',
       openCustomFilterOnStartup: false,
       openPredefinedFiltersOnStartup: false,

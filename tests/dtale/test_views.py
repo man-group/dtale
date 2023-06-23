@@ -316,6 +316,16 @@ def test_startup(unittest):
         ["object", "category"],
     )
 
+    many_cols = pd.DataFrame({"sec{}".format(v): [1] for v in range(500)})
+    instance = views.startup(
+        URL,
+        data=many_cols,
+    )
+    unittest.assertEqual(
+        len([v for v in global_state.get_dtypes(instance._data_id) if v["visible"]]),
+        100,
+    )
+
     if PY3 and check_pandas_version("0.25.0"):
         s_int = pd.Series([1, 2, 3, 4, 5], index=list("abcde"), dtype=pd.Int64Dtype())
         s2_int = s_int.reindex(["a", "b", "c", "f", "u"])
@@ -375,6 +385,16 @@ def test_formatting_complex_data(unittest):
     data = [1, 2, [3]]
     df, _ = format_data(pd.DataFrame({"foo": data}))
     unittest.assertEqual(list(df["foo"].values), ["1", "2", "[3]"])
+
+    index_vals = [
+        pd.Timestamp("20230101"),
+        pd.Timestamp("20230102"),
+        pd.Timestamp("20230103"),
+    ]
+    base_df = pd.DataFrame([1, 2, 3], index=index_vals)
+    df, index = format_data(base_df)
+    unittest.assertEqual(index, ["index"])
+    assert len(df.columns) > len(base_df.columns)
 
 
 @pytest.mark.unit

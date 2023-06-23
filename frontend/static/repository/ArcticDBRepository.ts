@@ -1,16 +1,19 @@
 import { buildURLString } from '../redux/actions/url-utils';
 
+import { AsyncColumnFilterDataResponse } from './ColumnFilterRepository';
 import * as GenericRepository from './GenericRepository';
 
 /** Axios response for loading libraries */
 export interface LibrariesResponse extends GenericRepository.BaseResponse {
   libraries: string[];
   library?: string;
+  async: boolean;
 }
 
 /** Axios response for loading symbols */
 export interface SymbolsResponse extends GenericRepository.BaseResponse {
   symbols: string[];
+  async: boolean;
 }
 
 /** Axios response for loading symbol */
@@ -38,6 +41,18 @@ export async function libraries(refresh?: boolean): Promise<LibrariesResponse | 
 }
 
 /**
+ * Load libraries for the current ArcticDB host.
+ *
+ * @param input the substring used to find symbols that start with it
+ * @return libraries.
+ */
+export async function asyncLibraries(input?: string): Promise<AsyncColumnFilterDataResponse<string> | undefined> {
+  return await GenericRepository.getDataFromService<AsyncColumnFilterDataResponse<string>>(
+    buildURLString(`/dtale/arcticdb/async-libraries`, { input: input ?? '' }),
+  );
+}
+
+/**
  * Load symbols for the current ArcticDB library.
  *
  * @param library the library we want to load symbols for.
@@ -47,6 +62,22 @@ export async function libraries(refresh?: boolean): Promise<LibrariesResponse | 
 export async function symbols(library: string, refresh?: boolean): Promise<SymbolsResponse | undefined> {
   return await GenericRepository.getDataFromService<SymbolsResponse>(
     buildURLString(`/dtale/arcticdb/${library}/symbols`, { refresh: `${refresh}` }),
+  );
+}
+
+/**
+ * Load symbols for the current ArcticDB library.
+ *
+ * @param library the library we want to load symbols for.
+ * @param input the substring used to find symbols that start with it
+ * @return symbols.
+ */
+export async function asyncSymbols(
+  library: string,
+  input?: string,
+): Promise<AsyncColumnFilterDataResponse<string> | undefined> {
+  return await GenericRepository.getDataFromService<AsyncColumnFilterDataResponse<string>>(
+    buildURLString(`/dtale/arcticdb/${library}/async-symbols`, { input: input ?? '' }),
   );
 }
 

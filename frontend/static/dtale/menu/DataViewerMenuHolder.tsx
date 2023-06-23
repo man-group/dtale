@@ -39,8 +39,7 @@ export const DataViewerMenuHolder: React.FC<DatViewerMenuHolderProps> = ({ loadi
             }}
             onClick={menuHandler}
           >
-            {!loading && <span>&#8227;</span>}
-            {loading && <Bouncer />}
+            {loading ? <Bouncer /> : <span>&#8227;</span>}
           </div>
         )}
         <div className="rows">{Math.max(rowCount - 1, 0)}</div>

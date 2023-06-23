@@ -34,6 +34,7 @@ import HeatMapOption from '../menu/HeatMapOption';
 import HideHeaderEditor from '../menu/HideHeaderEditor';
 import HighlightOption from '../menu/HighlightOption';
 import InstancesOption from '../menu/InstancesOption';
+import JumpToColumnOption from '../menu/JumpToColumnOption';
 import LanguageOption from '../menu/LanguageOption';
 import LogoutOption from '../menu/LogoutOption';
 import LowVarianceOption from '../menu/LowVarianceOption';
@@ -178,6 +179,11 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
           <NewTabOption />
           {!!isArcticDB && (
             <ArcticDBOption open={hideWrapper(openPopup({ type: PopupType.ARCTICDB, visible: true }, 450))} />
+          )}
+          {columnCount > 100 && (
+            <JumpToColumnOption
+              open={hideWrapper(openPopup({ type: PopupType.JUMP_TO_COLUMN, columns, visible: true }, 450))}
+            />
           )}
           {!isArcticDB && (
             <UploadOption open={hideWrapper(openPopup({ type: PopupType.UPLOAD, visible: true }, 450))} />

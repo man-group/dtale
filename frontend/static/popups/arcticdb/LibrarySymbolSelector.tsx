@@ -3,6 +3,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
+import AsyncValueSelect from '../../filters/AsyncValueSelect';
 import { AppState, BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as ArcticDBRepository from '../../repository/ArcticDBRepository';
@@ -18,10 +19,10 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
   }, [dataId]);
 
   const [library, setLibrary] = React.useState<BaseOption<string>>();
-  const [libraries, setLibraries] = React.useState<string[]>([]);
+  const [libraries, setLibraries] = React.useState<ArcticDBRepository.LibrariesResponse>();
   const [loadingLibraries, setLoadingLibraries] = React.useState(true);
   const [symbol, setSymbol] = React.useState<BaseOption<string>>();
-  const [symbols, setSymbols] = React.useState<string[]>([]);
+  const [symbols, setSymbols] = React.useState<ArcticDBRepository.SymbolsResponse>();
   const [loadingSymbols, setLoadingSymbols] = React.useState(false);
   const [loadingSymbol, setLoadingSymbol] = React.useState(false);
   const [error, setError] = React.useState<JSX.Element>();
@@ -38,7 +39,7 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
     }
     if (response) {
       setError(undefined);
-      setLibraries(response.libraries);
+      setLibraries(response);
       if (response.library) {
         setLibrary({ value: response.library });
       }
@@ -56,8 +57,8 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
     }
     if (response) {
       setError(undefined);
-      setSymbols(response.symbols);
-      if (response.symbols.includes(currentSymbol)) {
+      setSymbols(response);
+      if (response.async && response.symbols.includes(currentSymbol)) {
         setSymbol({ value: currentSymbol });
       } else {
         setSymbol(undefined);
@@ -73,7 +74,7 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
     if (library) {
       loadSymbols(library.value);
     } else {
-      setSymbols([]);
+      setSymbols(undefined);
     }
   }, [library]);
 
@@ -119,27 +120,77 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
           </div>
         )}
         <BouncerWrapper showBouncer={loadingLibraries}>
-          <LabeledSelect
-            label={t('Library')}
-            options={libraries.map((l) => ({ value: l }))}
-            value={library}
-            onChange={(selected) => setLibrary(selected as BaseOption<string>)}
-          >
-            <div className="col-md-1 pl-0 mt-3">
-              <i className="ico-refresh" onClick={() => loadLibraries(true)} />
-            </div>
-          </LabeledSelect>
-          <BouncerWrapper showBouncer={loadingSymbols}>
+          {!libraries?.async && (
             <LabeledSelect
-              label={t('Symbol')}
-              options={symbols.map((s) => ({ value: s }))}
-              value={symbol}
-              onChange={(selected) => setSymbol(selected as BaseOption<string>)}
+              label={t('Library')}
+              options={(libraries?.libraries ?? []).map((l) => ({ value: l }))}
+              value={library}
+              onChange={(selected) => setLibrary(selected as BaseOption<string>)}
             >
               <div className="col-md-1 pl-0 mt-3">
-                <i className="ico-refresh" onClick={() => loadSymbols(library!.value, true)} />
+                <i className="ico-refresh" onClick={() => loadLibraries(true)} />
               </div>
             </LabeledSelect>
+          )}
+          {!!libraries?.async && (
+            <div className="form-group row">
+              <label className={`col-md-3 col-form-label text-right`}>{t('Library')}</label>
+              <div className="col-md-8">
+                <AsyncValueSelect<string>
+                  {...{
+                    dataId,
+                    selected: library?.value,
+                    selectedCol: '',
+                    uniques: libraries.libraries,
+                    missing: false,
+                  }}
+                  isMulti={false}
+                  loader={(input: string): Promise<Array<{ label: string; value: string }>> =>
+                    ArcticDBRepository.asyncLibraries(input).then((response) => response!)
+                  }
+                  updateState={async (option?: string[] | string) => {
+                    setLibrary(option ? { value: option as string } : undefined);
+                  }}
+                />
+              </div>
+              <div className="col-md-1 pl-0 mt-3">
+                <i className="ico-refresh" onClick={() => loadLibraries(true)} />
+              </div>
+            </div>
+          )}
+          <BouncerWrapper showBouncer={loadingSymbols}>
+            {!symbols?.async && (
+              <LabeledSelect
+                label={t('Symbol')}
+                options={(symbols?.symbols ?? []).map((s) => ({ value: s }))}
+                value={symbol}
+                onChange={(selected) => setSymbol(selected as BaseOption<string>)}
+              >
+                <div className="col-md-1 pl-0 mt-3">
+                  <i className="ico-refresh" onClick={() => loadSymbols(library!.value, true)} />
+                </div>
+              </LabeledSelect>
+            )}
+            {!!symbols?.async && (
+              <div className="form-group row">
+                <label className={`col-md-3 col-form-label text-right`}>{t('Symbol')}</label>
+                <div className="col-md-8">
+                  <AsyncValueSelect<string>
+                    {...{ dataId, selected: symbol?.value, selectedCol: '', uniques: symbols.symbols, missing: false }}
+                    isMulti={false}
+                    loader={(input: string): Promise<Array<{ label: string; value: string }>> =>
+                      ArcticDBRepository.asyncSymbols(library!.value, input).then((response) => response!)
+                    }
+                    updateState={async (option?: string[] | string) => {
+                      setSymbol(option ? { value: option as string } : undefined);
+                    }}
+                  />
+                </div>
+                <div className="col-md-1 pl-0 mt-3">
+                  <i className="ico-refresh" onClick={() => loadSymbols(library!.value, true)} />
+                </div>
+              </div>
+            )}
           </BouncerWrapper>
           <BouncerWrapper showBouncer={loadingDescription}>
             {!!description && (
