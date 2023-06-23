@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.1.0 (2023-6-23)
+* Added handling for ArcticDB locations with high libraries & symbols
+* Added handling for wide dataframes
+* Allowed ArcticDB data paths to passed in from URLs
+
 ### 3.0.0 (2023-6-9)
 * Added support for ArcticDB as the storage mechanism for pandas dataframes
 
