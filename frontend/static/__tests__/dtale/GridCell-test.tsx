@@ -29,11 +29,7 @@ describe('GridCell', () => {
   let editCellSpy: jest.SpyInstance;
   let loadFilterDataSpy: jest.SpyInstance;
 
-  const buildMock = async (
-    propOverrides?: Partial<GridCellProps>,
-    state?: { [key: string]: any },
-    useRerender = false,
-  ): Promise<void> => {
+  const buildMock = async (propOverrides?: Partial<GridCellProps>, state?: { [key: string]: any }): Promise<void> => {
     store = mockStore({
       dataId: '1',
       editedCell: '1|1',
@@ -45,6 +41,7 @@ describe('GridCell', () => {
       ctrlRows: null,
       ctrlCols: null,
       selectedRow: null,
+      columnCount: 0,
       ...state,
     });
     props = {
@@ -81,6 +78,7 @@ describe('GridCell', () => {
       data: {},
       rowCount: 2,
       propagateState: jest.fn(),
+      loading: false,
       ...propOverrides,
     };
 
@@ -124,32 +122,24 @@ describe('GridCell', () => {
   });
 
   it('adds resized class to cell', async () => {
-    await buildMock(undefined, { editedCell: null }, true);
+    await buildMock(undefined, { editedCell: null });
     const divs = container.getElementsByTagName('div');
     expect(divs[divs.length - 1]).toHaveClass('resized');
   });
 
   it('does not add editable class to cell when ArcticDB is active', async () => {
-    await buildMock(undefined, { isArcticDB: 100 }, true);
+    await buildMock(undefined, { isArcticDB: 100 });
     const divs = container.getElementsByTagName('div');
     expect(divs[divs.length - 1]).not.toHaveClass('editable');
   });
 
   it('renders checkbox for boolean column', async () => {
-    await buildMock(
-      { columnIndex: 2, data: { 0: { bar: { raw: 'True', view: 'True' } } } },
-      { editedCell: null },
-      true,
-    );
+    await buildMock({ columnIndex: 2, data: { 0: { bar: { raw: 'True', view: 'True' } } } }, { editedCell: null });
     expect(container.getElementsByClassName('ico-check-box')).toHaveLength(1);
   });
 
   it('renders checkbox for boolean column when edited', async () => {
-    await buildMock(
-      { columnIndex: 2, data: { 0: { bar: { raw: 'True', view: 'True' } } } },
-      { editedCell: '2|1' },
-      true,
-    );
+    await buildMock({ columnIndex: 2, data: { 0: { bar: { raw: 'True', view: 'True' } } } }, { editedCell: '2|1' });
     expect(container.getElementsByClassName('ico-check-box')).toHaveLength(1);
     const checkbox = container.getElementsByClassName('ico-check-box')[0];
     await act(async () => {
@@ -159,7 +149,7 @@ describe('GridCell', () => {
   });
 
   it('renders select for category column when edited', async () => {
-    await buildMock({ columnIndex: 3, data: { 0: { baz: { raw: 'a', view: 'a' } } } }, { editedCell: '3|1' }, true);
+    await buildMock({ columnIndex: 3, data: { 0: { baz: { raw: 'a', view: 'a' } } } }, { editedCell: '3|1' });
     expect(container.getElementsByClassName('Select')).toHaveLength(1);
     const select = document.body.getElementsByClassName('Select')[0] as HTMLElement;
     await act(async () => {
@@ -176,11 +166,7 @@ describe('GridCell', () => {
 
   it('renders select for column w/ custom options when edited', async () => {
     const settings = { column_edit_options: { baz: ['foo', 'bar', 'bizzle'] } };
-    await buildMock(
-      { columnIndex: 3, data: { 0: { baz: { raw: 'a', view: 'a' } } } },
-      { editedCell: '3|1', settings },
-      true,
-    );
+    await buildMock({ columnIndex: 3, data: { 0: { baz: { raw: 'a', view: 'a' } } } }, { editedCell: '3|1', settings });
     expect(container.getElementsByClassName('Select')).toHaveLength(1);
     const select = document.body.getElementsByClassName('Select')[0] as HTMLElement;
     await act(async () => {
@@ -193,5 +179,10 @@ describe('GridCell', () => {
       'bizzle',
     ]);
     expect(loadFilterDataSpy).not.toHaveBeenCalled();
+  });
+
+  it('renders bouncer when loading', async () => {
+    await buildMock({ columnIndex: 0, rowIndex: 0, loading: true });
+    expect(container.getElementsByClassName('bouncer')).toHaveLength(1);
   });
 });

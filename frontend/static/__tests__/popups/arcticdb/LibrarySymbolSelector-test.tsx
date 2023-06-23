@@ -55,7 +55,9 @@ describe('LibrarySymbolSelector tests', () => {
       } else if (url.startsWith('/dtale/arcticdb/foo/symbols')) {
         return Promise.resolve({ data: { symbols: SYMBOLS.foo } });
       } else if (url.startsWith('/dtale/arcticdb/bar/symbols')) {
-        return Promise.resolve({ data: { symbols: SYMBOLS.bar } });
+        return Promise.resolve({ data: { symbols: SYMBOLS.bar, async: true } });
+      } else if (url.startsWith('/dtale/arcticdb/bar/async-symbols')) {
+        return Promise.resolve({ data: [{ label: 'bar4', value: 'bar4' }] });
       } else if (url.startsWith('/dtale/arcticdb/baz/symbols')) {
         return Promise.resolve({ data: { symbols: SYMBOLS.baz } });
       } else if (url.startsWith('/dtale/arcticdb/load-description')) {
@@ -119,5 +121,17 @@ describe('LibrarySymbolSelector tests', () => {
     });
     expect(loadSymbolSpy).toHaveBeenCalledWith('foo', 'foo1');
     expect(jumpToDatasetSpy).toHaveBeenLastCalledWith('2');
+  });
+
+  it('LibrarySymbolSelector rendering async symbols', async () => {
+    await updateProps();
+    const librarySelect = document.body.getElementsByClassName('Select')[0] as HTMLElement;
+    await selectOption(librarySelect, 'bar');
+    const symbolSelect = (): HTMLElement => document.body.getElementsByClassName('Select')[1] as HTMLElement;
+    const asyncSymbolsSpy = jest.spyOn(ArcticDBRepository, 'asyncSymbols');
+    await act(async () => {
+      fireEvent.change(symbolSelect().getElementsByTagName('input')[0], { target: { value: 'b' } });
+    });
+    expect(asyncSymbolsSpy).toHaveBeenCalledWith('bar', 'b');
   });
 });

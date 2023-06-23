@@ -44,7 +44,7 @@ def load_index_filter(data_id):
                 return {"date_range": [pd.Timestamp(start), None]}
             elif end:
                 return {"date_range": [None, pd.Timestamp(end)]}
-    return None
+    return {}
 
 
 def build_query_builder(data_id):

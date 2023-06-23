@@ -57,7 +57,8 @@
     "gage_rnr": "量具重复性和再现性",
     "Vertical Column Headers": "纵向列标题",
     "Hide Header Editor": "Hide Header Editor",
-    "Load ArcticDB Data": "Load ArcticDB Data"
+    "Load ArcticDB Data": "Load ArcticDB Data",
+    "Jump To Column": "Jump To Column"
   },
   "menu_description": {
     "describe": "描述每列的值（最上面的唯一值，最小值，最大值，总和，STD，变量，...）。",
@@ -107,7 +108,8 @@
     "vertical_headers": "Rotate column headers vertically",
     "timeseries_analysis": "Analyze time series data using different \"statsmodels.tsa\" functions",
     "hide_header_editor": "If checked, hides the header editor when editing cells in the grid",
-    "arcticdb": "Load data from a specific library & symbol in ArcticDB"
+    "arcticdb": "Load data from a specific library & symbol in ArcticDB",
+    "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown."
   },
   "column_menu": {
     "Asc": "Asc",
@@ -938,7 +940,8 @@
     "Invert Filter": "Invert Filter",
     "Move Filters To Custom": "Move Filters To Custom",
     "Hide Filtered Rows": "Hide Filtered Rows",
-    "Highlight Filtered Rows": "Highlight Filtered Rows"
+    "Highlight Filtered Rows": "Highlight Filtered Rows",
+    "ArcticDB": "ArcticDB"
   },
   "side": {
     "Close": "Close",

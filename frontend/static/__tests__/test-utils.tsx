@@ -76,6 +76,7 @@ export const buildInnerHTML = (props: Record<string, string | undefined> = {}, s
     buildHidden('xarray_dim', props.xarrayDim ?? '{}'),
     buildHidden('allow_cell_edits', props.allowCellEdits ?? 'true'),
     buildHidden('is_vscode', props.isVSCode ?? 'False'),
+    buildHidden('arctic_conn', props.arcticConn ?? ''),
     buildHidden('is_arcticdb', props.isArcticDB ?? '0'),
     buildHidden('column_count', props.columnCount ?? '0'),
     buildHidden('theme', props.theme ?? 'light'),

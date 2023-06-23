@@ -909,3 +909,7 @@ def format_data(data, inplace=False, drop_index=False):
             data.loc[:, col] = data[col].dt.tz_localize(None)
 
     return data, index
+
+
+def option(v):
+    return dict(value=v, label="{}".format(v))

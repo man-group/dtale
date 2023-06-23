@@ -215,7 +215,7 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ colum
             <b>lib</b>
             {`: ${library}, `}
             <b>symbol</b>
-            {`: ${symbol})`}
+            {`: ${symbol ?? ''})`}
           </span>
           <div
             className="column-toggle__dropdown"

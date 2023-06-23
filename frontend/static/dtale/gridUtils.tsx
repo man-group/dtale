@@ -194,7 +194,6 @@ export const calcColWidth = (
   sortInfo?: SortDef[],
   backgroundMode?: string,
   maxColumnWidth?: number,
-  isWide?: boolean,
 ): Partial<ColumnDef> => {
   const { name, dtype, hasMissing, hasOutliers, lowVariance, resized, width, headerWidth, dataWidth } = colCfg;
   if (resized === true) {
@@ -215,12 +214,7 @@ export const calcColWidth = (
     } else if (backgroundMode === 'lowVariance' && lowVariance) {
       updatedHeaderWidth += 15; // star emoji
     }
-    let updatedDataWidth = updatedHeaderWidth;
-    if (isWide) {
-      updatedDataWidth = updatedDataWidth < 100 ? 100 : updatedDataWidth;
-    } else {
-      updatedDataWidth = calcDataWidth(name, dtype, data) ?? DEFAULT_COL_WIDTH;
-    }
+    const updatedDataWidth = calcDataWidth(name, dtype, data) ?? DEFAULT_COL_WIDTH;
     w = updatedHeaderWidth > updatedDataWidth ? updatedHeaderWidth : updatedDataWidth;
     w = maxColumnWidth && w >= maxColumnWidth ? { width: maxColumnWidth, resized: true } : { width: w };
     w = { ...w, headerWidth: updatedHeaderWidth, dataWidth: updatedDataWidth };

@@ -136,6 +136,11 @@ describe('DataViewerMenu tests', () => {
     expect(store.getState().chartData).toEqual({ visible: true, type: PopupType.EXPORT, rows: 50, size: 'sm' });
   });
 
+  it('renders "Jump To Column"', async () => {
+    buildMenu({ columnCount: '101' });
+    expect(screen.getByText('Jump To Column')).toBeDefined();
+  });
+
   describe('iframe handling', () => {
     const { self, top } = window;
     const resourceBaseUrl = (window as any).resourceBaseUrl;

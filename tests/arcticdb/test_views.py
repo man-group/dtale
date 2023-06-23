@@ -4,6 +4,7 @@ import pytest
 
 import dtale.global_state as global_state
 from dtale.app import build_app
+from tests import ExitStack
 
 
 URL = "http://localhost:40000"
@@ -187,6 +188,41 @@ def test_loading_data_w_filters(unittest, arcticdb_path, arcticdb):
 
 
 @pytest.mark.unit
+def test_loading_data_w_columns(unittest, arcticdb_path, arcticdb):
+    pytest.importorskip("arcticdb")
+    from dtale.views import startup
+
+    global_state.use_arcticdb_store(uri=arcticdb_path, library="dtale")
+    startup(data="df1")
+
+    with app.test_client() as c:
+        c.get(
+            "/dtale/save-column-filter/dtale%257Cdf1",
+            query_string=dict(
+                col="str_val", cfg=json.dumps({"type": "string", "value": ["b"]})
+            ),
+        )
+        c.post(
+            "/dtale/update-visibility/dtale%257Cdf1",
+            data=json.dumps(dict(toggle="int_val")),
+            content_type="application/json",
+        )
+        response = c.get(
+            "/dtale/data/dtale%257Cdf1", query_string=dict(ids=json.dumps(["0"]))
+        )
+        response_data = response.get_json()
+        expected_results = {
+            "0": {
+                "dtale_index": 0,
+                "float_val": 2.2,
+                "index": "2000-01-02",
+                "str_val": "b",
+            }
+        }
+        unittest.assertEqual(response_data["results"], expected_results)
+
+
+@pytest.mark.unit
 def test_describe(unittest, arcticdb_path, arcticdb):
     pytest.importorskip("arcticdb")
     from dtale.views import startup
@@ -282,7 +318,13 @@ def test_get_arcticdb_libraries(unittest, arcticdb_path, arcticdb):
         response = c.get("/dtale/arcticdb/libraries")
         response_data = response.get_json()
         unittest.assertEqual(
-            response_data, {"libraries": ["dtale"], "library": "dtale", "success": True}
+            response_data,
+            {
+                "libraries": ["dtale"],
+                "library": "dtale",
+                "async": False,
+                "success": True,
+            },
         )
 
     with mock.patch("dtale.global_state.store.load_libraries") as load_libs_mock:
@@ -293,6 +335,31 @@ def test_get_arcticdb_libraries(unittest, arcticdb_path, arcticdb):
             response_data = response.get_json()
             unittest.assertEqual(response_data["libraries"], ["dtale"])
             load_libs_mock.assert_called_once()
+
+    with mock.patch(
+        "dtale.global_state.store._libraries",
+        ["lib{}".format(v) for v in range(501)],
+    ):
+        with app.test_client() as c:
+            response = c.get("/dtale/arcticdb/libraries")
+            response_data = response.get_json()
+            unittest.assertEqual(
+                response_data["libraries"], ["lib0", "lib1", "lib2", "lib3", "lib4"]
+            )
+            assert response_data["async"]
+
+
+@pytest.mark.unit
+def test_get_arcticdb_async_libraries(unittest, arcticdb_path, arcticdb):
+    pytest.importorskip("arcticdb")
+    global_state.use_arcticdb_store(uri=arcticdb_path, library="dtale")
+
+    with app.test_client() as c:
+        response = c.get(
+            "/dtale/arcticdb/async-libraries", query_string=dict(input="d")
+        )
+        response_data = response.get_json()
+        unittest.assertEqual(response_data, [{"label": "dtale", "value": "dtale"}])
 
 
 @pytest.mark.unit
@@ -317,6 +384,42 @@ def test_get_arcticdb_symbols(unittest, arcticdb_path, arcticdb):
                 sorted(response_data["symbols"]), ["df1", "large_df", "slashed/df1"]
             )
             load_symbols_mock.assert_called_once_with("dtale")
+
+    with ExitStack() as stack:
+        stack.enter_context(
+            mock.patch(
+                "dtale.global_state.store.load_symbols",
+                mock.Mock(return_value=None),
+            )
+        )
+        stack.enter_context(
+            mock.patch(
+                "dtale.global_state.store._symbols",
+                dict(large_lib=["security{}".format(v) for v in range(501)]),
+            )
+        )
+
+        with app.test_client() as c:
+            response = c.get("/dtale/arcticdb/large_lib/symbols")
+            response_data = response.get_json()
+            unittest.assertEqual(
+                response_data["symbols"],
+                ["security0", "security1", "security2", "security3", "security4"],
+            )
+            assert response_data["async"]
+
+
+@pytest.mark.unit
+def test_get_arcticdb_async_symbols(unittest, arcticdb_path, arcticdb):
+    pytest.importorskip("arcticdb")
+    global_state.use_arcticdb_store(uri=arcticdb_path, library="dtale")
+
+    with app.test_client() as c:
+        response = c.get(
+            "/dtale/arcticdb/dtale/async-symbols", query_string=dict(input="df")
+        )
+        response_data = response.get_json()
+        unittest.assertEqual(response_data, [{"label": "df1", "value": "df1"}])
 
 
 @pytest.mark.unit
@@ -350,3 +453,35 @@ def test_load_arcticdb_symbol(unittest, arcticdb_path, arcticdb):
         assert response_data["data_id"] == "dtale|df1"
 
         validate_data_load("dtale|df1", unittest, c)
+
+
+@pytest.mark.unit
+def test_view(arcticdb_path, arcticdb):
+    pytest.importorskip("arcticdb")
+    global_state.use_arcticdb_store(uri=arcticdb_path, library="dtale")
+
+    import dtale.views as views
+
+    views.startup(data="df1")
+
+    with app.test_client() as c:
+        response = c.get("/dtale/main/dtale%257Cdf1")
+        html_content = str(response.data)
+        assert '<input type="hidden" id="is_arcticdb" value="3" />' in html_content
+        assert (
+            '<input type="hidden" id="arctic_conn" value="{}" />'.format(arcticdb_path)
+            in html_content
+        )
+        assert '<input type="hidden" id="column_count" value="4" />' in html_content
+
+
+@pytest.mark.unit
+def test_load_url_w_bad_symbol(arcticdb_path, arcticdb):
+    pytest.importorskip("arcticdb")
+    global_state.use_arcticdb_store(uri=arcticdb_path, library="dtale")
+
+    with app.test_client() as c:
+        response = c.get("/dtale/main/dtale%257Cdf2")
+        assert "http://localhost:{}/dtale/popup/arcticdb".format(c.port).endswith(
+            response.location
+        )

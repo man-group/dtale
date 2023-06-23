@@ -41,6 +41,7 @@ describe('Header', () => {
       rowCount: 1,
       propagateState: jest.fn(),
       style: {},
+      loading: false,
       ...propOverrides,
     };
     const result = render(

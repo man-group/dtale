@@ -15,7 +15,7 @@ export interface ColumnFilterData {
 type ColumnFilterDataResponse = GenericRepository.BaseResponse & ColumnFilterData;
 
 /** Axios response type for loading asynchronous filtering options */
-type AsyncColumnFilterDataResponse<T> = Array<{ label: string; value: T }>;
+export type AsyncColumnFilterDataResponse<T> = Array<{ label: string; value: T }>;
 
 /**
  * Load information related to filtering for a column.
