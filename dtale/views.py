@@ -2630,6 +2630,10 @@ def get_data(data_id):
     }
     """
 
+    # handling for gunicorn-hosted instances w/ ArcticDB
+    if global_state.is_arcticdb and not global_state.contains(data_id):
+        startup(data=data_id)
+
     params = retrieve_grid_params(request)
     export = get_bool_arg(request, "export")
     ids = get_json_arg(request, "ids")
