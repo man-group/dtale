@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.1.1 (2023-6-26)
+* Added support to `/dtale/data/` endpoint for ArcticDB instances hosted using gunicorn
+
 ### 3.1.0 (2023-6-23)
 * Added handling for ArcticDB locations with high libraries & symbols
 * Added handling for wide dataframes
