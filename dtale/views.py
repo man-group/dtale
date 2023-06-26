@@ -2631,7 +2631,8 @@ def get_data(data_id):
     """
 
     # handling for gunicorn-hosted instances w/ ArcticDB
-    if global_state.is_arcticdb and not global_state.contains(data_id):
+    if global_state.is_arcticdb and not len(global_state.get_dtypes(data_id) or []):
+        global_state.store.build_instance(data_id)
         startup(data=data_id)
 
     params = retrieve_grid_params(request)
@@ -2646,7 +2647,7 @@ def get_data(data_id):
     highlight_filter = curr_settings.get("highlightFilter") or False
 
     if global_state.is_arcticdb:
-        col_types = global_state.get_dtypes(data_id)
+        col_types = global_state.get_dtypes(data_id) or []
         columns_to_load = [c["name"] for c in col_types if c["visible"]]
         f = grid_formatter(
             [c for c in col_types if c["visible"]],

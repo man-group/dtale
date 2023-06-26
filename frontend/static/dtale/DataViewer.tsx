@@ -61,7 +61,7 @@ export const DataViewer: React.FC = () => {
   } = useSelector((state: AppState) => ({
     dataId: state.dataId,
     theme: state.theme,
-    settings: state.settings,
+    settings: { ...state.settings, isArcticDB: state.isArcticDB },
     menuPinned: state.menuPinned,
     ribbonMenuOpen: state.ribbonMenuOpen || (state.settings?.lock_header_menu ?? state.lockHeaderMenu),
     dataViewerUpdate: state.dataViewerUpdate,
