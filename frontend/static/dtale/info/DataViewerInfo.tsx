@@ -204,7 +204,11 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ colum
     return (
       <React.Fragment>
         <div className="font-weight-bold d-inline-block">{t('ArcticDB')}:</div>
-        <div ref={arcticRef} className="pl-3 d-inline-block arctic-menu-toggle info-link" onClick={clickHandler}>
+        <div
+          ref={arcticRef}
+          className="pl-3 d-inline-block arctic-menu-toggle info-link"
+          onClick={reduxState.columnCount <= 100 ? arcticDBPopup : clickHandler}
+        >
           <span>
             <div className="d-inline-block info-link" style={{ maxWidth: 100, verticalAlign: 'bottom' }}>
               <div className="resized" title={reduxState.arcticConn}>
