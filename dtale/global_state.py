@@ -148,46 +148,53 @@ class DtaleArcticDBInstance(DtaleInstance):
         data_id_segs = (data_id or "").split("|")
         symbol = data_id_segs[-1]
         if len(data_id_segs) > 1:
-            lib_name = data_id_segs[0]
-            if not parent.lib or lib_name != parent.lib.name:
-                parent.update_library(lib_name)
-        if not len(self.parent.symbols or []):
-            self.parent.load_symbols()
-        self.lib = parent.lib
+            self.lib_name = data_id_segs[0]
+            if not parent.lib or self.lib_name != parent.lib.name:
+                parent.update_library(self.lib_name)
+        else:
+            self.lib_name = self.parent.lib.name
+
+        lib = self.parent.get_library(self.lib_name)
         self.symbol = symbol
         self._rows = 0
         self._cols = 0
         self._base_df = None
-        if self.lib and self.symbol and self.symbol in self.parent.symbols:
-            self._rows = self.lib._nvs.get_num_rows(self.symbol)
+        if lib and self.symbol and self.symbol in self.parent._symbols[self.lib_name]:
+            self._rows = lib._nvs.get_num_rows(self.symbol)
             self._base_df = self.load_data(row_range=[0, 1])
             self._cols = len(format_data(self._base_df)[0].columns)
-        elif self.lib and self.symbol and self.symbol not in self.parent.symbols:
+        elif (
+            lib
+            and self.symbol
+            and self.symbol not in self.parent._symbols[self.lib_name]
+        ):
             raise ValueError(
                 "Symbol ({}) not in library, {}! Please select another symbol.".format(
-                    symbol, self.lib.name
+                    symbol, self.lib_name
                 )
             )
 
     def load_data(self, **kwargs):
         from arcticdb.version_store._store import VersionedItem
 
-        if self.symbol not in self.parent.symbols:
+        if self.symbol not in self.parent._symbols[self.lib_name]:
             raise ValueError(
-                "{} does not exist in {}!".format(self.symbol, self.lib.name)
+                "{} does not exist in {}!".format(self.symbol, self.lib_name)
             )
 
-        data = self.lib._nvs.read(self.symbol, **kwargs)
+        data = self.parent.get_library(self.lib_name)._nvs.read(self.symbol, **kwargs)
         if isinstance(data, VersionedItem):
             return data.data
         return data
 
     def rows(self, **kwargs):
         if kwargs.get("query_builder"):
-            version_query, read_options, read_query = self.lib._nvs._get_queries(
+            version_query, read_options, read_query = self.parent.get_library(
+                self.lib_name
+            )._nvs._get_queries(
                 None, None, None, None, query_builder=kwargs["query_builder"]
             )
-            read_result = self.lib._nvs._read_dataframe(
+            read_result = self.parent.get_library(self.lib_name)._nvs._read_dataframe(
                 self.symbol, version_query, read_query, read_options
             )
             return len(read_result.frame_data.value.data[0])
@@ -212,7 +219,7 @@ class DtaleArcticDBInstance(DtaleInstance):
     @data.setter
     def data(self, data):
         try:
-            self.lib.write(self.symbol, data)
+            self.parent.get_library(self.lib_name).write(self.symbol, data)
         except BaseException:
             pass
 
@@ -237,11 +244,14 @@ class DtaleArcticDB(DtaleBaseStore):
         self.load_libraries()
         self.update_library(library)
 
+    def get_library(self, library_name):
+        return self.conn[library_name]
+
     def update_library(self, library=None):
         if self.lib and library == self.lib.name:  # library already selected
             return
         if library in self._libraries:
-            self.lib = self.conn[library]
+            self.lib = self.get_library(library)
             if library not in self._symbols:
                 self.load_symbols()
         elif library is not None:
