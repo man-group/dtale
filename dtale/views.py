@@ -245,12 +245,16 @@ class DtaleData(object):
         self.app_root = app_root
 
     def build_main_url(self, name=None):
-        quoted_data_id = get_url_quote()(
-            get_url_quote()(name or self._data_id, safe="")
-        )
-        return "{}/dtale/main/{}".format(
-            self.app_root if self.is_proxy else self._url, quoted_data_id
-        )
+        if name or self._data_id:
+            quoted_data_id = get_url_quote()(
+                get_url_quote()(name or self._data_id, safe="")
+            )
+            return "{}/dtale/main/{}".format(
+                self.app_root if self.is_proxy else self._url, quoted_data_id
+            )
+        return (
+            self.app_root if self.is_proxy else self._url
+        )  # "load data" or "library/symbol selection" screens
 
     @property
     def _main_url(self):
@@ -970,8 +974,10 @@ def startup(
         data = data_loader()
         if isinstance(data, string_types) and global_state.contains(data):
             return DtaleData(data, url, is_proxy=is_proxy, app_root=app_root)
-        elif data is None and global_state.is_arcticdb:
-            return DtaleData("1", url, is_proxy=is_proxy, app_root=app_root)
+        elif (
+            data is None and global_state.is_arcticdb
+        ):  # send user to the library/symbol selection screen
+            return DtaleData(None, url, is_proxy=is_proxy, app_root=app_root)
 
     if global_state.is_arcticdb and isinstance(data, string_types):
         data_id = data

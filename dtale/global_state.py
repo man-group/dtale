@@ -152,9 +152,9 @@ class DtaleArcticDBInstance(DtaleInstance):
             if not parent.lib or self.lib_name != parent.lib.name:
                 parent.update_library(self.lib_name)
         else:
-            self.lib_name = self.parent.lib.name
+            self.lib_name = self.parent.lib.name if self.parent.lib else None
 
-        lib = self.parent.get_library(self.lib_name)
+        lib = self.parent.get_library(self.lib_name) if self.lib_name else None
         self.symbol = symbol
         self._rows = 0
         self._cols = 0
