@@ -151,6 +151,8 @@ class DtaleArcticDBInstance(DtaleInstance):
             lib_name = data_id_segs[0]
             if not parent.lib or lib_name != parent.lib.name:
                 parent.update_library(lib_name)
+        if not len(self.parent.symbols or []):
+            self.parent.load_symbols()
         self.lib = parent.lib
         self.symbol = symbol
         self._rows = 0
