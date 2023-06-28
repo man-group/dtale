@@ -254,7 +254,8 @@ python: &python
                 exit 1
               fi # rst2html.py alwaysexits with 0, check log size
               python setup.py bdist_wheel --universal
-              python setup.py bdist_egg
+              # Deprecated by pypi
+              # python setup.py bdist_egg
               python setup.py sdist
               cp -r ./dist /tmp/circleci-artifacts
             fi
