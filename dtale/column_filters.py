@@ -1,5 +1,6 @@
 import json
 import numpy as np
+import pandas as pd
 
 import dtale.global_state as global_state
 from dtale.utils import classify_type, find_dtype, format_data, make_list
@@ -399,6 +400,8 @@ class DateFilter(MissingFilter):
         return super(DateFilter, self).handle_missing(fltr)
 
     def update_query_builder(self, query_builder):
+        # TODO: need to use datetime.datetime and then for equivalence you need to do (col > input - 1) & (col <= input)
+        # pd.Timestamp('2023-01-04').to_pydatetime() -> to get datetime.datetime
         if self.cfg is None:
             return super(DateFilter, self).update_missing_query_builder(query_builder)
 
@@ -406,11 +409,23 @@ class DateFilter(MissingFilter):
         fltr = dict(start=start, end=end)
         queries = []
         if start:
-            queries.append(query_builder[self.column] >= start)
+            start = (
+                pd.Timestamp(start) - pd.tseries.frequencies.to_offset("1D")
+            ).to_pydatetime()
+            queries.append(query_builder[self.column] > start)
         if end:
-            queries.append(query_builder[self.column] <= end)
+            queries.append(
+                query_builder[self.column] <= pd.Timestamp(end).to_pydatetime()
+            )
         if len(queries) == 2 and start == end:
-            queries = [query_builder[self.column] == start]
+            start_start = (
+                pd.Timestamp(start) - pd.tseries.frequencies.to_offset("1D")
+            ).to_pydatetime()
+            start_end = pd.Timestamp(start).to_pydatetime()
+            queries = [
+                (query_builder[self.column] > start_start)
+                & (query_builder[self.column] <= start_end)
+            ]
         if not len(queries):
             return super(DateFilter, self).handle_missing(None)
         if len(queries) == 2:
