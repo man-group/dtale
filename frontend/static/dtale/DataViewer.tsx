@@ -218,16 +218,8 @@ export const DataViewer: React.FC = () => {
   };
 
   React.useEffect(() => {
-    if (!isArcticDB) {
-      getData([0, ROW_SCANS.base]);
-    }
+    getData([0, ROW_SCANS[!!isArcticDB ? 'arcticdb' : 'base']]);
   }, []);
-
-  React.useEffect(() => {
-    if (!!isArcticDB && !ids.length && ((gridRef.current as any)?._bottomRightGrid?._rowStopIndex ?? 0) > 0) {
-      getData([0, (gridRef.current as any)?._bottomRightGrid?._rowStopIndex + ROW_SCANS.arcticdb]);
-    }
-  }, [(gridRef.current as any)?._bottomRightGrid?._renderedRowStopIndex]);
 
   const previousBackgroundMode = usePrevious(settings.backgroundMode);
   const previousLoading = usePrevious(loading);
