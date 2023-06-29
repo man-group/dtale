@@ -70,7 +70,7 @@ python_variables: &python_variables
   CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
   CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
   CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-  VERSION: 3.1.6
+  VERSION: 3.1.7
   PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
 python_formatting: &python_formatting
     parallelism: 1

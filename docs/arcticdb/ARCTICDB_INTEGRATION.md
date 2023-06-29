@@ -1,6 +1,6 @@
 # D-Tale/ArcticDB Integration
 
-> :warning **Pre-built binaries for ArcticDB only available for Linux and Windows**: MacOS binaries are coming soon!
+> ⚠️ **Pre-built binaries for ArcticDB only available for Linux and Windows**: MacOS binaries are coming soon!
 
 At long last! There is finally a solution for navigating the underlying data of your ArcticDB databases. Once again, the solution is D-Tale!
 
@@ -58,6 +58,11 @@ dtale.show_arcticdb(uri='lmdb:///[path to DB]/test_db', use_store=True)
 ```
 
 Using `use_store=True` will force the mechanism D-Tale uses for storing/reading/writing data to be ArcticDB. This seems insignificant, but it actually provides a huge enhancement to D-Tale's infrastructure. You can now read dataframes of any size without having any memory constraints.  D-Tale will simply read the rows/columns of your dataframe that need to be displayed in your browser, rather than the entire dataframe into memory.
+
+### Why back your data with ArcticDB?
+
+D-Tale backed by ArcticDB allows you to explore datasets that are much larger than what you can store in memory. 
+As you scroll down, D-Tale will page in the additional required data in an on-demand fashion meaning that the data doesn't all have to be stored in memory at the same time.
 
 ### Navigation
 
