@@ -1,10 +1,14 @@
-# D-Tale/ArcticDB Integration
+# A match made in-memory ArcticDB :heart: D-Tale
 
 > ⚠️ **Pre-built binaries for ArcticDB only available for Linux and Windows**: MacOS binaries are coming soon!
+
+It's been almost 4 years since the original version of D-Tale was released as a way for pandas users to navigate their dataframes.  There has been many new features added and lots of bugs fixed. One aspect of D-Tale's construction that has consistently been a point of contention has been its need to work from Dataframes stored in memory.  For small Dataframes, this is by far the best solution, but user's have become more accustomed to using larger (north of 10 million rows) and wider (sometimes are high as 300K columns) dataframes.  So storing dataframes of these dimensions prove to be unwieldy. But alas, a solution to this problem has come in the form of ArcticDB! 
 
 At long last! There is finally a solution for navigating the underlying data of your ArcticDB databases. Once again, the solution is D-Tale!
 
 [![](https://i.ytimg.com/vi/t-C_9Jw8tjI/maxresdefault.jpg)](https://youtu.be/t-C_9Jw8tjI "")
+
+### Getting Started
 
 To get started run
 
