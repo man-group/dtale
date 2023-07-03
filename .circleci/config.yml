@@ -323,6 +323,13 @@ jobs:
     environment:
       <<: *python_variables
     <<: *python
+  build_3_11:
+    working_directory: ~/man-group/dtale_3_11
+    docker:
+      - image: cimg/python:3.11.4-node
+    environment:
+      <<: *python_variables
+    <<: *python
 workflows:
   version: 2
   build_all:
@@ -350,6 +357,10 @@ workflows:
             - build_JS
             - check_python_formatting
       - build_3_10:
+          requires:
+            - build_JS
+            - check_python_formatting
+      - build_3_11:
           requires:
             - build_JS
             - check_python_formatting
