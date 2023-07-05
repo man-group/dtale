@@ -829,7 +829,8 @@
     "Target": "Alvo",
     "Choose Col": "Escolha a Col",
     "Geometric Mean": "Geometric Mean",
-    "OHLC": "OHLC"
+    "OHLC": "OHLC",
+    "String Joiner": "String Joiner"
   },
   "charts": {
     "Window": "Janela",
