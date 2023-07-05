@@ -80,6 +80,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Authentication](#authentication)
   - [Predefined Filters](#predefined-filters)
   - [Using Swifter](#using-swifter)
+  - [Behavior for Wide Dataframes](#behavior-for-wide-dataframes)
 - [UI](#ui)
   - [Dimensions/Ribbon Menu/Main Menu](#dimensionsribbon-menumain-menu)
   - [Header](#header)
@@ -721,6 +722,36 @@ It will be used for the following operations:
   - Similarity Distance Calculation
 - Handling of empty strings when calculating missing counts
 - Building unique values by data type in "Describe" popup
+
+
+### Behavior for Wide Dataframes
+
+There is currently a performance bottleneck on the front-end when loading "wide dataframes" (dataframes with many columns). The current solution to this problem is that upon initial load of these dataframes to D-Tale any column with an index greater than 100 (going from left to right) will be hidden on the front-end.  You can still unhide these columns the same way you would any other and you still have the option to show all columns using the "Describe" popup. Here's a sample of this behavior:
+
+Say you loaded this dataframe into D-Tale.
+
+```python
+import pandas as pd
+import dtale
+
+dtale.show(pd.DataFrame(
+    {'col{}'.format(i): list(range(1000)) for i in range(105)}
+))
+```
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/wide_dataframes/initial_load.png)
+
+You will now have access to a new "Jump To Column" menu item.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/wide_dataframes/jump_to_col_menu_item.png)
+
+It would be too hard to scroll to the column you're looking for. So now you'll be able to type in the name of the column you're looking for and select it.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/wide_dataframes/jump_to_col_popup.png)
+
+And now you'll see only the columns you've had locked (we've locked no columns in this example) and the column you chose to jump to.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/wide_dataframes/jump_to_col_done.png)
 
 ### Accessing CLI Loaders in Notebook or Console
 I am pleased to announce that all CLI loaders will be available within notebooks & consoles.  Here are some examples (the last working if you've installed `dtale[arctic]`):

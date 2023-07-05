@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.2.0 (2023-7-5)
+* [#773](https://github.com/man-group/dtale/issues/773): creating a comma-separated string of values from a GroupBy
+* [#771](https://github.com/man-group/dtale/issues/771): Support for Python 3.11
+ 
 ### 3.1.7 (2023-6-29)
 * Fixes for ArcticDB date filtering
 
