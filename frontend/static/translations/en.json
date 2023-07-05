@@ -833,7 +833,8 @@
     "Target": "Target",
     "Choose Col": "Choose Col",
     "Geometric Mean": "Geometric Mean",
-    "OHLC": "OHLC"
+    "OHLC": "OHLC",
+    "String Joiner": "String Joiner"
   },
   "charts": {
     "Window": "Window",

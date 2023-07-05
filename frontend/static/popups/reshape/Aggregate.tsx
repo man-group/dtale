@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { default as Select } from 'react-select';
 
 import ButtonToggle from '../../ButtonToggle';
+import * as gu from '../../dtale/gridUtils';
 import { default as ColumnSelect, constructColumnOptionsFilteredByOtherValues } from '../../popups/create/ColumnSelect';
 import { AppState, BaseOption } from '../../redux/state/AppState';
 import { pivotAggs } from '../analysis/filters/Constants';
@@ -15,13 +16,13 @@ import { AggregationOperationType, BaseReshapeComponentProps, ReshapeAggregateCo
 
 export const validateAggregateCfg = (cfg: ReshapeAggregateConfig): string | undefined => {
   if (cfg.agg.type === AggregationOperationType.FUNC && !cfg.agg.func) {
-    return 'Missing an aggregation selection!';
+    return 'Missing an aggregation selection! Please click "+" button next to Agg input.';
   } else if (
     cfg.agg.type === AggregationOperationType.COL &&
     (!Object.keys(cfg.agg.cols).length ||
       Object.values(cfg.agg.cols || {}).find((aggs: string[]) => !aggs.length) !== undefined)
   ) {
-    return 'Missing an aggregation selection!';
+    return 'Missing an aggregation selection! Please click "+" button next to Agg input.';
   }
   return undefined;
 };
@@ -41,13 +42,27 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
     if (cfg.agg.cols?.length) {
       dfStr = `${dfStr}['${cfg.agg.cols.join("', '")}']`;
     }
-    code.push(isGmean ? `${dfStr}.apply(gmean)` : `${dfStr}.${cfg.agg.func}()`);
+    if (isGmean) {
+      code.push(`${dfStr}.apply(gmean)`);
+    } else if (cfg.agg.func === 'str_joiner') {
+      code.push(`${dfStr}.apply(",".join)`);
+    } else {
+      code.push(`${dfStr}.${cfg.agg.func}()`);
+    }
   } else if (cfg.agg.type === AggregationOperationType.COL) {
     if (!Object.keys(cfg.agg.cols ?? {}).length) {
       return undefined;
     }
     let aggStr = `${dfStr}.aggregate({`;
-    const aggFmt = (agg: string): string => (agg === 'gmean' ? 'gmean' : `'${agg}'`);
+    const aggFmt = (agg: string): string => {
+      if (agg === 'gmean') {
+        return 'gmean';
+      } else if (agg === 'str_joiner') {
+        return `",".join`;
+      } else {
+        return `'${agg}'`;
+      }
+    };
     const { cols } = cfg.agg;
     aggStr += Object.keys(cols)
       .map((col: string) => `'${col}': ['${(cols[col] ?? []).map(aggFmt).join("', '")}']`)
@@ -63,19 +78,33 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
 
 const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ columns, updateState, t }) => {
   const pythonVersion = useSelector((state: AppState) => state.pythonVersion);
-  const aggregateAggs = React.useMemo(
-    () => [...pivotAggs(t), { value: 'gmean', label: t('Geometric Mean', { ns: 'constants' }) }],
-    [t],
-  );
+  const currentAggRef = React.useRef<Select>(null);
+  const currentColRef = React.useRef<Select>(null);
+  const [currentAggCol, setCurrentAggCol] = React.useState<BaseOption<string>>();
+  const aggregateAggs = React.useMemo(() => {
+    const col = currentAggCol?.value;
+    if (!col) {
+      return [
+        ...pivotAggs(t),
+        { value: 'gmean', label: t('Geometric Mean', { ns: 'constants' }) },
+        { value: 'str_joiner', label: t('String Joiner', { ns: 'constants' }) },
+      ];
+    }
+    const colCfg = columns.find(({ name }) => name === col);
+    if ([gu.ColumnType.STRING, gu.ColumnType.CATEGORY].indexOf(gu.findColType(colCfg?.dtype)) !== -1) {
+      return [
+        ...pivotAggs(t).filter((agg) => ['first', 'last', 'count', 'nunique'].indexOf(agg.value) !== -1),
+        { value: 'str_joiner', label: t('String Joiner', { ns: 'constants' }) },
+      ];
+    }
+    return [...pivotAggs(t), { value: 'gmean', label: t('Geometric Mean', { ns: 'constants' }) }];
+  }, [t, currentAggCol?.value]);
   const [index, setIndex] = React.useState<Array<BaseOption<string>>>();
   const [dropna, setDropna] = React.useState(true);
   const [type, setType] = React.useState<AggregationOperationType>(AggregationOperationType.COL);
   const [columnConfig, setColumnConfig] = React.useState<Record<string, string[]>>({});
   const [func, setFunc] = React.useState<BaseOption<string>>();
   const [funcCols, setFuncCols] = React.useState<Array<BaseOption<string>>>();
-
-  const currentAggRef = React.useRef<Select>(null);
-  const currentColRef = React.useRef<Select>(null);
 
   React.useEffect(() => {
     let cfg: ReshapeAggregateConfig;
@@ -116,6 +145,7 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
       return;
     }
     (currentAggRef.current as any)?.clearValue();
+    setCurrentAggCol(undefined);
     setColumnConfig({ ...columnConfig, [currCol]: currAgg.map(({ value }) => value) });
   };
 
@@ -170,6 +200,8 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
                     <span className="pt-4 mr-4">{t('Col')}:</span>
                     <DtaleSelect
                       options={filteredColumnOptions}
+                      value={currentAggCol}
+                      onChange={(updatedState) => setCurrentAggCol(updatedState as BaseOption<string>)}
                       isMulti={false}
                       isClearable={true}
                       ref={currentColRef}

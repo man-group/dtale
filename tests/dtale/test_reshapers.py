@@ -197,6 +197,46 @@ def test_aggregate(custom_data, unittest):
 
 
 @pytest.mark.unit
+def test_aggregate_str_joiner(unittest):
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame([{"a": 1, "b": "foo"}, {"a": 1, "b": "bar"}])
+    df, _ = format_data(df)
+    global_state.clear_store()
+    with app.test_client() as c:
+        data = {c.port: df}
+        dtypes = {c.port: build_dtypes_state(df)}
+        settings = {c.port: {}}
+
+        build_data_inst(data)
+        build_dtypes(dtypes)
+        build_settings(settings)
+        reshape_cfg = dict(
+            index="a",
+            agg=dict(type="col", cols={"b": ["count", "str_joiner"]}),
+        )
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        new_key = str(c.port + 1)
+        assert response_data["data_id"] == new_key
+        assert len(global_state.keys()) == 2
+        unittest.assertEqual(
+            [d["name"] for d in global_state.get_dtypes(new_key)],
+            ["a", "b count", "b str_joiner"],
+        )
+        output = global_state.get_data(new_key)
+        assert len(output) == 1
+        assert output["b str_joiner"].values[0] == "foo,bar"
+        assert global_state.get_settings(new_key).get("startup_code") is not None
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
+
+@pytest.mark.unit
 @pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
 def test_transpose(custom_data, unittest):
     from dtale.views import build_dtypes_state

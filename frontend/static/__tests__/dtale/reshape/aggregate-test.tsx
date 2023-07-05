@@ -1,4 +1,5 @@
 import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
+import selectEvent from 'react-select-event';
 
 import { OutputType } from '../../../popups/create/CreateColumnState';
 import { validateAggregateCfg } from '../../../popups/reshape/Aggregate';
@@ -83,6 +84,44 @@ describe('Aggregate', () => {
     expect(spies.mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.CLOSE_CHART });
   });
 
+  it("reshapes data using aggregate 'By Column' w/ gmean", async () => {
+    expect(screen.getByText('Agg:')).toBeDefined();
+    await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'Geometric Mean');
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col2');
+    await act(async () => {
+      fireEvent.click(result.container.getElementsByClassName('ico-add-circle')[0]);
+    });
+    await spies.validateCfg({
+      cfg: {
+        agg: { type: AggregationOperationType.COL, cols: { col2: ['gmean'] } },
+        index: ['col1'],
+        dropna: true,
+      },
+      type: ReshapeType.AGGREGATE,
+      output: OutputType.NEW,
+    });
+  });
+
+  it("reshapes data using aggregate 'By Column' w/ str_joiner", async () => {
+    expect(screen.getByText('Agg:')).toBeDefined();
+    await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col3');
+    await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'String Joiner');
+    await act(async () => {
+      fireEvent.click(result.container.getElementsByClassName('ico-add-circle')[0]);
+    });
+    await spies.validateCfg({
+      cfg: {
+        agg: { type: AggregationOperationType.COL, cols: { col3: ['str_joiner'] } },
+        index: ['col1'],
+        dropna: true,
+      },
+      type: ReshapeType.AGGREGATE,
+      output: OutputType.NEW,
+    });
+  });
+
   it("reshapes data using aggregate 'By Function'", async () => {
     await act(async () => {
       fireEvent.click(screen.getByText('By Function'));
@@ -108,22 +147,95 @@ describe('Aggregate', () => {
   });
 
   it('handles errors', async () => {
-    await spies.validateError('Missing an aggregation selection!');
+    await spies.validateError('Missing an aggregation selection! Please click "+" button next to Agg input.');
     await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
-    await spies.validateError('Missing an aggregation selection!');
+    await spies.validateError('Missing an aggregation selection! Please click "+" button next to Agg input.');
     await act(async () => {
       fireEvent.click(screen.getByText('By Function'));
     });
-    await spies.validateError('Missing an aggregation selection!');
+    await spies.validateError('Missing an aggregation selection! Please click "+" button next to Agg input.');
   });
 
   it('validates configuration', () => {
     const cfg: ReshapeAggregateConfig = { agg: { type: AggregationOperationType.FUNC }, dropna: true };
-    expect(validateAggregateCfg(cfg)).toBe('Missing an aggregation selection!');
+    expect(validateAggregateCfg(cfg)).toBe(
+      'Missing an aggregation selection! Please click "+" button next to Agg input.',
+    );
     cfg.index = ['x'];
     cfg.agg = { type: AggregationOperationType.COL, cols: {} };
-    expect(validateAggregateCfg(cfg)).toBe('Missing an aggregation selection!');
+    expect(validateAggregateCfg(cfg)).toBe(
+      'Missing an aggregation selection! Please click "+" button next to Agg input.',
+    );
     cfg.agg.cols = { col1: ['count'] };
     expect(validateAggregateCfg(cfg)).toBeUndefined();
+  });
+
+  it('changes aggregation options based on unselected column', async () => {
+    await act(async () => {
+      await selectEvent.openMenu(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
+    expect([...document.body.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+      'Count',
+      'Unique Count',
+      'Sum',
+      'Mean',
+      'Keep First',
+      'Keep Last',
+      'Median',
+      'Minimum',
+      'Maximum',
+      'Standard Deviation',
+      'Variance',
+      'Mean Absolute Deviation',
+      'Product of All Items',
+      'Geometric Mean',
+      'String Joiner',
+    ]);
+    await act(async () => {
+      await selectEvent.clearFirst(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
+  });
+
+  it('changes aggregation options based on float column', async () => {
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col2');
+    await act(async () => {
+      await selectEvent.openMenu(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
+    expect([...document.body.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+      'Count',
+      'Unique Count',
+      'Sum',
+      'Mean',
+      'Keep First',
+      'Keep Last',
+      'Median',
+      'Minimum',
+      'Maximum',
+      'Standard Deviation',
+      'Variance',
+      'Mean Absolute Deviation',
+      'Product of All Items',
+      'Geometric Mean',
+    ]);
+    await act(async () => {
+      await selectEvent.clearFirst(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
+  });
+
+  it('changes aggregation options based on string column', async () => {
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col3');
+    await act(async () => {
+      await selectEvent.openMenu(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
+    expect([...document.body.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+      'Count',
+      'Unique Count',
+      'Keep First',
+      'Keep Last',
+      'String Joiner',
+    ]);
+    await act(async () => {
+      await selectEvent.clearFirst(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
   });
 });

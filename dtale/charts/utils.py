@@ -285,7 +285,9 @@ def group_filter_handler(col_def, group_val, group_classifier):
         )
     if group_classifier in ["I", "F", "B"]:
         return (
-            "{col} == {val}".format(col=build_col_key(col_def), val=group_val),
+            "{col} == {val}".format(
+                col=build_col_key(col_def), val="{}".format(group_val).replace(",", "")
+            ),
             "{}: {}".format(col_def, group_val),
         )
     if group_classifier == "D":
