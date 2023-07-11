@@ -85,7 +85,8 @@ scipy<=1.5.4; python_version == '3.4'
 scipy<=1.5.4; python_version == '3.5'
 scipy<=1.5.4; python_version == '3.6'
 scipy<=1.7.3; python_version == '3.7'
-scipy<=1.9.3; python_version >= '3.8'
+scipy<=1.10.1; python_version == '3.8'
+scipy; python_version >= '3.9'
 seaborn<=0.9.1; python_version < '3.6'
 seaborn<=0.11.2; python_version == '3.6'
 seaborn; python_version > '3.6'
@@ -104,8 +105,11 @@ strsimpy
 six
 # required for loading plotly
 tenacity<=7.0.0; python_version == '3.6'
+threadpoolctl<=3.1.0; python_version == '3.6'
+threadpoolctl<=3.1.0; python_version == '3.7'
 werkzeug<=1.0.1; python_version <= '3.6'
 werkzeug<2.3; python_version >= '3.7'
 xarray<=0.11.3; python_version < '3.0'
 xarray; python_version >= '3.0'
 xlrd
+zipp<=3.15.0; python_version == '3.6'

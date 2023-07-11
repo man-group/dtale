@@ -317,10 +317,7 @@ def test_startup(unittest):
     )
 
     many_cols = pd.DataFrame({"sec{}".format(v): [1] for v in range(500)})
-    instance = views.startup(
-        URL,
-        data=many_cols,
-    )
+    instance = views.startup(URL, data=many_cols)
     unittest.assertEqual(
         len([v for v in global_state.get_dtypes(instance._data_id) if v["visible"]]),
         100,
@@ -1258,6 +1255,12 @@ def test_variance(unittest):
             expected["x"]["check2"]["val2"]["val"] = 1
         response_data = response.get_json()
         del response_data["code"]
+        response_data["jarqueBera"]["pvalue"] = round(
+            response_data["jarqueBera"]["pvalue"], 4
+        )
+        response_data["jarqueBera"]["statistic"] = round(
+            response_data["jarqueBera"]["statistic"], 4
+        )
         unittest.assertEqual(response_data, expected["x"])
 
         response = c.get(
@@ -1267,6 +1270,9 @@ def test_variance(unittest):
         del response_data["code"]
         response_data["shapiroWilk"]["statistic"] = round(
             response_data["shapiroWilk"]["statistic"], 4
+        )
+        response_data["jarqueBera"]["statistic"] = round(
+            response_data["jarqueBera"]["statistic"], 4
         )
         unittest.assertEqual(response_data, expected["low_var"])
 
