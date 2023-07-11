@@ -212,8 +212,7 @@ def test_aggregate_str_joiner(unittest):
         build_dtypes(dtypes)
         build_settings(settings)
         reshape_cfg = dict(
-            index="a",
-            agg=dict(type="col", cols={"b": ["count", "str_joiner"]}),
+            index="a", agg=dict(type="col", cols={"b": ["count", "str_joiner"]})
         )
         resp = c.get(
             "/dtale/reshape/{}".format(c.port),

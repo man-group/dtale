@@ -337,8 +337,7 @@ def test_get_arcticdb_libraries(unittest, arcticdb_path, arcticdb):
             load_libs_mock.assert_called_once()
 
     with mock.patch(
-        "dtale.global_state.store._libraries",
-        ["lib{}".format(v) for v in range(501)],
+        "dtale.global_state.store._libraries", ["lib{}".format(v) for v in range(501)]
     ):
         with app.test_client() as c:
             response = c.get("/dtale/arcticdb/libraries")
@@ -388,8 +387,7 @@ def test_get_arcticdb_symbols(unittest, arcticdb_path, arcticdb):
     with ExitStack() as stack:
         stack.enter_context(
             mock.patch(
-                "dtale.global_state.store.load_symbols",
-                mock.Mock(return_value=None),
+                "dtale.global_state.store.load_symbols", mock.Mock(return_value=None)
             )
         )
         stack.enter_context(
