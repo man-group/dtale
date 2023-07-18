@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 import { WithTranslation, withTranslation } from 'react-i18next';
@@ -14,7 +15,8 @@ import {
 import { BouncerWrapper } from '../../BouncerWrapper';
 import * as gu from '../../dtale/gridUtils';
 import SidePanelButtons from '../../dtale/side/SidePanelButtons';
-import { AppState, BaseOption, SortDef, SortDir } from '../../redux/state/AppState';
+import { selectDataId, selectSidePanel, selectTheme } from '../../redux/selectors';
+import { BaseOption, SortDef, SortDir } from '../../redux/state/AppState';
 import { buildCorrelationsUrl, CorrelationGridRow } from '../../repository/CorrelationsRepository';
 import { sortOptions } from '../analysis/filters/Constants';
 import { renderCodePopupAnchor } from '../CodePopup';
@@ -73,7 +75,7 @@ const filterData = (
   }
   if (col2) {
     updatedData = updatedData.map(
-      (row) => ({ column: row.column, [col2.value]: row[col2.value] } as CorrelationGridRow),
+      (row) => ({ column: row.column, [col2.value]: row[col2.value] }) as CorrelationGridRow,
     );
   }
   return updatedData;
@@ -103,8 +105,14 @@ interface CorrelationsGridProps {
   toggleStrings: () => Promise<void>;
 }
 
+const selectResult = createSelector([selectDataId, selectSidePanel, selectTheme], (dataId, sidePanel, theme) => ({
+  dataId,
+  sidePanel,
+  theme,
+}));
+
 const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ columns, t, ...props }) => {
-  const { dataId, sidePanel, theme } = useSelector((state: AppState) => state);
+  const { dataId, sidePanel, theme } = useSelector(selectResult);
   const columnOptions: Array<BaseOption<string>> = React.useMemo(
     () => columns.map((column) => ({ value: column })),
     [columns],

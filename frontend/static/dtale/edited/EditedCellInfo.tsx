@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,13 +12,39 @@ import {
   OpenChartAction,
 } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
-import { AppState, BaseOption, Popups } from '../../redux/state/AppState';
+import * as selectors from '../../redux/selectors';
+import { BaseOption, Popups } from '../../redux/state/AppState';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
 import { ColumnType, findColType, getCell } from '../gridUtils';
 
 import { onKeyDown as baseKeyDown, EditedCellInfoProps } from './editUtils';
 
 require('./EditedCellInfo.scss');
+
+const selectSettingsHideHeaderEditor = createSelector(
+  [selectors.selectSettings],
+  (settings) => settings?.hide_header_editor,
+);
+const selectHideHeaderEditor = createSelector(
+  [selectors.selectBaseHideHeaderEditor, selectSettingsHideHeaderEditor],
+  (hideHeaderEditor, settingsHideHeaderEditor) => settingsHideHeaderEditor ?? hideHeaderEditor,
+);
+const selectResult = createSelector(
+  [
+    selectors.selectDataId,
+    selectors.selectEditedCell,
+    selectors.selectSettings,
+    selectors.selectMaxColumnWidth,
+    selectHideHeaderEditor,
+  ],
+  (dataId, editedCell, settings, maxColumnWidth, hideHeaderEditor) => ({
+    dataId,
+    editedCell,
+    settings,
+    maxColumnWidth,
+    hideHeaderEditor,
+  }),
+);
 
 const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
   propagateState,
@@ -26,13 +53,7 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
   rowCount,
   t,
 }) => {
-  const { dataId, editedCell, settings, maxColumnWidth, hideHeaderEditor } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    editedCell: state.editedCell,
-    settings: state.settings,
-    maxColumnWidth: state.maxColumnWidth,
-    hideHeaderEditor: state.settings?.hide_header_editor ?? state.hideHeaderEditor,
-  }));
+  const { dataId, editedCell, settings, maxColumnWidth, hideHeaderEditor } = useSelector(selectResult);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const clearEdit = (): ClearEditAction => dispatch({ type: ActionType.CLEAR_EDIT });

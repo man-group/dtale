@@ -85,12 +85,12 @@ const CreateExponentialSmoothing: React.FC<BaseCreateComponentProps & WithTransl
             <StyledSlider
               defaultValue={isNaN(alpha) ? 0.0 : alpha}
               renderTrack={Track as any}
-              renderThumb={Thumb}
+              renderThumb={(props: any, state: any) => Thumb(props, state)}
               value={isNaN(alpha) ? 0.0 : alpha}
               min={0.0}
               max={1.0}
               step={0.01}
-              onAfterChange={(update) => setAlpha(Number(update))}
+              onAfterChange={(update: any) => setAlpha(Number(update))}
             />
           </div>
           <small>{t('alpha_description')}</small>

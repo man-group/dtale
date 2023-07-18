@@ -1,10 +1,12 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType, OpenChartAction, ToggleMenuAction } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
-import { AppState, Popups, PopupType } from '../redux/state/AppState';
+import { selectCtrlCols, selectCtrlRows, selectDataId, selectEditedCell, selectIsVSCode } from '../redux/selectors';
+import { Popups, PopupType } from '../redux/state/AppState';
 
 import { ColumnDef } from './DataViewerState';
 import * as menuFuncs from './menu/dataViewerMenuUtils';
@@ -15,8 +17,13 @@ interface DtaleHotkeysProps {
   columns: ColumnDef[];
 }
 
+const selectResult = createSelector(
+  [selectDataId, selectEditedCell, selectIsVSCode, selectCtrlRows, selectCtrlCols],
+  (dataId, editedCell, isVSCode, ctrlRows, ctrlCols) => ({ dataId, editedCell, isVSCode, ctrlRows, ctrlCols }),
+);
+
 export const DtaleHotkeys: React.FC<DtaleHotkeysProps> = ({ columns }) => {
-  const { dataId, editedCell, isVSCode, ctrlRows, ctrlCols } = useSelector((state: AppState) => state);
+  const { dataId, editedCell, isVSCode, ctrlRows, ctrlCols } = useSelector(selectResult);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });

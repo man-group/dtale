@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -5,7 +6,8 @@ import { useSelector } from 'react-redux';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
-import { AppState, DescribePopupData } from '../../redux/state/AppState';
+import { selectChartData, selectDataId } from '../../redux/selectors';
+import { DescribePopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as DtypesRepository from '../../repository/DtypesRepository';
 
@@ -14,12 +16,13 @@ import { VisibilityState } from './DescribeState';
 import Details from './Details';
 import DtypesGrid from './DtypesGrid';
 
-const Describe: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, chartData } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    chartData: state.chartData as DescribePopupData,
-  }));
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  dataId,
+  chartData: chartData as DescribePopupData,
+}));
 
+const Describe: React.FC<WithTranslation> = ({ t }) => {
+  const { dataId, chartData } = useSelector(selectResult);
   const [loadingDtypes, setLoadingDtypes] = React.useState(true);
   const [error, setError] = React.useState<JSX.Element>();
   const [dtypes, setDtypes] = React.useState<ColumnDef[]>();

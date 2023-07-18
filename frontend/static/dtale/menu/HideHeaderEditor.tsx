@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -5,16 +6,18 @@ import { AnyAction } from 'redux';
 
 import { ActionType } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState } from '../../redux/state/AppState';
+import { selectDataId, selectHideHeaderEditor } from '../../redux/selectors';
 import * as serverState from '../serverStateManagement';
 
 import { MenuItem } from './MenuItem';
 
+const selectResult = createSelector([selectDataId, selectHideHeaderEditor], (dataId, hideHeaderEditor) => ({
+  dataId,
+  hideHeaderEditor,
+}));
+
 const HideHeaderEditor: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, hideHeaderEditor } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    hideHeaderEditor: state.settings?.hide_header_editor ?? state.hideHeaderEditor,
-  }));
+  const { dataId, hideHeaderEditor } = useSelector(selectResult);
   const dispatch = useDispatch();
 
   const setHideHeaderEditor = async (): Promise<void> => {

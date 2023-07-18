@@ -3,7 +3,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
-import { AppState } from '../../redux/state/AppState';
+import { selectDataId } from '../../redux/selectors';
 import { RemovableError } from '../../RemovableError';
 import * as DuplicatesRepository from '../../repository/DuplicatesRepository';
 
@@ -20,8 +20,7 @@ import Keep from './Keep';
 type TestType = DuplicatesRepository.DuplicatesResponse<ColumnBasedResult>;
 
 const ColumnNames: React.FC<BaseDuplicatesComponentProps & WithTranslation> = ({ setCfg, t }) => {
-  const dataId = useSelector((state: AppState) => state.dataId);
-
+  const dataId = useSelector(selectDataId);
   const [keep, setKeep] = React.useState(KeepType.FIRST);
   const [testOutput, setTestOutput] = React.useState<React.ReactNode>();
   const [loadingTest, setLoadingTest] = React.useState(false);

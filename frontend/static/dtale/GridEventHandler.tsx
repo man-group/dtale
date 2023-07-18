@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,7 +14,8 @@ import {
   ShowRibbonMenuAction,
 } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
-import { AppState, Popups, PopupType, RangeState } from '../redux/state/AppState';
+import * as selectors from '../redux/selectors';
+import { Popups, PopupType, RangeState } from '../redux/state/AppState';
 
 import { ColumnDef, DataViewerData, StringColumnFormat } from './DataViewerState';
 import { convertCellIdxToCoords, getCell, isCellEditable } from './gridUtils';
@@ -30,6 +32,58 @@ export interface GridEventHandlerProps {
   columns: ColumnDef[];
   data: DataViewerData;
 }
+
+const selectResult = createSelector(
+  [
+    selectors.selectAllowCellEdits,
+    selectors.selectDataId,
+    selectors.selectBaseRibbonMenuOpen,
+    selectors.selectMenuPinned,
+    selectors.selectRibbonDropdownVisible,
+    selectors.selectSidePanelVisible,
+    selectors.selectSidePanelView,
+    selectors.selectSidePanelOffset,
+    selectors.selectDragResize,
+    selectors.selectRangeSelect,
+    selectors.selectRowRange,
+    selectors.selectCtrlRows,
+    selectors.selectSettings,
+    selectors.selectLockHeaderMenu,
+    selectors.selectIsArcticDB,
+  ],
+  (
+    allowCellEdits,
+    dataId,
+    ribbonMenuOpen,
+    menuPinned,
+    ribbonDropdownOpen,
+    sidePanelOpen,
+    sidePanel,
+    sidePanelOffset,
+    dragResize,
+    rangeSelect,
+    rowRange,
+    ctrlRows,
+    settings,
+    lockHeaderMenu,
+    isArcticDB,
+  ) => ({
+    allowCellEdits: allowCellEdits && !isArcticDB,
+    dataId,
+    menuPinned,
+    ribbonMenuOpen,
+    ribbonDropdownOpen,
+    sidePanelOpen,
+    sidePanel,
+    sidePanelOffset,
+    dragResize,
+    rangeSelect,
+    rowRange,
+    ctrlRows,
+    settings,
+    lockHeaderMenu,
+  }),
+);
 
 const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps & WithTranslation>> = ({
   columns,
@@ -52,22 +106,7 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
     ctrlRows,
     settings,
     lockHeaderMenu,
-  } = useSelector((state: AppState) => ({
-    allowCellEdits: state.allowCellEdits && !state.isArcticDB,
-    dataId: state.dataId,
-    ribbonMenuOpen: state.ribbonMenuOpen,
-    menuPinned: state.menuPinned,
-    ribbonDropdownOpen: state.ribbonDropdown.visible,
-    sidePanelOpen: state.sidePanel.visible,
-    sidePanel: state.sidePanel.view,
-    sidePanelOffset: state.sidePanel.offset,
-    dragResize: state.dragResize,
-    rangeSelect: state.rangeSelect,
-    rowRange: state.rowRange,
-    ctrlRows: state.ctrlRows,
-    settings: state.settings,
-    lockHeaderMenu: state.settings?.lock_header_menu ?? state.lockHeaderMenu,
-  }));
+  } = useSelector(selectResult);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const editCell = (editedCell: string): EditedCellAction => dispatch({ type: ActionType.EDIT_CELL, editedCell });

@@ -10,7 +10,8 @@ import * as menuFuncs from '../dtale/menu/dataViewerMenuUtils';
 import { OpenChartAction } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import * as settingsActions from '../redux/actions/settings';
-import { AppState, InstanceSettings, Popups, PopupType } from '../redux/state/AppState';
+import { selectDataId } from '../redux/selectors';
+import { InstanceSettings, Popups, PopupType } from '../redux/state/AppState';
 import * as ColumnFilterRepository from '../repository/ColumnFilterRepository';
 
 import DateFilter from './DateFilter';
@@ -51,7 +52,7 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   t,
   ...props
 }) => {
-  const dataId = useSelector((state: AppState) => state.dataId);
+  const dataId = useSelector(selectDataId);
   const dispatch = useDispatch();
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
     dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);

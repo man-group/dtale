@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { RGBColor, SketchPicker } from 'react-color';
 import { WithTranslation, withTranslation } from 'react-i18next';
@@ -7,8 +8,8 @@ import { AnyAction } from 'redux';
 
 import * as serverState from '../dtale/serverStateManagement';
 import * as settingsActions from '../redux/actions/settings';
+import { selectChartData, selectDataId } from '../redux/selectors';
 import {
-  AppState,
   BaseOption,
   HasActivation,
   InstanceSettings,
@@ -121,11 +122,13 @@ function rangeAsStr(range: RangeHighlightModes): JSX.Element[] {
   return subRanges;
 }
 
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  chartData: chartData as RangeHighlightPopupData,
+  dataId,
+}));
+
 const RangeHighlight: React.FC<WithTranslation> = ({ t }) => {
-  const { chartData, dataId } = useSelector((state: AppState) => ({
-    chartData: state.chartData as RangeHighlightPopupData,
-    dataId: state.dataId,
-  }));
+  const { chartData, dataId } = useSelector(selectResult);
   const dispatch = useDispatch();
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
     dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);

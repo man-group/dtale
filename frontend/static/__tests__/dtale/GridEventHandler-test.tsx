@@ -82,7 +82,7 @@ describe('RibbonDropdown', () => {
 
   it('opens ribbon menu for first 5 pixels', async () => {
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-    setTimeoutSpy.mockImplementation((cb, ms) => ({} as NodeJS.Timeout));
+    setTimeoutSpy.mockImplementation((cb, ms) => ({}) as NodeJS.Timeout);
     const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
     const mainPanel = container.getElementsByClassName('main-panel-content')[0];
     const myEvent = createEvent.mouseMove(mainPanel, { clientY: 5 });
@@ -98,7 +98,7 @@ describe('RibbonDropdown', () => {
   it('hides ribbon menu outside of first 45 pixels', async () => {
     await buildMock(undefined, { ribbonMenuOpen: true });
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-    setTimeoutSpy.mockImplementation((cb, ms) => ({} as NodeJS.Timeout));
+    setTimeoutSpy.mockImplementation((cb, ms) => ({}) as NodeJS.Timeout);
     const mainPanel = container.getElementsByClassName('main-panel-content')[0];
     const myEvent = createEvent.mouseMove(mainPanel, { clientY: 45 });
     fireEvent(mainPanel, myEvent);
@@ -111,7 +111,7 @@ describe('RibbonDropdown', () => {
   it('does not hide ribbon menu when dropdown is open', async () => {
     buildMock(undefined, { ribbonMenuOpen: true, ribbonDropdown: { visible: true } });
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
-    setTimeoutSpy.mockImplementation((cb, ms) => ({} as NodeJS.Timeout));
+    setTimeoutSpy.mockImplementation((cb, ms) => ({}) as NodeJS.Timeout);
     const mainPanel = container.getElementsByClassName('main-panel-content')[0];
     const myEvent = createEvent.mouseMove(mainPanel, { clientY: 45 });
     await fireEvent(mainPanel, myEvent);

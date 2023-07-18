@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,7 +8,8 @@ import { Bouncer } from '../../Bouncer';
 import { OpenChartAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, InstanceSettings, Popups, PopupType, RangeHighlightConfig } from '../../redux/state/AppState';
+import { selectBackgroundMode, selectRangeHighlight } from '../../redux/selectors';
+import { InstanceSettings, Popups, PopupType, RangeHighlightConfig } from '../../redux/state/AppState';
 import { ColumnDef } from '../DataViewerState';
 
 import { MenuItem } from './MenuItem';
@@ -17,12 +19,18 @@ import { RibbonOptionProps } from './MenuState';
 interface RangeHighlightOptionProps extends RibbonOptionProps {
   columns: ColumnDef[];
 }
+
+const selectResult = createSelector([selectBackgroundMode, selectRangeHighlight], (backgroundMode, rangeHighlight) => ({
+  backgroundMode,
+  rangeHighlight,
+}));
+
 const RangeHighlightOption: React.FC<RangeHighlightOptionProps & WithTranslation> = ({
   columns,
   ribbonWrapper = (func) => func,
   t,
 }) => {
-  const { backgroundMode, rangeHighlight } = useSelector((state: AppState) => state.settings);
+  const { backgroundMode, rangeHighlight } = useSelector(selectResult);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>

@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,12 +7,17 @@ import { AnyAction } from 'redux';
 import { ActionType, HideRibbonMenuAction } from '../../redux/actions/AppActions';
 import * as actions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState } from '../../redux/state/AppState';
+import { selectSettings, selectShowAllHeatmapColumns } from '../../redux/selectors';
 
 import { MenuItem } from './MenuItem';
 
+const selectResult = createSelector(
+  [selectSettings, selectShowAllHeatmapColumns],
+  (settings, showAllHeatmapColumns) => ({ showAllHeatmapColumns, settings }),
+);
+
 const ShowNonNumericHeatmapColumns: React.FC<WithTranslation> = ({ t }) => {
-  const { showAllHeatmapColumns, settings } = useSelector((state: AppState) => state);
+  const { showAllHeatmapColumns, settings } = useSelector(selectResult);
   const dispatch = useDispatch();
   const hideRibbonMenu = (): HideRibbonMenuAction => dispatch({ type: ActionType.HIDE_RIBBON_MENU });
   const toggleBackground = (backgroundMode: string): AnyAction =>

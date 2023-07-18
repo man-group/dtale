@@ -2,14 +2,13 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { AppState } from '../../redux/state/AppState';
+import { selectHideShutdown } from '../../redux/selectors';
 
 import { MenuItem } from './MenuItem';
 import { MenuOptionProps } from './MenuState';
 
 const ShutdownOption: React.FC<MenuOptionProps & WithTranslation> = ({ open, t }) => {
-  const hideShutdown = useSelector((state: AppState) => state.hideShutdown);
-
+  const hideShutdown = useSelector(selectHideShutdown);
   if (hideShutdown) {
     return null;
   }

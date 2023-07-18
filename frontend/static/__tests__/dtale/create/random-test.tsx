@@ -116,13 +116,13 @@ describe('CreateRandom', () => {
       await fireEvent.click(screen.getByText('Date'));
     });
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('bp4-popover2-target')[0]);
+      await fireEvent.click(result.getElementsByClassName('bp5-popover-target')[0]);
     });
     await act(async () => {
-      await fireEvent.change(result.getElementsByClassName('bp4-input')[0], { target: { value: '20000101' } });
+      await fireEvent.change(result.getElementsByClassName('bp5-input')[0], { target: { value: '20000101' } });
     });
     await act(async () => {
-      await fireEvent.change(result.getElementsByClassName('bp4-input')[1], { target: { value: '20000102' } });
+      await fireEvent.change(result.getElementsByClassName('bp5-input')[1], { target: { value: '20000102' } });
     });
     await act(async () => {
       await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);

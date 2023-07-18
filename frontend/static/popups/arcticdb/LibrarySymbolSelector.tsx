@@ -4,15 +4,15 @@ import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import AsyncValueSelect from '../../filters/AsyncValueSelect';
-import { AppState, BaseOption } from '../../redux/state/AppState';
+import { selectDataId } from '../../redux/selectors';
+import { BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as ArcticDBRepository from '../../repository/ArcticDBRepository';
 import { LabeledSelect } from '../create/LabeledSelect';
 import { jumpToDataset } from '../upload/uploadUtils';
 
 const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId } = useSelector((state: AppState) => state);
-
+  const dataId = useSelector(selectDataId);
   const currentSymbol = React.useMemo(() => {
     const dataIdSegs = decodeURIComponent(decodeURIComponent(dataId)).split('|');
     return dataIdSegs[dataIdSegs.length - 1];

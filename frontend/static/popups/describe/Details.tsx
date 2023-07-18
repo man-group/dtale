@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,7 +12,8 @@ import { ColumnType, findColType, noFilters } from '../../dtale/gridUtils';
 import { JSAnchor } from '../../JSAnchor';
 import * as actions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, InstanceSettings } from '../../redux/state/AppState';
+import { selectColumnCount, selectDataId, selectIsArcticDB, selectSettings } from '../../redux/selectors';
+import { InstanceSettings } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
 import * as DescribeRepository from '../../repository/DescribeRepository';
@@ -35,13 +37,13 @@ export interface DetailsProps {
   close?: JSX.Element;
 }
 
+const selectResult = createSelector(
+  [selectColumnCount, selectDataId, selectIsArcticDB, selectSettings],
+  (columnCount, dataId, isArcticDB, settings) => ({ columnCount, dataId, isArcticDB, settings }),
+);
+
 const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, close, t }) => {
-  const { dataId, settings, isArcticDB, columnCount } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    settings: state.settings,
-    isArcticDB: state.isArcticDB,
-    columnCount: state.columnCount,
-  }));
+  const { dataId, settings, isArcticDB, columnCount } = useSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],

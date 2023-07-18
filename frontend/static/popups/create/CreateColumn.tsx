@@ -6,7 +6,7 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef, DataViewerPropagateState } from '../../dtale/DataViewerState';
 import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
-import { AppState, CreateColumnPopupData } from '../../redux/state/AppState';
+import { selectDataId } from '../../redux/selectors';
 import { RemovableError } from '../../RemovableError';
 import * as CreateColumnRepository from '../../repository/CreateColumnRepository';
 import * as DtypesRepository from '../../repository/DtypesRepository';
@@ -38,12 +38,9 @@ export interface CreateColumnProps {
 }
 
 const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopulated, propagateState, t }) => {
-  const { dataId, chartData } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    chartData: state.chartData as CreateColumnPopupData,
-  }));
+  const dataId = useSelector(selectDataId);
   const dispatch = useDispatch();
-  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart());
 
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
   const [error, setError] = React.useState<JSX.Element>();

@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import numeral from 'numeral';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
@@ -22,7 +23,8 @@ import {
   OpenChartAction,
 } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
-import { AppState, DataViewerUpdateType, Popups, PopupType, SortDef } from '../../redux/state/AppState';
+import { selectDataId, selectIsArcticDB } from '../../redux/selectors';
+import { DataViewerUpdateType, Popups, PopupType, SortDef } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as CorrelationsRepository from '../../repository/CorrelationsRepository';
 import { StyledSlider, Thumb, Track } from '../../sliderUtils';
@@ -52,8 +54,10 @@ const buildData = (
     corrs: Object.values(corrs[row.column] ?? {}).filter((corr) => corr !== null && corr > threshold).length,
   }));
 
+const selectResult = createSelector([selectDataId, selectIsArcticDB], (dataId, isArcticDB) => ({ dataId, isArcticDB }));
+
 const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, isArcticDB } = useSelector((state: AppState) => state);
+  const { dataId, isArcticDB } = useSelector(selectResult);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const reduxDropColumns = (columns: string[]): DataViewerUpdateAction =>
@@ -160,12 +164,12 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
         <div className="d-inline-block" style={{ width: 200 }} data-testid="corr-threshold">
           <StyledSlider
             renderTrack={Track as any}
-            renderThumb={Thumb}
+            renderThumb={(props: any, state: any) => Thumb(props, state)}
             value={threshold}
             min={0.0}
             max={1.0}
             step={0.01}
-            onAfterChange={(value) => updateThreshold(value as number)}
+            onAfterChange={(value: any) => updateThreshold(value as number)}
           />
         </div>
         {!isArcticDB && hasUnselected && (

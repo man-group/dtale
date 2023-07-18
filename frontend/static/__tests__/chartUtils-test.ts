@@ -64,7 +64,7 @@ describe('chartUtils tests', () => {
         ({
           controller: { _config: { selectedPoint: 0 } } as any as DatasetController,
           data: [LINE_POINT.element],
-        } as ChartMeta),
+        }) as ChartMeta,
       ctx: buildChartContext(),
     } as any as Chart<'line'>;
     plugin.afterDraw?.(chartInstance, {}, {});
@@ -93,7 +93,7 @@ describe('chartUtils tests', () => {
         ({
           controller: { _config: { selectedPoint: 0 } } as any as DatasetController,
           data: [LINE_POINT.element],
-        } as ChartMeta),
+        }) as ChartMeta,
       ctx: buildChartContext(),
     } as any as Chart<'line'>;
     plugin.afterDraw?.(chartInstance, {}, {});

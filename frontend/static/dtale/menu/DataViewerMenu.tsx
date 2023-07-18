@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation, WithTranslation } from 'react-i18next';
@@ -7,7 +8,8 @@ import { AnyAction } from 'redux';
 import { ActionType, OpenChartAction, SidePanelAction, ToggleMenuAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
+import * as selectors from '../../redux/selectors';
+import { Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 
@@ -57,9 +59,34 @@ export interface DataViewerMenuProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector(
+  [
+    selectors.selectDataId,
+    selectors.selectMenuPinned,
+    selectors.selectMainTitle,
+    selectors.selectMainTitleFont,
+    selectors.selectIsArcticDB,
+    selectors.selectIsVSCode,
+    selectors.selectSettings,
+    selectors.selectMenuOpen,
+    selectors.selectColumnCount,
+  ],
+  (dataId, menuPinned, mainTitle, mainTitleFont, isArcticDB, isVSCode, settings, menuOpen, columnCount) => ({
+    dataId,
+    menuPinned,
+    mainTitle,
+    mainTitleFont,
+    isArcticDB,
+    isVSCode,
+    settings,
+    menuOpen,
+    columnCount,
+  }),
+);
+
 const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, columns, rows, propagateState }) => {
   const { dataId, menuPinned, mainTitle, mainTitleFont, isArcticDB, isVSCode, settings, menuOpen, columnCount } =
-    useSelector((state: AppState) => state);
+    useSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],

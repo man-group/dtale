@@ -102,9 +102,9 @@ describe('main tests', () => {
     jest.resetModules();
     (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
 
-    jest.mock('@blueprintjs/datetime2', () => {
+    jest.mock('@blueprintjs/datetime', () => {
       const { createMockComponent } = require('./mocks/createMockComponent');
-      return { DateInput2: createMockComponent('DateInput2') };
+      return { DateInput: createMockComponent('DateInput') };
     });
   });
 

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { AppState } from '../../redux/state/AppState';
+import { selectSettings } from '../../redux/selectors';
 import * as bu from '../backgroundUtils';
 import {
   ColumnDef,
@@ -40,7 +40,7 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
   propagateState,
   t,
 }) => {
-  const { settings } = useSelector((state: AppState) => state);
+  const settings = useSelector(selectSettings);
 
   const colCfg = React.useMemo(() => {
     return gu.getCol(columnIndex, columns, settings.backgroundMode);
@@ -74,7 +74,7 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
   let value: React.ReactNode = '-';
   // wide strings need to be displayed to the left so they are easier to read
   let valueStyle: React.CSSProperties =
-    (style.width ?? 0) > 350 && gu.isStringCol(colCfg?.dtype) ? { textAlign: 'left' } : {};
+    (style.width ?? (0 as any)) > 350 && gu.isStringCol(colCfg?.dtype) ? { textAlign: 'left' } : {};
   const divProps: React.HTMLAttributes<HTMLDivElement> = {};
   let className = 'cell';
   if (colCfg?.name) {

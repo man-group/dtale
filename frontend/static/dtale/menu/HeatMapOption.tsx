@@ -1,8 +1,9 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { AppState } from '../../redux/state/AppState';
+import { selectSettings, selectShowAllHeatmapColumns } from '../../redux/selectors';
 import * as gu from '../gridUtils';
 
 import { MenuItem } from './MenuItem';
@@ -12,8 +13,13 @@ export interface HeatMapOptionProps {
   toggleBackground: (mode: string) => void;
 }
 
+const selectResult = createSelector(
+  [selectShowAllHeatmapColumns, selectSettings],
+  (showAllHeatmapColumns, settings) => ({ showAllHeatmapColumns, settings }),
+);
+
 const HeatMapOption: React.FC<HeatMapOptionProps & WithTranslation> = ({ toggleBackground, t }) => {
-  const { showAllHeatmapColumns, settings } = useSelector((state: AppState) => state);
+  const { showAllHeatmapColumns, settings } = useSelector(selectResult);
   const heatmapActive = gu.heatmapActive(settings.backgroundMode) || gu.heatmapAllActive(settings.backgroundMode);
   return (
     <MenuItem style={{ color: '#565b68' }} description={t('menu_description:heatmap')}>

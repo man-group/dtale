@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,7 +7,7 @@ import { createFilter, default as Select } from 'react-select';
 import { BouncerWrapper } from '../BouncerWrapper';
 import { DataViewerPropagateState } from '../dtale/DataViewerState';
 import { updateXArrayDimAction } from '../redux/actions/dtale';
-import { AppState } from '../redux/state/AppState';
+import { selectDataId, selectXArrayDim } from '../redux/selectors';
 import { RemovableError } from '../RemovableError';
 import * as XArrayRepository from '../repository/XArrayRepository';
 
@@ -21,11 +22,10 @@ const convertCurrentSelections = (selections: Record<string, { value?: any }>): 
     {},
   );
 
+const selectResult = createSelector([selectDataId, selectXArrayDim], (dataId, xarrayDim) => ({ dataId, xarrayDim }));
+
 const XArrayDimensions: React.FC<XArrayDimensionsProps & WithTranslation> = ({ propagateState, t }) => {
-  const reduxState = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    xarrayDim: state.xarrayDim,
-  }));
+  const reduxState = useSelector(selectResult);
   const { dataId } = reduxState;
   const dispatch = useDispatch();
 

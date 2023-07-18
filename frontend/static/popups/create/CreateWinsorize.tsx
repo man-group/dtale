@@ -107,9 +107,9 @@ const CreateWinsorize: React.FC<BaseCreateComponentProps & WithTranslation> = ({
             <StyledSlider
               defaultValue={limits}
               renderTrack={Track as any}
-              renderThumb={Thumb}
+              renderThumb={(props: any, state: any) => Thumb(props, state)}
               value={limits}
-              onAfterChange={(value) => setLimits(value as number[])}
+              onAfterChange={(value: any) => setLimits(value as number[])}
             />
             <input
               type="text"

@@ -39,7 +39,7 @@ export const buildStyling = (
       switch (colType) {
         case ColumnType.FLOAT:
         case ColumnType.INT:
-          style.color = val < 0 ? 'red' : '';
+          style.color = (val as any) < 0 ? 'red' : '';
           break;
         default:
           break;

@@ -7,7 +7,7 @@ import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
-import { AppState, ReshapePopupData } from '../../redux/state/AppState';
+import { selectDataId } from '../../redux/selectors';
 import { RemovableError } from '../../RemovableError';
 import * as DtypesRepository from '../../repository/DtypesRepository';
 import * as ReshapeRepository from '../../repository/ReshapeRepository';
@@ -29,12 +29,9 @@ export const buildForwardURL = (href: string, dataId: string): string => {
 };
 
 const Reshape: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, chartData } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    chartData: state.chartData as ReshapePopupData,
-  }));
+  const dataId = useSelector(selectDataId);
   const dispatch = useDispatch();
-  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart());
 
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
   const [error, setError] = React.useState<JSX.Element>();

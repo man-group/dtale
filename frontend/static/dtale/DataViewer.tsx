@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -19,7 +20,7 @@ import Popup from '../popups/Popup';
 import { ActionType, ClearDataViewerUpdateAction } from '../redux/actions/AppActions';
 import * as actions from '../redux/actions/dtale';
 import { buildURLParams } from '../redux/actions/url-utils';
-import { AppState } from '../redux/state/AppState';
+import * as selectors from '../redux/selectors';
 import { RemovableError } from '../RemovableError';
 import * as DataRepository from '../repository/DataRepository';
 
@@ -45,6 +46,47 @@ const MultiGrid = _MultiGrid as unknown as React.FC<MultiGridProps>;
 
 const ROW_SCANS = { arcticdb: 200, base: 55 };
 
+const selectResult = createSelector(
+  [
+    selectors.selectDataId,
+    selectors.selectTheme,
+    selectors.selectSettings,
+    selectors.selectMenuPinned,
+    selectors.selectRibbonMenuOpen,
+    selectors.selectDataViewerUpdate,
+    selectors.selectMaxColumnWidth,
+    selectors.selectMaxRowHeight,
+    selectors.selectEditedTextAreaHeight,
+    selectors.selectVerticalHeaders,
+    selectors.selectIsArcticDB,
+  ],
+  (
+    dataId,
+    theme,
+    settings,
+    menuPinned,
+    ribbonMenuOpen,
+    dataViewerUpdate,
+    maxColumnWidth,
+    maxRowHeight,
+    editedTextAreaHeight,
+    verticalHeaders,
+    isArcticDB,
+  ) => ({
+    dataId,
+    theme,
+    settings: { ...settings, isArcticDB },
+    menuPinned,
+    ribbonMenuOpen,
+    dataViewerUpdate,
+    maxColumnWidth: maxColumnWidth || undefined,
+    maxRowHeight: maxRowHeight || undefined,
+    editedTextAreaHeight,
+    verticalHeaders: verticalHeaders ?? false,
+    isArcticDB,
+  }),
+);
+
 export const DataViewer: React.FC = () => {
   const {
     dataId,
@@ -58,19 +100,7 @@ export const DataViewer: React.FC = () => {
     editedTextAreaHeight,
     verticalHeaders,
     isArcticDB,
-  } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    theme: state.theme,
-    settings: { ...state.settings, isArcticDB: state.isArcticDB },
-    menuPinned: state.menuPinned,
-    ribbonMenuOpen: state.ribbonMenuOpen || (state.settings?.lock_header_menu ?? state.lockHeaderMenu),
-    dataViewerUpdate: state.dataViewerUpdate,
-    maxColumnWidth: state.maxColumnWidth || undefined,
-    maxRowHeight: state.maxRowHeight || undefined,
-    editedTextAreaHeight: state.editedTextAreaHeight,
-    verticalHeaders: state.settings.verticalHeaders ?? false,
-    isArcticDB: state.isArcticDB,
-  }));
+  } = useSelector(selectResult);
   const dispatch = useDispatch();
   const closeColumnMenu = (): AnyAction => dispatch(actions.closeColumnMenu() as any as AnyAction);
   const updateFilteredRanges = (query: string): AnyAction =>

@@ -1,10 +1,11 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { Bouncer } from '../../Bouncer';
 import { openMenu } from '../../menuUtils';
 import { ActionType } from '../../redux/actions/AppActions';
-import { AppState } from '../../redux/state/AppState';
+import { selectColumnCount, selectMenuOpen, selectMenuPinned, selectTheme } from '../../redux/selectors';
 import { ColumnDef } from '../DataViewerState';
 import * as gu from '../gridUtils';
 
@@ -16,8 +17,13 @@ interface DatViewerMenuHolderProps {
   rowCount: number;
 }
 
+const selectResult = createSelector(
+  [selectTheme, selectMenuPinned, selectMenuOpen, selectColumnCount],
+  (theme, menuPinned, menuOpen, columnCount) => ({ theme, menuPinned, menuOpen, columnCount }),
+);
+
 export const DataViewerMenuHolder: React.FC<DatViewerMenuHolderProps> = ({ loading, style, columns, rowCount }) => {
-  const { theme, menuPinned, menuOpen, columnCount } = useSelector((state: AppState) => state);
+  const { theme, menuPinned, menuOpen, columnCount } = useSelector(selectResult);
   const dispatch = useDispatch();
   const menuToggle = React.useRef<HTMLDivElement>(null);
 

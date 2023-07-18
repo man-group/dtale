@@ -49,10 +49,10 @@ describe('RibbonDropdown', () => {
     hiddenProps?: Record<string, string>,
   ): Promise<void> => {
     const rectSpy = jest.spyOn(HTMLDivElement.prototype, 'getBoundingClientRect');
-    rectSpy.mockImplementation(() => ({ left: 5, top: 5, width: 10, ...dims } as DOMRect));
+    rectSpy.mockImplementation(() => ({ left: 5, top: 5, width: 10, ...dims }) as DOMRect);
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', predefinedFilters: PREDEFINED_FILTERS, ...hiddenProps }, store);
-    element = { getBoundingClientRect: () => ({ left: 5, top: 5, width: 10, ...dims } as DOMRect) } as HTMLElement;
+    element = { getBoundingClientRect: () => ({ left: 5, top: 5, width: 10, ...dims }) as DOMRect } as HTMLElement;
     store.dispatch({ type: ActionType.OPEN_RIBBON_DROPDOWN, name, element });
     wrapper = await act(async (): Promise<RenderResult> => {
       const result = render(

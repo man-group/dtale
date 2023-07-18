@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
-import { AppState } from '../../redux/state/AppState';
+import { selectDataId } from '../../redux/selectors';
 import * as CreateColumnRepository from '../../repository/CreateColumnRepository';
 import { ColumnAnalysisChart } from '../analysis/ColumnAnalysisChart';
 import { AnalysisType } from '../analysis/ColumnAnalysisState';
@@ -16,7 +16,7 @@ interface BinsTesterProps {
 }
 
 export const BinsTester: React.FC<BinsTesterProps> = ({ cfg, valid }) => {
-  const dataId = useSelector((state: AppState) => state.dataId);
+  const dataId = useSelector(selectDataId);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [data, setData] = React.useState<CreateColumnRepository.TestBinsResponse>();
   const loadedCfg = React.useRef<string>();

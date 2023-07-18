@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,7 +11,8 @@ import SidePanelButtons from '../../dtale/side/SidePanelButtons';
 import { ActionType, HideSidePanelAction, SetQueryEngineAction } from '../../redux/actions/AppActions';
 import * as dtaleActions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, InstanceSettings, QueryEngine } from '../../redux/state/AppState';
+import { selectDataId, selectQueryEngine, selectSettings } from '../../redux/selectors';
+import { InstanceSettings, QueryEngine } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as CustomFilterRepository from '../../repository/CustomFilterRepository';
 import { Checkbox } from '../create/LabeledCheckbox';
@@ -20,13 +22,13 @@ import PandasQueryHelp from './PandasQueryHelp';
 import QueryExamples from './QueryExamples';
 import StructuredFilters from './StructuredFilters';
 
-const FilterPanel: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, queryEngine, settings } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    queryEngine: state.queryEngine,
-    settings: state.settings,
-  }));
+const selectResult = createSelector(
+  [selectDataId, selectQueryEngine, selectSettings],
+  (dataId, queryEngine, settings) => ({ dataId, queryEngine, settings }),
+);
 
+const FilterPanel: React.FC<WithTranslation> = ({ t }) => {
+  const { dataId, queryEngine, settings } = useSelector(selectResult);
   const dispatch = useDispatch();
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
   const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): AnyAction =>

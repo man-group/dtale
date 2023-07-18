@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import { Resizable } from 're-resizable';
 import * as React from 'react';
 import { default as Modal } from 'react-bootstrap/Modal';
@@ -10,7 +11,8 @@ import { buildRangeState } from '../dtale/rangeSelectUtils';
 import { ActionType, SetRangeStateAction } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
 import { loadDatasets } from '../redux/actions/merge';
-import { AppState, RangeState } from '../redux/state/AppState';
+import { selectChartData, selectDataId } from '../redux/selectors';
+import { RangeState } from '../redux/state/AppState';
 
 import DraggableModalDialog from './DraggableModalDialog';
 import * as popupUtils from './popupUtils';
@@ -23,11 +25,10 @@ interface PopupProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({ chartData, dataId }));
+
 const Popup: React.FC<PopupProps & WithTranslation> = ({ t, ...props }) => {
-  const { chartData, dataId } = useSelector((state: AppState) => ({
-    chartData: state.chartData,
-    dataId: state.dataId,
-  }));
+  const { chartData, dataId } = useSelector(selectResult);
   const dispatch = useDispatch();
   const mergeRefresher = async (): Promise<void> => await loadDatasets(dispatch);
   const updateRangeState = (state: RangeState): SetRangeStateAction =>
@@ -53,7 +54,7 @@ const Popup: React.FC<PopupProps & WithTranslation> = ({ t, ...props }) => {
   const { type, visible, size, backdrop } = chartData;
   const onClose = (): void => {
     updateRangeState(buildRangeState());
-    dispatch(closeChart({ ...chartData, size: size || 'lg' }));
+    dispatch(closeChart());
   };
   const { title, body } = popupUtils.buildBodyAndTitle({
     ...props,

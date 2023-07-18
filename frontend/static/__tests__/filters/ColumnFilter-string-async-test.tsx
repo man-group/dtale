@@ -50,7 +50,7 @@ describe('ColumnFilter string tests', () => {
     await act(async () => {
       await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
     });
-    expect(result.getElementsByClassName('bp4-disabled')).toHaveLength(0);
+    expect(result.getElementsByClassName('bp5-disabled')).toHaveLength(0);
     const asyncSelect = result.getElementsByClassName('Select')[1] as HTMLElement;
     await act(async () => {
       await selectEvent.clearAll(asyncSelect);

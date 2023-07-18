@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,7 +15,8 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import ColumnSelect from '../../popups/create/ColumnSelect';
 import FilterableToggle from '../../popups/FilterableToggle';
 import { ActionType, HideSidePanelAction } from '../../redux/actions/AppActions';
-import { AppState, BaseOption } from '../../redux/state/AppState';
+import { selectDataId, selectSettings } from '../../redux/selectors';
+import { BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as DtypesRepository from '../../repository/DtypesRepository';
 import * as GageRnRRepository from '../../repository/GageRnRRepository';
@@ -34,8 +36,10 @@ interface GageRnrState {
   filtered: boolean;
 }
 
+const selectResult = createSelector([selectDataId, selectSettings], (dataId, settings) => ({ dataId, settings }));
+
 const GageRnR: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, settings } = useSelector((state: AppState) => ({ dataId: state.dataId, settings: state.settings }));
+  const { dataId, settings } = useSelector(selectResult);
   const dispatch = useDispatch();
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
   const hasFilters = React.useMemo(() => !gu.noFilters(settings), [settings]);
