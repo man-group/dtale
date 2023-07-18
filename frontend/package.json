@@ -88,7 +88,7 @@
     "flow-bin": "0.212.0",
     "imports-loader": "4.0.1",
     "jest": "29.6.1",
-    "jest-environment-jsdom": "29.6.1",
+    "jest-environment-jsdom": "^29.6.1",
     "jest-junit": "16.0.0",
     "jsinspect": "0.12.7",
     "parallel-webpack": "2.6.0",
@@ -168,5 +168,9 @@
     "uuid": "9.0.0",
     "vis-data": "7.1.6",
     "vis-network": "9.1.6"
+  },
+  "resolutions": {
+    "d3-color": "3.1.0",
+    "yaml": "2.2.2"
   }
 }
