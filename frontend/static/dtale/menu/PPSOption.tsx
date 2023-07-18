@@ -2,13 +2,13 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { AppState } from '../../redux/state/AppState';
+import { selectPythonVersion } from '../../redux/selectors';
 
 import { MenuItem } from './MenuItem';
 import { MenuOptionProps } from './MenuState';
 
 const PPSOption: React.FC<MenuOptionProps & WithTranslation> = ({ open, t }) => {
-  const pythonVersion = useSelector((state: AppState) => state.pythonVersion);
+  const pythonVersion = useSelector(selectPythonVersion);
 
   if (!pythonVersion || (pythonVersion[0] >= 3 && pythonVersion[1] >= 6)) {
     return (

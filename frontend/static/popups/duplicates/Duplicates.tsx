@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -5,7 +6,8 @@ import { useSelector } from 'react-redux';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import { AppState, DuplicatesPopupData } from '../../redux/state/AppState';
+import { selectChartData, selectDataId } from '../../redux/selectors';
+import { DuplicatesPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as DtypesRepository from '../../repository/DtypesRepository';
 import * as DuplicatesRepository from '../../repository/DuplicatesRepository';
@@ -26,12 +28,13 @@ const TYPE_DESC: { [k in DuplicatesConfigType]?: string } = {
   [DuplicatesConfigType.SHOW]: 'Show all duplicates data or duplicate data for a specific value.',
 };
 
-const Duplicates: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, chartData } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    chartData: state.chartData as DuplicatesPopupData,
-  }));
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  chartData: chartData as DuplicatesPopupData,
+  dataId,
+}));
 
+const Duplicates: React.FC<WithTranslation> = ({ t }) => {
+  const { dataId, chartData } = useSelector(selectResult);
   const [error, setError] = React.useState<JSX.Element>();
   const [loadingColumns, setLoadingColumns] = React.useState(true);
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);

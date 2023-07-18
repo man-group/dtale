@@ -1,10 +1,12 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import * as chartUtils from '../../chartUtils';
 import * as actions from '../../redux/actions/dtale';
-import { AppState, ColumnAnalysisPopupData } from '../../redux/state/AppState';
+import { selectChartData, selectDataId } from '../../redux/selectors';
+import { ColumnAnalysisPopupData } from '../../redux/state/AppState';
 
 import { AnalysisParams, AnalysisState, AnalysisType } from './ColumnAnalysisState';
 import { dataLoader } from './columnAnalysisUtils';
@@ -18,11 +20,13 @@ interface ColumnAnalysisProps {
   height?: number;
 }
 
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  chartData: chartData as ColumnAnalysisPopupData,
+  dataId,
+}));
+
 const ColumnAnalysis: React.FC<ColumnAnalysisProps & WithTranslation> = ({ height, t }) => {
-  const { chartData, dataId } = useSelector((state: AppState) => ({
-    chartData: state.chartData as ColumnAnalysisPopupData,
-    dataId: state.dataId,
-  }));
+  const { chartData, dataId } = useSelector(selectResult);
   const chartRef = React.useRef<chartUtils.ChartObj | undefined>();
   const [defaultCategoryAgg, defaultOrdinalAgg] = React.useMemo(() => {
     const aggs = analysisAggs(t);

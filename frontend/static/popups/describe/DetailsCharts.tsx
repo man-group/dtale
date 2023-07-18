@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { Bouncer } from '../../Bouncer';
 import { ChartObj } from '../../chartUtils';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import { AppState } from '../../redux/state/AppState';
+import { selectDataId } from '../../redux/selectors';
 import { AnalysisParams, AnalysisState, AnalysisType } from '../analysis/ColumnAnalysisState';
 import { dataLoader } from '../analysis/columnAnalysisUtils';
 import DescribeFilters from '../analysis/filters/DescribeFilters';
@@ -24,8 +24,7 @@ interface DetailsChartsProps {
 }
 
 export const DetailsCharts: React.FC<DetailsChartsProps> = ({ details, detailCode, col, filtered, ...props }) => {
-  const dataId = useSelector((state: AppState) => state.dataId);
-
+  const dataId = useSelector(selectDataId);
   const [cols, setCols] = React.useState([...props.cols]);
   const [dtype, setDtype] = React.useState(props.dtype);
   const [type, setType] = React.useState(AnalysisType.BOXPLOT);

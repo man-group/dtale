@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,7 +7,8 @@ import { DataRecord, DataViewerData, DataViewerPropagateState } from '../dtale/D
 import * as serverState from '../dtale/serverStateManagement';
 import { CloseChartAction } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
-import { AppState, RenamePopupData } from '../redux/state/AppState';
+import { selectChartData, selectDataId } from '../redux/selectors';
+import { RenamePopupData } from '../redux/state/AppState';
 import { RemovableError } from '../RemovableError';
 
 require('./Confirmation.css');
@@ -16,11 +18,13 @@ interface RenameProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  chartData: chartData as RenamePopupData,
+  dataId,
+}));
+
 export const Rename: React.FC<RenameProps & WithTranslation> = ({ propagateState, t }) => {
-  const { chartData, dataId } = useSelector((state: AppState) => ({
-    chartData: state.chartData as RenamePopupData,
-    dataId: state.dataId,
-  }));
+  const { chartData, dataId } = useSelector(selectResult);
   const dispatch = useDispatch();
 
   const [name, setName] = React.useState<string>(chartData.selectedCol);
@@ -35,7 +39,7 @@ export const Rename: React.FC<RenameProps & WithTranslation> = ({ propagateState
     }
   }, [name]);
 
-  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart());
 
   const renameAction = async (): Promise<void> => {
     const response = await serverState.renameColumn(dataId, selectedCol, name);

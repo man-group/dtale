@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,7 +13,8 @@ import {
 } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, Popups, PopupType, RibbonDropdownType, SidePanelType } from '../../redux/state/AppState';
+import * as selectors from '../../redux/selectors';
+import { Popups, PopupType, RibbonDropdownType, SidePanelType } from '../../redux/state/AppState';
 import * as InstanceRepository from '../../repository/InstanceRepository';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
@@ -87,17 +89,31 @@ export interface RibbonDropdownProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector(
+  [
+    selectors.selectDataId,
+    selectors.selectIsVSCode,
+    selectors.selectSettings,
+    selectors.selectIsArcticDB,
+    selectors.selectColumnCount,
+    selectors.selectRibbonDropdownVisible,
+    selectors.selectRibbonDropdownElement,
+    selectors.selectRibbonDropdownName,
+  ],
+  (dataId, isVSCode, settings, isArcticDB, columnCount, visible, element, name) => ({
+    dataId,
+    isVSCode,
+    settings,
+    isArcticDB,
+    columnCount,
+    visible,
+    element,
+    name,
+  }),
+);
+
 const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ columns, rows, propagateState, t }) => {
-  const { dataId, isVSCode, element, name, settings, visible, isArcticDB, columnCount } = useSelector(
-    (state: AppState) => ({
-      ...state.ribbonDropdown,
-      dataId: state.dataId,
-      isVSCode: state.isVSCode,
-      settings: state.settings,
-      isArcticDB: state.isArcticDB,
-      columnCount: state.columnCount,
-    }),
-  );
+  const { dataId, isVSCode, element, name, settings, visible, isArcticDB, columnCount } = useSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],

@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 import { GlobalHotKeys } from 'react-hotkeys';
@@ -8,7 +9,8 @@ import FilterPanel from '../../popups/filter/FilterPanel';
 import PredictivePowerScore from '../../popups/pps/PredictivePowerScore';
 import Reports from '../../popups/timeseries/Reports';
 import { ActionType, HideSidePanelAction, SidePanelAction } from '../../redux/actions/AppActions';
-import { AppState, SidePanelType } from '../../redux/state/AppState';
+import { selectSidePanelView, selectSidePanelVisible } from '../../redux/selectors';
+import { SidePanelType } from '../../redux/state/AppState';
 
 import CorrelationAnalysis from './CorrelationAnalysis';
 import DescribePanel from './DescribePanel';
@@ -24,8 +26,13 @@ interface SidePanelProps {
   gridPanel: HTMLDivElement | null;
 }
 
+const selectResult = createSelector([selectSidePanelVisible, selectSidePanelView], (visible, view) => ({
+  visible,
+  view,
+}));
+
 export const SidePanel: React.FC<SidePanelProps> = ({ gridPanel }) => {
-  const { visible, view } = useSelector((state: AppState) => ({ dataId: state.dataId, ...state.sidePanel }));
+  const { visible, view } = useSelector(selectResult);
   const dispatch = useDispatch();
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
   const updatePanelWidth = (offsetUpdate?: number): SidePanelAction =>

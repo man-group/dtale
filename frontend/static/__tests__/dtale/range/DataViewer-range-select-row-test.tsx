@@ -69,8 +69,8 @@ describe('DataViewer tests', () => {
       start: 1,
       end: 1,
     });
-    const cellOnRow2 = [...result.getElementsByClassName('cell')].find((c) =>
-      c.getAttribute('cell_idx')?.endsWith('2'),
+    const cellOnRow2 = [...result.getElementsByClassName('cell')].find(
+      (c) => c.getAttribute('cell_idx')?.endsWith('2'),
     )!;
     await act(async () => {
       fireEvent.mouseOver(cellOnRow2, { shiftKey: true });

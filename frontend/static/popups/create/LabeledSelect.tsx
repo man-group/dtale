@@ -22,8 +22,8 @@ export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
       className="Select is-clearable is-searchable Select--single"
       classNamePrefix="Select"
       options={options}
-      getOptionLabel={(option) => option?.label ?? option.value}
-      getOptionValue={(option) => option.value}
+      getOptionLabel={(option: BaseOption<any>) => option?.label ?? option.value}
+      getOptionValue={(option: BaseOption<any>) => option.value}
       {...(onChange
         ? {
             value,

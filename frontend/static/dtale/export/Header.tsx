@@ -5,7 +5,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType, DragResizeAction, StopResizeAction } from '../../redux/actions/AppActions';
-import { AppState } from '../../redux/state/AppState';
+import { selectSettings } from '../../redux/selectors';
 import * as bu from '../backgroundUtils';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
@@ -72,7 +72,7 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   maxRowHeight,
   t,
 }) => {
-  const { settings } = useSelector((state: AppState) => state);
+  const settings = useSelector(selectSettings);
   const dispatch = useDispatch();
   const updateDragResize = (x: number): DragResizeAction => dispatch({ type: ActionType.DRAG_RESIZE, x });
   const stopDragResize = (): StopResizeAction => dispatch({ type: ActionType.STOP_RESIZE });

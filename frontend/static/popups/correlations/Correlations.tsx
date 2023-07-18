@@ -1,4 +1,5 @@
-import { ActiveElement, Chart, ChartConfiguration, ChartEvent, ScriptableContext } from 'chart.js';
+import { createSelector } from '@reduxjs/toolkit';
+import { ActiveElement, Chart, ChartConfiguration, ChartEvent, Point, ScriptableContext } from 'chart.js';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 
@@ -7,7 +8,8 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import * as chartUtils from '../../chartUtils';
 import * as actions from '../../redux/actions/dtale';
 import { buildURL } from '../../redux/actions/url-utils';
-import { AppState, CorrelationsPopupData } from '../../redux/state/AppState';
+import { selectChartData, selectDataId } from '../../redux/selectors';
+import { CorrelationsPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as CorrelationsRepository from '../../repository/CorrelationsRepository';
 import * as CustomFilterRepository from '../../repository/CustomFilterRepository';
@@ -60,11 +62,13 @@ export interface CorrelationTimeseriesParameters {
   minPeriods: number;
 }
 
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  chartData: chartData as CorrelationsPopupData,
+  dataId,
+}));
+
 export const Correlations: React.FC = () => {
-  const { dataId, chartData } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    chartData: state.chartData as CorrelationsPopupData,
-  }));
+  const { dataId, chartData } = useSelector(selectResult);
   const scatterBouncer = React.useRef<HTMLDivElement>(null);
   const scatterCanvas = React.useRef<HTMLCanvasElement>(null);
   const chartRef = React.useRef<chartUtils.ChartObj>();
@@ -319,7 +323,10 @@ export const Correlations: React.FC = () => {
                           // This case happens on initial chart load
                           return;
                         }
-                        return lineGradient(context.chart, data as number[]);
+                        return lineGradient(
+                          context.chart as Chart<'line', Array<number | Point | null>, unknown>,
+                          data as number[],
+                        );
                       };
                       const dataset = config.data.datasets[0];
                       dataset.borderColor = buildColor;

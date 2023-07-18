@@ -3,18 +3,19 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType, CloseChartAction } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
-import { AppState, CopyRangeToClipboardPopupData } from '../redux/state/AppState';
+import { selectChartData } from '../redux/selectors';
+import { CopyRangeToClipboardPopupData } from '../redux/state/AppState';
 
 require('./Confirmation.css');
 
 export const CopyRangeToClipboard: React.FC = () => {
-  const chartData = useSelector((state: AppState) => state.chartData) as CopyRangeToClipboardPopupData;
+  const chartData = useSelector(selectChartData) as CopyRangeToClipboardPopupData;
   const dispatch = useDispatch();
   const [includeHeaders, setIncludeHeaders] = React.useState<boolean>(false);
   const [finalText, setFinalText] = React.useState<string>(chartData.text);
   const textArea = React.useRef<HTMLTextAreaElement>(null);
 
-  const outerOnClose = (): CloseChartAction => dispatch(closeChart(chartData));
+  const outerOnClose = (): CloseChartAction => dispatch(closeChart());
 
   React.useEffect(() => {
     const { text, headers } = chartData;

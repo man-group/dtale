@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation, WithTranslation } from 'react-i18next';
@@ -10,7 +11,8 @@ import { ActionType, OpenChartAction, OpenFormattingAction, SidePanelAction } fr
 import * as chartActions from '../../redux/actions/charts';
 import * as actions from '../../redux/actions/dtale';
 import { buildURLString } from '../../redux/actions/url-utils';
-import { AppState, Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
+import * as selectors from '../../redux/selectors';
+import { Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 import * as menuFuncs from '../menu/dataViewerMenuUtils';
@@ -29,21 +31,52 @@ export interface ColumnMenuProps {
   backgroundMode?: string;
 }
 
+const selectResult = createSelector(
+  [
+    selectors.selectDataId,
+    selectors.selectColumnMenuOpen,
+    selectors.selectSelectedCol,
+    selectors.selectSelectedColRef,
+    selectors.selectIsPreview,
+    selectors.selectRibbonMenuOpen,
+    selectors.selectFilteredRanges,
+    selectors.selectColumnFilters,
+    selectors.selectOutlierFilters,
+    selectors.selectSortInfo,
+    selectors.selectIsArcticDB,
+    selectors.selectColumnCount,
+  ],
+  (
+    dataId,
+    columnMenuOpen,
+    selectedCol,
+    selectedColRef,
+    isPreview,
+    ribbonMenuOpen,
+    filteredRanges,
+    columnFilters,
+    outlierFilters,
+    sortInfo,
+    isArcticDB,
+    columnCount,
+  ) => ({
+    dataId,
+    columnMenuOpen,
+    selectedCol,
+    selectedColRef,
+    isPreview,
+    ribbonMenuOpen,
+    filteredRanges,
+    columnFilters,
+    outlierFilters,
+    sortInfo,
+    isArcticDB,
+    columnCount,
+  }),
+);
+
 const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMode, columns, propagateState, t }) => {
-  const reduxState = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    columnMenuOpen: state.columnMenuOpen,
-    selectedCol: state.selectedCol,
-    selectedColRef: state.selectedColRef,
-    isPreview: state.isPreview,
-    ribbonMenuOpen: state.ribbonMenuOpen || (state.settings?.lock_header_menu ?? state.lockHeaderMenu),
-    filteredRanges: state.filteredRanges,
-    columnFilters: state.settings.columnFilters,
-    outlierFilters: state.settings.outlierFilters,
-    sortInfo: state.settings.sortInfo,
-    isArcticDB: state.isArcticDB,
-    columnCount: state.columnCount,
-  }));
+  const reduxState = useSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => reduxState.isArcticDB!! && (reduxState.isArcticDB >= 1_000_000 || reduxState.columnCount > 100),
     [reduxState.isArcticDB, reduxState.columnCount],

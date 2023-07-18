@@ -1,11 +1,16 @@
 import * as React from 'react';
 import ReactSlider from 'react-slider';
-import styled from 'styled-components';
+import { default as styled, WebTarget } from 'styled-components';
+
+/** Component properties for HTML element with reference */
+interface HTMLPropsWithRefCallback<T> extends React.HTMLProps<T> {
+  ref: React.RefCallback<T>;
+}
 
 /** Component properties for styled div */
-type StyledDivProps = Partial<Omit<React.HTMLProps<HTMLDivElement>, 'children' | 'ref' | 'as'>>;
+type StyledDivProps = HTMLPropsWithRefCallback<HTMLDivElement>;
 
-export const StyledSlider = styled(ReactSlider)`
+export const StyledSlider = styled(ReactSlider as WebTarget)`
   width: 100%;
   height: 25px;
 `;
@@ -38,6 +43,7 @@ export const StyledExportThumb = styled.div`
 /** State for styled components */
 interface StyledState {
   index: number;
+  value: number;
   valueNow: number;
 }
 

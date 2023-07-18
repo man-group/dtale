@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,7 +7,8 @@ import { AnyAction } from 'redux';
 import { OpenChartAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, InstanceSettings, Popups, PopupType } from '../../redux/state/AppState';
+import * as selectors from '../../redux/selectors';
+import { InstanceSettings, Popups, PopupType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 import ArcticDBOption from '../menu/ArcticDBOption';
@@ -26,21 +28,55 @@ export interface DataViewerInfoProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector(
+  [
+    selectors.selectDataId,
+    selectors.selectPredefinedFilterConfigs,
+    selectors.selectInvertFilter,
+    selectors.selectQuery,
+    selectors.selectColumnFilters,
+    selectors.selectPredefinedFilters,
+    selectors.selectOutlierFilters,
+    selectors.selectSortInfo,
+    selectors.selectHighlightFilter,
+    selectors.selectIsArcticDB,
+    selectors.selectArcticConn,
+    selectors.selectIsVSCode,
+    selectors.selectColumnCount,
+  ],
+  (
+    dataId,
+    predefinedFilterConfigs,
+    invertFilter,
+    query,
+    columnFilters,
+    predefinedFilters,
+    outlierFilters,
+    sortInfo,
+    highlightFilter,
+    isArcticDB,
+    arcticConn,
+    isVSCode,
+    columnCount,
+  ) => ({
+    dataId,
+    predefinedFilterConfigs,
+    invertFilter: invertFilter ?? false,
+    query,
+    columnFilters: columnFilters ?? {},
+    predefinedFilters: predefinedFilters ?? {},
+    outlierFilters: outlierFilters ?? {},
+    sortInfo,
+    highlightFilter: highlightFilter ?? false,
+    isArcticDB,
+    arcticConn,
+    isVSCode,
+    columnCount,
+  }),
+);
+
 const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ columns, error, propagateState, t }) => {
-  const reduxState = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    predefinedFilterConfigs: state.predefinedFilters,
-    invertFilter: state.settings.invertFilter ?? false,
-    query: state.settings.query,
-    columnFilters: state.settings.columnFilters,
-    predefinedFilters: state.settings.predefinedFilters,
-    outlierFilters: state.settings.outlierFilters,
-    sortInfo: state.settings.sortInfo,
-    isArcticDB: state.isArcticDB,
-    arcticConn: state.arcticConn,
-    isVSCode: state.isVSCode,
-    columnCount: state.columnCount,
-  }));
+  const reduxState = useSelector(selectResult);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>

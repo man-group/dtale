@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import { TFunction } from 'i18next';
 import * as React from 'react';
 import Draggable, { DraggableEvent } from 'react-draggable';
@@ -16,7 +17,8 @@ import {
 } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import * as actions from '../redux/actions/dtale';
-import { AppState, Popups, PopupType, RangeState } from '../redux/state/AppState';
+import { selectColumnRange, selectCtrlCols, selectDataId, selectSettings } from '../redux/selectors';
+import { Popups, PopupType, RangeState } from '../redux/state/AppState';
 
 import * as bu from './backgroundUtils';
 import { ignoreMenuClicks } from './column/columnMenuUtils';
@@ -83,6 +85,11 @@ export interface HeaderProps {
   maxRowHeight?: number;
 }
 
+const selectResult = createSelector(
+  [selectDataId, selectSettings, selectColumnRange, selectCtrlCols],
+  (dataId, settings, columnRange, ctrlCols) => ({ dataId, settings, columnRange, ctrlCols }),
+);
+
 const Header: React.FC<HeaderProps & WithTranslation> = ({
   loading,
   columns,
@@ -93,7 +100,7 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   maxRowHeight,
   t,
 }) => {
-  const { dataId, settings, columnRange, ctrlCols } = useSelector((state: AppState) => state);
+  const { dataId, settings, columnRange, ctrlCols } = useSelector(selectResult);
   const dispatch = useDispatch();
   const toggleColumnMenu = (colName: string, headerRef: HTMLDivElement): ToggleColumnAction =>
     dispatch(actions.toggleColumnMenu(colName, headerRef));

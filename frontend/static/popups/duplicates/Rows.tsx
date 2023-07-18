@@ -4,7 +4,8 @@ import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import { AppState, BaseOption } from '../../redux/state/AppState';
+import { selectDataId } from '../../redux/selectors';
+import { BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as DuplicatesRepository from '../../repository/DuplicatesRepository';
 import ColumnSelect from '../create/ColumnSelect';
@@ -32,8 +33,7 @@ export interface RowsProps extends BaseDuplicatesComponentProps {
 type TestType = DuplicatesRepository.DuplicatesResponse<RowsResult>;
 
 const Rows: React.FC<RowsProps & WithTranslation> = ({ columns, selectedCol, setCfg, t }) => {
-  const dataId = useSelector((state: AppState) => state.dataId);
-
+  const dataId = useSelector(selectDataId);
   const [keep, setKeep] = React.useState(KeepType.FIRST);
   const [subset, setSubset] = React.useState<Array<BaseOption<string>> | undefined>(
     selectedCol ? [{ value: selectedCol }] : undefined,

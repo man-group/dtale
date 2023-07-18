@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,7 +8,8 @@ import { fullPath } from '../dtale/menu/dataViewerMenuUtils';
 import { CloseChartAction } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
 import { buildURL } from '../redux/actions/url-utils';
-import { AppState, ExportPopupData } from '../redux/state/AppState';
+import { selectChartData, selectDataId, selectSettings } from '../redux/selectors';
+import { ExportPopupData } from '../redux/state/AppState';
 import { ENDPOINT as DATA_ENDPOINT } from '../repository/DataRepository';
 import { ExportThumb, SingleTrack, StyledSlider } from '../sliderUtils';
 
@@ -23,14 +25,16 @@ enum HTMLExportType {
   HTML = 'html',
 }
 
+const selectResult = createSelector([selectDataId, selectChartData, selectSettings], (dataId, chartData, settings) => ({
+  dataId,
+  chartData: chartData as ExportPopupData,
+  settings,
+}));
+
 const Export: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, chartData, settings } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    chartData: state.chartData as ExportPopupData,
-    settings: state.settings,
-  }));
+  const { dataId, chartData, settings } = useSelector(selectResult);
   const dispatch = useDispatch();
-  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart());
 
   const exportFile = (exportType: ExportType): void => {
     window.open(`${fullPath('/dtale/data-export', dataId)}?type=${exportType}&_id=${new Date().getTime()}`, '_blank');
@@ -111,10 +115,10 @@ const Export: React.FC<WithTranslation> = ({ t }) => {
                 <StyledSlider
                   defaultValue={rows}
                   renderTrack={SingleTrack as any}
-                  renderThumb={ExportThumb}
+                  renderThumb={(props: any, state: any) => ExportThumb(props, state)}
                   max={chartData.rows}
                   value={rows}
-                  onAfterChange={(updatedRows) => setRows(updatedRows as number)}
+                  onAfterChange={(updatedRows: any) => setRows(updatedRows as number)}
                 />
               </div>
             </div>

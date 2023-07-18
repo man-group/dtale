@@ -8,7 +8,7 @@ import {
   HideRibbonMenuAction,
   ShowMenuTooltipAction,
 } from '../../redux/actions/AppActions';
-import { AppState } from '../../redux/state/AppState';
+import { selectIFrame } from '../../redux/selectors';
 
 /** Component properties for DataMenuItem */
 export interface DataMenuItemProps {
@@ -18,7 +18,7 @@ export interface DataMenuItemProps {
 }
 
 const DataMenuItem: React.FC<DataMenuItemProps & WithTranslation> = ({ id, name, cleanup, t }) => {
-  const iframe = useSelector((state: AppState) => state.iframe);
+  const iframe = useSelector(selectIFrame);
   const dispatch = useDispatch();
   const showTooltip = (element: HTMLLIElement, content: React.ReactNode): ShowMenuTooltipAction =>
     dispatch({ type: ActionType.SHOW_MENU_TOOLTIP, element, content });

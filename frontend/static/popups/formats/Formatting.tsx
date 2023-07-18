@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import { Resizable } from 're-resizable';
 import React from 'react';
 import { default as Modal } from 'react-bootstrap/Modal';
@@ -11,7 +12,8 @@ import { buildDataProps, calcColWidth, ColumnType, findColType, getDtype } from 
 import * as serverState from '../../dtale/serverStateManagement';
 import { ActionType, CloseFormattingAction } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, BaseOption, InstanceSettings } from '../../redux/state/AppState';
+import { selectDataId, selectFormattingOpen, selectMaxColumnWidth, selectSettings } from '../../redux/selectors';
+import { BaseOption, InstanceSettings } from '../../redux/state/AppState';
 import { LabeledCheckbox } from '../create/LabeledCheckbox';
 import { LabeledSelect } from '../create/LabeledSelect';
 import DraggableModalDialog from '../DraggableModalDialog';
@@ -28,8 +30,13 @@ interface FormattingProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector(
+  [selectDataId, selectSettings, selectMaxColumnWidth, selectFormattingOpen],
+  (dataId, settings, maxColumnWidth, formattingOpen) => ({ dataId, settings, maxColumnWidth, formattingOpen }),
+);
+
 const Formatting: React.FC<FormattingProps & WithTranslation> = ({ data, columns, rowCount, propagateState, t }) => {
-  const { dataId, settings, maxColumnWidth, formattingOpen } = useSelector((state: AppState) => state);
+  const { dataId, settings, maxColumnWidth, formattingOpen } = useSelector(selectResult);
   const visible = formattingOpen !== null;
   const columnFormats = settings.columnFormats ?? {};
   const dispatch = useDispatch();

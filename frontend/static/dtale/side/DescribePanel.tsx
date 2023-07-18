@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,7 +9,13 @@ import { ColumnNavigation } from '../../popups/describe/ColumnNavigation';
 import Details from '../../popups/describe/Details';
 import DtypesGrid from '../../popups/describe/DtypesGrid';
 import { ActionType, DataViewerUpdateAction } from '../../redux/actions/AppActions';
-import { AppState, DataViewerUpdateType, SidePanelType } from '../../redux/state/AppState';
+import {
+  selectDataId,
+  selectSidePanelColumn,
+  selectSidePanelView,
+  selectSidePanelVisible,
+} from '../../redux/selectors';
+import { DataViewerUpdateType, SidePanelType } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as DtypesRepository from '../../repository/DtypesRepository';
 import { ColumnDef } from '../DataViewerState';
@@ -16,11 +23,13 @@ import * as serverState from '../serverStateManagement';
 
 import SidePanelButtons from './SidePanelButtons';
 
+const selectResult = createSelector(
+  [selectDataId, selectSidePanelVisible, selectSidePanelView, selectSidePanelColumn],
+  (dataId, visible, view, column) => ({ dataId, visible, view, column }),
+);
+
 const DescribePanel: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, visible, view, column } = useSelector((state: AppState) => ({
-    ...state.sidePanel,
-    dataId: state.dataId,
-  }));
+  const { dataId, visible, view, column } = useSelector(selectResult);
   const prevColumn = usePrevious(column);
   const dispatch = useDispatch();
   const toggleVisible = (columns: Record<string, boolean>): DataViewerUpdateAction =>

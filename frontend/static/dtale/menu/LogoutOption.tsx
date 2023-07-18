@@ -1,14 +1,17 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { AppState } from '../../redux/state/AppState';
+import { selectAuth, selectUsername } from '../../redux/selectors';
 
 import { MenuItem } from './MenuItem';
 import { MenuOptionProps } from './MenuState';
 
+const selectResult = createSelector([selectAuth, selectUsername], (auth, username) => ({ auth, username }));
+
 const LogoutOption: React.FC<MenuOptionProps & WithTranslation> = ({ open, t }) => {
-  const { auth, username } = useSelector((state: AppState) => ({ auth: state.auth, username: state.username }));
+  const { auth, username } = useSelector(selectResult);
   if (auth) {
     return (
       <MenuItem description={t('menu_description:logout')} onClick={open}>

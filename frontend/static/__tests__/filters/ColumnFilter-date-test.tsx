@@ -28,21 +28,21 @@ describe('ColumnFilter date tests', () => {
   afterAll(() => spies.afterAll());
 
   it('ColumnFilter date rendering', async () => {
-    expect(result.getElementsByClassName('bp4-input').length).toBeGreaterThan(0);
+    expect(result.getElementsByClassName('bp5-input').length).toBeGreaterThan(0);
     await act(async () => {
       await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    expect(result.getElementsByClassName('bp4-disabled')).toHaveLength(2);
+    expect(result.getElementsByClassName('bp5-disabled')).toHaveLength(2);
     await act(async () => {
       await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
     });
-    expect(result.getElementsByClassName('bp4-disabled')).toHaveLength(0);
+    expect(result.getElementsByClassName('bp5-disabled')).toHaveLength(0);
     await act(async () => {
-      await fireEvent.change(result.getElementsByClassName('bp4-input')[0], { target: { value: '20000102' } });
+      await fireEvent.change(result.getElementsByClassName('bp5-input')[0], { target: { value: '20000102' } });
     });
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col4', { type: 'date', start: '20000102', end: '20000131' });
     await act(async () => {
-      await fireEvent.change(result.getElementsByClassName('bp4-input')[1], { target: { value: '20000103' } });
+      await fireEvent.change(result.getElementsByClassName('bp5-input')[1], { target: { value: '20000103' } });
     });
     expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col4', { type: 'date', start: '20000102', end: '20000103' });
   });

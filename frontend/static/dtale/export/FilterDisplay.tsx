@@ -1,8 +1,9 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { AppState } from '../../redux/state/AppState';
+import * as selectors from '../../redux/selectors';
 import { truncate } from '../../stringUtils';
 import { ColumnFilter, OutlierFilter } from '../DataViewerState';
 import * as gu from '../gridUtils';
@@ -32,16 +33,29 @@ export interface FilterDisplayProps {
   setMenuOpen: (menuOpen?: InfoMenuType) => void;
 }
 
+const selectResult = createSelector(
+  [
+    selectors.selectPredefinedFilterConfigs,
+    selectors.selectInvertFilter,
+    selectors.selectQuery,
+    selectors.selectColumnFilters,
+    selectors.selectPredefinedFilters,
+    selectors.selectOutlierFilters,
+    selectors.selectSortInfo,
+  ],
+  (predefinedFilterConfigs, invertFilter, query, columnFilters, predefinedFilters, outlierFilters, sortInfo) => ({
+    predefinedFilterConfigs,
+    invertFilter: invertFilter ?? false,
+    query,
+    columnFilters: columnFilters ?? {},
+    predefinedFilters: predefinedFilters ?? {},
+    outlierFilters: outlierFilters ?? {},
+    sortInfo,
+  }),
+);
+
 const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpen, setMenuOpen, t }) => {
-  const reduxState = useSelector((state: AppState) => ({
-    predefinedFilterConfigs: state.predefinedFilters,
-    hideDropRows: state.hideDropRows,
-    invertFilter: state.settings.invertFilter ?? false,
-    query: state.settings.query,
-    columnFilters: state.settings.columnFilters ?? {},
-    predefinedFilters: state.settings.predefinedFilters ?? {},
-    outlierFilters: state.settings.outlierFilters ?? {},
-  }));
+  const reduxState = useSelector(selectResult);
   const filterRef = React.useRef<HTMLDivElement>(null);
 
   const displayPredefined = (): JSX.Element => (

@@ -19,18 +19,18 @@
 .column-filter .Select__control--is-disabled {
   background-color: rgba(128, 128, 128, 0.3);
 }
-.column-filter span.bp4-popover-wrapper,
-.column-filter div.bp4-input-group {
+.column-filter span.bp5-popover-wrapper,
+.column-filter div.bp5-input-group {
   width: 5.7em;
   padding: 0;
 }
 
-.column-filter input.bp4-input {
+.column-filter input.bp5-input {
   height: 20px;
   line-height: 20px;
   font-size: 12px;
 }
 
-.column-filter .bp4-icon-double-caret-vertical {
+.column-filter .bp5-icon-double-caret-vertical {
   margin-top: -5px;
 }

@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,7 +15,8 @@ import {
   MergeActionType,
   UpdateMergeActionTypeAction,
 } from '../../redux/actions/MergeActions';
-import { HowToMerge, MergeConfigType, MergeState } from '../../redux/state/MergeState';
+import { selectAction, selectMergeConfig, selectStackConfig } from '../../redux/mergeSelectors';
+import { HowToMerge, MergeConfigType } from '../../redux/state/MergeState';
 import { capitalize } from '../../stringUtils';
 
 import ExampleCode from './code.json';
@@ -25,6 +27,11 @@ interface ExampleToggleProps {
   setShow: (show: boolean) => void;
   codeKey: string;
 }
+
+const selectResult = createSelector(
+  [selectAction, selectMergeConfig, selectStackConfig],
+  (action, mergeConfig, stackConfig) => ({ action, mergeConfig, stackConfig }),
+);
 
 const BaseExampleToggle: React.FC<React.PropsWithChildren<ExampleToggleProps & WithTranslation>> = ({
   show,
@@ -63,11 +70,7 @@ const exampleImage = (name: string): string =>
 // Example image URL: https://pandas.pydata.org/pandas-docs/stable/_images/merging_join_multi_df.png
 
 const ActionConfig: React.FC<WithTranslation> = ({ t }) => {
-  const { action, mergeConfig, stackConfig } = useSelector((state: MergeState) => ({
-    action: state.action,
-    mergeConfig: state.mergeConfig,
-    stackConfig: state.stackConfig,
-  }));
+  const { action, mergeConfig, stackConfig } = useSelector(selectResult);
   const dispatch = useDispatch();
   const updateActionType = (updatedAction: MergeConfigType): UpdateMergeActionTypeAction =>
     dispatch({ type: MergeActionType.UPDATE_ACTION_TYPE, action: updatedAction });

@@ -50,6 +50,7 @@ export class Spies {
    * Build the initial wrapper.
    *
    * @param colIdx the index of the column to open the menu of.
+   * @return main DOM element
    */
   public async setupWrapper(colIdx: number): Promise<Element> {
     const store = reduxUtils.createDtaleStore();

@@ -3,7 +3,8 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType } from '../../redux/actions/AppActions';
-import { AppState, ThemeType } from '../../redux/state/AppState';
+import { selectTheme } from '../../redux/selectors';
+import { ThemeType } from '../../redux/state/AppState';
 import { capitalize } from '../../stringUtils';
 import * as serverState from '../serverStateManagement';
 
@@ -11,7 +12,7 @@ import { MenuItem } from './MenuItem';
 import { RibbonOptionProps } from './MenuState';
 
 const ReactThemeOption: React.FC<RibbonOptionProps & WithTranslation> = ({ ribbonWrapper = (func) => func, t }) => {
-  const theme = useSelector((state: AppState) => state.theme);
+  const theme = useSelector(selectTheme);
   const dispatch = useDispatch();
   const updateTheme = (newTheme: ThemeType) => async () => {
     await serverState.updateTheme(newTheme);

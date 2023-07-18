@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
@@ -6,7 +7,7 @@ import { MultiValue, SingleValue } from 'react-select';
 import { useDebounce, useDidUpdateEffect } from '../customHooks';
 import { ColumnFilter, ColumnFilterOperand } from '../dtale/DataViewerState';
 import { ColumnType } from '../dtale/gridUtils';
-import { AppState } from '../redux/state/AppState';
+import { selectColumnCount, selectDataId, selectIsArcticDB } from '../redux/selectors';
 
 import AsyncValueSelect from './AsyncValueSelect';
 import { BaseColumnFilterProps, UniquesProps } from './ColumnFilterState';
@@ -39,6 +40,11 @@ interface NumericFilterProps extends BaseColumnFilterProps, UniquesProps {
   max: number;
 }
 
+const selectResult = createSelector(
+  [selectDataId, selectIsArcticDB, selectColumnCount],
+  (dataId, isArcticDB, columnCount) => ({ dataId, isArcticDB, columnCount }),
+);
+
 export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
   selectedCol,
   columnFilter,
@@ -51,7 +57,7 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
   max,
   t,
 }) => {
-  const { dataId, isArcticDB, columnCount } = useSelector((state: AppState) => state);
+  const { dataId, isArcticDB, columnCount } = useSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],

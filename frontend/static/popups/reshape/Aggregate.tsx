@@ -6,7 +6,8 @@ import { default as Select } from 'react-select';
 import ButtonToggle from '../../ButtonToggle';
 import * as gu from '../../dtale/gridUtils';
 import { default as ColumnSelect, constructColumnOptionsFilteredByOtherValues } from '../../popups/create/ColumnSelect';
-import { AppState, BaseOption } from '../../redux/state/AppState';
+import { selectPythonVersion } from '../../redux/selectors';
+import { BaseOption } from '../../redux/state/AppState';
 import { pivotAggs } from '../analysis/filters/Constants';
 import { CreateColumnCodeSnippet } from '../create/CodeSnippet';
 import { Checkbox } from '../create/LabeledCheckbox';
@@ -77,7 +78,7 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
 };
 
 const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ columns, updateState, t }) => {
-  const pythonVersion = useSelector((state: AppState) => state.pythonVersion);
+  const pythonVersion = useSelector(selectPythonVersion);
   const currentAggRef = React.useRef<Select>(null);
   const currentColRef = React.useRef<Select>(null);
   const [currentAggCol, setCurrentAggCol] = React.useState<BaseOption<string>>();

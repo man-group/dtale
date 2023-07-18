@@ -1,4 +1,4 @@
-import { DateInput2 } from '@blueprintjs/datetime2';
+import { DateInput } from '@blueprintjs/datetime';
 import moment from 'moment';
 import React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
@@ -8,8 +8,6 @@ import { BaseColumnFilterProps } from './ColumnFilterState';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 import '@blueprintjs/core/lib/css/blueprint.css';
 import '@blueprintjs/datetime/lib/css/blueprint-datetime.css';
-import '@blueprintjs/datetime2/lib/css/blueprint-datetime2.css';
-import '@blueprintjs/popover2/lib/css/blueprint-popover2.css';
 import '@blueprintjs/select/lib/css/blueprint-select.css';
 
 /** Component properties for DateFilter */
@@ -71,7 +69,7 @@ export const DateFilter: React.FC<DateFilterProps & WithTranslation> = ({
     onChange: (newDate: string | null, isUserChange: boolean) => void,
     inputRef: React.Ref<HTMLInputElement>,
   ): React.ReactNode => (
-    <DateInput2
+    <DateInput
       value={value ? moment(value, 'YYYYMMDD').toISOString() : null}
       onChange={onChange}
       inputProps={{ inputRef }}

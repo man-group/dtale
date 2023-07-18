@@ -17,6 +17,7 @@ import {
   LineController,
   LineElement,
   Plugin,
+  Point,
   PointElement,
   Scale,
   ScatterController,
@@ -160,8 +161,8 @@ export const getLineGradient =
     yAxisID?: string,
     minY?: number,
     maxY?: number,
-  ): ((chart: Chart<'line', number[], unknown>, data: number[]) => CanvasGradient) =>
-  (chart: Chart<'line', number[], unknown>, data: number[]): CanvasGradient => {
+  ): ((chart: Chart<'line', Array<number | Point | null>, unknown>, data: number[]) => CanvasGradient) =>
+  (chart: Chart<'line', Array<number | Point | null>, unknown>, data: number[]): CanvasGradient => {
     const { ctx, scales } = chart;
     const rgbaBuilder = buildRGB(colorScale);
     // The context, needed for the creation of the linear gradient.

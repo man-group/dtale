@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,7 +13,8 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import * as mergeActions from '../../redux/actions/merge';
 import { MergeActionType, ToggleShowCodeAction } from '../../redux/actions/MergeActions';
-import { Dataset, MergeConfig, MergeConfigType, MergeState, StackConfig } from '../../redux/state/MergeState';
+import * as selectors from '../../redux/mergeSelectors';
+import { Dataset, MergeConfig, MergeConfigType, StackConfig } from '../../redux/state/MergeState';
 import { capitalize } from '../../stringUtils';
 import { jumpToDataset } from '../upload/uploadUtils';
 
@@ -71,10 +73,29 @@ const buildCode = (
   return code;
 };
 
+const selectResult = createSelector(
+  [
+    selectors.selectAction,
+    selectors.selectDatasets,
+    selectors.selectLoadingMerge,
+    selectors.selectMergeConfig,
+    selectors.selectStackConfig,
+    selectors.selectMergeDataId,
+    selectors.selectShowCode,
+  ],
+  (action, datasets, loadingMerge, mergeConfig, stackConfig, mergeDataId, showCode) => ({
+    action,
+    datasets,
+    loadingMerge,
+    mergeConfig,
+    stackConfig,
+    mergeDataId,
+    showCode,
+  }),
+);
+
 const MergeOutput: React.FC<WithTranslation> = ({ t }) => {
-  const { action, datasets, loadingMerge, mergeConfig, stackConfig, mergeDataId, showCode } = useSelector(
-    (state: MergeState) => ({ ...state }),
-  );
+  const { action, datasets, loadingMerge, mergeConfig, stackConfig, mergeDataId, showCode } = useSelector(selectResult);
   const dispatch = useDispatch();
   const buildMerge = (name: string): AnyAction => dispatch(mergeActions.buildMerge(name) as any as AnyAction);
   const clearMerge = (): AnyAction => dispatch(mergeActions.clearMerge() as any as AnyAction);

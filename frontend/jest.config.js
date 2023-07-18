@@ -22,6 +22,8 @@ module.exports = {
   moduleNameMapper: {
     '\\.(css|scss)$': '<rootDir>/config/styleMock.js',
     axios: '<rootDir>/node_modules/axios/dist/node/axios.cjs',
+    'd3-cloud': '<rootDir>/node_modules/d3-cloud/index.js',
+    '^d3-(.*)$': '<rootDir>/node_modules/d3-$1/dist/d3-$1.js',
   },
   setupFiles: [testPolyfills],
   setupFilesAfterEnv: ['<rootDir>/setupTests.ts'],

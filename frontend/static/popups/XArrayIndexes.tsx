@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,7 +7,8 @@ import { createFilter, default as Select } from 'react-select';
 import { DataViewerPropagateState, PropagatedState } from '../dtale/DataViewerState';
 import { sortOptions } from '../popups/analysis/filters/Constants';
 import { ActionType } from '../redux/actions/AppActions';
-import { AppState, XArrayIndexesPopupData } from '../redux/state/AppState';
+import { selectChartData, selectDataId } from '../redux/selectors';
+import { XArrayIndexesPopupData } from '../redux/state/AppState';
 import { RemovableError } from '../RemovableError';
 import * as XArrayRepository from '../repository/XArrayRepository';
 
@@ -15,11 +17,13 @@ interface XArrayIndexesProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  chartData: chartData as XArrayIndexesPopupData,
+  dataId,
+}));
+
 const XArrayIndexes: React.FC<XArrayIndexesProps & WithTranslation> = ({ propagateState, t }) => {
-  const { dataId, chartData } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    chartData: state.chartData as XArrayIndexesPopupData,
-  }));
+  const { dataId, chartData } = useSelector(selectResult);
   const dispatch = useDispatch();
 
   const [index, setIndex] = React.useState<Array<{ value: string }>>(

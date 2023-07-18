@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,8 +14,9 @@ import {
   ToggleDatasetAction,
   UpdateDatasetAction,
 } from '../../redux/actions/MergeActions';
+import * as selectors from '../../redux/mergeSelectors';
 import { BaseOption, PopupType } from '../../redux/state/AppState';
-import { Dataset, MergeInstance, MergeState } from '../../redux/state/MergeState';
+import { Dataset, MergeInstance } from '../../redux/state/MergeState';
 import { RemovableError } from '../../RemovableError';
 import { LabeledInput } from '../create/LabeledInput';
 import { LabeledSelect } from '../create/LabeledSelect';
@@ -32,10 +34,29 @@ const datasetName = (instance: MergeInstance): string =>
 
 const colName = (col: ColumnDef): string => `${col.name} (${col.dtype})`;
 
+const selectResult = createSelector(
+  [
+    selectors.selectInstances,
+    selectors.selectLoading,
+    selectors.selectLoadingDatasets,
+    selectors.selectAction,
+    selectors.selectDatasets,
+    selectors.selectLoadingError,
+    selectors.selectMergeError,
+  ],
+  (instances, loading, loadingDatasets, action, datasets, loadingError, mergeError) => ({
+    instances,
+    loading,
+    loadingDatasets,
+    action,
+    datasets,
+    loadingError,
+    mergeError,
+  }),
+);
+
 const MergeDatasets: React.FC<WithTranslation> = ({ t }) => {
-  const { instances, loading, loadingDatasets, action, datasets, loadingError, mergeError } = useSelector(
-    (state: MergeState) => ({ ...state }),
-  );
+  const { instances, loading, loadingDatasets, action, datasets, loadingError, mergeError } = useSelector(selectResult);
   const dispatch = useDispatch();
   const addDataset = (dataId: string): AddDatasetAction => dispatch({ type: MergeActionType.ADD_DATASET, dataId });
   const removeDataset = (index: number): RemoveDatasetAction =>

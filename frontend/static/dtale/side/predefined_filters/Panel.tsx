@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,7 +7,8 @@ import { AnyAction } from 'redux';
 import { ColumnDef } from '../../../dtale/DataViewerState';
 import { ActionType, HideSidePanelAction } from '../../../redux/actions/AppActions';
 import * as settingsActions from '../../../redux/actions/settings';
-import { AppState, InstanceSettings, PredefinedFilter } from '../../../redux/state/AppState';
+import { selectDataId, selectPredefinedFilterConfigs, selectPredefinedFilters } from '../../../redux/selectors';
+import { InstanceSettings, PredefinedFilter } from '../../../redux/state/AppState';
 import { RemovableError } from '../../../RemovableError';
 import * as DtypesRepository from '../../../repository/DtypesRepository';
 import * as serverState from '../../serverStateManagement';
@@ -18,12 +20,13 @@ require('./Panel.css');
 const filterFilters = (filters: PredefinedFilter[], columns: ColumnDef[]): PredefinedFilter[] =>
   filters.filter((f) => columns.find((col) => col.name === f.column) !== undefined);
 
+const selectResult = createSelector(
+  [selectDataId, selectPredefinedFilterConfigs, selectPredefinedFilters],
+  (dataId, predefinedFilters, filterValues) => ({ dataId, predefinedFilters, filterValues }),
+);
+
 const Panel: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, predefinedFilters, filterValues } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    predefinedFilters: state.predefinedFilters,
-    filterValues: state.settings.predefinedFilters,
-  }));
+  const { dataId, predefinedFilters, filterValues } = useSelector(selectResult);
   const dispatch = useDispatch();
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
   const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>

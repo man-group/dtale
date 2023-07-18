@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,7 +7,8 @@ import { DataViewerPropagateState } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
 import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
-import { AppState, BaseOption, JumpToColumnPopupData } from '../../redux/state/AppState';
+import { selectChartData, selectDataId, selectIsArcticDB } from '../../redux/selectors';
+import { BaseOption, JumpToColumnPopupData } from '../../redux/state/AppState';
 import { LabeledSelect } from '../create/LabeledSelect';
 import { VisibilityState } from '../describe/DescribeState';
 
@@ -14,14 +16,16 @@ import { VisibilityState } from '../describe/DescribeState';
 interface JumpToColumnProps {
   propagateState: DataViewerPropagateState;
 }
+
+const selectResult = createSelector(
+  [selectChartData, selectDataId, selectIsArcticDB],
+  (chartData, dataId, isArcticDB) => ({ dataId, chartData: chartData as JumpToColumnPopupData, isArcticDB }),
+);
+
 const JumpToColumn: React.FC<JumpToColumnProps & WithTranslation> = ({ propagateState, t }) => {
-  const { dataId, chartData, isArcticDB } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    isArcticDB: state.isArcticDB,
-    chartData: state.chartData as JumpToColumnPopupData,
-  }));
+  const { dataId, chartData, isArcticDB } = useSelector(selectResult);
   const dispatch = useDispatch();
-  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart());
 
   const save = async (column: string): Promise<void> => {
     const visibility = chartData.columns.reduce((res, colCfg) => {

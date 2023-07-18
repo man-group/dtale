@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,7 +9,8 @@ import { ColumnDef } from '../../dtale/DataViewerState';
 import { ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
 import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
-import { AppState, BaseOption, ReplacementPopupData } from '../../redux/state/AppState';
+import { selectChartData, selectDataId } from '../../redux/selectors';
+import { BaseOption, ReplacementPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as CreateReplacementRepository from '../../repository/CreateReplacementRepository';
 import * as DtypesRepository from '../../repository/DtypesRepository';
@@ -45,6 +47,11 @@ const buildTypeFilter = (type: ReplacementType): ((colType: ColumnType) => boole
   }
 };
 
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  dataId,
+  chartData: chartData as ReplacementPopupData,
+}));
+
 const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
   const baseTypeOpts = React.useMemo(
     () => [
@@ -56,12 +63,9 @@ const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
     ],
     [t],
   );
-  const { dataId, chartData } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    chartData: state.chartData as ReplacementPopupData,
-  }));
+  const { dataId, chartData } = useSelector(selectResult);
   const dispatch = useDispatch();
-  const onClose = (): CloseChartAction => dispatch(closeChart(chartData));
+  const onClose = (): CloseChartAction => dispatch(closeChart());
 
   const [type, setType] = React.useState<ReplacementType>();
   const [saveAs, setSaveAs] = React.useState(SaveAs.INPLACE);
