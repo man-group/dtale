@@ -20,7 +20,7 @@ export const loadBackgroundMode = (store: Store<AppState, AnyAction>): void => {
   const { settings } = store.getState();
   store.dispatch({
     type: ActionType.UPDATE_SETTINGS,
-    settings: { backgroundMode: settings.backgroundMode ?? !!settings.rangeHighlight?.length ? 'range' : undefined },
+    settings: { backgroundMode: settings.backgroundMode ?? (!!settings.rangeHighlight?.length ? 'range' : undefined) },
   });
 };
 
