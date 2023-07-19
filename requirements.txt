@@ -45,10 +45,8 @@ matplotlib<=3.3.4; python_version == '3.4'
 matplotlib<=3.3.4; python_version == '3.5'
 matplotlib<=3.3.4; python_version == '3.6'
 matplotlib<=3.5.3; python_version == '3.7'
-matplotlib<=3.6.0; python_version == '3.8'
-matplotlib<=3.6.0; python_version == '3.9'
-matplotlib<=3.6.3; python_version > '3.9'
-missingno<=0.4.2
+matplotlib; python_version >= '3.8'
+missingno
 networkx<=2.2; python_version <= '3.4'
 networkx<=2.4; python_version == '3.5'
 networkx<=2.5.1; python_version == '3.6'
