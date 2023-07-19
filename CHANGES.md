@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.3.0 (2023-7-19)
+* [#779](https://github.com/man-group/dtale/issues/779): dtale.show(background_mode) not working
+* [#778](https://github.com/man-group/dtale/issues/778): Bump matplotlib to >=3.7.0
+* dependency upgrades
+
 ### 3.2.0 (2023-7-5)
 * [#773](https://github.com/man-group/dtale/issues/773): creating a comma-separated string of values from a GroupBy
 * [#771](https://github.com/man-group/dtale/issues/771): Support for Python 3.11
