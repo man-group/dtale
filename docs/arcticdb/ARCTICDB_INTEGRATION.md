@@ -2,21 +2,28 @@
 
 > ⚠️ **Pre-built binaries for ArcticDB only available for Linux and Windows**: MacOS binaries are coming soon!
 
-It's been almost 4 years since the original version of D-Tale was released as a way for pandas users to navigate their dataframes.  There has been many new features added and lots of bugs fixed. One aspect of D-Tale's construction that has consistently been a point of contention has been its need to work from Dataframes stored in memory.  For small Dataframes, this is by far the best solution, but user's have become more accustomed to using larger (north of 10 million rows) and wider (sometimes are high as 300K columns) dataframes.  So storing dataframes of these dimensions prove to be unwieldy. Thankfully, a solution to this problem has come in the form of ArcticDB! 
+It's been almost 4 years since the original version of D-Tale was released as a way for Pandas users to navigate their DataFrames.  There have been many new features added and lots of bugs fixed. One aspect of D-Tale's construction that has consistently been a point of contention has been its need to work from DataFrames stored in memory.  For small DataFrames, this is by far the best solution, but users are accustomed to using larger (north of 10 million rows) and wider (sometimes are high as 300K columns) dataframes. So displaying dataframes of these dimensions proved to be unwieldy. Thankfully, a solution to this problem has come in the form of ArcticDB! 
 
 At long last! There is finally a solution for navigating the underlying data of your ArcticDB databases. Once again, the solution is D-Tale!
+
+D-Tale backed by ArcticDB allows you to explore datasets that are much larger than what you can store in memory. 
+As you scroll down, D-Tale will page in the additional required data in an on-demand fashion meaning that the data doesn't all have to be stored in memory at the same time.
 
 [![](https://i.ytimg.com/vi/t-C_9Jw8tjI/maxresdefault.jpg)](https://youtu.be/t-C_9Jw8tjI "")
 
 ### Getting Started
 
-To get started run
+#### Installation
+
+Run
 
 ```bash
 $ pip install dtale[arcticdb]
 ```
 
-This will install D-Tale and ArcticDB. From there, you can set up a local database for testing:
+This will install D-Tale and ArcticDB. 
+
+#### Set up local database for testing
 
 ```python
 import pandas as pd
@@ -60,19 +67,21 @@ lib3.write('symbol5', pd.DataFrame(
 ))
 ```
 
-You can then spin up the D-Tale backend:
+#### Spin up the D-Tale backend
 
 ```python
 import dtale.global_state as global_state
 from dtale.app import build_app
 
+uri = "lmdb:///tmp/dtale/arcticdb"
 global_state.use_arcticdb_store(uri=uri)
 app = build_app(reaper_on=False)
 
 app.run(host="0.0.0.0", port=9207)
 ```
 
-Once this is complete you can connect D-Tale to this DB and start navigating the data:
+#### Connect D-Tale and navigate the data
+
 ```python
 >>> import dtale
 >>> uri = "lmdb:///tmp/dtale/arcticdb"
@@ -80,12 +89,7 @@ Once this is complete you can connect D-Tale to this DB and start navigating the
 <URL to access D-Tale UI>
 ```
 
-`use_store=True` forces the mechanism D-Tale uses for storing/reading/writing data to be ArcticDB. This seems insignificant, but it actually provides a huge enhancement to D-Tale's infrastructure. You can now read dataframes of any size without having any memory constraints.  D-Tale will simply read the rows/columns of your dataframe that need to be displayed in your browser, rather than the entire dataframe into memory.
-
-### Why back your data with ArcticDB?
-
-D-Tale backed by ArcticDB allows you to explore datasets that are much larger than what you can store in memory. 
-As you scroll down, D-Tale will page in the additional required data in an on-demand fashion meaning that the data doesn't all have to be stored in memory at the same time.
+`use_store=True` forces the mechanism D-Tale uses for storing/reading/writing data to be ArcticDB. This seems insignificant, but it actually provides a huge enhancement to D-Tale's infrastructure. You can now read DataFrames of any size without having any memory constraints. D-Tale will simply read the rows/columns of your DataFrame that need to be displayed in your browser, rather than the entire DataFrame into memory.
 
 ### Navigation
 
@@ -97,7 +101,7 @@ You'll now see the standard D-Tale grid containing the data in your symbol.
 
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/arcticdb/demo/arcticdb_symbol1.png)
 
-You'll also notice a bar at the top of the screen showing that you're using ArcticDB as well as the current uri, library & symbol. Clicking that will either bring you to a popup where you can choose a different library & symbol.
+You'll also notice a bar at the top of the screen showing that you're using ArcticDB as well as the current URI, library and symbol. Clicking that will either bring you to a popup where you can choose a different library and symbol.
 
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/arcticdb/demo/arcticdb_symbol1_selector.png)
 
@@ -121,7 +125,7 @@ See the ArcticDB [docs](https://docs.arcticdb.io/) and [website](https://arcticd
 
 ## Differences in Functionality from the Original D-Tale
 
-Unfortunately, since we are leveraging ArcticDB for our data fetching there is some functionality that is absent compared to the standard (in-memory) version of D-Tale:
+Unfortunately, since we are leveraging ArcticDB rather than Pandas for our data fetching there is some functionality that is absent compared to the standard (in-memory) version of D-Tale:
 * Custom Filtering - the ability to specify custom pandas queries
 * Column Filters
   * Numeric - range filters (`[]`, `()`) are no longer available
@@ -137,3 +141,20 @@ Functionality that is still available, but for dataframes with less-than 1 milli
 * Much of the "Describe" popup initial details
 
 If there is any functionality (which isn't controlled by ArcticDB itself) you want added back in for ArcticDB please submit an issue. Thanks :pray:
+
+You can always fall back to the original D-Tale implementation and load entire ArcticDB symbols in to memory, the process for which is documented in the "Connect D-Tale" section above.
+
+To work around these you can load entire ArcticDB symbols in to memory rather than following the code snippet in the "Connect D-Tale" section:
+
+```python
+>>> import dtale
+>>> uri = "lmdb:///tmp/dtale/arcticdb"
+# show one symbol,
+>>> dtale.show_arcticdb(uri=uri, library="lib1", symbol="symbol1")
+# alternative method to show one symbol
+>>> lib = conn['lib1']
+>>> df = lib.read('symbol1').data
+>>> dtale.show(df)
+```
+
+As described above there are serious advantages to paging the data in from ArcticDB, so only follow this alternative if you are hit by one of the "Differences in Functionality" documented here.
