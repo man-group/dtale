@@ -435,18 +435,33 @@ def test_in_ipython_frontend(builtin_pkg):
 
 @pytest.mark.unit
 def test_shutdown(unittest):
+    import werkzeug
+
     with app.test_client() as c:
         try:
-            c.get("/shutdown")
+            with ExitStack() as stack:
+                from werkzeug.serving import BaseWSGIServer
+
+                base_server = mock.Mock(spec=BaseWSGIServer)
+                base_server.shutdown = mock.Mock()
+                gc_objects = [base_server]
+                mock_gc = stack.enter_context(
+                    mock.patch("gc.get_objects", mock.Mock(return_value=gc_objects))
+                )
+                resp = c.get("/shutdown").data
+                assert "Server shutting down..." in str(resp)
+                mock_gc.assert_called()
+                base_server.shutdown.assert_called()
             unittest.fail()
         except:  # noqa
             pass
-        mock_shutdown = mock.Mock()
-        resp = c.get(
-            "/shutdown", environ_base={"werkzeug.server.shutdown": mock_shutdown}
-        ).data
-        assert "Server shutting down..." in str(resp)
-        mock_shutdown.assert_called()
+        if parse_version(werkzeug.__version__) < parse_version("2.1.0"):
+            mock_shutdown = mock.Mock()
+            resp = c.get(
+                "/shutdown", environ_base={"werkzeug.server.shutdown": mock_shutdown}
+            ).data
+            assert "Server shutting down..." in str(resp)
+            mock_shutdown.assert_called()
 
 
 @pytest.mark.unit

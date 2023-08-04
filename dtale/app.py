@@ -423,8 +423,21 @@ def build_app(
         logger.info("Executing shutdown...")
         func = request.environ.get("werkzeug.server.shutdown")
         if func is None:
-            raise RuntimeError("Not running with the Werkzeug Server")
-        func()
+            logger.info(
+                "Not running with the Werkzeug Server, exiting by searching gc for BaseWSGIServer"
+            )
+            import gc
+            from werkzeug.serving import BaseWSGIServer
+
+            for obj in gc.get_objects():
+                try:
+                    if isinstance(obj, BaseWSGIServer):
+                        obj.shutdown()
+                        break
+                except Exception as e:
+                    logger.error(e)
+        else:
+            func()
         global_state.cleanup()
         ACTIVE_PORT = None
         ACTIVE_HOST = None
@@ -830,6 +843,11 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             if is_active:
                 _start()
             else:
+                # import multiprocessing
+                #
+                # p = multiprocessing.Process(target=_start, args=())
+                # p.start()
+
                 _thread.start_new_thread(_start, ())
 
             if final_options["notebook"]:
