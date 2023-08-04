@@ -23,6 +23,7 @@ Flask<2.3; python_version >= '3.7'
 Flask-Compress
 flask-ngrok; python_version > '3.0'
 future>=0.14.0
+immutables<=0.19; python_version == '3.6'
 itsdangerous<=1.1.0; python_version < '3.7'
 itsdangerous; python_version >= '3.7'
 # required for loading scikit-learn
@@ -45,7 +46,8 @@ matplotlib<=3.3.4; python_version == '3.4'
 matplotlib<=3.3.4; python_version == '3.5'
 matplotlib<=3.3.4; python_version == '3.6'
 matplotlib<=3.5.3; python_version == '3.7'
-matplotlib; python_version >= '3.8'
+matplotlib<=3.7.2; python_version == '3.8'
+matplotlib; python_version >= '3.9'
 missingno
 networkx<=2.2; python_version <= '3.4'
 networkx<=2.4; python_version == '3.5'

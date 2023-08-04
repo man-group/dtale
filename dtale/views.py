@@ -192,7 +192,10 @@ def kill(base):
     This function fires a request to this instance's 'shutdown' route to kill it
 
     """
-    requests.get(build_shutdown_url(base))
+    try:
+        requests.get(build_shutdown_url(base))
+    except BaseException:
+        logger.info("Shutdown complete")
 
 
 def is_up(base):
