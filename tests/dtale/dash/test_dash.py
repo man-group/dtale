@@ -22,6 +22,7 @@ from dtale.dash_application.layout.layout import REDS, update_label_for_freq_and
 from dtale.utils import dict_merge, make_list
 from tests import ExitStack
 from tests.dtale import build_data_inst
+from tests.dtale.test_charts import build_col_def
 from tests.dtale.test_views import URL
 
 
@@ -279,14 +280,14 @@ def test_input_changes(unittest):
                 {"label": "a", "value": "a"},
                 {"label": "b", "value": "b"},
                 {"label": "c", "value": "c"},
-                {"label": "d (Hourly)", "value": "d|H"},
-                {"label": "d (Hour)", "value": "d|H2"},
-                {"label": "d (Weekday)", "value": "d|WD"},
+                {"label": "d (Hourly)", "value": build_col_def("H", "d")},
+                {"label": "d (Hour)", "value": build_col_def("H2", "d")},
+                {"label": "d (Weekday)", "value": build_col_def("WD", "d")},
                 {"label": "d", "value": "d"},
-                {"label": "d (Weekly)", "value": "d|W"},
-                {"label": "d (Monthly)", "value": "d|M"},
-                {"label": "d (Quarterly)", "value": "d|Q"},
-                {"label": "d (Yearly)", "value": "d|Y"},
+                {"label": "d (Weekly)", "value": build_col_def("W", "d")},
+                {"label": "d (Monthly)", "value": build_col_def("M", "d")},
+                {"label": "d (Quarterly)", "value": build_col_def("Q", "d")},
+                {"label": "d (Yearly)", "value": build_col_def("Y", "d")},
             ],
         )
         params["inputs"][3]["value"] = "a"
@@ -588,7 +589,7 @@ def test_main_input_styling(unittest):
             == "block"
         )
 
-        params["state"][1]["value"]["group"] = ["c|WD"]
+        params["state"][1]["value"]["group"] = [build_col_def("WD", "c")]
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert (
             response.get_json()["response"]["bins-input"]["style"]["display"] == "none"
@@ -2841,16 +2842,18 @@ def test_build_axes(unittest):
         type="multi",
         data={
             "b": dict(min=1, max=4),
-            "c|corr": dict(min=5, max=7),
+            build_col_def("corr", "c"): dict(min=5, max=7),
             "d": dict(min=8, max=10),
         },
     )
     chart_data = dict(
-        data=dict(all={"x": [1, 2, 3], "b": [1, 2, 3], "c|corr": [4, 5, 6]}),
-        min={"b": 2, "c|corr": 5, "d": 8},
-        max={"b": 4, "c|corr": 6, "d": 10},
+        data=dict(
+            all={"x": [1, 2, 3], "b": [1, 2, 3], build_col_def("corr", "c"): [4, 5, 6]}
+        ),
+        min={"b": 2, build_col_def("corr", "c"): 5, "d": 8},
+        max={"b": 4, build_col_def("corr", "c"): 6, "d": 10},
     )
-    axes = build_axes(chart_data, "a", yaxis_data, z="c|corr")(y)
+    axes = build_axes(chart_data, "a", yaxis_data, z=build_col_def("corr", "c"))(y)
     unittest.assertEqual(
         axes,
         (
@@ -2867,7 +2870,7 @@ def test_build_axes(unittest):
             False,
         ),
     )
-    axes = build_axes(chart_data, "a", yaxis_data, z="c|corr")(y)
+    axes = build_axes(chart_data, "a", yaxis_data, z=build_col_def("corr", "c"))(y)
     unittest.assertEqual(
         axes,
         (
@@ -3025,7 +3028,7 @@ def test_build_chart_type():
 @pytest.mark.unit
 def test_update_label_for_freq(unittest):
     unittest.assertEqual(
-        update_label_for_freq_and_agg(["date|WD", "date|D", "foo"]),
+        update_label_for_freq_and_agg([build_col_def("WD"), build_col_def("D"), "foo"]),
         "date (Weekday), date, foo",
     )
 

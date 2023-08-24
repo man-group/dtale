@@ -141,6 +141,18 @@ class DtaleInstance(object):
 LARGE_ARCTICDB = 1000000
 
 
+def get_num_rows(lib, symbol):
+    try:
+        return lib._nvs.get_num_rows(symbol)
+    except BaseException:
+        read_options = lib._nvs._get_read_options()
+        version_query = lib._nvs._get_version_query(None)
+        dit = lib._nvs.version_store.read_descriptor(
+            symbol, version_query, read_options
+        )
+        return dit.timeseries_descriptor.total_rows
+
+
 class DtaleArcticDBInstance(DtaleInstance):
     def __init__(self, data, data_id, parent):
         super(DtaleArcticDBInstance, self).__init__(data)
@@ -160,7 +172,7 @@ class DtaleArcticDBInstance(DtaleInstance):
         self._cols = 0
         self._base_df = None
         if lib and self.symbol and self.symbol in self.parent._symbols[self.lib_name]:
-            self._rows = lib._nvs.get_num_rows(self.symbol)
+            self._rows = get_num_rows(lib, self.symbol)
             self._base_df = self.load_data(row_range=[0, 1])
             self._cols = len(format_data(self._base_df)[0].columns)
         elif (

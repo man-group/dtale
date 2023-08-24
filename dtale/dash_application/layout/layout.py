@@ -23,6 +23,7 @@ from dtale.charts.utils import (
     find_group_vals,
 )
 from dtale.column_builders import get_cleaner_configs
+from dtale.constants import CHART_JOINER_CHAR
 from dtale.dash_application.layout.utils import (
     build_input,
     build_option,
@@ -661,7 +662,7 @@ def get_group_types(inputs, group_cols=None):
                         return ["groups", "bins"]
                     return ["groups"]
             for fgc in final_group_cols:
-                col, freq = fgc.split("|")
+                col, freq = fgc.split(CHART_JOINER_CHAR)
                 col_exists = (
                     next(
                         (
@@ -700,23 +701,23 @@ def update_label_for_freq_and_agg(val):
     """
     Formats sub-values contained within 'val' to display date frequencies & aggregatioms if included.
         - (val=['a', 'b', 'c']) => 'a, b, c'
-        - (val=['a|H', 'b|mean', 'c']) => 'a (Hour), Mean of b, c'
+        - (val=['a||H', 'b||mean', 'c']) => 'a (Hour), Mean of b, c'
     """
 
     def _freq_handler(sub_val):
         selected_agg = None
         for agg in AGGS:
-            if sub_val.endswith("|{}".format(agg)):
+            if sub_val.endswith("{}{}".format(CHART_JOINER_CHAR, agg)):
                 selected_agg = "{} of".format(text(AGGS[agg]))
-                sub_val = sub_val.split("|{}".format(agg))[0]
+                sub_val = sub_val.split("{}{}".format(CHART_JOINER_CHAR, agg))[0]
                 break
 
         selected_freq = None
         for freq in FREQS:
-            if sub_val.endswith("|{}".format(freq)):
-                col, freq = sub_val.split("|")
+            if sub_val.endswith("{}{}".format(CHART_JOINER_CHAR, freq)):
+                col, freq = sub_val.split(CHART_JOINER_CHAR)
                 if freq in FREQS:
-                    sub_val = sub_val.split("|{}".format(freq))[0]
+                    sub_val = sub_val.split("{}{}".format(CHART_JOINER_CHAR, freq))[0]
                     if freq in FREQ_LABELS:
                         selected_freq = "({})".format(text(FREQ_LABELS[freq]))
                     break
@@ -1334,7 +1335,8 @@ def build_group_val_options(df, group_cols):
     group_vals = find_group_vals(df, group_cols)
     return [
         build_option(
-            json.dumps(gv), "|".join([str(gv.get(p, "NaN")) for p in group_cols])
+            json.dumps(gv),
+            CHART_JOINER_CHAR.join([str(gv.get(p, "NaN")) for p in group_cols]),
         )
         for gv in group_vals
     ]

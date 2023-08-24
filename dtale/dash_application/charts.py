@@ -2615,10 +2615,7 @@ def funnel_builder(data_id, export=False, **inputs):
                 modal=inputs.get("modal", False),
             )
             if not export:
-                chart = chart_builder(
-                    chart,
-                    group_filter=dict(y=final_cols[0]),
-                )
+                chart = chart_builder(chart, group_filter=dict(y=final_cols[0]))
             yield chart
 
     if export:

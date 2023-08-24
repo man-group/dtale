@@ -83,7 +83,7 @@ setup(
     install_requires=read_file("requirements.txt"),
     extras_require={
         "arctic": ["arctic <= 1.79.4"],
-        "arcticdb": ["arcticdb != 1.6.1"],
+        "arcticdb": ["arcticdb"],
         "dash-bio": [
             "ParmEd==3.4.3; python_version == '3.6'",
             "dash-bio; python_version > '3.0'",
