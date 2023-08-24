@@ -221,8 +221,7 @@ class StringFilter(MissingFilter):
                 )
             else:
                 fltr["query"] = handle_query_builder_ne(
-                    query_builder[self.column].isin(state),
-                    operand,
+                    query_builder[self.column].isin(state), operand
                 )
         elif action in ["startswith", "endswith"]:
             # Not supported by QueryBuilder

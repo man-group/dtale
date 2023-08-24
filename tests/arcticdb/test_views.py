@@ -1,6 +1,7 @@
 import json
 import mock
 import pytest
+from pkg_resources import parse_version
 
 import dtale.global_state as global_state
 from dtale.app import build_app
@@ -431,10 +432,14 @@ def test_load_arcticdb_description(unittest, arcticdb_path, arcticdb):
             query_string=dict(library="dtale", symbol="df1"),
         )
         response_data = response.get_json()
+        import arcticdb as adb
+
+        new_arcticdb = parse_version(adb.__version__) >= parse_version("2.0.0")
+        index_type = "NANOSECONDS_UTC" if new_arcticdb else "MICROS_UTC"
         assert response_data["description"] == (
-            "ROWS: 3\nINDEX:\n\t- None (MICROS_UTC)\n"
+            "ROWS: 3\nINDEX:\n\t- None ({})\n"
             "COLUMNS (3):\n\t- float_val (FLOAT)\n\t- int_val (INT)\n\t- str_val (DYNAMIC_STRING)\n"
-        )
+        ).format(index_type)
 
 
 @pytest.mark.unit

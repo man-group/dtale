@@ -2,41 +2,46 @@ import pandas as pd
 import pytest
 
 import dtale.charts.utils as chart_utils
+from dtale.constants import CHART_JOINER_CHAR
+
+
+def build_col_def(freq, col="date"):
+    return "{}{}{}".format(col, CHART_JOINER_CHAR, freq)
 
 
 @pytest.mark.unit
 def test_date_freq_handler():
     df = pd.DataFrame(dict(date=pd.date_range("20200101", "20200131")))
     handler = chart_utils.date_freq_handler(df)
-    s = handler("date|WD")
+    s = handler(build_col_def("WD"))
     assert s[0].values[0] == 2
-    s = handler("date|H2")
+    s = handler(build_col_def("H2"))
     assert s[0].values[0] == 0
-    s = handler("date|D")
+    s = handler(build_col_def("D"))
     assert s[0].dt.strftime("%Y%m%d").values[0] == "20200101"
-    s = handler("date|M")
+    s = handler(build_col_def("M"))
     assert s[0].dt.strftime("%Y%m%d").values[0] == "20200131"
 
 
 @pytest.mark.unit
 def test_group_filter_handler():
-    s = chart_utils.group_filter_handler("date|WD", 1, "I")
+    s = chart_utils.group_filter_handler(build_col_def("WD"), 1, "I")
     assert s[1] == "date.dt.dayofweek: 1"
-    s = chart_utils.group_filter_handler("date|WD", "NaN", "I")
+    s = chart_utils.group_filter_handler(build_col_def("WD"), "NaN", "I")
     assert s[1] == "date: NaN"
-    s = chart_utils.group_filter_handler("date|H2", 1, "I")
+    s = chart_utils.group_filter_handler(build_col_def("H2"), 1, "I")
     assert s[1] == "date.dt.hour: 1"
-    s = chart_utils.group_filter_handler("date|H", "20190101", "D")
+    s = chart_utils.group_filter_handler(build_col_def("H"), "20190101", "D")
     assert s[1] == "date.dt.date: 20190101, date.dt.hour: 0"
-    s = chart_utils.group_filter_handler("date|D", "20190101", "D")
+    s = chart_utils.group_filter_handler(build_col_def("D"), "20190101", "D")
     assert s[1] == "date.dt.date: 20190101"
-    s = chart_utils.group_filter_handler("date|W", "20190101", "D")
+    s = chart_utils.group_filter_handler(build_col_def("W"), "20190101", "D")
     assert s[1] == "date.dt.year: 2019, date.dt.week: 1"
-    s = chart_utils.group_filter_handler("date|M", "20191231", "D")
+    s = chart_utils.group_filter_handler(build_col_def("M"), "20191231", "D")
     assert s[1] == "date.dt.year: 2019, date.dt.month: 12"
-    s = chart_utils.group_filter_handler("date|Q", "20191231", "D")
+    s = chart_utils.group_filter_handler(build_col_def("Q"), "20191231", "D")
     assert s[1] == "date.dt.year: 2019, date.dt.quarter: 4"
-    s = chart_utils.group_filter_handler("date|Y", "20191231", "D")
+    s = chart_utils.group_filter_handler(build_col_def("Y"), "20191231", "D")
     assert s[1] == "date.dt.year: 2019"
     s = chart_utils.group_filter_handler("foo", 1, "I")
     assert s[1] == "foo: 1"

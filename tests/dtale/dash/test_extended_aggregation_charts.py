@@ -8,6 +8,7 @@ from dtale.app import build_app
 
 from tests.dtale import build_data_inst
 from tests.dtale.dash.test_dash import build_chart_params, get_url_parser
+from tests.dtale.test_charts import build_col_def
 from tests.dtale.test_views import URL
 
 app = build_app(url=URL)
@@ -185,7 +186,7 @@ def test_bar_and_popup(unittest):
         inputs["group"] = None
         chart_inputs["animate_by"] = None
         chart_inputs["barmode"] = "group"
-        chart_inputs["barsort"] = "b|sum"
+        chart_inputs["barsort"] = build_col_def("sum", "b")
         inputs["agg"] = None
         params = build_chart_params(
             c.port, inputs, chart_inputs, extended_aggregation=extended_aggregation

@@ -6,6 +6,7 @@ import pandas as pd
 import dtale.global_state as global_state
 import dtale.pandas_util as pandas_util
 from dtale.column_analysis import handle_cleaners
+from dtale.constants import CHART_JOINER_CHAR
 from dtale.query import build_col_key, run_query
 from dtale.utils import (
     ChartBuildingError,
@@ -170,7 +171,7 @@ def date_freq_handler(df):
     orig_idx = df.index
 
     def _handler(col_def):
-        col_def_segs = col_def.split("|")
+        col_def_segs = col_def.split(CHART_JOINER_CHAR)
         if len(col_def_segs) > 1 and classify_type(dtypes[col_def_segs[0]]) == "D":
             col, freq = col_def_segs
             if freq == "WD":
@@ -203,7 +204,7 @@ def convert_date_val_to_date(group_val):
 
 
 def group_filter_handler(col_def, group_val, group_classifier):
-    col_def_segs = col_def.split("|")
+    col_def_segs = col_def.split(CHART_JOINER_CHAR)
     if len(col_def_segs) > 1:
         col, freq = col_def_segs
         if group_val == "NaN":
@@ -530,7 +531,8 @@ def build_agg_data(
                 ")"
             ).format("','".join(idx_cols), "','".join(aggs["drop_duplicates"]))
         group_cols = [
-            "{}|drop_duplicates".format(col) for col in aggs["drop_duplicates"]
+            "{}{}drop_duplicates".format(col, CHART_JOINER_CHAR)
+            for col in aggs["drop_duplicates"]
         ]
         groups.columns = idx_cols + group_cols
     else:
@@ -559,18 +561,18 @@ def build_final_cols(y, z, agg, extended_aggregation):
         z = make_list(z)
         cols = y if not len(z) else z
         if agg is not None and agg != "raw":
-            return ["{}|{}".format(col, agg) for col in cols]
+            return ["{}{}{}".format(col, CHART_JOINER_CHAR, agg) for col in cols]
         return cols
     return [
-        "{}|{}".format(ext_agg["col"], ext_agg["agg"])
+        "{}{}{}".format(ext_agg["col"], CHART_JOINER_CHAR, ext_agg["agg"])
         for ext_agg in extended_aggregation
     ]
 
 
 def parse_final_col(final_col):
-    y_segs = final_col.split("|")
+    y_segs = final_col.split(CHART_JOINER_CHAR)
     if y_segs[-1] in AGGS:
-        return "|".join(y_segs[:-1]), y_segs[-1]
+        return CHART_JOINER_CHAR.join(y_segs[:-1]), y_segs[-1]
     return final_col, None
 
 
@@ -650,7 +652,10 @@ def compute_aggs(df, groups, aggs, idx_cols, group_col, dropna=True):
                     chart_data=chart_data_key,
                 )
             ]
-        final_cols = ["{}|{}".format(col, curr_agg) for col in calc_group.columns]
+        final_cols = [
+            "{}{}{}".format(col, CHART_JOINER_CHAR, curr_agg)
+            for col in calc_group.columns
+        ]
         all_code.append(
             "{chart_data}.columns = ['{cols}']".format(
                 chart_data=chart_data_key, cols="','".join(final_cols)
