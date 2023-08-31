@@ -2187,12 +2187,15 @@ def describe(data_id):
 
         # build top
         top_freq = uniq_vals["count"].values[0]
+        top_freq_pct = (top_freq / uniq_vals["count"].sum()) * 100
         top_vals = (
             uniq_vals[uniq_vals["count"] == top_freq].sort_values("value").head(5)
         )
         top_vals_f = grid_formatter(grid_columns(top_vals), as_string=True)
         top_vals = top_vals_f.format_lists(top_vals)
-        return_data["describe"]["top"] = ", ".join(top_vals["value"])
+        return_data["describe"]["top"] = "{} ({}%)".format(
+            ", ".join(top_vals["value"]), json_float(top_freq_pct, as_string=True)
+        )
         return_data["describe"]["freq"] = int(top_freq)
 
         code.append(

@@ -45,11 +45,13 @@ export interface CategoryChartData extends FetchedChartData<AnalysisType.CATEGOR
 /** Properties for fetched Value Count data */
 export interface ValueCountChartData extends FetchedChartData<AnalysisType.VALUE_COUNTS>, BaseChartData {
   ordinal?: number[];
+  percent?: number[];
 }
 
 /** Properties for fetched Word Value Count data */
 export interface WordValueCountChartData extends FetchedChartData<AnalysisType.WORD_VALUE_COUNTS>, BaseChartData {
   ordinal?: number[];
+  percent?: number[];
 }
 
 /** Properties for fetched Geolocation data */

@@ -33,7 +33,7 @@ const buildValueCountsAxes = (
   fetchedData: ValueCountChartData | WordValueCountChartData,
   chartOpts: AnalysisParams,
 ): void => {
-  const { data, ordinal } = fetchedData;
+  const { data, ordinal, percent } = fetchedData;
   baseCfg.data.datasets = [
     { label: 'Frequency', type: 'bar', data, backgroundColor: 'rgb(42, 145, 209)', yAxisID: 'y' },
   ];
@@ -61,11 +61,25 @@ const buildValueCountsAxes = (
       tension: 0.4,
       pointRadius: 0,
     });
-    baseCfg.options = {
-      ...baseCfg.options,
-      plugins: { ...baseCfg?.options?.plugins, tooltip: { mode: 'index', intersect: true } },
-    };
   }
+  baseCfg.options = {
+    ...baseCfg.options,
+    plugins: {
+      ...baseCfg?.options?.plugins,
+      tooltip: {
+        mode: 'index',
+        intersect: true,
+        callbacks: {
+          footer: (tooltipItems: Array<TooltipItem<'bar' | 'line'>>): string | void => {
+            const percentage = (percent ?? [])[tooltipItems[0].dataIndex];
+            if (percentage !== undefined) {
+              return `${percentage}%`;
+            }
+          },
+        },
+      },
+    },
+  };
 };
 
 const buildCategoryAxes = (
