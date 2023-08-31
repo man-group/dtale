@@ -399,7 +399,10 @@ class ValueCountAnalysis(object):
 
     def build_hist(self, s, code):
         code.append("chart = pd.value_counts(s).to_frame(name='data')")
-        return pd.value_counts(s).to_frame(name="data")
+        code.append("chart['percent'] = (chart['data'] / chart['data'].sum()) * 100")
+        df = pd.value_counts(s).to_frame(name="data")
+        df["percent"] = (df["data"] / df["data"].sum()) * 100
+        return df
 
     def setup_ordinal_data(self, parent):
         if self.ordinal_agg == "pctsum":
@@ -493,11 +496,14 @@ class WordValueCountAnalysis(ValueCountAnalysis):
     def build_hist(self, s, code):
         code.append("chart = pd.value_counts(s.str.split(expand=True).stack())")
         code.append("chart = chart.to_frame(name='data').sort_index()")
-        return (
+        code.append("chart['percent'] = (chart['data'] / chart['data'].sum()) * 100")
+        df = (
             pd.value_counts(s.str.split(expand=True).stack())
             .to_frame(name="data")
             .sort_index()
         )
+        df["percent"] = (df["data"] / df["data"].sum()) * 100
+        return df
 
     def setup_ordinal_data(self, parent):
         expanded_words = parent.data[parent.selected_col].str.split(expand=True).stack()
