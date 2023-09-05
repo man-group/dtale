@@ -14,7 +14,7 @@
 [![Conda](https://img.shields.io/conda/v/conda-forge/dtale)](https://anaconda.org/conda-forge/dtale)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
 [![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
-[![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
+[![Downloads](https://static.pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
 [![Open in VS Code](https://img.shields.io/badge/Visual_Studio_Code-0078D4?style=flat&logo=visual%20studio%20code&logoColor=white)](https://open.vscode.dev/man-group/dtale)
 
 ## What is it?
