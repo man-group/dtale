@@ -4,7 +4,7 @@ const path = require('path');
 
 /**
  * Transformer for transforming 'files'. In the context of this library, this is for the purpose of non-TypeScript files
- * @type {{process(src: string, filename: string): string}}
+ * @type {{process(sourceText: string, sourcePath: string, options: Object): string}}
  */
 module.exports = {
   /**
@@ -13,7 +13,9 @@ module.exports = {
    * @param {string} filename the name of the file
    * @return {string} an ES5 compliant module string
    */
-  process(_src, filename) {
-    return `module.exports = ${JSON.stringify(path.basename(filename))};`;
+  process(sourceText, sourcePath, options) {
+    return {
+      code: `module.exports = ${JSON.stringify(path.basename(sourcePath))};`,
+    };
   },
 };
