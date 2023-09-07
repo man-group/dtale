@@ -20,6 +20,9 @@ actions.loadHideShutdown(store);
 actions.loadAllowCellEdits(store);
 actions.loadHideHeaderEditor(store);
 actions.loadLockHeaderMenu(store);
+actions.loadHideHeaderMenu(store);
+actions.loadHideMainMenu(store);
+actions.loadHideColumnMenus(store);
 const root = ReactDOMClient.createRoot(document.getElementById('content')!);
 root.render(
   <Provider store={store}>

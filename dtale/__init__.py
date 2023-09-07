@@ -19,6 +19,9 @@ with warnings.catch_warnings():
     GITHUB_FORK = False
     HIDE_HEADER_EDITOR = False
     LOCK_HEADER_MENU = False
+    HIDE_HEADER_MENU = False
+    HIDE_MAIN_MENU = False
+    HIDE_COLUMN_MENUS = False
 
     # flake8: NOQA
     from dtale.app import show, get_instance, instances, offline_chart  # isort:skip

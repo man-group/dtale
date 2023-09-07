@@ -17,7 +17,13 @@ import {
 } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import * as actions from '../redux/actions/dtale';
-import { selectColumnRange, selectCtrlCols, selectDataId, selectSettings } from '../redux/selectors';
+import {
+  selectColumnRange,
+  selectCtrlCols,
+  selectDataId,
+  selectHideColumnMenus,
+  selectSettings,
+} from '../redux/selectors';
 import { Popups, PopupType, RangeState } from '../redux/state/AppState';
 
 import * as bu from './backgroundUtils';
@@ -86,8 +92,14 @@ export interface HeaderProps {
 }
 
 const selectResult = createSelector(
-  [selectDataId, selectSettings, selectColumnRange, selectCtrlCols],
-  (dataId, settings, columnRange, ctrlCols) => ({ dataId, settings, columnRange, ctrlCols }),
+  [selectDataId, selectSettings, selectColumnRange, selectCtrlCols, selectHideColumnMenus],
+  (dataId, settings, columnRange, ctrlCols, hideColumnMenus) => ({
+    dataId,
+    settings,
+    columnRange,
+    ctrlCols,
+    hideColumnMenus,
+  }),
 );
 
 const Header: React.FC<HeaderProps & WithTranslation> = ({
@@ -100,7 +112,7 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   maxRowHeight,
   t,
 }) => {
-  const { dataId, settings, columnRange, ctrlCols } = useSelector(selectResult);
+  const { dataId, settings, columnRange, ctrlCols, hideColumnMenus } = useSelector(selectResult);
   const dispatch = useDispatch();
   const toggleColumnMenu = (colName: string, headerRef: HTMLDivElement): ToggleColumnAction =>
     dispatch(actions.toggleColumnMenu(colName, headerRef));
@@ -156,12 +168,14 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   };
 
   const buildCopyHandler = (): ((e: React.MouseEvent) => void) => {
-    const menuHandler = openMenu(
-      () => toggleColumnMenu(colName, headerRef.current!),
-      () => hideColumnMenu(colName),
-      headerRef,
-      ignoreMenuClicks,
-    );
+    const menuHandler = hideColumnMenus
+      ? () => undefined
+      : openMenu(
+          () => toggleColumnMenu(colName, headerRef.current!),
+          () => hideColumnMenu(colName),
+          headerRef,
+          ignoreMenuClicks,
+        );
 
     return (e: React.MouseEvent): void => {
       if (e.shiftKey) {

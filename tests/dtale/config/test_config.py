@@ -24,6 +24,9 @@ def test_load_app_settings():
         "query_engine": "numexpr",
         "hide_header_editor": True,
         "lock_header_menu": True,
+        "hide_header_menu": True,
+        "hide_main_menu": True,
+        "hide_column_menus": True,
     }
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.APP_SETTINGS", settings))
@@ -37,6 +40,9 @@ def test_load_app_settings():
         assert settings["query_engine"] == "numexpr"
         assert settings["hide_header_editor"]
         assert settings["lock_header_menu"]
+        assert settings["hide_header_menu"]
+        assert settings["hide_main_menu"]
+        assert settings["hide_column_menus"]
 
         load_app_settings(
             load_config_state(os.path.join(os.path.dirname(__file__), "dtale.ini"))
@@ -51,6 +57,9 @@ def test_load_app_settings():
         assert settings["query_engine"] == "python"
         assert not settings["hide_header_editor"]
         assert not settings["lock_header_menu"]
+        assert not settings["hide_header_menu"]
+        assert not settings["hide_main_menu"]
+        assert not settings["hide_column_menus"]
 
 
 @pytest.mark.unit
@@ -65,6 +74,9 @@ def test_load_app_settings_w_missing_props():
         "query_engine": "python",
         "hide_header_editor": True,
         "lock_header_menu": True,
+        "hide_header_menu": True,
+        "hide_main_menu": True,
+        "hide_column_menus": True,
     }
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.global_state.APP_SETTINGS", settings))
@@ -76,6 +88,9 @@ def test_load_app_settings_w_missing_props():
         assert settings["max_column_width"] is None
         assert settings["hide_header_editor"]
         assert settings["lock_header_menu"]
+        assert settings["hide_header_menu"]
+        assert settings["hide_main_menu"]
+        assert settings["hide_column_menus"]
 
         load_app_settings(
             load_config_state(
@@ -88,6 +103,9 @@ def test_load_app_settings_w_missing_props():
         assert settings["max_column_width"] is None
         assert not settings["hide_header_editor"]
         assert not settings["lock_header_menu"]
+        assert not settings["hide_header_menu"]
+        assert not settings["hide_main_menu"]
+        assert not settings["hide_column_menus"]
 
 
 @pytest.mark.unit

@@ -2,7 +2,7 @@
 ### 3.4.0 (2023-9-5)
 * [#792](https://github.com/man-group/dtale/issues/792): adding in percentage to 'Value Counts' describe chart
 * [#788](https://github.com/man-group/dtale/issues/788): fix for when column names have a pipe character
-* [#786]:(https://github.com/man-group/dtale/issues/786) updates to shutdown
+* [#786](https://github.com/man-group/dtale/issues/786): updates to shutdown
 * update to AcrticDB `get_num_rows` handling
 
 ### 3.3.0 (2023-7-19)

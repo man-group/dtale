@@ -55,6 +55,9 @@ export const selectSettingsHideHeaderEditor = createSelector(
 export const selectBackgroundMode = createSelector([selectSettings], (settings) => settings?.backgroundMode);
 export const selectRangeHighlight = createSelector([selectSettings], (settings) => settings?.rangeHighlight);
 export const selectBaseLockHeaderMenu = (state: AppState): boolean => state.lockHeaderMenu;
+export const selectBaseHideHeaderMenu = (state: AppState): boolean => state.hideHeaderMenu;
+export const selectBaseHideMainMenu = (state: AppState): boolean => state.hideMainMenu;
+export const selectBaseHideColumnMenus = (state: AppState): boolean => state.hideColumnMenus;
 export const selectFilteredRanges = (state: AppState): FilteredRanges => state.filteredRanges;
 export const selectShowAllHeatmapColumns = (state: AppState): boolean => state.showAllHeatmapColumns;
 export const selectChartData = (state: AppState): Popups => state.chartData;
@@ -88,9 +91,24 @@ export const selectLockHeaderMenu = createSelector(
   [selectSettingsLockHeaderMenu, selectBaseLockHeaderMenu],
   (settingsLockHeaderMenu, lockHeaderMenu) => settingsLockHeaderMenu ?? lockHeaderMenu,
 );
+const selectSettingsHideHeaderMenu = createSelector([selectSettings], (settings) => settings?.hide_header_menu);
+export const selectHideHeaderMenu = createSelector(
+  [selectSettingsHideHeaderMenu, selectBaseHideHeaderMenu],
+  (settingsHideHeaderMenu, hideHeaderMenu) => settingsHideHeaderMenu ?? hideHeaderMenu,
+);
+const selectSettingsHideMainMenu = createSelector([selectSettings], (settings) => settings?.hide_main_menu);
+export const selectHideMainMenu = createSelector(
+  [selectSettingsHideMainMenu, selectBaseHideMainMenu],
+  (settingsHideMainMenu, hideMainMenu) => settingsHideMainMenu ?? hideMainMenu,
+);
+const selectSettingsHideColumnMenus = createSelector([selectSettings], (settings) => settings?.hide_column_menus);
+export const selectHideColumnMenus = createSelector(
+  [selectSettingsHideColumnMenus, selectBaseHideColumnMenus],
+  (settingsHideColumnMenus, hideColumnMenus) => settingsHideColumnMenus ?? hideColumnMenus,
+);
 export const selectRibbonMenuOpen = createSelector(
-  [selectBaseRibbonMenuOpen, selectLockHeaderMenu],
-  (ribbonMenuOpen, lockHeaderMenu) => ribbonMenuOpen || lockHeaderMenu,
+  [selectBaseRibbonMenuOpen, selectLockHeaderMenu, selectHideHeaderMenu],
+  (ribbonMenuOpen, lockHeaderMenu, hideHeaderMenu) => (ribbonMenuOpen || lockHeaderMenu) && !hideHeaderMenu,
 );
 export const selectMainTitle = (state: AppState): string | null => state.mainTitle;
 export const selectMainTitleFont = (state: AppState): string | null => state.mainTitleFont;

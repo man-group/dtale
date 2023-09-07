@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType, OpenRibbonDropdownAction } from '../../redux/actions/AppActions';
 import {
+  selectHideHeaderMenu,
   selectMainTitle,
   selectMainTitleFont,
   selectRibbonDropdownName,
@@ -45,12 +46,18 @@ export const RibbonMenuItem: React.FC<React.PropsWithChildren<RibbonMenuItemProp
 };
 
 const selectResult = createSelector(
-  [selectRibbonMenuOpen, selectRibbonDropdownName, selectMainTitle, selectMainTitleFont],
-  (visible, ribbonDropdown, mainTitle, mainTitleFont) => ({ visible, ribbonDropdown, mainTitle, mainTitleFont }),
+  [selectRibbonMenuOpen, selectRibbonDropdownName, selectMainTitle, selectMainTitleFont, selectHideHeaderMenu],
+  (visible, ribbonDropdown, mainTitle, mainTitleFont, hideHeaderMenu) => ({
+    visible,
+    ribbonDropdown,
+    mainTitle,
+    mainTitleFont,
+    hideHeaderMenu,
+  }),
 );
 
 const RibbonMenu: React.FC<WithTranslation> = ({ t }) => {
-  const { visible, ribbonDropdown, mainTitle, mainTitleFont } = useSelector(selectResult);
+  const { visible, ribbonDropdown, mainTitle, mainTitleFont, hideHeaderMenu } = useSelector(selectResult);
   const titleStyle: React.CSSProperties = React.useMemo(
     () => ({ fontSize: '16px', cursor: 'default', ...(mainTitleFont ? { fontFamily: mainTitleFont } : {}) }),
     [mainTitleFont],
@@ -82,6 +89,10 @@ const RibbonMenu: React.FC<WithTranslation> = ({ t }) => {
     openRibbonDropdown(name, element);
     setHoverActive(true);
   };
+
+  if (hideHeaderMenu) {
+    return null;
+  }
 
   const itemProps = { onHover, onClick: menuClick, selected: ribbonDropdown };
   return (

@@ -20,6 +20,11 @@ max_column_width = 100 # the default value is None
 main_title = My App # only use this if you don't want to see the D-Tale logo
 main_title_font = Arial # this font is applied to your custom title
 query_engine = python
+hide_header_editor = False
+lock_header_menu = False
+hide_header_menu = False
+hide_main_menu = False
+hide_column_menus = False
 
 [charts] # this controls how many points can be contained within scatter & 3D charts
 scatter_points = 15000

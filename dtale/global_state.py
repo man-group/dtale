@@ -27,6 +27,9 @@ APP_SETTINGS = {
     "hide_drop_rows": False,
     "hide_header_editor": False,
     "lock_header_menu": False,
+    "hide_header_menu": False,
+    "hide_main_menu": False,
+    "hide_column_menus": False,
 }
 
 AUTH_SETTINGS = {"active": False, "username": None, "password": None}
@@ -593,6 +596,12 @@ def set_app_settings(settings):
         instance_updates["hide_header_editor"] = settings.get("hide_header_editor")
     if settings.get("lock_header_menu") is not None:
         instance_updates["lock_header_menu"] = settings.get("lock_header_menu")
+    if settings.get("hide_header_menu") is not None:
+        instance_updates["hide_header_menu"] = settings.get("hide_header_menu")
+    if settings.get("hide_main_menu") is not None:
+        instance_updates["hide_main_menu"] = settings.get("hide_main_menu")
+    if settings.get("hide_column_menus") is not None:
+        instance_updates["hide_column_menus"] = settings.get("hide_column_menus")
 
     if _default_store.size() > 0 and len(instance_updates):
         for data_id in _default_store.keys():

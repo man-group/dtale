@@ -60,6 +60,9 @@ export enum ActionType {
   UPDATE_ALLOW_CELL_EDITS = 'update-allow-cell-edits',
   UPDATE_HIDE_HEADER_EDITOR = 'update-hide-header-editor',
   UPDATE_LOCK_HEADER_MENU = 'update-lock-header-menu',
+  UPDATE_HIDE_HEADER_MENU = 'update-hide-header-menu',
+  UPDATE_HIDE_MAIN_MENU = 'update-hide-main-menu',
+  UPDATE_HIDE_COLUMN_MENUS = 'update-hide-column-menus',
 }
 
 /** Action fired when a range is selected */
@@ -239,6 +242,21 @@ export interface UpdateLockHeaderMenu extends Action<typeof ActionType.UPDATE_LO
   value: boolean;
 }
 
+/** Action fired when updating the hide_header_menu flag */
+export interface UpdateHideHeaderMenu extends Action<typeof ActionType.UPDATE_HIDE_HEADER_MENU> {
+  value: boolean;
+}
+
+/** Action fired when updating the hide_main_menu flag */
+export interface UpdateHideMainMenu extends Action<typeof ActionType.UPDATE_HIDE_MAIN_MENU> {
+  value: boolean;
+}
+
+/** Action fired when updating the hide_column_menus flag */
+export interface UpdateHideColumnMenus extends Action<typeof ActionType.UPDATE_HIDE_COLUMN_MENUS> {
+  value: boolean;
+}
+
 /** Type definition encompassing all application actions */
 export type AppActionTypes =
   | InitAction
@@ -281,7 +299,10 @@ export type AppActionTypes =
   | UpdateHideShutdown
   | UpdateAllowCellEdits
   | UpdateHideHeaderEditor
-  | UpdateLockHeaderMenu;
+  | UpdateLockHeaderMenu
+  | UpdateHideHeaderMenu
+  | UpdateHideMainMenu
+  | UpdateHideColumnMenus;
 
 /** Type definition for redux application actions */
 export type AppActions<R> = ThunkAction<R, AppState, Record<string, unknown>, AnyAction>;

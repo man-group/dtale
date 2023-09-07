@@ -94,4 +94,9 @@ describe('RibbonMenu', () => {
     await buildMock({ lockHeaderMenu: 'True' });
     expect(wrapper.container.getElementsByClassName('ribbon-menu-item')).toHaveLength(5);
   });
+
+  it('hides menu when hide_header_menu is true', async () => {
+    await buildMock({ hideHeaderMenu: 'True' });
+    expect(wrapper.container.getElementsByClassName('ribbon-menu-content')).toHaveLength(0);
+  });
 });

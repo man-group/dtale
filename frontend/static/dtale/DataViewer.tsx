@@ -59,6 +59,8 @@ const selectResult = createSelector(
     selectors.selectEditedTextAreaHeight,
     selectors.selectVerticalHeaders,
     selectors.selectIsArcticDB,
+    selectors.selectHideMainMenu,
+    selectors.selectHideColumnMenus,
   ],
   (
     dataId,
@@ -72,6 +74,8 @@ const selectResult = createSelector(
     editedTextAreaHeight,
     verticalHeaders,
     isArcticDB,
+    hideMainMenu,
+    hideColumnMenus,
   ) => ({
     dataId,
     theme,
@@ -84,6 +88,8 @@ const selectResult = createSelector(
     editedTextAreaHeight,
     verticalHeaders: verticalHeaders ?? false,
     isArcticDB,
+    hideMainMenu,
+    hideColumnMenus,
   }),
 );
 
@@ -100,6 +106,8 @@ export const DataViewer: React.FC = () => {
     editedTextAreaHeight,
     verticalHeaders,
     isArcticDB,
+    hideMainMenu,
+    hideColumnMenus,
   } = useSelector(selectResult);
   const dispatch = useDispatch();
   const closeColumnMenu = (): AnyAction => dispatch(actions.closeColumnMenu() as any as AnyAction);
@@ -395,7 +403,7 @@ export const DataViewer: React.FC = () => {
   return (
     <GridEventHandler columns={columns} data={data}>
       <DtaleHotkeys columns={columns} />
-      <DataViewerMenu columns={columns} propagateState={propagateState} rows={rowCount} />
+      {!hideMainMenu && <DataViewerMenu columns={columns} propagateState={propagateState} rows={rowCount} />}
       <InfiniteLoader
         isRowLoaded={({ index }) => data.hasOwnProperty(index)}
         loadMoreRows={() => Promise.resolve(undefined)}
@@ -447,7 +455,7 @@ export const DataViewer: React.FC = () => {
       </InfiniteLoader>
       <Popup propagateState={propagateState} />
       <Formatting data={data} columns={columns} rowCount={rowCount} propagateState={propagateState} />
-      <ColumnMenu columns={columns} propagateState={propagateState} />
+      {!hideColumnMenus && <ColumnMenu columns={columns} propagateState={propagateState} />}
       <RibbonDropdown columns={columns} propagateState={propagateState} rows={rowCount} />
     </GridEventHandler>
   );

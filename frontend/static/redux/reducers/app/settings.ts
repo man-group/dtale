@@ -41,6 +41,45 @@ export const lockHeaderMenu = (state = false, action: AppActionTypes): boolean =
   }
 };
 
+export const hideHeaderMenu = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('hide_header_menu'));
+    case ActionType.UPDATE_HIDE_HEADER_MENU:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return true;
+    default:
+      return state;
+  }
+};
+
+export const hideMainMenu = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('hide_main_menu'));
+    case ActionType.UPDATE_HIDE_MAIN_MENU:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return true;
+    default:
+      return state;
+  }
+};
+
+export const hideColumnMenus = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('hide_column_menus'));
+    case ActionType.UPDATE_HIDE_COLUMN_MENUS:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return true;
+    default:
+      return state;
+  }
+};
+
 export const openCustomFilterOnStartup = (state = false, action: AppActionTypes): boolean => {
   switch (action.type) {
     case ActionType.INIT_PARAMS:
