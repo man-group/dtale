@@ -69,6 +69,9 @@ def test_startup(unittest):
         hide_header_editor=True,
         hide_shutdown=True,
         lock_header_menu=True,
+        hide_header_menu=True,
+        hide_main_menu=True,
+        hide_column_menus=True,
     )
 
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
@@ -80,6 +83,9 @@ def test_startup(unittest):
             hide_shutdown=True,
             hide_header_editor=True,
             lock_header_menu=True,
+            hide_header_menu=True,
+            hide_main_menu=True,
+            hide_column_menus=True,
             locked=["date", "security_id"],
             indexes=["date", "security_id"],
             precision=2,
@@ -101,6 +107,9 @@ def test_startup(unittest):
             hide_shutdown=True,
             hide_header_editor=False,
             lock_header_menu=True,
+            hide_header_menu=True,
+            hide_main_menu=True,
+            hide_column_menus=True,
             locked=["date", "security_id"],
             indexes=["date", "security_id"],
             precision=2,

@@ -1,4 +1,4 @@
-import { createEvent, fireEvent, render, screen } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
 import { Provider, useDispatch } from 'react-redux';
 import { Store } from 'redux';
@@ -19,11 +19,12 @@ describe('Header', () => {
   let container: HTMLElement;
   let rerender: (ui: React.ReactElement<any, string | React.JSXElementConstructor<any>>) => void;
   let props: HeaderProps;
-  const mockDispatch = jest.fn();
+  let mockDispatch = jest.fn();
   const mockStore = configureStore();
   let store: Store;
 
   const buildMock = async (propOverrides?: HeaderProps, state?: { [key: string]: any }): Promise<void> => {
+    mockDispatch = jest.fn();
     store = mockStore({
       dataId: '1',
       settings: {},
@@ -81,7 +82,7 @@ describe('Header', () => {
     myEvent = createEvent.click(textWrapper);
     fireEvent(textWrapper, myEvent);
     expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.DRAG_RESIZE, x: 11 });
-    expect(screen.queryAllByTestId('header-cell')[0]).toHaveStyle(`width: 101px`);
+    expect(screen.queryAllByTestId('header-cell')[0].style.width).toBe('101px');
     const updatedColumns = [{ ...props.columns[0] }, { ...props.columns[1], width: 101, resized: true }];
     myEvent = createEvent.mouseUp(dragHandle, current);
     fireEvent(dragHandle, myEvent);
@@ -103,5 +104,20 @@ describe('Header', () => {
     buildMock(undefined, { settings: { verticalHeaders: true } });
     const textCell = container.getElementsByClassName('text-nowrap')[0];
     expect(textCell).toHaveClass('text-nowrap rotate-header');
+  });
+
+  it('opens column menu', async () => {
+    await act(async () => {
+      await fireEvent.click(container.getElementsByClassName('headerCell')[0].firstElementChild!);
+    });
+    expect(mockDispatch).toHaveBeenCalled();
+  });
+
+  it('hide column menus', async () => {
+    buildMock(undefined, { hideColumnMenus: true });
+    await act(async () => {
+      await fireEvent.click(container.getElementsByClassName('headerCell')[0].firstElementChild!);
+    });
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 });

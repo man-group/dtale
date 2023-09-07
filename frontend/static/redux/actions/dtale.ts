@@ -53,6 +53,30 @@ export const loadLockHeaderMenu = (store: Store<AppState, AnyAction>): void => {
   });
 };
 
+export const loadHideHeaderMenu = (store: Store<AppState, AnyAction>): void => {
+  const { settings, hideHeaderMenu } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_HIDE_HEADER_MENU,
+    value: hideHeaderMenu ?? settings.hide_header_menu ?? hideHeaderMenu,
+  });
+};
+
+export const loadHideMainMenu = (store: Store<AppState, AnyAction>): void => {
+  const { settings, hideMainMenu } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_HIDE_MAIN_MENU,
+    value: hideMainMenu ?? settings.hide_main_menu ?? hideMainMenu,
+  });
+};
+
+export const loadHideColumnMenus = (store: Store<AppState, AnyAction>): void => {
+  const { settings, hideColumnMenus } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_HIDE_COLUMN_MENUS,
+    value: hideColumnMenus ?? settings.hide_column_menus ?? hideColumnMenus,
+  });
+};
+
 export const openCustomFilter = (): SidePanelAction => ({
   type: ActionType.SHOW_SIDE_PANEL,
   view: SidePanelType.FILTER,

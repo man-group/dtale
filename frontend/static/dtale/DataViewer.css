@@ -93,7 +93,6 @@ body,
   border-bottom: 2px solid rgb(170, 170, 170);
   border-right: 2px solid rgb(170, 170, 170);
   text-align: center;
-  cursor: pointer;
 }
 .grid-menu:active,
 .grid-menu.open {

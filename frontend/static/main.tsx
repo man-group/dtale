@@ -45,6 +45,9 @@ let storeBuilder: () => Store = () => {
   actions.loadAllowCellEdits(store);
   actions.loadHideHeaderEditor(store);
   actions.loadLockHeaderMenu(store);
+  actions.loadHideHeaderMenu(store);
+  actions.loadHideMainMenu(store);
+  actions.loadHideColumnMenus(store);
   return store;
 };
 if (pathname.indexOf('/dtale/popup') === 0) {

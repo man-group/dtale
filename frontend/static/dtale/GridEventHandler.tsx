@@ -49,6 +49,7 @@ const selectResult = createSelector(
     selectors.selectCtrlRows,
     selectors.selectSettings,
     selectors.selectLockHeaderMenu,
+    selectors.selectHideHeaderMenu,
     selectors.selectIsArcticDB,
   ],
   (
@@ -66,6 +67,7 @@ const selectResult = createSelector(
     ctrlRows,
     settings,
     lockHeaderMenu,
+    hideHeaderMenu,
     isArcticDB,
   ) => ({
     allowCellEdits: allowCellEdits && !isArcticDB,
@@ -82,6 +84,7 @@ const selectResult = createSelector(
     ctrlRows,
     settings,
     lockHeaderMenu,
+    hideHeaderMenu,
   }),
 );
 
@@ -106,6 +109,7 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
     ctrlRows,
     settings,
     lockHeaderMenu,
+    hideHeaderMenu,
   } = useSelector(selectResult);
   const dispatch = useDispatch();
   const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
@@ -198,7 +202,7 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
   };
 
   React.useEffect(() => {
-    if (lockHeaderMenu) {
+    if (lockHeaderMenu || hideHeaderMenu) {
       return;
     }
     if (currY !== undefined && currY <= 5) {

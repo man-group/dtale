@@ -378,6 +378,9 @@ export interface InstanceSettings {
   column_edit_options?: Record<string, string[]>;
   hide_header_editor: boolean;
   lock_header_menu: boolean;
+  hide_header_menu: boolean;
+  hide_main_menu: boolean;
+  hide_column_menus: boolean;
   isArcticDB?: number;
 }
 
@@ -389,6 +392,9 @@ export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
   predefinedFilters: {},
   hide_header_editor: false,
   lock_header_menu: false,
+  hide_header_menu: false,
+  hide_main_menu: false,
+  hide_column_menus: false,
 });
 
 /** Type definition for semantic versioning of python */
@@ -428,6 +434,9 @@ export interface AppSettings {
   showAllHeatmapColumns: boolean;
   hideHeaderEditor: boolean;
   lockHeaderMenu: boolean;
+  hideHeaderMenu: boolean;
+  hideMainMenu: boolean;
+  hideColumnMenus: boolean;
 }
 
 /** Properties for specifying filtered ranges */

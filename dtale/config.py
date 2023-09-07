@@ -79,6 +79,27 @@ def load_app_settings(config):
         section="app",
         getter="getboolean",
     )
+    hide_header_menu = get_config_val(
+        config,
+        curr_app_settings,
+        "hide_header_menu",
+        section="app",
+        getter="getboolean",
+    )
+    hide_main_menu = get_config_val(
+        config,
+        curr_app_settings,
+        "hide_main_menu",
+        section="app",
+        getter="getboolean",
+    )
+    hide_column_menus = get_config_val(
+        config,
+        curr_app_settings,
+        "hide_column_menus",
+        section="app",
+        getter="getboolean",
+    )
     lock_header_menu = get_config_val(
         config,
         curr_app_settings,
@@ -121,6 +142,9 @@ def load_app_settings(config):
             hide_drop_rows=hide_drop_rows,
             hide_header_editor=hide_header_editor,
             lock_header_menu=lock_header_menu,
+            hide_header_menu=hide_header_menu,
+            hide_main_menu=hide_main_menu,
+            hide_column_menus=hide_column_menus,
         )
     )
 
@@ -187,6 +211,9 @@ def build_show_options(options=None):
         highlight_filter=False,
         hide_header_editor=None,
         lock_header_menu=None,
+        hide_header_menu=None,
+        hide_main_menu=None,
+        hide_column_menus=None,
     )
     config_options = {}
     config = get_config()
