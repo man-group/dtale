@@ -107,7 +107,6 @@ export interface PropagatedState {
   columns: ColumnDef[];
   rowCount: number;
   triggerResize: boolean;
-  fixedColumnCount: number;
   triggerBgResize: boolean;
   data: DataViewerData;
   renameUpdate: (data: DataViewerData) => DataViewerData;

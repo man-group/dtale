@@ -1726,8 +1726,9 @@ def update_locked(data_id):
     col = get_str_arg(request, "col")
     curr_settings = global_state.get_settings(data_id)
     curr_data = global_state.get_data(data_id)
+    curr_settings["locked"] = curr_settings.get("locked") or []
     if action == "lock" and col not in curr_settings["locked"]:
-        curr_settings["locked"].append(col)
+        curr_settings["locked"] = curr_settings["locked"] + [col]
     elif action == "unlock":
         curr_settings["locked"] = [c for c in curr_settings["locked"] if c != col]
 
