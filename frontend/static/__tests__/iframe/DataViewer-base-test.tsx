@@ -103,6 +103,7 @@ describe('DataViewer iframe tests', () => {
       'Hide',
       'Delete',
       'Rename',
+      'Duplicate',
       'Replacements',
       'Type Conversion',
       'Duplicates',

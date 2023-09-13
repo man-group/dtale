@@ -50,9 +50,10 @@ export class Spies {
    * Build the initial wrapper.
    *
    * @param colIdx the index of the column to open the menu of.
+   * @param colMenuBtn the name of the column menu button you want pressed
    * @return main DOM element
    */
-  public async setupWrapper(colIdx: number): Promise<Element> {
+  public async setupWrapper(colIdx: number, colMenuBtn = 'Formats'): Promise<Element> {
     const store = reduxUtils.createDtaleStore();
     this.store = store;
     buildInnerHTML({ settings: '' }, this.store);
@@ -70,7 +71,7 @@ export class Spies {
     await act(async () => {
       await fireEvent.click(screen.queryAllByTestId('header-cell')[colIdx].getElementsByClassName('text-nowrap')[0]);
     });
-    await clickColMenuButton('Formats');
+    await clickColMenuButton(colMenuBtn);
     return result;
   }
 

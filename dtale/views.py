@@ -2492,6 +2492,39 @@ def rename_col(data_id):
     return jsonify(success=True)
 
 
+@dtale.route("/duplicate-col/<data_id>")
+@exception_decorator
+def duplicate_col(data_id):
+    column = get_str_arg(request, "col")
+    data = global_state.get_data(data_id)
+    dupe_idx = 2
+    new_col = "{}_{}".format(column, dupe_idx)
+    while new_col in data.columns:
+        dupe_idx += 1
+        new_col = "{}_{}".format(column, dupe_idx)
+
+    data.loc[:, new_col] = data[column]
+    curr_history = global_state.get_history(data_id) or []
+    curr_history += ["df.loc[:, '%s'] = df['%s']" % (new_col, column)]
+    global_state.set_history(data_id, curr_history)
+    dtypes = []
+    cols = []
+    idx = 0
+    for dt in global_state.get_dtypes(data_id):
+        dt["index"] = idx
+        dtypes.append(dt)
+        cols.append(dt["name"])
+        idx += 1
+        if dt["name"] == column:
+            dtypes.append(dict_merge(dt, dict(name=new_col, index=idx)))
+            cols.append(new_col)
+            idx += 1
+
+    global_state.set_data(data_id, data[cols])
+    global_state.set_dtypes(data_id, dtypes)
+    return jsonify(success=True, col=new_col)
+
+
 @dtale.route("/edit-cell/<data_id>")
 @exception_decorator
 def edit_cell(data_id):

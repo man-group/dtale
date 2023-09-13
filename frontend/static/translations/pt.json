@@ -128,7 +128,8 @@
     "Replacements": "Substituições",
     "Column Analysis": "Análise de Coluna.",
     "Variance Report": "Relatório de Variância",
-    "Formats": "Formatos"
+    "Formats": "Formatos",
+    "Duplicate": "Duplicar"
   },
   "builders": {
     "Type Conversion": "Conversão de Tipo",

@@ -127,7 +127,8 @@
     "Replacements": "Replacements",
     "Column Analysis": "Column Analysis",
     "Variance Report": "Variance Report",
-    "Formats": "Formats"
+    "Formats": "Formats",
+    "Duplicate": "Duplicate"
   },
   "builders": {
     "Type Conversion": "类型转换",

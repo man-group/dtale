@@ -163,6 +163,14 @@ export const moveFiltersToCustom = async (dataId: string): BaseReturn<SettingRes
 export const renameColumn = async (dataId: string, col: string, rename: string): BaseReturn =>
   await baseGetter(buildURLString(`rename-col/${dataId}`, { col, rename }));
 
+/** Response contents for settings update requests */
+interface DuplicateResponse extends BaseResponse {
+  col: string;
+}
+
+export const duplicateColumn = async (dataId: string, col: string): BaseReturn<DuplicateResponse> =>
+  await baseGetter(buildURLString(`duplicate-col/${dataId}`, { col }));
+
 export const updateFormats = async (
   dataId: string,
   col: string,
