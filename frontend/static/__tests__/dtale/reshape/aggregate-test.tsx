@@ -146,6 +146,32 @@ describe('Aggregate', () => {
     expect(window.location.assign).toHaveBeenCalledWith('/dtale/main/2');
   });
 
+  it("reshapes data using aggregate 'By Function' w/ Counts & Percentages", async () => {
+    await act(async () => {
+      fireEvent.click(screen.getByText('By Function'));
+    });
+    await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'Counts & Percentages');
+    await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'col2');
+    await act(async () => {
+      fireEvent.click(screen.getByText('Override Current'));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText('Execute'));
+    });
+
+    await spies.validateCfg({
+      cfg: {
+        index: ['col1'],
+        agg: { type: AggregationOperationType.FUNC, cols: ['col2'], func: 'count_pct' },
+        dropna: true,
+      },
+      type: ReshapeType.AGGREGATE,
+      output: OutputType.OVERRIDE,
+    });
+    expect(window.location.assign).toHaveBeenCalledWith('/dtale/main/2');
+  });
+
   it('handles errors', async () => {
     await spies.validateError('Missing an aggregation selection! Please click "+" button next to Agg input.');
     await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');

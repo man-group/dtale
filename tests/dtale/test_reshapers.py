@@ -195,6 +195,26 @@ def test_aggregate(custom_data, unittest):
         assert global_state.get_settings(new_key).get("startup_code") is not None
         c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
+        reshape_cfg = dict(
+            index="bool_val", agg=dict(type="func", func="count_pct"), dropna=False
+        )
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        assert response_data["data_id"] == new_key
+        assert len(global_state.keys()) == 2
+        unittest.assertEqual(
+            [d["name"] for d in global_state.get_dtypes(new_key)],
+            ["bool_val", "Count", "Percentage"],
+        )
+        assert sum(global_state.get_data(new_key)["Percentage"].values) == 100
+        assert global_state.get_settings(new_key).get("startup_code") is not None
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
 
 @pytest.mark.unit
 def test_aggregate_str_joiner(unittest):

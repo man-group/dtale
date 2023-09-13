@@ -36,6 +36,13 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
     if (!cfg.agg.func) {
       return undefined;
     }
+    if (!!cfg.index?.length && cfg.agg.func === 'count_pct') {
+      return [
+        `df = ${dfStr}`,
+        'counts = df.size()',
+        "pd.DataFrame({'Count': counts, 'Percentage': (counts / len(df)) * 100})",
+      ];
+    }
     const isGmean = cfg.agg.func === 'gmean';
     if (isGmean) {
       code.push('from scipy.stats import gmean');
@@ -82,13 +89,18 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
   const currentAggRef = React.useRef<Select>(null);
   const currentColRef = React.useRef<Select>(null);
   const [currentAggCol, setCurrentAggCol] = React.useState<BaseOption<string>>();
+  const [type, setType] = React.useState<AggregationOperationType>(AggregationOperationType.COL);
+  const [index, setIndex] = React.useState<Array<BaseOption<string>>>();
   const aggregateAggs = React.useMemo(() => {
+    const hasCountPct = type === AggregationOperationType.FUNC && !!index?.length;
+    const funcAggs = hasCountPct ? [{ value: 'count_pct', label: t('Counts & Percentages', { ns: 'constants' }) }] : [];
     const col = currentAggCol?.value;
     if (!col) {
       return [
         ...pivotAggs(t),
         { value: 'gmean', label: t('Geometric Mean', { ns: 'constants' }) },
         { value: 'str_joiner', label: t('String Joiner', { ns: 'constants' }) },
+        ...funcAggs,
       ];
     }
     const colCfg = columns.find(({ name }) => name === col);
@@ -96,13 +108,12 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
       return [
         ...pivotAggs(t).filter((agg) => ['first', 'last', 'count', 'nunique'].indexOf(agg.value) !== -1),
         { value: 'str_joiner', label: t('String Joiner', { ns: 'constants' }) },
+        ...funcAggs,
       ];
     }
-    return [...pivotAggs(t), { value: 'gmean', label: t('Geometric Mean', { ns: 'constants' }) }];
-  }, [t, currentAggCol?.value]);
-  const [index, setIndex] = React.useState<Array<BaseOption<string>>>();
+    return [...pivotAggs(t), { value: 'gmean', label: t('Geometric Mean', { ns: 'constants' }) }, ...funcAggs];
+  }, [t, currentAggCol?.value, type, index]);
   const [dropna, setDropna] = React.useState(true);
-  const [type, setType] = React.useState<AggregationOperationType>(AggregationOperationType.COL);
   const [columnConfig, setColumnConfig] = React.useState<Record<string, string[]>>({});
   const [func, setFunc] = React.useState<BaseOption<string>>();
   const [funcCols, setFuncCols] = React.useState<Array<BaseOption<string>>>();

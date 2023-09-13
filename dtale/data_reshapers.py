@@ -143,6 +143,11 @@ class AggregateBuilder(object):
                 data, index, dropna=dropna if dropna is not None else True
             )
             if agg_type == "func":
+                if "count_pct" == func:
+                    counts = agg_data.size()
+                    return pd.DataFrame(
+                        {"Count": counts, "Percentage": (counts / len(data)) * 100}
+                    )
                 if cols:
                     agg_data = agg_data[cols]
                 elif pandas_util.is_pandas2():
@@ -188,6 +193,16 @@ class AggregateBuilder(object):
         if index:
             index = "', '".join(index)
             if agg_type == "func":
+                if "count_pct" == agg:
+                    code.append(
+                        (
+                            "total_records = len(df)\n"
+                            "df = df{groupby}\n"
+                            "counts = df.size()\n"
+                            "df = pd.DataFrame({'Count': counts, 'Percentage': (counts / total_records) * 100})"
+                        )
+                    )
+                    return code
                 agg_str = ".agg(gmean)" if agg == "gmean" else ".{}()".format(agg)
                 if cols is not None:
                     code.append(
