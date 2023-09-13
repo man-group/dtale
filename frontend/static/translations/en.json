@@ -834,7 +834,8 @@
     "Choose Col": "Choose Col",
     "Geometric Mean": "Geometric Mean",
     "OHLC": "OHLC",
-    "String Joiner": "String Joiner"
+    "String Joiner": "String Joiner",
+    "Counts & Percentages": "Counts & Percentages"
   },
   "charts": {
     "Window": "Window",
