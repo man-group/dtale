@@ -453,7 +453,7 @@ export const DataViewer: React.FC = () => {
       </InfiniteLoader>
       <Popup propagateState={propagateState} />
       <Formatting data={data} columns={columns} rowCount={rowCount} propagateState={propagateState} />
-      {!hideColumnMenus && <ColumnMenu columns={columns} propagateState={propagateState} />}
+      {!hideColumnMenus && <ColumnMenu columns={columns} data={data} propagateState={propagateState} />}
       <RibbonDropdown columns={columns} propagateState={propagateState} rows={rowCount} />
     </GridEventHandler>
   );

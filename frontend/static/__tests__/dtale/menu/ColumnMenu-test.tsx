@@ -74,7 +74,7 @@ describe('ColumnMenu', () => {
       async () =>
         await render(
           <Provider store={store}>
-            <ColumnMenu columns={[...reduxUtils.DTYPES.dtypes]} propagateState={propagateState} />)
+            <ColumnMenu columns={[...reduxUtils.DTYPES.dtypes]} propagateState={propagateState} data={{}} />)
           </Provider>,
         ),
     );

@@ -13,7 +13,7 @@ import * as actions from '../../redux/actions/dtale';
 import { buildURLString } from '../../redux/actions/url-utils';
 import * as selectors from '../../redux/selectors';
 import { Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
-import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
+import { ColumnDef, DataViewerData, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 import * as menuFuncs from '../menu/dataViewerMenuUtils';
 import * as serverState from '../serverStateManagement';
@@ -27,6 +27,7 @@ import SortOptions from './SortOptions';
 /** Component properties of ColumnMenu */
 export interface ColumnMenuProps {
   columns: ColumnDef[];
+  data: DataViewerData;
   propagateState: DataViewerPropagateState;
   backgroundMode?: string;
 }
@@ -75,7 +76,13 @@ const selectResult = createSelector(
   }),
 );
 
-const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMode, columns, propagateState, t }) => {
+const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
+  backgroundMode,
+  columns,
+  data,
+  propagateState,
+  t,
+}) => {
   const reduxState = useSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => reduxState.isArcticDB!! && (reduxState.isArcticDB >= 1_000_000 || reduxState.columnCount > 100),
@@ -149,6 +156,27 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
   };
   const renameCol = (): OpenChartAction =>
     openChart({ type: PopupType.RENAME, selectedCol, columns, size: 'sm', visible: true });
+  const duplicateCol = async (): Promise<void> => {
+    const resp = await serverState.duplicateColumn(dataId, selectedCol);
+    if (resp?.success) {
+      const updatedColumns = [] as ColumnDef[];
+      let cIdx = 0;
+      columns.forEach((c) => {
+        if (c.name === gu.IDX) {
+          updatedColumns.push(c);
+          return;
+        }
+        updatedColumns.push({ ...c, index: cIdx++ });
+        if (c.name === selectedCol) {
+          updatedColumns.push({ ...c, name: resp.col, index: cIdx++ });
+        }
+      });
+      const updatedData: DataViewerData = { ...data };
+      Object.values(updatedData).forEach((record) => (record[resp.col] = record[selectedCol]));
+      propagateState({ columns: updatedColumns, data: updatedData, triggerResize: true });
+      hideColumnMenu(selectedCol);
+    }
+  };
   const openAction = (popup: Popups): (() => void) => openPopup(popup, 400, 770);
   const closeMenu = (): AnyAction => hideColumnMenu(selectedCol);
 
@@ -216,6 +244,13 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
         )}
         {!reduxState.isArcticDB && (
           <ColumnMenuOption
+            open={duplicateCol}
+            label={t('column_menu:Duplicate')}
+            iconClass="fa-regular fa-copy ml-2 mr-3"
+          />
+        )}
+        {!reduxState.isArcticDB && (
+          <ColumnMenuOption
             open={openAction({
               type: PopupType.REPLACEMENT,
               selectedCol,
@@ -224,7 +259,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
               visible: true,
             })}
             label={t('column_menu:Replacements')}
-            iconClass="fas fa-backspace mr-3"
+            iconClass="fas fa-backspace ml-1 mr-3"
           />
         )}
         {!reduxState.isArcticDB && (

@@ -724,6 +724,29 @@ def test_delete_cols():
 
 
 @pytest.mark.unit
+def test_duplicate_cols(unittest):
+    from dtale.views import build_dtypes_state
+
+    df = pd.DataFrame([dict(a=1, b=2, c=3)])
+    with app.test_client() as c:
+        data = {c.port: df}
+        build_data_inst(data)
+        settings = {c.port: {"locked": ["a"]}}
+        build_settings(settings)
+        dtypes = {c.port: build_dtypes_state(df)}
+        build_dtypes(dtypes)
+
+        resp = c.get(
+            "/dtale/duplicate-col/{}".format(c.port),
+            query_string=dict(col="b"),
+        )
+        unittest.assertEquals(
+            list(global_state.get_data(c.port).columns), ["a", "b", "b_2", "c"]
+        )
+        assert resp.json["col"] == "b_2"
+
+
+@pytest.mark.unit
 def test_rename_col():
     from dtale.views import build_dtypes_state
 
