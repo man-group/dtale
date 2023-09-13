@@ -109,7 +109,10 @@ export const heatmapAllActive = (backgroundMode?: string): boolean =>
   ['heatmap-col-all', 'heatmap-all-all'].includes(backgroundMode ?? '');
 
 export const getActiveCols = (columns: ColumnDef[], backgroundMode?: string): ColumnDef[] =>
-  columns?.filter((c) => (heatmapActive(backgroundMode) ? getHeatActive(c) : c.visible ?? false)) ?? [];
+  columns.filter((c) => (heatmapActive(backgroundMode) ? getHeatActive(c) : c.visible ?? false)) ?? [];
+
+export const getActiveLockedCols = (columns: ColumnDef[], backgroundMode?: string): ColumnDef[] =>
+  getActiveCols(columns, backgroundMode).filter((c) => c.locked) ?? [];
 
 export const getCol = (index: number, columns: ColumnDef[], backgroundMode?: string): ColumnDef | undefined =>
   getActiveCols(columns, backgroundMode)[index];

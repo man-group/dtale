@@ -117,7 +117,6 @@ export const DataViewer: React.FC = () => {
     dispatch({ type: ActionType.CLEAR_DATA_VIEWER_UPDATE });
 
   const [rowCount, setRowCount] = React.useState(!!isArcticDB ? isArcticDB : 0);
-  const [fixedColumnCount, setFixedColumnCount] = React.useState((settings.locked ?? []).length + 1); // add 1 for IDX column
   const [data, setData] = React.useState<DataViewerData>({});
   const [loading, setLoading] = React.useState(false);
   const [ids, setIds] = React.useState<number[]>([]);
@@ -334,7 +333,6 @@ export const DataViewer: React.FC = () => {
     setData(finalState.data ?? data);
     setColumns(finalState.columns ?? columns);
     setRowCount(finalState.rowCount ?? rowCount);
-    setFixedColumnCount(finalState.fixedColumnCount ?? fixedColumnCount);
     setTriggerResize(finalState.triggerResize ?? triggerResize);
     callback?.();
   };
@@ -426,7 +424,7 @@ export const DataViewer: React.FC = () => {
                     overscanColumnCount={0}
                     overscanRowCount={5}
                     fixedRowCount={1}
-                    fixedColumnCount={fixedColumnCount}
+                    fixedColumnCount={gu.getActiveLockedCols(columns, settings.backgroundMode).length}
                     rowCount={rowCount}
                     columnCount={gu.getActiveCols(columns, settings.backgroundMode).length}
                     onScroll={closeColumnMenu}

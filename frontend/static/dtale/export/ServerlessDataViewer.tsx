@@ -80,7 +80,6 @@ export const ServerlessDataViewer: React.FC<ServerlessDataViewerProps> = ({ resp
     dispatch(actions.updateFilteredRanges(query) as any as AnyAction);
 
   const [rowCount, setRowCount] = React.useState(0);
-  const [fixedColumnCount, setFixedColumnCount] = React.useState((settings.locked ?? []).length + 1); // add 1 for IDX column
   const [data, setData] = React.useState<DataViewerData>({});
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
   const [triggerResize, setTriggerResize] = React.useState(false);
@@ -194,7 +193,6 @@ export const ServerlessDataViewer: React.FC<ServerlessDataViewerProps> = ({ resp
     setData(finalState.data ?? data);
     setColumns(finalState.columns ?? columns);
     setRowCount(finalState.rowCount ?? rowCount);
-    setFixedColumnCount(finalState.fixedColumnCount ?? fixedColumnCount);
     setTriggerResize(finalState.triggerResize ?? triggerResize);
     callback?.();
   };
@@ -218,7 +216,7 @@ export const ServerlessDataViewer: React.FC<ServerlessDataViewerProps> = ({ resp
               overscanColumnCount={0}
               overscanRowCount={5}
               fixedRowCount={1}
-              fixedColumnCount={fixedColumnCount}
+              fixedColumnCount={gu.getActiveLockedCols(columns, settings.backgroundMode).length}
               rowCount={rowCount}
               columnCount={gu.getActiveCols(columns, settings.backgroundMode).length}
               cellRenderer={cellRenderer}
