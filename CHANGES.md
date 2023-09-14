@@ -1,4 +1,11 @@
 ## Changelog
+
+### 3.5.0 (2023-9-14)
+* [#796](https://github.com/man-group/dtale/issues/796): option to hide ribbon n & column menus
+* [#797](https://github.com/man-group/dtale/issues/797): added 'Counts & Percentages' summarize function
+* [#800](https://github.com/man-group/dtale/issues/800): heatmap locked column fix
+* [#798](https://github.com/man-group/dtale/issues/798): added 'Duplicate' function to column menu
+
 ### 3.4.0 (2023-9-5)
 * [#792](https://github.com/man-group/dtale/issues/792): adding in percentage to 'Value Counts' describe chart
 * [#788](https://github.com/man-group/dtale/issues/788): fix for when column names have a pipe character
