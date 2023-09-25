@@ -99,8 +99,8 @@ class PivotBuilder(object):
         return "\n".join(code)
 
 
-def str_joiner(vals):
-    return ",".join(vals)
+def str_joiner(vals, join_char="|"):
+    return join_char.join(vals)
 
 
 def custom_agg_handler(agg):
@@ -123,7 +123,7 @@ def custom_str_handler(aggs):
             if agg == "gmean":
                 yield agg
             elif agg == "str_joiner":
-                yield "','.join"
+                yield "'|'.join"
             else:
                 yield "'{}'".format(agg)
 
