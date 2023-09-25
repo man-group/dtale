@@ -818,45 +818,43 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
                 thread.start()
 
             def _start():
-                app = build_app(
-                    app_url,
-                    reaper_on=final_options["reaper_on"],
-                    host=ACTIVE_HOST,
-                    app_root=final_app_root,
-                )
-                if final_options["debug"] and not USE_NGROK:
-                    app.jinja_env.auto_reload = True
-                    app.config["TEMPLATES_AUTO_RELOAD"] = True
-                else:
-                    logging.getLogger("werkzeug").setLevel(LOG_ERROR)
-
-                if final_options["open_browser"]:
-                    instance.open_browser()
-
-                # hide banner message in production environments
-                cli = sys.modules.get("flask.cli")
-                if cli is not None:
-                    cli.show_server_banner = lambda *x: None
-
-                if USE_NGROK:
-                    app.run(threaded=True)
-                else:
-                    app.run(
-                        host="0.0.0.0",
-                        port=ACTIVE_PORT,
-                        debug=final_options["debug"],
-                        threaded=True,
+                try:
+                    app = build_app(
+                        app_url,
+                        reaper_on=final_options["reaper_on"],
+                        host=ACTIVE_HOST,
+                        app_root=final_app_root,
                     )
+                    if final_options["debug"] and not USE_NGROK:
+                        app.jinja_env.auto_reload = True
+                        app.config["TEMPLATES_AUTO_RELOAD"] = True
+                    else:
+                        logging.getLogger("werkzeug").setLevel(LOG_ERROR)
+
+                    if final_options["open_browser"]:
+                        instance.open_browser()
+
+                    # hide banner message in production environments
+                    cli = sys.modules.get("flask.cli")
+                    if cli is not None:
+                        cli.show_server_banner = lambda *x: None
+
+                    if USE_NGROK:
+                        app.run(threaded=True)
+                    else:
+                        app.run(
+                            host="0.0.0.0",
+                            port=ACTIVE_PORT,
+                            debug=final_options["debug"],
+                            threaded=True,
+                        )
+                except BaseException as ex:
+                    logger.exception(ex)
 
         if final_options["subprocess"]:
             if is_active:
                 _start()
             else:
-                # import multiprocessing
-                #
-                # p = multiprocessing.Process(target=_start, args=())
-                # p.start()
-
                 _thread.start_new_thread(_start, ())
 
             if final_options["notebook"]:
