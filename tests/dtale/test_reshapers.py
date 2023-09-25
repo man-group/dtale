@@ -250,7 +250,7 @@ def test_aggregate_str_joiner(unittest):
         )
         output = global_state.get_data(new_key)
         assert len(output) == 1
-        assert output["b str_joiner"].values[0] == "foo,bar"
+        assert output["b str_joiner"].values[0] == "foo|bar"
         assert global_state.get_settings(new_key).get("startup_code") is not None
         c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
