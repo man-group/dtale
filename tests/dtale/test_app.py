@@ -222,8 +222,9 @@ def test_show(unittest):
             force=True,
             debug=True,
             ignore_duplicate=True,
+            ssl_context="adhoc",
         )
-        assert "http://localhost:9999" == instance._url
+        assert "https://localhost:9999" == instance._url
         mock_run.assert_called_once()
         mock_find_free_port.assert_not_called()
         mock_data_loader.assert_called_once()

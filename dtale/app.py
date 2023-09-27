@@ -62,6 +62,7 @@ USE_COLAB = False
 JUPYTER_SERVER_PROXY = False
 ACTIVE_HOST = None
 ACTIVE_PORT = None
+SSL_CONTEXT = None
 
 _basepath = os.path.dirname(__file__)
 _filepath = os.path.abspath(os.path.join(_basepath, "static"))
@@ -608,13 +609,13 @@ def find_free_port():
 
 
 def build_startup_url_and_app_root(app_root=None):
-    global ACTIVE_HOST, ACTIVE_PORT, JUPYTER_SERVER_PROXY, USE_COLAB
+    global ACTIVE_HOST, ACTIVE_PORT, SSL_CONTEXT, JUPYTER_SERVER_PROXY, USE_COLAB
 
     if USE_COLAB:
         colab_host = use_colab(ACTIVE_PORT)
         if colab_host:
             return colab_host, None
-    url = build_url(ACTIVE_PORT, ACTIVE_HOST)
+    url = build_url(ACTIVE_PORT, ACTIVE_HOST, SSL_CONTEXT is not None)
     final_app_root = app_root
     if final_app_root is None and JUPYTER_SERVER_PROXY:
         final_app_root = os.environ.get("JUPYTERHUB_SERVICE_PREFIX")
@@ -729,7 +730,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
 
         ..link displayed in logging can be copied and pasted into any browser
     """
-    global ACTIVE_HOST, ACTIVE_PORT, USE_NGROK
+    global ACTIVE_HOST, ACTIVE_PORT, SSL_CONTEXT, USE_NGROK
 
     if name:
         if global_state.get_data_id_by_name(name):
@@ -767,6 +768,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
                 final_options["host"], final_options["port"], final_options["force"]
             )
 
+        SSL_CONTEXT = options.get("ssl_context")
         app_url = build_url(ACTIVE_PORT, ACTIVE_HOST)
         startup_url, final_app_root = build_startup_url_and_app_root(
             final_options["app_root"]
@@ -839,14 +841,19 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
                     if cli is not None:
                         cli.show_server_banner = lambda *x: None
 
+                    run_kwargs = {}
+                    if options.get("ssl_context"):
+                        run_kwargs["ssl_context"] = options.get("ssl_context")
+
                     if USE_NGROK:
-                        app.run(threaded=True)
+                        app.run(threaded=True, **run_kwargs)
                     else:
                         app.run(
                             host="0.0.0.0",
                             port=ACTIVE_PORT,
                             debug=final_options["debug"],
                             threaded=True,
+                            **run_kwargs
                         )
                 except BaseException as ex:
                     logger.exception(ex)

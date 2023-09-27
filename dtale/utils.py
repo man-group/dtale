@@ -82,7 +82,7 @@ def get_host(host=None):
     raise Exception("Hostname ({}) is not recognized".format(host))
 
 
-def build_url(port, host):
+def build_url(port, host, ssl=False):
     """
     Returns full url combining host(if not specified will use the output of :func:`python:socket.gethostname`) & port
 
@@ -90,12 +90,14 @@ def build_url(port, host):
     :type port: str
     :param host: hostname, can start with 'http://', 'https://' or just the hostname itself
     :type host: str, optional
+    :param ssl: whether the app is being hosted under HTTPS or not
+    :type ssl: boolean, optional
     :return: str
     """
     final_port = ":{}".format(port) if port is not None else ""
     if (host or "").startswith("http"):
         return "{}{}".format(host, final_port)
-    return "http://{}{}".format(host, final_port)
+    return "http{}://{}{}".format("s" if ssl else "", host, final_port)
 
 
 def build_shutdown_url(base):
