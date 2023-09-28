@@ -16,6 +16,7 @@ const PARAM_PROPS = ['selectedCol', 'bins', 'top', 'type', 'ordinalCol', 'ordina
   'target',
   'filtered',
   'density',
+  'splits',
 ]);
 
 /**

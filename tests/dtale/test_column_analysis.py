@@ -358,3 +358,45 @@ def test_get_column_analysis_qq():
         )
         response_data = response.get_json()
         assert all(len(response_data[prop]) == 100 for prop in ["x", "y", "x2", "y2"])
+
+
+@pytest.mark.unit
+def test_get_column_analysis_frequency(unittest):
+    import dtale.views as views
+
+    df = pd.DataFrame(
+        dict(
+            a=[1, 1, 1, 1, 2, 2, 2, 2],
+            b=[3, 3, 4, 4, 5, 5, 6, 6],
+            c=[1, 2, 3, 4, 5, 6, 7, 8],
+        )
+    )
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        settings = {c.port: {}}
+        build_settings(settings)
+        response = c.get(
+            "/dtale/column-analysis/{}".format(c.port),
+            query_string=dict(col="a", type="frequency"),
+        )
+        response_data = response.get_json()
+        unittest.assertEqual(
+            response_data["data"],
+            {"Frequency": [4, 4], "Percent": [50.0, 50.0], "a": [1, 2]},
+        )
+
+        response = c.get(
+            "/dtale/column-analysis/{}".format(c.port),
+            query_string=dict(col="a", type="frequency", splits="b"),
+        )
+        response_data = response.get_json()
+        unittest.assertEqual(
+            response_data["data"],
+            {
+                "Frequency": [2, 2, 2, 2],
+                "Percent": [50.0, 50.0, 50.0, 50.0],
+                "a": [1, 1, 2, 2],
+                "b": [3, 4, 5, 6],
+            },
+        )

@@ -61,6 +61,7 @@ describe('DescribeFilters tests', () => {
         'Describe',
         'Histogram',
         'Value Counts',
+        'Frequency Table',
         'Q-Q Plot',
       ]);
     });
@@ -133,6 +134,7 @@ describe('DescribeFilters tests', () => {
         'Describe',
         'Histogram',
         'Value Counts',
+        'Frequency Table',
         'Q-Q Plot',
       ]);
     });

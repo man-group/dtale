@@ -53,7 +53,7 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
     if (isGmean) {
       code.push(`${dfStr}.apply(gmean)`);
     } else if (cfg.agg.func === 'str_joiner') {
-      code.push(`${dfStr}.apply(",".join)`);
+      code.push(`${dfStr}.apply("|".join)`);
     } else {
       code.push(`${dfStr}.${cfg.agg.func}()`);
     }
@@ -66,7 +66,7 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
       if (agg === 'gmean') {
         return 'gmean';
       } else if (agg === 'str_joiner') {
-        return `",".join`;
+        return `"|".join`;
       } else {
         return `'${agg}'`;
       }

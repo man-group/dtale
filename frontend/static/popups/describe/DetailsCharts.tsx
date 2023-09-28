@@ -13,7 +13,7 @@ import { DetailData, WordValueState } from './DescribeState';
 import DetailsBoxplot from './DetailsBoxplot';
 
 /** Component properties for DetailsCharts */
-interface DetailsChartsProps {
+export interface DetailsChartsProps {
   details: DetailData;
   detailCode?: string;
   cols: ColumnDef[];

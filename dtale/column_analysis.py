@@ -85,11 +85,12 @@ class ColumnAnalysis(object):
         self.analysis_type = get_str_arg(req, "type")
         curr_settings = global_state.get_settings(data_id) or {}
         self.query = build_query(data_id, curr_settings.get("query"))
-        data = load_filterable_data(data_id, req, query=self.query)
+        self.data = load_filterable_data(data_id, req, query=self.query)
         self.selected_col = find_selected_column(
-            data, get_str_arg(req, "col", "values")
+            self.data, get_str_arg(req, "col", "values")
         )
-        self.data = data[~pd.isnull(data[self.selected_col])]
+        if self.analysis_type != "frequency":
+            self.data = self.data[~pd.isnull(self.data[self.selected_col])]
         self.dtype = find_dtype(self.data[self.selected_col])
         self.classifier = classify_type(self.dtype)
         self.code = build_code_export(
@@ -122,6 +123,8 @@ class ColumnAnalysis(object):
             self.analysis = WordValueCountAnalysis(req)
         elif self.analysis_type == "qq":
             self.analysis = QQAnalysis()
+        elif self.analysis_type == "frequency":
+            self.analysis = FrequencyAnalysis(req)
 
     def build(self):
         base_code = build_code_export(
@@ -390,6 +393,18 @@ class CategoryAnalysis(object):
         return code
 
 
+def build_hist(s, code, df_var="chart"):
+    code.append("{} = pd.value_counts(s).to_frame(name='data')".format(df_var))
+    code.append(
+        "{df_var}['percent'] = ({df_var}['data'] / {df_var}['data'].sum()) * 100".format(
+            df_var=df_var
+        )
+    )
+    df = pd.value_counts(s).to_frame(name="data")
+    df["percent"] = (df["data"] / df["data"].sum()) * 100
+    return df
+
+
 class ValueCountAnalysis(object):
     def __init__(self, req):
         self.top = get_int_arg(req, "top")
@@ -398,11 +413,7 @@ class ValueCountAnalysis(object):
         self.cleaners = get_str_arg(req, "cleaner")
 
     def build_hist(self, s, code):
-        code.append("chart = pd.value_counts(s).to_frame(name='data')")
-        code.append("chart['percent'] = (chart['data'] / chart['data'].sum()) * 100")
-        df = pd.value_counts(s).to_frame(name="data")
-        df["percent"] = (df["data"] / df["data"].sum()) * 100
-        return df
+        return build_hist(s, code)
 
     def setup_ordinal_data(self, parent):
         if self.ordinal_agg == "pctsum":
@@ -659,3 +670,110 @@ class QQAnalysis(object):
             "figure = go.Figure(data=chart, layout=go.{layout})".format(layout=layout),
         ]
         return code
+
+
+"""
+http://anschonfel.hn.res.num:9205/dtale/column-analysis/1?col=str_val&top=10&type=frequency&filtered=false
+"""
+
+
+class FrequencyAnalysis(object):
+    def __init__(self, req):
+        self.top = get_int_arg(req, "top")
+        self.split_cols = get_str_arg(req, "splits", "")
+        if self.split_cols:
+            self.split_cols = self.split_cols.split(",")
+        else:
+            self.split_cols = []
+        self.cleaners = get_str_arg(req, "cleaner")
+
+    def build(self, parent):
+        code = []
+        if parent.classifier == "S":
+            code.append(
+                "s = df.fillna('Missing')['{col}']".format(col=parent.selected_col)
+            )
+            s, cleaner_code = handle_cleaners(
+                parent.data[parent.selected_col].fillna("Missing"), self.cleaners
+            )
+            code += cleaner_code
+        else:
+            code.append(
+                "s = df['{col}'].fillna('Missing').astype(str)".format(
+                    col=parent.selected_col
+                )
+            )
+            formatter = find_dtype_formatter(parent.dtype)
+            s = parent.data[parent.selected_col].apply(
+                lambda x: formatter(x, nan_display="Missing")
+            )
+
+        df_var = "base_vals" if len(self.split_cols) else "result"
+
+        base_vals = build_hist(s, code, df_var)
+        base_vals.index.name = parent.selected_col
+        base_vals = base_vals.rename(
+            columns={"data": "Frequency", "percent": "Percent"}
+        )
+        base_vals = base_vals[base_vals["Frequency"] > 0]
+        base_vals = base_vals.reset_index().sort_values(
+            ["Frequency", parent.selected_col], ascending=[False, True]
+        )
+        base_vals = base_vals.head(self.top)
+
+        code += [
+            "{}.index.name = '{}'".format(df_var, parent.selected_col),
+            "{df_var} = {df_var}.{rename}".format(
+                df_var=df_var,
+                rename="rename(columns={'data': 'Frequency', 'percent': 'Percent'})",
+            ),
+            "{df_var} = {df_var}[{df_var}['Frequency'] > 0]".format(df_var=df_var),
+            "{df_var} = {df_var}.reset_index().sort_values(['Frequency', '{col}'], ascending=[False, True])".format(
+                df_var=df_var, col=parent.selected_col
+            ),
+            "{df_var} = {df_var}.head(self.top)".format(df_var=df_var),
+        ]
+
+        if len(self.split_cols):
+            top_vals = base_vals[parent.selected_col]
+            val_filter = parent.data[parent.selected_col].isin(top_vals)
+            val_filter_code = "val_filter = df['{col}'].isin(top_vals)".format(
+                col=parent.selected_col
+            )
+            if (top_vals == "Missing").any():
+                val_filter = val_filter | parent.data[parent.selected_col].isnull()
+                val_filter_code = "({val_filter} | df['{col}'].isnull())".format(
+                    val_filter=val_filter, col=parent.selected_col
+                )
+            hist = parent.data[val_filter].groupby([s] + self.split_cols).size()
+            hist.name = "Frequency"
+            hist = hist.reset_index()
+            hist = hist[hist["Frequency"] > 0]
+            outer_freq = hist.groupby(parent.selected_col)["Frequency"].transform("sum")
+            hist["Percent"] = (hist["Frequency"] / outer_freq) * 100
+
+            code += [
+                "top_vals = {df_var}['{col}']".format(
+                    df_var=df_var, col=parent.selected_col
+                ),
+                val_filter_code,
+                "result = df[val_filter].groupby([s, '{}']).size()".format(
+                    "', '".join(self.split_cols)
+                ),
+                "result.name = 'Frequency'",
+                "result = result.reset_index()",
+                "result = result[result['Frequency'] > 0]",
+                "outer_freq = result.groupby('{}')['Frequency'].transform('sum')".format(
+                    parent.selected_col
+                ),
+                "result['Percent'] = (result['Frequency'] / outer_freq) * 100",
+            ]
+        else:
+            hist = base_vals
+
+        col_types = grid_columns(hist)
+        f = grid_formatter(col_types, nan_display=None)
+        return_data = f.format_lists(hist)
+        return_data = dict(data=return_data)
+        return_data["top"] = self.top
+        return return_data, code

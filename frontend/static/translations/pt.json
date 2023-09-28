@@ -795,7 +795,10 @@
     "Desc": "Desc",
     "None": "Nenhum",
     "navigate": "Usar botões ↑ ↓ para mudar colunas",
-    "Most Frequent": "Mais frequentes"
+    "Most Frequent": "Mais frequentes",
+    "Frequency":"Frequency",
+    "Percent": "Percent",
+    "TOTAL": "TOTAL"
   },
   "constants": {
     "Histogram": "Histograma",
@@ -832,7 +835,9 @@
     "Geometric Mean": "Geometric Mean",
     "OHLC": "OHLC",
     "String Joiner": "String Joiner",
-    "Counts & Percentages": "Counts & Percentages"
+    "Counts & Percentages": "Counts & Percentages",
+    "Frequency Table": "Frequency Table",
+    "Splits": "Splits"
   },
   "charts": {
     "Window": "Janela",
