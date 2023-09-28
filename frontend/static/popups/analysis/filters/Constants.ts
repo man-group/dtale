@@ -55,6 +55,7 @@ export const titles = (t: TFunction): Record<string, string> => ({
   word_value_counts: t('Word Value Counts', { ns: 'constants' }),
   geolocation: t('Geolocation', { ns: 'constants' }),
   qq: t('Q-Q Plot', { ns: 'constants' }),
+  frequency: t('Frequency Table', { ns: 'constants' }),
 });
 
 export const sortOptions = (a: BaseOption<string>, b: BaseOption<string>): number =>

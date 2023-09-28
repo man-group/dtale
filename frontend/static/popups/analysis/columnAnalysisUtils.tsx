@@ -8,6 +8,7 @@ import { calcInfoMsg, kurtMsgText, skewMsgText } from '../../dtale/column/Column
 import { RemovableError } from '../../RemovableError';
 import * as ColumnAnalysisRepository from '../../repository/ColumnAnalysisRepository';
 import { capitalize } from '../../stringUtils';
+import FrequencyGrid from '../describe/FrequencyGrid';
 
 import { ColumnAnalysisChart } from './ColumnAnalysisChart';
 import {
@@ -332,6 +333,8 @@ export async function dataLoader(
   } else if (params.type === AnalysisType.CATEGORIES) {
     params.categoryCol = finalParams.categoryCol?.value ?? '';
     params.categoryAgg = finalParams.categoryAgg?.value ?? '';
+  } else if (params.type === AnalysisType.FREQUENCY) {
+    params.splits = finalParams.splits?.map((cleaner) => cleaner.value).join(',');
   }
   if (finalParams?.cleaners && finalParams?.cleaners?.length) {
     params.cleaners = finalParams.cleaners?.map((cleaner) => cleaner.value).join(',');
@@ -359,14 +362,20 @@ export async function dataLoader(
         count: response.data[index],
       }));
     }
-    newState.chart = (
-      <ColumnAnalysisChart
-        chartRef={chartUpdater}
-        finalParams={{ ...finalParams, selectedCol, type: newState.type }}
-        fetchedChartData={response}
-        height={height}
-      />
-    );
+    if (response?.chart_type === AnalysisType.FREQUENCY) {
+      newState.chart = (
+        <FrequencyGrid finalParams={{ ...finalParams, selectedCol, type: newState.type }} fetchedChartData={response} />
+      );
+    } else {
+      newState.chart = (
+        <ColumnAnalysisChart
+          chartRef={chartUpdater}
+          finalParams={{ ...finalParams, selectedCol, type: newState.type }}
+          fetchedChartData={response}
+          height={height}
+        />
+      );
+    }
     propagateState({ ...newState, wordValues });
   }
 }

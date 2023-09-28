@@ -1,0 +1,15 @@
+.frequency-header {
+  font-weight: bold;
+  text-align: center;
+}
+
+.frequency-row {
+}
+
+.frequency-row-grey {
+  background-color: rgba(82, 187, 239, 0.2);
+}
+
+.frequency-row-bold {
+  font-weight: bold;
+}

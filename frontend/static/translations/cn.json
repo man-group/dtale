@@ -797,7 +797,10 @@
     "Desc": "Desc",
     "None": "None",
     "navigate": "Use ↑ ↓ buttons to switch columns",
-    "Most Frequent": "Most Frequent"
+    "Most Frequent": "Most Frequent",
+    "Frequency":"Frequency",
+    "Percent": "Percent",
+    "TOTAL": "TOTAL"
   },
   "constants": {
     "Histogram": "直方图",
@@ -834,7 +837,9 @@
     "Geometric Mean": "Geometric Mean",
     "OHLC": "OHLC",
     "String Joiner": "String Joiner",
-    "Counts & Percentages": "Counts & Percentages"
+    "Counts & Percentages": "Counts & Percentages",
+    "Frequency Table": "Frequency Table",
+    "Splits": "Splits"
   },
   "charts": {
     "Window": "窗口",
