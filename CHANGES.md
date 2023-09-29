@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.6.0 (2023-9-29)
+* [#804](https://github.com/man-group/dtale/issues/804): updated summarize code to string join using a pipe instead of comma
+* [#805](https://github.com/man-group/dtale/issues/805): allow D-Tale to be run under HTTPS
+* [#803](https://github.com/man-group/dtale/issues/803): Frequency Table
+
 ### 3.5.0 (2023-9-14)
 * [#796](https://github.com/man-group/dtale/issues/796): option to hide ribbon n & column menus
 * [#797](https://github.com/man-group/dtale/issues/797): added 'Counts & Percentages' summarize function
