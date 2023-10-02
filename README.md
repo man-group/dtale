@@ -982,7 +982,7 @@ Custom filters are vulnerable to code injection attacks, please only use in trus
 
 **You can turn this feature on by doing one of the following:**
  - **add `enable_custom_filters=True` to your `dtale.show` call**
- - **add `enable_custom_filters = False` to the [app] section of your dtale.ini config file ([more info](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md))**
+ - **add `enable_custom_filters = True` to the [app] section of your dtale.ini config file ([more info](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md))**
  - **run this code before calling dtale.show:**
 ```python
 import dtale.global_state as global_state
