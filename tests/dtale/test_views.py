@@ -1008,7 +1008,16 @@ def test_build_column():
             else "int64"
         )
 
-        for p in ["minute", "hour", "time", "date", "month", "quarter", "year"]:
+        for p in [
+            "minute",
+            "hour",
+            "time",
+            "date",
+            "weekday_name",
+            "month",
+            "quarter",
+            "year",
+        ]:
             c.get(
                 "/dtale/build-column/{}".format(c.port),
                 query_string=dict(

@@ -37,6 +37,9 @@ export const buildCode = (cfg: DatetimeConfig): CreateColumnCodeSnippet => {
     if (!property) {
       return undefined;
     }
+    if (property === DatetimePropertyType.WEEKDAY_NAME) {
+      return `df['${col}'].dt.day_name()`;
+    }
     code = `df['${col}'].dt.${property}`;
   } else {
     if (!conversion) {

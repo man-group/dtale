@@ -85,6 +85,13 @@ describe('CreateColumn buildCode tests', () => {
       conversion: DatetimeConversionType.MONTH_END,
     });
     expect(code).toBe("df['col1'].dt.hour");
+    code = buildDatetimeCode({
+      col: 'col1',
+      operation: DatetimeOperation.PROPERTY,
+      property: DatetimePropertyType.WEEKDAY_NAME,
+      conversion: DatetimeConversionType.MONTH_END,
+    });
+    expect(code).toBe("df['col1'].dt.day_name()");
   });
 
   it('Bins buildCode test', () => {
