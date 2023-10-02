@@ -63,6 +63,7 @@ export enum ActionType {
   UPDATE_HIDE_HEADER_MENU = 'update-hide-header-menu',
   UPDATE_HIDE_MAIN_MENU = 'update-hide-main-menu',
   UPDATE_HIDE_COLUMN_MENUS = 'update-hide-column-menus',
+  UPDATE_ENABLE_CUSTOM_FILTERS = 'update-enable-custom-filters',
 }
 
 /** Action fired when a range is selected */
@@ -257,6 +258,11 @@ export interface UpdateHideColumnMenus extends Action<typeof ActionType.UPDATE_H
   value: boolean;
 }
 
+/** Action fired when updating the enable_custom_filters flag */
+export interface UpdateEnableCustomFilters extends Action<typeof ActionType.UPDATE_ENABLE_CUSTOM_FILTERS> {
+  value: boolean;
+}
+
 /** Type definition encompassing all application actions */
 export type AppActionTypes =
   | InitAction
@@ -302,7 +308,8 @@ export type AppActionTypes =
   | UpdateLockHeaderMenu
   | UpdateHideHeaderMenu
   | UpdateHideMainMenu
-  | UpdateHideColumnMenus;
+  | UpdateHideColumnMenus
+  | UpdateEnableCustomFilters;
 
 /** Type definition for redux application actions */
 export type AppActions<R> = ThunkAction<R, AppState, Record<string, unknown>, AnyAction>;

@@ -351,6 +351,7 @@ class DtaleData(object):
         * hide_header_menu - if true, this will hide the header menu from the screen
         * hide_main_menu - if true, this will hide the main menu from the screen
         * hide_column_menus - if true, this will hide the column menus from the screen
+        * enable_custom_filters - if True, allow users to specify custom filters from the UI using pandas.query strings
 
         After applying please refresh any open browsers!
         """
@@ -906,6 +907,7 @@ def startup(
     hide_header_menu=None,
     hide_main_menu=None,
     hide_column_menus=None,
+    enable_custom_filters=None,
     force_save=True,
 ):
     """
@@ -1033,6 +1035,7 @@ def startup(
             hide_header_menu=hide_header_menu,
             hide_main_menu=hide_main_menu,
             hide_column_menus=hide_column_menus,
+            enable_custom_filters=enable_custom_filters,
         )
         startup_code = (
             "from arcticdb import Arctic\n"
@@ -1104,6 +1107,7 @@ def startup(
                 hide_header_menu=hide_header_menu,
                 hide_main_menu=hide_main_menu,
                 hide_column_menus=hide_column_menus,
+                enable_custom_filters=enable_custom_filters,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1171,6 +1175,8 @@ def startup(
             base_settings["hide_main_menu"] = hide_main_menu
         if hide_column_menus is not None:
             base_settings["hide_column_menus"] = hide_column_menus
+        if enable_custom_filters is not None:
+            base_settings["enable_custom_filters"] = enable_custom_filters
         if column_edit_options is not None:
             base_settings["column_edit_options"] = column_edit_options
         global_state.set_settings(data_id, base_settings)
@@ -1218,6 +1224,13 @@ def startup(
         global_state.set_context_variables(
             data_id, build_context_variables(data_id, context_vars)
         )
+        if global_state.load_flag(data_id, "enable_custom_filters", False):
+            logger.warning(
+                (
+                    "Custom filtering enabled. Custom filters are vulnerable to code injection attacks, please only "
+                    "use in trusted environments."
+                )
+            )
         return DtaleData(data_id, url, is_proxy=is_proxy, app_root=app_root)
     else:
         raise NoDataLoadedException("No data has been loaded into this D-Tale session!")
@@ -1251,6 +1264,9 @@ def base_render_template(template, data_id, **kwargs):
     hide_header_menu = global_state.load_flag(data_id, "hide_header_menu", False)
     hide_main_menu = global_state.load_flag(data_id, "hide_main_menu", False)
     hide_column_menus = global_state.load_flag(data_id, "hide_column_menus", False)
+    enable_custom_filters = global_state.load_flag(
+        data_id, "enable_custom_filters", False
+    )
     app_overrides = dict(
         allow_cell_edits=json.dumps(allow_cell_edits),
         hide_shutdown=hide_shutdown,
@@ -1259,6 +1275,7 @@ def base_render_template(template, data_id, **kwargs):
         hide_header_menu=hide_header_menu,
         hide_main_menu=hide_main_menu,
         hide_column_menus=hide_column_menus,
+        enable_custom_filters=enable_custom_filters,
         github_fork=github_fork,
     )
     is_arcticdb = 0
@@ -1996,6 +2013,16 @@ def test_filter(data_id):
     :return: JSON {success: True/False}
     """
     query = get_str_arg(request, "query")
+    if query and not global_state.load_flag(data_id, "enable_custom_filters", False):
+        return jsonify(
+            dict(
+                success=False,
+                error=(
+                    "Custom Filters not enabled! Custom filters are vulnerable to code injection attacks, please only "
+                    "use in trusted environments."
+                ),
+            )
+        )
     run_query(
         handle_predefined(data_id),
         build_query(data_id, query),

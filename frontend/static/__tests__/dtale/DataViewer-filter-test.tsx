@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
+import { DISABLED_CUSTOM_FILTERS_MSG } from '../../popups/filter/FilterPopup';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, clickMainMenuButton, mockChartJS } from '../test-utils';
@@ -46,9 +47,9 @@ describe('FilterPanel', () => {
     await clickMainMenuButton('Custom Filter');
   };
 
-  const buildResult = async (dataId = '1'): Promise<void> => {
+  const buildResult = async (dataId = '1', overrides?: Record<string, string>): Promise<void> => {
     store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '', dataId }, store);
+    buildInnerHTML({ settings: '', dataId, enableCustomFilters: 'True', ...overrides }, store);
     await act(() => {
       const result = render(
         <Provider store={store}>
@@ -134,5 +135,15 @@ describe('FilterPanel', () => {
       fireEvent.click(screen.getByTestId('structured-filters').getElementsByClassName('ico-cancel')[0]);
     });
     expect(screen.queryByTestId('structured-filters')).toBeNull();
+  });
+
+  it('DataViewer: filtering with custom filtering not enabled', async () => {
+    await buildResult('1', { enableCustomFilters: 'False' });
+    const textarea = screen.getByTestId('filter-panel').getElementsByTagName('textarea')[0];
+    expect(textarea.value).toBe(DISABLED_CUSTOM_FILTERS_MSG);
+    expect(textarea).toBeDisabled();
+    const buttons = [...screen.getByTestId('filter-panel').querySelectorAll('button')];
+    expect(buttons.filter((b) => b.textContent === 'Apply')).toHaveLength(0);
+    expect(buttons.filter((b) => b.textContent === 'Clear')).toHaveLength(0);
   });
 });

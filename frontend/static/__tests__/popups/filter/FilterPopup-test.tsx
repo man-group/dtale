@@ -40,7 +40,7 @@ describe('FilterPopup', () => {
     updateQueryEngineSpy = jest.spyOn(serverState, 'updateQueryEngine');
     updateQueryEngineSpy.mockResolvedValue(Promise.resolve({ success: true }));
     store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '', dataId: '1', queryEngine: 'python' }, store);
+    buildInnerHTML({ settings: '', dataId: '1', queryEngine: 'python', enableCustomFilters: 'True' }, store);
     store.dispatch({ type: ActionType.OPEN_CHART, chartData: { visible: true } });
     wrapper = await act(
       async () =>

@@ -48,6 +48,7 @@ let storeBuilder: () => Store = () => {
   actions.loadHideHeaderMenu(store);
   actions.loadHideMainMenu(store);
   actions.loadHideColumnMenus(store);
+  actions.loadEnableCustomFilters(store);
   return store;
 };
 if (pathname.indexOf('/dtale/popup') === 0) {
