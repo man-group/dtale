@@ -212,6 +212,8 @@ class DatetimeColumnBuilder(object):
     def build_column(self, data):
         col = self.cfg["col"]
         if "property" in self.cfg:
+            if self.cfg["property"] == "weekday_name":
+                return data[col].dt.day_name()
             return getattr(data[col].dt, self.cfg["property"])
         conversion_key = self.cfg["conversion"]
         [freq, how] = conversion_key.split("_")
@@ -227,6 +229,10 @@ class DatetimeColumnBuilder(object):
 
     def build_code(self):
         if "property" in self.cfg:
+            if self.cfg["property"] == "weekday_name":
+                return "df.loc[:, '{name}'] = df['{col}'].dt.day_name()".format(
+                    name=self.name, **self.cfg
+                )
             return "df.loc[:, '{name}'] = df['{col}'].dt.{property}".format(
                 name=self.name, **self.cfg
             )
