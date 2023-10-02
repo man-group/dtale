@@ -719,6 +719,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :param highlight_filter: if True, then highlight rows on the frontend which will be filtered when applying a filter
                              rather than hiding them from the dataframe
     :type highlight_filter: boolean, optional
+    :param enable_custom_filters: If true, this will enable users to make custom filters from the UI
+    :type enable_custom_filters: bool, optional
 
     :Example:
 
@@ -804,6 +806,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             hide_header_menu=final_options.get("hide_header_menu"),
             hide_main_menu=final_options.get("hide_main_menu"),
             hide_column_menus=final_options.get("hide_column_menus"),
+            enable_custom_filters=final_options.get("enable_custom_filters"),
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)

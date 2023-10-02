@@ -11,7 +11,7 @@ import { CloseChartAction, SetQueryEngineAction } from '../../redux/actions/AppA
 import { closeChart } from '../../redux/actions/charts';
 import * as dtaleActions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
-import { selectDataId, selectQueryEngine, selectSettings } from '../../redux/selectors';
+import { selectDataId, selectEnableCustomFilters, selectQueryEngine, selectSettings } from '../../redux/selectors';
 import { InstanceSettings, QueryEngine } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as CustomFilterRepository from '../../repository/CustomFilterRepository';
@@ -22,13 +22,22 @@ import PandasQueryHelp from './PandasQueryHelp';
 import QueryExamples from './QueryExamples';
 import StructuredFilters from './StructuredFilters';
 
-const selectResult = createSelector(
-  [selectDataId, selectQueryEngine, selectSettings],
-  (dataId, queryEngine, settings) => ({ dataId, queryEngine, settings }),
+export const DISABLED_CUSTOM_FILTERS_MSG = [
+  'Custom Filtering is currently disabled.  This feature is only for trusted environments, in order to unlock this ',
+  'feature you must do one of the following:\n\n',
+  '- add "enable_custom_filters=True" to your dtale.show call\n',
+  '- run this code before calling dtale.show\n',
+  '\timport dtale.global_state as global_state\n\tglobal_state.set_app_settings(dict(enable_custom_filters=True))\n',
+  '- add "enable_custom_filters = False" to the [app] section of your dtale.ini config file',
+].join('');
+
+export const selectResult = createSelector(
+  [selectDataId, selectQueryEngine, selectEnableCustomFilters, selectSettings],
+  (dataId, queryEngine, enableCustomFilters, settings) => ({ dataId, queryEngine, enableCustomFilters, settings }),
 );
 
 const FilterPopup: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, queryEngine, settings } = useSelector(selectResult);
+  const { dataId, queryEngine, enableCustomFilters, settings } = useSelector(selectResult);
   const dispatch = useDispatch();
   const onClose = (): CloseChartAction => dispatch(closeChart());
   const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): AnyAction =>
@@ -140,8 +149,9 @@ const FilterPopup: React.FC<WithTranslation> = ({ t }) => {
                 <div className="font-weight-bold pt-3 pb-3">{t('Custom Filter', { ns: 'filter' })}</div>
                 <textarea
                   style={{ width: '100%', height: 150 }}
-                  value={query || ''}
+                  value={enableCustomFilters ? query : DISABLED_CUSTOM_FILTERS_MSG}
                   onChange={(event) => setQuery(event.target.value)}
+                  disabled={!enableCustomFilters}
                 />
               </div>
             </div>
@@ -165,12 +175,16 @@ const FilterPopup: React.FC<WithTranslation> = ({ t }) => {
       </div>
       <div className="modal-footer">
         <PandasQueryHelp />
-        <button className="btn btn-primary" onClick={clear}>
-          <span>{t('Clear', { ns: 'filter' })}</span>
-        </button>
-        <button className="btn btn-primary" onClick={save}>
-          <span>{t('Apply', { ns: 'filter' })}</span>
-        </button>
+        {enableCustomFilters && (
+          <>
+            <button className="btn btn-primary" onClick={clear}>
+              <span>{t('Clear', { ns: 'filter' })}</span>
+            </button>
+            <button className="btn btn-primary" onClick={save}>
+              <span>{t('Apply', { ns: 'filter' })}</span>
+            </button>
+          </>
+        )}
       </div>
     </React.Fragment>
   );

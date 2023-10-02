@@ -58,6 +58,7 @@ export const selectBaseLockHeaderMenu = (state: AppState): boolean => state.lock
 export const selectBaseHideHeaderMenu = (state: AppState): boolean => state.hideHeaderMenu;
 export const selectBaseHideMainMenu = (state: AppState): boolean => state.hideMainMenu;
 export const selectBaseHideColumnMenus = (state: AppState): boolean => state.hideColumnMenus;
+export const selectBaseEnableCustomFilters = (state: AppState): boolean => state.enableCustomFilters;
 export const selectFilteredRanges = (state: AppState): FilteredRanges => state.filteredRanges;
 export const selectShowAllHeatmapColumns = (state: AppState): boolean => state.showAllHeatmapColumns;
 export const selectChartData = (state: AppState): Popups => state.chartData;
@@ -105,6 +106,14 @@ const selectSettingsHideColumnMenus = createSelector([selectSettings], (settings
 export const selectHideColumnMenus = createSelector(
   [selectSettingsHideColumnMenus, selectBaseHideColumnMenus],
   (settingsHideColumnMenus, hideColumnMenus) => settingsHideColumnMenus ?? hideColumnMenus,
+);
+const selectSettingsEnableCustomFilters = createSelector(
+  [selectSettings],
+  (settings) => settings?.enable_custom_filters,
+);
+export const selectEnableCustomFilters = createSelector(
+  [selectSettingsEnableCustomFilters, selectBaseEnableCustomFilters],
+  (settingsEnableCustomFilters, enableCustomFilters) => settingsEnableCustomFilters ?? enableCustomFilters,
 );
 export const selectRibbonMenuOpen = createSelector(
   [selectBaseRibbonMenuOpen, selectLockHeaderMenu, selectHideHeaderMenu],

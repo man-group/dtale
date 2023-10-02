@@ -107,6 +107,13 @@ def load_app_settings(config):
         section="app",
         getter="getboolean",
     )
+    enable_custom_filters = get_config_val(
+        config,
+        curr_app_settings,
+        "enable_custom_filters",
+        section="app",
+        getter="getboolean",
+    )
     open_custom_filter_on_startup = get_config_val(
         config,
         curr_app_settings,
@@ -145,6 +152,7 @@ def load_app_settings(config):
             hide_header_menu=hide_header_menu,
             hide_main_menu=hide_main_menu,
             hide_column_menus=hide_column_menus,
+            enable_custom_filters=enable_custom_filters,
         )
     )
 
@@ -214,6 +222,7 @@ def build_show_options(options=None):
         hide_header_menu=None,
         hide_main_menu=None,
         hide_column_menus=None,
+        enable_custom_filters=None,
     )
     config_options = {}
     config = get_config()

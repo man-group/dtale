@@ -976,6 +976,20 @@ outliers = s[(s < iqr_lower) | (s > iqr_upper)]
 If you click on the "Apply outlier filter" link this will add an addtional "outlier" filter for this column which can be removed from the [header](#header) or the [custom filter](#custom-filter) shown in picture above to the right.
 
 #### Custom Filter
+
+**Starting with version 3.7.0 this feature will be turned off by default.
+Custom filters are vulnerable to code injection attacks, please only use in trusted environments.**
+
+**You can turn this feature on by doing one of the following:**
+ - **add `enable_custom_filters=True` to your `dtale.show` call**
+ - **add `enable_custom_filters = False` to the [app] section of your dtale.ini config file ([more info](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md))**
+ - **run this code before calling dtale.show:**
+```python
+import dtale.global_state as global_state
+global_state.set_app_settings(dict(enable_custom_filters=True))
+```
+
+
 Apply a custom pandas `query` to your data (link to pandas documentation included in popup)  
 
 |Editing|Result|

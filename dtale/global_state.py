@@ -1,7 +1,7 @@
 import string
 import inspect
 
-
+from logging import getLogger
 from six import PY3
 
 from dtale.utils import dict_merge, format_data
@@ -10,6 +10,8 @@ try:
     from collections.abc import MutableMapping
 except ImportError:
     from collections import MutableMapping
+
+logger = getLogger(__name__)
 
 APP_SETTINGS = {
     "theme": "light",
@@ -30,6 +32,7 @@ APP_SETTINGS = {
     "hide_header_menu": False,
     "hide_main_menu": False,
     "hide_column_menus": False,
+    "enable_custom_filters": False,
 }
 
 AUTH_SETTINGS = {"active": False, "username": None, "password": None}
@@ -602,6 +605,17 @@ def set_app_settings(settings):
         instance_updates["hide_main_menu"] = settings.get("hide_main_menu")
     if settings.get("hide_column_menus") is not None:
         instance_updates["hide_column_menus"] = settings.get("hide_column_menus")
+    if settings.get("enable_custom_filters") is not None:
+        instance_updates["enable_custom_filters"] = settings.get(
+            "enable_custom_filters"
+        )
+        if instance_updates["enable_custom_filters"]:
+            logger.warning(
+                (
+                    "Turning on custom filtering. Custom filters are vulnerable to code injection attacks, please only "
+                    "use in trusted environments."
+                )
+            )
 
     if _default_store.size() > 0 and len(instance_updates):
         for data_id in _default_store.keys():

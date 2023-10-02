@@ -1,4 +1,3 @@
-import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,24 +10,19 @@ import SidePanelButtons from '../../dtale/side/SidePanelButtons';
 import { ActionType, HideSidePanelAction, SetQueryEngineAction } from '../../redux/actions/AppActions';
 import * as dtaleActions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
-import { selectDataId, selectQueryEngine, selectSettings } from '../../redux/selectors';
 import { InstanceSettings, QueryEngine } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as CustomFilterRepository from '../../repository/CustomFilterRepository';
 import { Checkbox } from '../create/LabeledCheckbox';
 
 import ContextVariables from './ContextVariables';
+import { DISABLED_CUSTOM_FILTERS_MSG, selectResult } from './FilterPopup';
 import PandasQueryHelp from './PandasQueryHelp';
 import QueryExamples from './QueryExamples';
 import StructuredFilters from './StructuredFilters';
 
-const selectResult = createSelector(
-  [selectDataId, selectQueryEngine, selectSettings],
-  (dataId, queryEngine, settings) => ({ dataId, queryEngine, settings }),
-);
-
 const FilterPanel: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, queryEngine, settings } = useSelector(selectResult);
+  const { dataId, enableCustomFilters, queryEngine, settings } = useSelector(selectResult);
   const dispatch = useDispatch();
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
   const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): AnyAction =>
@@ -109,17 +103,22 @@ const FilterPanel: React.FC<WithTranslation> = ({ t }) => {
           <div className="row m-0 pb-3">
             <div className="col p-0 font-weight-bold mt-auto">{t('Custom Filter', { ns: 'filter' })}</div>
             <PandasQueryHelp />
-            <button className="btn btn-primary col-auto pt-2 pb-2" onClick={clear}>
-              <span>{t('Clear', { ns: 'filter' })}</span>
-            </button>
-            <button className="btn btn-primary col-auto pt-2 pb-2" onClick={save}>
-              <span>{t('Apply', { ns: 'filter' })}</span>
-            </button>
+            {enableCustomFilters && (
+              <>
+                <button className="btn btn-primary col-auto pt-2 pb-2" onClick={clear}>
+                  <span>{t('Clear', { ns: 'filter' })}</span>
+                </button>
+                <button className="btn btn-primary col-auto pt-2 pb-2" onClick={save}>
+                  <span>{t('Apply', { ns: 'filter' })}</span>
+                </button>
+              </>
+            )}
           </div>
           <textarea
             style={{ width: '100%', height: 150 }}
-            value={query || ''}
+            value={enableCustomFilters ? query : DISABLED_CUSTOM_FILTERS_MSG}
             onChange={(event) => setQuery(event.target.value)}
+            disabled={!enableCustomFilters}
           />
         </div>
       </div>

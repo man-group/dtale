@@ -80,6 +80,19 @@ export const hideColumnMenus = (state = false, action: AppActionTypes): boolean 
   }
 };
 
+export const enableCustomFilters = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('enable_custom_filters'));
+    case ActionType.UPDATE_ENABLE_CUSTOM_FILTERS:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return false;
+    default:
+      return state;
+  }
+};
+
 export const openCustomFilterOnStartup = (state = false, action: AppActionTypes): boolean => {
   switch (action.type) {
     case ActionType.INIT_PARAMS:

@@ -382,6 +382,7 @@ export interface InstanceSettings {
   hide_main_menu: boolean;
   hide_column_menus: boolean;
   isArcticDB?: number;
+  enable_custom_filters: boolean;
 }
 
 export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
@@ -395,6 +396,7 @@ export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
   hide_header_menu: false,
   hide_main_menu: false,
   hide_column_menus: false,
+  enable_custom_filters: false,
 });
 
 /** Type definition for semantic versioning of python */
@@ -437,6 +439,7 @@ export interface AppSettings {
   hideHeaderMenu: boolean;
   hideMainMenu: boolean;
   hideColumnMenus: boolean;
+  enableCustomFilters: boolean;
 }
 
 /** Properties for specifying filtered ranges */

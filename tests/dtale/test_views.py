@@ -25,6 +25,14 @@ URL = "http://localhost:40000"
 app = build_app(url=URL)
 
 
+def setup_function(function):
+    global_state.cleanup()
+
+
+def teardown_function(function):
+    global_state.cleanup()
+
+
 @pytest.mark.unit
 def test_head_endpoint():
     import dtale.views as views
@@ -72,6 +80,7 @@ def test_startup(unittest):
         hide_header_menu=True,
         hide_main_menu=True,
         hide_column_menus=True,
+        enable_custom_filters=True,
     )
 
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
@@ -86,6 +95,7 @@ def test_startup(unittest):
             hide_header_menu=True,
             hide_main_menu=True,
             hide_column_menus=True,
+            enable_custom_filters=True,
             locked=["date", "security_id"],
             indexes=["date", "security_id"],
             precision=2,
@@ -110,6 +120,7 @@ def test_startup(unittest):
             hide_header_menu=True,
             hide_main_menu=True,
             hide_column_menus=True,
+            enable_custom_filters=True,
             locked=["date", "security_id"],
             indexes=["date", "security_id"],
             precision=2,
@@ -1329,6 +1340,7 @@ def test_variance(unittest):
 def test_test_filter(test_data):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         response = c.get(
             "/dtale/test-filter/{}".format(c.port),
             query_string=dict(query="date == date"),
@@ -1375,6 +1387,20 @@ def test_test_filter(test_data):
         )
         response_data = response.get_json()
         assert response_data["success"]
+
+        global_state.set_app_settings(dict(enable_custom_filters=False))
+        response = c.get(
+            "/dtale/test-filter/{}".format(c.port),
+            query_string=dict(query="foo2 == 1", save=True),
+        )
+        response_data = response.get_json()
+        assert not response_data["success"]
+        assert response_data["error"] == (
+            "Custom Filters not enabled! Custom filters are vulnerable to code injection attacks, please only "
+            "use in trusted environments."
+        )
+        global_state.set_app_settings(dict(enable_custom_filters=True))
+
     if PY3:
         df = pd.DataFrame([dict(a=1)])
         df["a.b"] = 2

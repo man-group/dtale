@@ -77,6 +77,14 @@ export const loadHideColumnMenus = (store: Store<AppState, AnyAction>): void => 
   });
 };
 
+export const loadEnableCustomFilters = (store: Store<AppState, AnyAction>): void => {
+  const { settings, enableCustomFilters } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_ENABLE_CUSTOM_FILTERS,
+    value: enableCustomFilters ?? settings.enable_custom_filters ?? enableCustomFilters,
+  });
+};
+
 export const openCustomFilter = (): SidePanelAction => ({
   type: ActionType.SHOW_SIDE_PANEL,
   view: SidePanelType.FILTER,
