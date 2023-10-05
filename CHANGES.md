@@ -2,6 +2,7 @@
 
 ### 3.7.0 (2023-10-2)
 * Turn off "Custom Filter" functionality by default
+* [#811](https://github.com/man-group/dtale/issues/811): weekday name function
 
 ### 3.6.0 (2023-9-29)
 * [#804](https://github.com/man-group/dtale/issues/804): updated summarize code to string join using a pipe instead of comma
