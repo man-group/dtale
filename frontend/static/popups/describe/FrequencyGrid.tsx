@@ -79,6 +79,18 @@ const FrequencyGrid: React.FC<FrequencyGridProps & WithTranslation> = ({ t, fetc
     return rows;
   }, [fetchedChartData]);
 
+  const selectedCol = React.useMemo(() => finalParams.selectedCol ?? '', [finalParams]);
+
+  const [filters, setFilters] = React.useState<Record<string, string>>({});
+
+  const filteredData = React.useMemo(() => {
+    const filterVal = filters[selectedCol];
+    if (filterVal) {
+      return frequencyGridRows.filter((row) => row[selectedCol].toLowerCase().startsWith(filterVal.toLowerCase()));
+    }
+    return frequencyGridRows;
+  }, [frequencyGridRows, filters]);
+
   return (
     <div style={{ height: 400, marginBottom: 10 }} data-testid="frequencies-grid">
       <AutoSizer>
@@ -90,11 +102,11 @@ const FrequencyGrid: React.FC<FrequencyGridProps & WithTranslation> = ({ t, fetc
             overscanRowCount={10}
             rowStyle={{ display: 'flex' }}
             rowHeight={gu.ROW_HEIGHT}
-            rowGetter={({ index }) => frequencyGridRows[index]}
-            rowCount={frequencyGridRows.length}
+            rowGetter={({ index }) => filteredData[index]}
+            rowCount={filteredData.length}
             rowClassName={(index) => {
               let rowClass = `frequency-row${index.index % 2 === 1 ? '-grey' : ''}`;
-              if (frequencyGridRows[index.index]?.isTotals) {
+              if (filteredData[index.index]?.isTotals) {
                 rowClass += ' frequency-row-bold';
               }
               return rowClass;
@@ -103,12 +115,29 @@ const FrequencyGrid: React.FC<FrequencyGridProps & WithTranslation> = ({ t, fetc
             className="frequencies"
           >
             <Column
-              dataKey={finalParams.selectedCol}
-              label={finalParams.selectedCol}
+              dataKey={selectedCol}
+              label={selectedCol}
               width={60}
               flexGrow={1}
               style={{ textAlign: 'left', paddingLeft: '.5em' }}
               className="cell"
+              headerRenderer={(props) => (
+                <div className="headerCell filterable" style={{ borderWidth: 0 }}>
+                  <div className="row">
+                    <div className="col-auto">{selectedCol}</div>
+                    <div className="col" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="text"
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-100"
+                        value={filters[selectedCol] ?? ''}
+                        onChange={(e) => setFilters({ ...filters, [selectedCol]: e.target.value })}
+                        data-testid={`${selectedCol}-freq-filter`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             />
             {finalParams.splits?.map((split) => (
               <Column

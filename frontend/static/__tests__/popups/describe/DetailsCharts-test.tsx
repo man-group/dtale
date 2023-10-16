@@ -149,5 +149,11 @@ describe('DetailsCharts tests', () => {
     rows = screen.getByTestId('frequencies-grid').getElementsByClassName('ReactVirtualized__Table__row');
     expect(rows).toHaveLength(13);
     expect(rows[rows.length - 1].textContent).toBe('TOTAL5100.00%');
+    await act(async () => {
+      fireEvent.change(screen.getByTestId('strCol-freq-filter'), { target: { value: 'c' } });
+    });
+    rows = screen.getByTestId('frequencies-grid').getElementsByClassName('ReactVirtualized__Table__row');
+    expect(rows).toHaveLength(2);
+    expect(rows[0].textContent).toBe('c0250.00%');
   });
 });
