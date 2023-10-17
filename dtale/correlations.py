@@ -49,7 +49,7 @@ def build_matrix(data_id, data, cols, code_formatting_vars=None):
     else:
         # using pandas.corr proved to be quite slow on large datasets so I moved to numpy:
         # https://stackoverflow.com/questions/48270953/pandas-corr-and-corrwith-very-slow
-        data = np.corrcoef(data[cols].values, rowvar=False)
+        data = np.corrcoef(data[cols].astype("float").values, rowvar=False)
         data = pd.DataFrame(data, columns=cols, index=cols)
         code = build_code_export(
             data_id, imports="import numpy as np\nimport pandas as pd\n\n"
