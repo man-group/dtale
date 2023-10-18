@@ -85,7 +85,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
 }) => {
   const reduxState = useSelector(selectResult);
   const largeArcticDB = React.useMemo(
-    () => reduxState.isArcticDB!! && (reduxState.isArcticDB >= 1_000_000 || reduxState.columnCount > 100),
+    () => !!reduxState.isArcticDB && (reduxState.isArcticDB >= 1_000_000 || reduxState.columnCount > 100),
     [reduxState.isArcticDB, reduxState.columnCount],
   );
   const prevRibbonOpen = usePrevious(reduxState.ribbonMenuOpen);

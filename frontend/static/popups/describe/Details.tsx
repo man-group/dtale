@@ -45,7 +45,7 @@ const selectResult = createSelector(
 const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, close, t }) => {
   const { dataId, settings, isArcticDB, columnCount } = useSelector(selectResult);
   const largeArcticDB = React.useMemo(
-    () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
+    () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],
   );
   const dispatch = useDispatch();

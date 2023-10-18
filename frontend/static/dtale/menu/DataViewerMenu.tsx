@@ -88,7 +88,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
   const { dataId, menuPinned, mainTitle, mainTitleFont, isArcticDB, isVSCode, settings, menuOpen, columnCount } =
     useSelector(selectResult);
   const largeArcticDB = React.useMemo(
-    () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
+    () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],
   );
   const dispatch = useDispatch();

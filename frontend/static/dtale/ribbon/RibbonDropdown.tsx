@@ -115,7 +115,7 @@ const selectResult = createSelector(
 const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ columns, rows, propagateState, t }) => {
   const { dataId, isVSCode, element, name, settings, visible, isArcticDB, columnCount } = useSelector(selectResult);
   const largeArcticDB = React.useMemo(
-    () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
+    () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],
   );
   const dispatch = useDispatch();

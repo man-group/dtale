@@ -41,7 +41,7 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
 }) => {
   const { dataId, isArcticDB, columnCount } = useSelector(selectResult);
   const largeArcticDB = React.useMemo(
-    () => isArcticDB!! && (isArcticDB >= 1_000_000 || columnCount > 100),
+    () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],
   );
   const [selected, setSelected] = React.useState<string[]>(columnFilter?.value as string[]);
