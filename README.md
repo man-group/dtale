@@ -1799,6 +1799,7 @@ Contributors:
  * Mike Kelly
  * [Vincent Riemer](https://github.com/vincentriemer)
  * [Youssef Habchi](http://youssef-habchi.com/) - title font
+ * [Yadhu Krishna](https://github.com/yadhukrishnam)
  * ... and many others ...
 
 Contributions welcome!
