@@ -1,35 +1,47 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 import { default as Select } from 'react-select';
 
 import ButtonToggle from '../../ButtonToggle';
+import * as gu from '../../dtale/gridUtils';
 import { default as ColumnSelect, constructColumnOptionsFilteredByOtherValues } from '../../popups/create/ColumnSelect';
+import { selectPythonVersion } from '../../redux/selectors';
 import { BaseOption } from '../../redux/state/AppState';
 import { pivotAggs } from '../analysis/filters/Constants';
 import { CreateColumnCodeSnippet } from '../create/CodeSnippet';
+import { Checkbox } from '../create/LabeledCheckbox';
 import { DtaleSelect } from '../create/LabeledSelect';
 
 import { AggregationOperationType, BaseReshapeComponentProps, ReshapeAggregateConfig } from './ReshapeState';
 
 export const validateAggregateCfg = (cfg: ReshapeAggregateConfig): string | undefined => {
   if (cfg.agg.type === AggregationOperationType.FUNC && !cfg.agg.func) {
-    return 'Missing an aggregation selection!';
+    return 'Missing an aggregation selection! Please click "+" button next to Agg input.';
   } else if (
     cfg.agg.type === AggregationOperationType.COL &&
     (!Object.keys(cfg.agg.cols).length ||
       Object.values(cfg.agg.cols || {}).find((aggs: string[]) => !aggs.length) !== undefined)
   ) {
-    return 'Missing an aggregation selection!';
+    return 'Missing an aggregation selection! Please click "+" button next to Agg input.';
   }
   return undefined;
 };
 
 export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet => {
-  let dfStr = cfg.index?.length ? `df.groupby(['${cfg.index.join("', '")}'])` : 'df';
+  const dropna = cfg.dropna ? 'True' : 'False';
+  let dfStr = cfg.index?.length ? `df.groupby(['${cfg.index.join("', '")}'], dropna=${dropna})` : 'df';
   const code = [];
   if (cfg.agg.type === AggregationOperationType.FUNC) {
     if (!cfg.agg.func) {
       return undefined;
+    }
+    if (!!cfg.index?.length && cfg.agg.func === 'count_pct') {
+      return [
+        `df = ${dfStr}`,
+        'counts = df.size()',
+        "pd.DataFrame({'Count': counts, 'Percentage': (counts / len(df)) * 100})",
+      ];
     }
     const isGmean = cfg.agg.func === 'gmean';
     if (isGmean) {
@@ -38,13 +50,27 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
     if (cfg.agg.cols?.length) {
       dfStr = `${dfStr}['${cfg.agg.cols.join("', '")}']`;
     }
-    code.push(isGmean ? `${dfStr}.apply(gmean)` : `${dfStr}.${cfg.agg.func}()`);
+    if (isGmean) {
+      code.push(`${dfStr}.apply(gmean)`);
+    } else if (cfg.agg.func === 'str_joiner') {
+      code.push(`${dfStr}.apply("|".join)`);
+    } else {
+      code.push(`${dfStr}.${cfg.agg.func}()`);
+    }
   } else if (cfg.agg.type === AggregationOperationType.COL) {
     if (!Object.keys(cfg.agg.cols ?? {}).length) {
       return undefined;
     }
-    let aggStr = '${dfStr}.aggregate({';
-    const aggFmt = (agg: string): string => (agg === 'gmean' ? 'gmean' : `'${agg}'`);
+    let aggStr = `${dfStr}.aggregate({`;
+    const aggFmt = (agg: string): string => {
+      if (agg === 'gmean') {
+        return 'gmean';
+      } else if (agg === 'str_joiner') {
+        return `"|".join`;
+      } else {
+        return `'${agg}'`;
+      }
+    };
     const { cols } = cfg.agg;
     aggStr += Object.keys(cols)
       .map((col: string) => `'${col}': ['${(cols[col] ?? []).map(aggFmt).join("', '")}']`)
@@ -59,18 +85,38 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
 };
 
 const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ columns, updateState, t }) => {
-  const aggregateAggs = React.useMemo(
-    () => [...pivotAggs(t), { value: 'gmean', label: t('Geometric Mean', { ns: 'constants' }) }],
-    [t],
-  );
-  const [index, setIndex] = React.useState<Array<BaseOption<string>>>();
+  const pythonVersion = useSelector(selectPythonVersion);
+  const currentAggRef = React.useRef<Select>(null);
+  const currentColRef = React.useRef<Select>(null);
+  const [currentAggCol, setCurrentAggCol] = React.useState<BaseOption<string>>();
   const [type, setType] = React.useState<AggregationOperationType>(AggregationOperationType.COL);
+  const [index, setIndex] = React.useState<Array<BaseOption<string>>>();
+  const aggregateAggs = React.useMemo(() => {
+    const hasCountPct = type === AggregationOperationType.FUNC && !!index?.length;
+    const funcAggs = hasCountPct ? [{ value: 'count_pct', label: t('Counts & Percentages', { ns: 'constants' }) }] : [];
+    const col = currentAggCol?.value;
+    if (!col) {
+      return [
+        ...pivotAggs(t),
+        { value: 'gmean', label: t('Geometric Mean', { ns: 'constants' }) },
+        { value: 'str_joiner', label: t('String Joiner', { ns: 'constants' }) },
+        ...funcAggs,
+      ];
+    }
+    const colCfg = columns.find(({ name }) => name === col);
+    if ([gu.ColumnType.STRING, gu.ColumnType.CATEGORY].indexOf(gu.findColType(colCfg?.dtype)) !== -1) {
+      return [
+        ...pivotAggs(t).filter((agg) => ['first', 'last', 'count', 'nunique'].indexOf(agg.value) !== -1),
+        { value: 'str_joiner', label: t('String Joiner', { ns: 'constants' }) },
+        ...funcAggs,
+      ];
+    }
+    return [...pivotAggs(t), { value: 'gmean', label: t('Geometric Mean', { ns: 'constants' }) }, ...funcAggs];
+  }, [t, currentAggCol?.value, type, index]);
+  const [dropna, setDropna] = React.useState(true);
   const [columnConfig, setColumnConfig] = React.useState<Record<string, string[]>>({});
   const [func, setFunc] = React.useState<BaseOption<string>>();
   const [funcCols, setFuncCols] = React.useState<Array<BaseOption<string>>>();
-
-  const currentAggRef = React.useRef<Select>(null);
-  const currentColRef = React.useRef<Select>(null);
 
   React.useEffect(() => {
     let cfg: ReshapeAggregateConfig;
@@ -84,18 +130,20 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
               {},
             ),
           },
+          dropna,
         };
         break;
       case AggregationOperationType.FUNC:
       default:
         cfg = {
           agg: { type: AggregationOperationType.FUNC, func: func?.value, cols: funcCols?.map(({ value }) => value) },
+          dropna,
         };
         break;
     }
     cfg = { ...cfg, index: index?.map(({ value }) => value) };
     updateState({ cfg, code: buildCode(cfg) });
-  }, [index, type, columnConfig, func, funcCols]);
+  }, [index, dropna, type, columnConfig, func, funcCols]);
 
   const filteredColumnOptions = React.useMemo(
     () => constructColumnOptionsFilteredByOtherValues(columns, [index]),
@@ -109,6 +157,7 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
       return;
     }
     (currentAggRef.current as any)?.clearValue();
+    setCurrentAggCol(undefined);
     setColumnConfig({ ...columnConfig, [currCol]: currAgg.map(({ value }) => value) });
   };
 
@@ -129,7 +178,18 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
         updateState={(updatedState) => setIndex(updatedState.index as Array<BaseOption<string>>)}
         isMulti={true}
         columns={columns}
-      />
+      >
+        {(pythonVersion?.[0] ?? 0) >= 3 && !!index?.length && (
+          <div className="row mb-0">
+            <label className="col-auto col-form-label pr-3" style={{ fontSize: '85%' }}>
+              {`${t('dropna')}?`}
+            </label>
+            <div className="col-auto p-0">
+              <Checkbox value={dropna} setter={setDropna} />
+            </div>
+          </div>
+        )}
+      </ColumnSelect>
       <div className="form-group row">
         <div className="col-md-3 text-right mb-auto mt-3">
           <ButtonToggle
@@ -152,6 +212,8 @@ const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ colu
                     <span className="pt-4 mr-4">{t('Col')}:</span>
                     <DtaleSelect
                       options={filteredColumnOptions}
+                      value={currentAggCol}
+                      onChange={(updatedState) => setCurrentAggCol(updatedState as BaseOption<string>)}
                       isMulti={false}
                       isClearable={true}
                       ref={currentColRef}

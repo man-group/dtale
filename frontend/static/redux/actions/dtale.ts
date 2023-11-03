@@ -3,7 +3,16 @@ import { AnyAction, Store } from 'redux';
 import * as serverState from '../../dtale/serverStateManagement';
 import { AppState, QueryEngine, SidePanelType } from '../state/AppState';
 
-import { ActionType, AppActions, InitAction, SidePanelAction, UpdateXarrayDimAction } from './AppActions';
+import {
+  ActionType,
+  AppActions,
+  InitAction,
+  SetQueryEngineAction,
+  SidePanelAction,
+  ToggleColumnAction,
+  UpdateShowAllHeatmapColumnsAction,
+  UpdateXarrayDimAction,
+} from './AppActions';
 
 export const init = (): InitAction => ({ type: ActionType.INIT_PARAMS });
 
@@ -11,7 +20,68 @@ export const loadBackgroundMode = (store: Store<AppState, AnyAction>): void => {
   const { settings } = store.getState();
   store.dispatch({
     type: ActionType.UPDATE_SETTINGS,
-    settings: { backgroundMode: settings.backgroundMode ?? !!settings.rangeHighlight?.length ? 'range' : undefined },
+    settings: { backgroundMode: settings.backgroundMode ?? (!!settings.rangeHighlight?.length ? 'range' : undefined) },
+  });
+};
+
+export const loadHideShutdown = (store: Store<AppState, AnyAction>): void => {
+  const { settings, hideShutdown } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_HIDE_SHUTDOWN,
+    value: hideShutdown ?? settings.hide_shutdown ?? hideShutdown,
+  });
+};
+
+export const loadAllowCellEdits = (store: Store<AppState, AnyAction>): void => {
+  const { settings, allowCellEdits } = store.getState();
+  store.dispatch({ type: ActionType.UPDATE_ALLOW_CELL_EDITS, value: settings.allow_cell_edits ?? allowCellEdits });
+};
+
+export const loadHideHeaderEditor = (store: Store<AppState, AnyAction>): void => {
+  const { settings, hideHeaderEditor } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_HIDE_HEADER_EDITOR,
+    value: hideHeaderEditor ?? settings.hide_header_editor ?? hideHeaderEditor,
+  });
+};
+
+export const loadLockHeaderMenu = (store: Store<AppState, AnyAction>): void => {
+  const { settings, lockHeaderMenu } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_LOCK_HEADER_MENU,
+    value: lockHeaderMenu ?? settings.lock_header_menu ?? lockHeaderMenu,
+  });
+};
+
+export const loadHideHeaderMenu = (store: Store<AppState, AnyAction>): void => {
+  const { settings, hideHeaderMenu } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_HIDE_HEADER_MENU,
+    value: hideHeaderMenu ?? settings.hide_header_menu ?? hideHeaderMenu,
+  });
+};
+
+export const loadHideMainMenu = (store: Store<AppState, AnyAction>): void => {
+  const { settings, hideMainMenu } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_HIDE_MAIN_MENU,
+    value: hideMainMenu ?? settings.hide_main_menu ?? hideMainMenu,
+  });
+};
+
+export const loadHideColumnMenus = (store: Store<AppState, AnyAction>): void => {
+  const { settings, hideColumnMenus } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_HIDE_COLUMN_MENUS,
+    value: hideColumnMenus ?? settings.hide_column_menus ?? hideColumnMenus,
+  });
+};
+
+export const loadEnableCustomFilters = (store: Store<AppState, AnyAction>): void => {
+  const { settings, enableCustomFilters } = store.getState();
+  store.dispatch({
+    type: ActionType.UPDATE_ENABLE_CUSTOM_FILTERS,
+    value: enableCustomFilters ?? settings.enable_custom_filters ?? enableCustomFilters,
   });
 };
 
@@ -25,10 +95,11 @@ export const openPredefinedFilters = (): SidePanelAction => ({
   view: SidePanelType.PREDEFINED_FILTERS,
 });
 
-export const toggleColumnMenu =
-  (colName: string, headerRef: HTMLDivElement): AppActions<void> =>
-  (dispatch) =>
-    dispatch({ type: ActionType.TOGGLE_COLUMN_MENU, colName, headerRef });
+export const toggleColumnMenu = (colName: string, headerRef: HTMLDivElement): ToggleColumnAction => ({
+  type: ActionType.TOGGLE_COLUMN_MENU,
+  colName,
+  headerRef,
+});
 
 export const hideColumnMenu =
   (colName: string): AppActions<void> =>
@@ -62,10 +133,10 @@ export const convertToXArray =
     callback();
   };
 
-export const setQueryEngine =
-  (engine: QueryEngine): AppActions<void> =>
-  (dispatch) =>
-    dispatch({ type: ActionType.SET_QUERY_ENGINE, engine });
+export const setQueryEngine = (engine: QueryEngine): SetQueryEngineAction => ({
+  type: ActionType.SET_QUERY_ENGINE,
+  engine,
+});
 
 export const isPopup = (): boolean => !!window.location.pathname?.startsWith('/dtale/popup');
 
@@ -101,7 +172,10 @@ export const getParams = (): Record<string, string | string[]> => {
 export const updateFilteredRanges =
   (query: string): AppActions<Promise<void>> =>
   async (dispatch, getState) => {
-    const { dataId, filteredRanges } = getState();
+    const { dataId, filteredRanges, isArcticDB, columnCount } = getState();
+    if (!!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100)) {
+      return;
+    }
     const currQuery = filteredRanges?.query ?? '';
     if (currQuery !== query) {
       const ranges = await serverState.loadFilteredRanges(dataId!);
@@ -133,7 +207,7 @@ export const clearMaxHeight = (): AppActions<void> => (dispatch) => {
   dispatch({ type: ActionType.DATA_VIEWER_UPDATE, update: { type: 'update-max-height', height: null } });
 };
 
-export const updateShowAllHeatmapColumns =
-  (showAllHeatmapColumns: boolean): AppActions<void> =>
-  (dispatch) =>
-    dispatch({ type: ActionType.UPDATE_SHOW_ALL_HEATMAP_COLUMNS, showAllHeatmapColumns });
+export const updateShowAllHeatmapColumns = (showAllHeatmapColumns: boolean): UpdateShowAllHeatmapColumnsAction => ({
+  type: ActionType.UPDATE_SHOW_ALL_HEATMAP_COLUMNS,
+  showAllHeatmapColumns,
+});

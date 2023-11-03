@@ -3,11 +3,11 @@ import pytest
 
 import dtale.charts.utils as chart_utils
 from tests import ExitStack
+from tests.dtale.test_charts import build_col_def
 
 
 @pytest.mark.unit
 def test_set_mapbox_token():
-
     with ExitStack() as stack:
         stack.enter_context(mock.patch("dtale.charts.utils.MAPBOX_TOKEN", None))
 
@@ -79,21 +79,47 @@ def test_build_agg_data(unittest, rolling_data):
     output, code, cols = chart_utils.build_agg_data(
         df, "date", ["0", "1"], {}, None, extended_aggregation=extended_aggregation
     )
-    unittest.assertEqual(sorted(output.columns), ["0|mean", "0|sum", "1|mean", "date"])
-    unittest.assertEqual(sorted(cols), ["0|mean", "0|sum", "1|mean"])
+    unittest.assertEqual(
+        sorted(output.columns),
+        [
+            build_col_def("mean", "0"),
+            build_col_def("sum", "0"),
+            build_col_def("mean", "1"),
+            "date",
+        ],
+    )
+    unittest.assertEqual(
+        sorted(cols),
+        [
+            build_col_def("mean", "0"),
+            build_col_def("sum", "0"),
+            build_col_def("mean", "1"),
+        ],
+    )
 
     output, code, cols = chart_utils.build_agg_data(df, "date", ["0", "1"], {}, "mean")
-    unittest.assertEqual(list(output.columns), ["date", "0|mean", "1|mean"])
-    unittest.assertEqual(cols, ["0|mean", "1|mean"])
+    unittest.assertEqual(
+        list(output.columns),
+        ["date", build_col_def("mean", "0"), build_col_def("mean", "1")],
+    )
+    unittest.assertEqual(cols, [build_col_def("mean", "0"), build_col_def("mean", "1")])
 
     output, code, cols = chart_utils.build_agg_data(
         df, "date", ["0", "1"], {}, "drop_duplicates"
     )
     unittest.assertEqual(
         list(output.columns),
-        ["index", "date", "0|drop_duplicates", "1|drop_duplicates"],
+        [
+            "index",
+            "date",
+            build_col_def("drop_duplicates", "0"),
+            build_col_def("drop_duplicates", "1"),
+        ],
     )
-    unittest.assertEqual(cols, ["0|drop_duplicates", "1|drop_duplicates"])
+    unittest.assertEqual(
+        cols,
+        [build_col_def("drop_duplicates", "0"), build_col_def("drop_duplicates", "1")],
+    )
 
     extended_aggregation = [
         dict(col="0", agg="mean"),
@@ -106,6 +132,20 @@ def test_build_agg_data(unittest, rolling_data):
     )
     unittest.assertEqual(
         sorted(list(output.columns)),
-        ["0|mean", "0|pctsum", "1|first", "1|mean", "date"],
+        [
+            build_col_def("mean", "0"),
+            build_col_def("pctsum", "0"),
+            build_col_def("first", "1"),
+            build_col_def("mean", "1"),
+            "date",
+        ],
     )
-    unittest.assertEqual(sorted(cols), ["0|mean", "0|pctsum", "1|first", "1|mean"])
+    unittest.assertEqual(
+        sorted(cols),
+        [
+            build_col_def("mean", "0"),
+            build_col_def("pctsum", "0"),
+            build_col_def("first", "1"),
+            build_col_def("mean", "1"),
+        ],
+    )

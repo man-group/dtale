@@ -15,7 +15,7 @@ export const usePrevious = <T>(value: T): T | undefined => {
 };
 
 /**
- * Cusomt hook for debouncing values that are updated often.
+ * Custom hook for debouncing values that are updated often.
  *
  * @param value the value to debounce.
  * @param delay the delay between debounces.
@@ -30,4 +30,21 @@ export const useDebounce = <T>(value: T, delay: number): T => {
   }, [value]);
 
   return debounceValue;
+};
+
+/**
+ * Custom hook for ignoring the first call to a function since its noise from componentDidMount.
+ *
+ * @param fn the function to ignore first call to.
+ * @param inputs any inputs to the function.
+ */
+export const useDidUpdateEffect = (fn: () => void, inputs: any[]): void => {
+  const didMountRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (didMountRef.current) {
+      return fn();
+    }
+    didMountRef.current = true;
+  }, inputs);
 };

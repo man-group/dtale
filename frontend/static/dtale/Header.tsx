@@ -1,19 +1,30 @@
+import { createSelector } from '@reduxjs/toolkit';
+import { TFunction } from 'i18next';
 import * as React from 'react';
 import Draggable, { DraggableEvent } from 'react-draggable';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { openMenu } from '../menuUtils';
 import {
   ActionType,
-  AppActions,
   DragResizeAction,
+  OpenChartAction,
   SetRangeStateAction,
   StopResizeAction,
+  ToggleColumnAction,
 } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import * as actions from '../redux/actions/dtale';
-import { AppState, Popups, PopupType, RangeState } from '../redux/state/AppState';
+import {
+  selectColumnRange,
+  selectCtrlCols,
+  selectDataId,
+  selectHideColumnMenus,
+  selectSettings,
+} from '../redux/selectors';
+import { Popups, PopupType, RangeState } from '../redux/state/AppState';
 
 import * as bu from './backgroundUtils';
 import { ignoreMenuClicks } from './column/columnMenuUtils';
@@ -71,6 +82,7 @@ const cancelEvents = (e: DraggableEvent, func: () => void): void => {
 
 /** Component properties for Header */
 export interface HeaderProps {
+  loading: boolean;
   columns: ColumnDef[];
   rowCount: number;
   columnIndex: number;
@@ -79,7 +91,19 @@ export interface HeaderProps {
   maxRowHeight?: number;
 }
 
+const selectResult = createSelector(
+  [selectDataId, selectSettings, selectColumnRange, selectCtrlCols, selectHideColumnMenus],
+  (dataId, settings, columnRange, ctrlCols, hideColumnMenus) => ({
+    dataId,
+    settings,
+    columnRange,
+    ctrlCols,
+    hideColumnMenus,
+  }),
+);
+
 const Header: React.FC<HeaderProps & WithTranslation> = ({
+  loading,
   columns,
   rowCount,
   columnIndex,
@@ -88,14 +112,14 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   maxRowHeight,
   t,
 }) => {
-  const { dataId, settings, columnRange, ctrlCols } = useSelector((state: AppState) => state);
+  const { dataId, settings, columnRange, ctrlCols, hideColumnMenus } = useSelector(selectResult);
   const dispatch = useDispatch();
-  const toggleColumnMenu = (colName: string, headerRef: HTMLDivElement): AppActions<void> =>
+  const toggleColumnMenu = (colName: string, headerRef: HTMLDivElement): ToggleColumnAction =>
     dispatch(actions.toggleColumnMenu(colName, headerRef));
-  const hideColumnMenu = (colName: string): AppActions<void> => dispatch(actions.hideColumnMenu(colName));
+  const hideColumnMenu = (colName: string): AnyAction => dispatch(actions.hideColumnMenu(colName) as any as AnyAction);
   const updateDragResize = (x: number): DragResizeAction => dispatch({ type: ActionType.DRAG_RESIZE, x });
   const stopDragResize = (): StopResizeAction => dispatch({ type: ActionType.STOP_RESIZE });
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const updateRangeState = (state: RangeState): SetRangeStateAction =>
     dispatch({ type: ActionType.SET_RANGE_STATE, ...state });
 
@@ -144,18 +168,20 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   };
 
   const buildCopyHandler = (): ((e: React.MouseEvent) => void) => {
-    const menuHandler = openMenu(
-      () => toggleColumnMenu(colName, headerRef.current!),
-      () => hideColumnMenu(colName),
-      headerRef,
-      ignoreMenuClicks,
-    );
+    const menuHandler = hideColumnMenus
+      ? () => undefined
+      : openMenu(
+          () => toggleColumnMenu(colName, headerRef.current!),
+          () => hideColumnMenu(colName),
+          headerRef,
+          ignoreMenuClicks,
+        );
 
     return (e: React.MouseEvent): void => {
       if (e.shiftKey) {
         if (columnRange) {
           const title = t('Copy Columns to Clipboard?');
-          const callback = (copyText: CopyText): AppActions<void> =>
+          const callback = (copyText: CopyText): OpenChartAction =>
             openChart({
               ...copyText,
               type: PopupType.COPY_COLUMN_RANGE,
@@ -186,7 +212,7 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   };
 
   if (columnIndex === 0) {
-    return <DataViewerMenuHolder style={style} columns={columns} rowCount={rowCount} />;
+    return <DataViewerMenuHolder loading={loading} style={style} columns={columns} rowCount={rowCount} />;
   }
 
   const copyHandler = buildCopyHandler();
@@ -216,6 +242,7 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
       style={{ ...headerStyle, ...(drag ? { width: colWidth } : {}) }}
       onMouseOver={handleMouseOver}
       ref={headerRef}
+      data-testid="header-cell"
     >
       <div
         className={classes.join(' ')}

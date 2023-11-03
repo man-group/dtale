@@ -1,9 +1,11 @@
+import { createSelector } from '@reduxjs/toolkit';
 import React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
-import { AppState, PPSPopupData } from '../../redux/state/AppState';
+import { selectChartData, selectDataId } from '../../redux/selectors';
+import { PPSPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as CorrelationsRepository from '../../repository/CorrelationsRepository';
 import { CorrelationsGridState } from '../correlations/Correlations';
@@ -15,12 +17,13 @@ import { displayScore, default as PPSDetails } from './PPSDetails';
 /** Correlations grid state properties w/ PPS support */
 type PPSGridState = CorrelationsGridState & { pps: CorrelationsRepository.PPSGridRow[] };
 
-const PredictivePowerScore: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, chartData } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    chartData: state.chartData as PPSPopupData,
-  }));
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  dataId,
+  chartData: chartData as PPSPopupData,
+}));
 
+const PredictivePowerScore: React.FC<WithTranslation> = ({ t }) => {
+  const { dataId, chartData } = useSelector(selectResult);
   const [correlations, setCorrelations] = React.useState<PPSGridState>();
   const [error, setError] = React.useState<JSX.Element>();
   const [selectedCols, setSelectedCols] = React.useState<string[]>([]);

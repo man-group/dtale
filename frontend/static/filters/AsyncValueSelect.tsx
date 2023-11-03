@@ -13,6 +13,7 @@ export interface AsyncValueSelectProps<T> {
   selectedCol: string;
   selected?: T | T[];
   isMulti?: boolean;
+  loader?: (input: string) => Promise<Array<{ label: string; value: T }>>;
 }
 
 /** State properties for AsyncValueSelect */
@@ -71,7 +72,7 @@ export default class AsyncValueSelect<T> extends React.Component<AsyncValueSelec
           <AsyncSelect
             isMulti={false}
             {...props}
-            value={selected ? { label: String(selected), value: selected } : null}
+            value={selected ? { label: String(selected), value: selected as T } : null}
             onChange={(option) => this.updateState(option?.value)}
           />
         )}
@@ -105,6 +106,9 @@ export default class AsyncValueSelect<T> extends React.Component<AsyncValueSelec
    * @return filtered AsyncSelect options
    */
   private loadOptions(input: string): Promise<Array<{ label: string; value: T }>> {
+    if (this.props.loader) {
+      return this.props.loader(input);
+    }
     return ColumnFilterRepository.loadAsyncData<T>(this.props.dataId, this.props.selectedCol, input).then(
       (response) => response!,
     );

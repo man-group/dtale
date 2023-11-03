@@ -18,10 +18,12 @@ from plotly.io import write_html, write_image
 from plotly.subplots import make_subplots
 from six import PY3, BytesIO, StringIO, string_types
 
+from dtale.column_analysis import HistogramAnalysis
 from dtale.dash_application import dcc, html
 import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.global_state as global_state
+import dtale.pandas_util as pandas_util
 from dtale.charts.utils import (
     AGGS,
     DUPES_MSG,
@@ -39,7 +41,7 @@ from dtale.charts.utils import (
     valid_chart,
     weekday_tick_handler,
 )
-from dtale.utils import build_formatters as chart_formatters
+from dtale.utils import build_formatters as chart_formatters, read_file
 
 from dtale.dash_application.layout.layout import (
     ANIMATE_BY_CHARTS,
@@ -104,6 +106,17 @@ def parse_group_filter(group_filter):
     return group_filter, False
 
 
+BOOL_PROPS = [
+    "dropna",
+    "map_dropna",
+    "cs_dropna",
+    "treemap_dropna",
+    "funnel_dropna",
+    "clustergram_dropna",
+    "pareto_dropna",
+]
+
+
 def chart_url_params(search):
     """
     Builds chart parameters by parsing the query string from main URL
@@ -166,6 +179,7 @@ def chart_url_params(search):
                     "funnel_group",
                     "clustergram_group",
                     "pareto_group",
+                    "histogram_group",
                 ]
             }
 
@@ -174,6 +188,10 @@ def chart_url_params(search):
         )
         del params["group_filter"]
         params["cpg"] = False
+
+    for prop in BOOL_PROPS:
+        if params.get(prop) is not None:
+            params[prop] = "true" == params[prop]
     return params
 
 
@@ -196,9 +214,12 @@ def chart_url_querystring(params, data=None, group_filter=None):
         "bins_val",
         "bin_type",
         "scale",
+        "dropna",
     ]
     chart_type = params.get("chart_type")
-    if chart_type == "bar":
+    if chart_type is None:
+        return ""
+    elif chart_type == "bar":
         base_props += ["barmode", "barsort", "top_bars"]
     elif chart_type == "maps":
         map_type = params.get("map_type")
@@ -210,15 +231,28 @@ def chart_url_querystring(params, data=None, group_filter=None):
             base_props += ["map_type", "loc_mode", "loc", "map_val"]
             if params.get("loc_mode") == "geojson-id":
                 base_props += ["geojson", "featureidkey"]
-        base_props += ["map_group"]
+        base_props += ["map_group", "map_dropna"]
     elif chart_type == "candlestick":
-        base_props += ["cs_x", "cs_open", "cs_close", "cs_high", "cs_low", "cs_group"]
+        base_props += [
+            "cs_x",
+            "cs_open",
+            "cs_close",
+            "cs_high",
+            "cs_low",
+            "cs_group",
+            "cs_dropna",
+        ]
     elif chart_type == "treemap":
-        base_props += ["treemap_value", "treemap_label", "treemap_group"]
+        base_props += [
+            "treemap_value",
+            "treemap_label",
+            "treemap_group",
+            "treemap_dropna",
+        ]
     elif chart_type == "funnel":
-        base_props += ["funnel_value", "funnel_label", "funnel_group"]
+        base_props += ["funnel_value", "funnel_label", "funnel_group", "funnel_dropna"]
     elif chart_type == "clustergram":
-        base_props += ["clustergram_label", "clustergram_group"]
+        base_props += ["clustergram_label", "clustergram_group", "clustergram_dropna"]
     elif chart_type == "pareto":
         base_props += [
             "pareto_x",
@@ -227,11 +261,22 @@ def chart_url_querystring(params, data=None, group_filter=None):
             "pareto_sort",
             "pareto_dir",
             "pareto_group",
+            "pareto_dropna",
+        ]
+    elif chart_type == "histogram":
+        base_props += [
+            "histogram_col",
+            "histogram_type",
+            "histogram_bins",
+            "histogram_group",
         ]
     elif chart_type == "scatter":
         base_props += ["trendline"]
 
     final_params = {k: params[k] for k in base_props if params.get(k) is not None}
+    for prop in BOOL_PROPS:
+        if final_params.get(prop) is not None:
+            final_params[prop] = "true" if params.get(prop) is True else "false"
     final_params["cpg"] = "true" if params.get("cpg") is True else "false"
     final_params["cpy"] = "true" if params.get("cpy") is True else "false"
     if chart_type in ANIMATION_CHARTS:
@@ -257,13 +302,16 @@ def chart_url_querystring(params, data=None, group_filter=None):
         if len(list_param):
             final_params[gp] = json.dumps(list_param)
 
-    if final_params["chart_type"] in YAXIS_CHARTS:
+    if chart_type in YAXIS_CHARTS:
         params_yaxis = {}
         for y, range in (params.get("yaxis") or {}).items():
             if y not in ((data or {}).get("min") or {}):
                 continue
             if not (range["min"], range["max"]) == (data["min"][y], data["max"][y]):
                 params_yaxis[y] = range
+        yaxis_type = (params.get("yaxis") or {}).get("type") or "default"
+        if yaxis_type != "default":
+            params_yaxis["type"] = yaxis_type
         if len(params_yaxis):
             final_params["yaxis"] = json.dumps(params_yaxis)
 
@@ -294,14 +342,7 @@ def is_bool_axis(data_id, col):
     return classify_type(orig_dtype) == "B"
 
 
-def build_axes(
-    chart_data,
-    x,
-    axis_inputs,
-    z=None,
-    scale="linear",
-    data_id=None,
-):
+def build_axes(chart_data, x, axis_inputs, z=None, scale="linear", data_id=None):
     """
     Returns helper function for building axis configurations against a specific y-axis.
 
@@ -325,7 +366,8 @@ def build_axes(
     maxs = chart_data["max"]
     data = pd.DataFrame(chart_data["data"][list(chart_data["data"].keys())[0]])
     dtypes = get_dtypes(data)
-    axis_type, axis_data = (axis_inputs.get(p) for p in ["type", "data"])
+    axis_type = axis_inputs.get("type")
+    axis_data = axis_inputs.get("data", {})
 
     def _build_axes(y):
         axes = {"xaxis": dict(title=update_label_for_freq_and_agg(x))}
@@ -350,14 +392,10 @@ def build_axes(
                         pos = axis_ct / 20.0
                         value["position"] = (1 - pos) if right else pos
                         positions.append(value["position"])
-                if (
-                    y2 in axis_data
-                    and not (
-                        axis_data[y2]["min"],
-                        axis_data[y2]["max"],
-                    )
-                    == (mins[y2], maxs[y2])
-                ):
+                if y2 in axis_data and not (
+                    axis_data[y2]["min"],
+                    axis_data[y2]["max"],
+                ) == (mins[y2], maxs[y2]):
                     value["range"] = [axis_data[y2]["min"], axis_data[y2]["max"]]
                 if classify_type(dtypes.get(y2)) == "I":
                     value["tickformat"] = "0:g"
@@ -448,6 +486,17 @@ def build_spaced_ticks(ticktext, mode="auto"):
         return {"tickmode": "auto", "nticks": size}
     nticks = len(range(factor, size - 1, factor)) + 2
     return {"tickmode": "auto", "nticks": nticks}
+
+
+def export_all_charts_link(data_id, data, url_params=None):
+    if url_params is None:
+        return ""
+
+    querystring = chart_url_querystring(url_params, data=data)
+    app_root = url_params.get("app_root") or ""
+    return fix_url_path(
+        "{}/dtale/chart-export-all/{}?{}".format(app_root, data_id, querystring)
+    )
 
 
 def chart_wrapper(data_id, data, url_params=None):
@@ -558,7 +607,13 @@ def chart_wrapper(data_id, data, url_params=None):
                 export_png_link,
                 export_csv_link,
             ],
-            style={"position": "absolute", "zIndex": 5, "left": 5, "top": 2},
+            style={
+                "position": "absolute",
+                "zIndex": 5,
+                "left": 5,
+                "top": 2,
+                "height": "100%",
+            },
         )
         return html.Div(
             [links] + make_list(chart), style={"position": "relative", "height": "100%"}
@@ -639,7 +694,7 @@ def build_layout(cfg):
     :return: layout object
     :rtype: :plotly:`plotly.graph_objs.Layout <plotly.graph_objs.Layout>`
     """
-    return go.Layout(**dict_merge(dict(legend=dict(orientation="h")), cfg))
+    return go.Layout(**dict_merge(dict(legend=dict(orientation="h", y=-0.3)), cfg))
 
 
 def cpg_chunker(charts, columns=2):
@@ -657,12 +712,14 @@ def cpg_chunker(charts, columns=2):
         return charts
 
     def _formatter(chart):
-        if hasattr(chart, "style"):
-            chart.style.pop("height", None)
         return html.Div(chart, className="col-md-6")
 
     return [
-        html.Div([_formatter(c) for c in chunk], className="row")
+        html.Div(
+            [_formatter(c) for c in chunk],
+            className="row pb-3",
+            style={"height": "100%"},
+        )
         for chunk in divide_chunks(charts, columns)
     ]
 
@@ -1177,10 +1234,7 @@ def bar_builder(
         data["data"][series_key] = {c: df[c].values for c in df.columns}
         tickvals = list(range(len(df["x"])))
         data["data"][series_key]["x"] = tickvals
-        hover_text[series_key] = {
-            "hovertext": df["x"].values,
-            "hoverinfo": "y+text",
-        }
+        hover_text[series_key] = {"hovertext": df["x"].values, "hoverinfo": "y+text"}
         axes["xaxis"] = dict_merge(
             axes.get("xaxis", {}), build_spaced_ticks(df["x"].values, mode="array")
         )
@@ -1228,11 +1282,7 @@ def bar_builder(
                                 ],
                                 "layout": build_layout(
                                     dict_merge(
-                                        build_title(
-                                            x,
-                                            y_value,
-                                            series_key,
-                                        ),
+                                        build_title(x, y_value, series_key),
                                         y_axes,
                                         dict(barmode=barmode or "group"),
                                     )
@@ -1271,18 +1321,14 @@ def bar_builder(
                                 ),
                                 "layout": build_layout(
                                     dict_merge(
-                                        build_title(
-                                            x,
-                                            y_value,
-                                            series_key,
-                                        ),
+                                        build_title(x, y_value, series_key),
                                         y_axes,
                                         dict(barmode=barmode or "group"),
                                     )
                                 ),
                             },
                             modal=kwargs.get("modal", False),
-                        ),
+                        )
                     )
                 )
         return cpg_chunker(charts)
@@ -1308,9 +1354,7 @@ def bar_builder(
         "data": data_cfgs,
         "layout": build_layout(
             dict_merge(
-                build_title(x, final_cols),
-                axes,
-                dict(barmode=barmode or "group"),
+                build_title(x, final_cols), axes, dict(barmode=barmode or "group")
             )
         ),
     }
@@ -1421,10 +1465,10 @@ def bar_code_builder(
         axes["xaxis"] = dict_merge(
             axes.get("xaxis", {}), {"tickmode": "auto", "nticks": len(series["x"])}
         )
-        return "list(range(len(chart_data['x'])))", [
-            "hovertext=chart_data['x'].values",
-            "hoverinfo='y_text'",
-        ]
+        return (
+            "list(range(len(chart_data['x'])))",
+            ["hovertext=chart_data['x'].values", "hoverinfo='y_text'"],
+        )
 
     if barsort_col != "x" or kwargs.get("agg") == "raw":
         x_data, base_chart_cfg = _build_sorted_code(barsort_col)
@@ -1528,11 +1572,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                                 ],
                                 "layout": build_layout(
                                     dict_merge(
-                                        build_title(
-                                            x,
-                                            y_value,
-                                            group=series_key,
-                                        ),
+                                        build_title(x, y_value, group=series_key),
                                         y_axes,
                                     )
                                 ),
@@ -1572,10 +1612,7 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                                     ]
                                 ),
                                 "layout": build_layout(
-                                    dict_merge(
-                                        build_title(x, y_value),
-                                        y_axes,
-                                    )
+                                    dict_merge(build_title(x, y_value), y_axes)
                                 ),
                             },
                             modal=inputs.get("modal", False),
@@ -1848,6 +1885,8 @@ def heatmap_builder(data_id, export=False, **inputs):
             handle_predefined(data_id),
             query,
             global_state.get_context_variables(data_id),
+            pct=inputs.get("load"),
+            pct_type=inputs.get("load_type"),
         )
         code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
@@ -2008,15 +2047,11 @@ def heatmap_builder(data_id, export=False, **inputs):
         x_axis = _build_heatmap_axis(x, x_data, x_title)
         y_axis = _build_heatmap_axis(y, y_data, y_title)
 
-        hm_kwargs = dict_merge(
-            hm_kwargs,
-            dict(colorbar={"title": z_title}, text=text),
-        )
+        hm_kwargs = dict_merge(hm_kwargs, dict(colorbar={"title": z_title}, text=text))
 
         hm_kwargs = dict_merge(hm_kwargs, {"z": heat_data})
         layout_cfg = dict_merge(
-            dict(xaxis_zeroline=False, yaxis_zeroline=False),
-            build_title(x, y, z=z),
+            dict(xaxis_zeroline=False, yaxis_zeroline=False), build_title(x, y, z=z)
         )
         layout_cfg["title"]["text"] += " (Correlation)" if "corr" == agg else ""
         layout_cfg = build_layout(layout_cfg)
@@ -2106,10 +2141,11 @@ def candlestick_builder(data_id, export=False, **inputs):
             global_state.get_context_variables(data_id),
             pct=inputs.get("load"),
             pct_type=inputs.get("load_type"),
+            stratified_group=inputs.get("stratified_group"),
         )
         code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
-        x, cs_open, cs_close, high, low, group, agg = (
+        x, cs_open, cs_close, high, low, group, dropna, agg = (
             inputs.get(p)
             for p in [
                 "cs_x",
@@ -2118,6 +2154,7 @@ def candlestick_builder(data_id, export=False, **inputs):
                 "cs_high",
                 "cs_low",
                 "cs_group",
+                "cs_dropna",
                 "agg",
             ]
         )
@@ -2138,6 +2175,7 @@ def candlestick_builder(data_id, export=False, **inputs):
                 inputs,
                 agg,
                 group_col=group,
+                dropna=dropna,
             )
             [cs_open, cs_close, high, low] = final_cols
             code += agg_code
@@ -2156,20 +2194,25 @@ def candlestick_builder(data_id, export=False, **inputs):
                     close=g[cs_close],
                     high=g[high],
                     low=g[low],
-                    name=name,
+                    name=str(name),
                 )
-                for name, g in data.groupby(group)
+                for name, g in pandas_util.groupby(data, group, dropna=dropna)
             ]
             candlestick_str = (
                 "chart = [\n"
                 "\tgo.Candlestick(\n"
                 "\t\tx=g['{x}'], open=g['{cs_open}'], close=g['{cs_close}'],\n"
-                "\t\thigh=g['{high}'], low=g['{low}], name=name\n"
+                "\t\thigh=g['{high}'], low=g['{low}], name=str(name)\n"
                 "\t)\n"
-                "for name, g in chart_data.groupby('{group}')\n"
+                "for name, g in chart_data{groupby}\n"
                 "]"
             ).format(
-                x=x, cs_open=cs_open, cs_close=cs_close, high=high, low=low, group=group
+                x=x,
+                cs_open=cs_open,
+                cs_close=cs_close,
+                high=high,
+                low=low,
+                groupby=pandas_util.groupby_code(make_list(group), dropna=dropna),
             )
         else:
             data = [
@@ -2236,8 +2279,14 @@ def treemap_builder(data_id, export=False, **inputs):
     """
     code = None
     try:
-        treemap_value, treemap_label, group = (
-            inputs.get(p) for p in ["treemap_value", "treemap_label", "treemap_group"]
+        treemap_value, treemap_label, group, dropna = (
+            inputs.get(p)
+            for p in [
+                "treemap_value",
+                "treemap_label",
+                "treemap_group",
+                "treemap_dropna",
+            ]
         )
         data, code = build_figure_data(data_id, **inputs)
         if data is None:
@@ -2361,13 +2410,13 @@ def treemap_builder(data_id, export=False, **inputs):
             (
                 "charts = [\n"
                 "\t_build_treemap_data(g['{treemap_value}'].values, g['{treemap_label}'].values, name)\n"
-                "\tfor name, g in chart_data.groupby(['{group}'])\n"
+                "\tfor name, g in chart_data{groupby}\n"
                 "]\n"
                 "chart = go.Figure(charts[0])"
             ).format(
                 treemap_value=treemap_value,
                 treemap_label=treemap_label,
-                group="','".join(make_list(group)),
+                groupby=pandas_util.groupby_code(make_list(group), dropna=dropna),
             )
         )
 
@@ -2396,9 +2445,15 @@ def funnel_builder(data_id, export=False, **inputs):
     :rtype: :plotly:`plotly.graph_objs.Funnel <plotly.graph_objs.Funnel>`
     """
 
-    selected_value, selected_label, group, stacked = (
+    selected_value, selected_label, group, dropna, stacked = (
         inputs.get(p)
-        for p in ["funnel_value", "funnel_label", "funnel_group", "funnel_stacked"]
+        for p in [
+            "funnel_value",
+            "funnel_label",
+            "funnel_group",
+            "funnel_dropna",
+            "funnel_stacked",
+        ]
     )
     group = make_list(group)
     is_stacked = stacked and len(group) > 0
@@ -2445,9 +2500,12 @@ def funnel_builder(data_id, export=False, **inputs):
             funnel_code.append(
                 (
                     "charts = []\n"
-                    "for group_key, group in chart_data.groupby(['{group}']):\n"
+                    "for group_key, group in chart_data{groupby}:\n"
                     "\tcharts.append(go.Funnel(x=group['{value}'], y=group['x'], name=group_key))\n"
-                ).format(group="','".join(group), value=final_cols[0])
+                ).format(
+                    groupby=pandas_util.groupby_code(group, dropna=dropna),
+                    value=final_cols[0],
+                )
             )
             chart_val = "charts"
         funnel_code.append(
@@ -2494,28 +2552,30 @@ def funnel_builder(data_id, export=False, **inputs):
                     continue
 
                 layout = build_layout(build_title(selected_label, y2, group=series_key))
-                chart = chart_builder(
-                    graph_wrapper(
-                        figure={
-                            "data": [
-                                go.Funnel(
-                                    **dict_merge(
-                                        dict(x=series[y2], y=series["x"]),
-                                        name_builder(y2, series_key),
-                                    )
+                chart = graph_wrapper(
+                    figure={
+                        "data": [
+                            go.Funnel(
+                                **dict_merge(
+                                    dict(x=series[y2], y=series["x"]),
+                                    name_builder(y2, series_key),
                                 )
-                            ],
-                            "layout": layout,
-                        },
-                        modal=inputs.get("modal", False),
-                    ),
-                    group_filter=dict_merge(
-                        dict(y=y2),
-                        {}
-                        if series_key == "all"
-                        else dict(group=series.get("_filter_")),
-                    ),
+                            )
+                        ],
+                        "layout": layout,
+                    },
+                    modal=inputs.get("modal", False),
                 )
+                if not export:
+                    chart = chart_builder(
+                        chart,
+                        group_filter=dict_merge(
+                            dict(y=y2),
+                            {}
+                            if series_key == "all"
+                            else dict(group=series.get("_filter_")),
+                        ),
+                    )
                 if len(negative_values):
                     error_title = (
                         "The following negative values could not be represented within the {}Funnel chart"
@@ -2550,16 +2610,13 @@ def funnel_builder(data_id, export=False, **inputs):
             title["title"]["text"] += " stacked by {}".format(", ".join(group))
             layout = build_layout(title)
 
-            yield chart_builder(
-                graph_wrapper(
-                    figure={
-                        "data": stacked_data,
-                        "layout": layout,
-                    },
-                    modal=inputs.get("modal", False),
-                ),
-                group_filter=dict(y=final_cols[0]),
+            chart = graph_wrapper(
+                figure={"data": stacked_data, "layout": layout},
+                modal=inputs.get("modal", False),
             )
+            if not export:
+                chart = chart_builder(chart, group_filter=dict(y=final_cols[0]))
+            yield chart
 
     if export:
         return next(build_charts())
@@ -2585,12 +2642,13 @@ def clustergram_builder(data_id, export=False, **inputs):
     :rtype: :plotly:`plotly.graph_objs.Funnel <plotly.graph_objs.Funnel>`
     """
 
-    selected_values, selected_label, group, colorscale = (
+    selected_values, selected_label, group, dropna, colorscale = (
         inputs.get(p)
         for p in [
             "clustergram_value",
             "clustergram_label",
             "clustergram_group",
+            "clustergram_dropna",
             "colorscale",
         ]
     )
@@ -2637,7 +2695,7 @@ def clustergram_builder(data_id, export=False, **inputs):
             (
                 "charts = []\n"
                 "chart_data = chart_data[chart_data[['{value}']] > 0]\n"
-                "for group_key, group in chart_data.groupby(['{group}']):\n"
+                "for group_key, group in chart_data{groupby}:\n"
                 "\tchart = Clustergram(\n"
                 "\t\tdata=group[['{value}']].values,\n"
                 "\t\tcolumn_labels=['{value}'],\n"
@@ -2651,7 +2709,7 @@ def clustergram_builder(data_id, export=False, **inputs):
                 "\tchart['layout']['title'] = {title}"
                 "\tcharts.append(chart)\n"
             ).format(
-                group="','".join(group),
+                groupby=pandas_util.groupby_code(group, dropna=dropna),
                 value="','".join(inputs["clustergram_value"]),
                 color_map=color_map,
                 color_threshold="{'row': 250, 'col': 700}",
@@ -2690,9 +2748,7 @@ def clustergram_builder(data_id, export=False, **inputs):
                 build_title(selected_label, selected_values, group=series_key),
             )
             graph = graph_wrapper(
-                figure=figure,
-                modal=inputs.get("modal", False),
-                export=export,
+                figure=figure, modal=inputs.get("modal", False), export=export
             )
             if export:
                 yield graph
@@ -2715,8 +2771,7 @@ def clustergram_builder(data_id, export=False, **inputs):
 
 
 def pareto_builder(data_id, export=False, **inputs):
-
-    x, bars, line, sort, sort_dir, group = (
+    x, bars, line, sort, sort_dir, group, dropna = (
         inputs.get(p)
         for p in [
             "pareto_x",
@@ -2725,6 +2780,7 @@ def pareto_builder(data_id, export=False, **inputs):
             "pareto_sort",
             "pareto_dir",
             "pareto_group",
+            "pareto_dropna",
         ]
     )
     sort = sort or bars
@@ -2763,7 +2819,7 @@ def pareto_builder(data_id, export=False, **inputs):
             pareto_code.append(
                 (
                     "charts = []\n"
-                    "for group_key, group in chart_data.groupby(['{group}']):\n"
+                    "for group_key, group in chart_data{groupby}:\n"
                     "\tsorted_group = group.sort_values('{sort}', ascending={sort_dir})\n"
                     "\tchart = make_subplots(specs=[[{specs}]])\n"
                     "\tchart.add_trace(\n"
@@ -2777,7 +2833,10 @@ def pareto_builder(data_id, export=False, **inputs):
                     "\tchart.update_layout(title='{title}')\n"
                     "\tcharts.append(chart)\n"
                     "figure = go.Figure(data=charts)"
-                ).format(group=group, **code_kwargs)
+                ).format(
+                    groupby=pandas_util.groupby_code(group, dropna=dropna),
+                    **code_kwargs
+                )
             )
         else:
             pareto_code.append(
@@ -2821,12 +2880,10 @@ def pareto_builder(data_id, export=False, **inputs):
                 secondary_y=True,
             )
             figure.update_layout(
-                title=build_title(x, [line, bars], group=series_key)["title"],
+                title=build_title(x, [line, bars], group=series_key)["title"]
             )
             graph = graph_wrapper(
-                figure=figure.to_dict(),
-                modal=inputs.get("modal", False),
-                export=export,
+                figure=figure.to_dict(), modal=inputs.get("modal", False), export=export
             )
             if export:
                 yield graph
@@ -2846,6 +2903,169 @@ def pareto_builder(data_id, export=False, **inputs):
         return next(build_charts())
     grams = cpg_chunker(list(build_charts()))
     return grams, code
+
+
+def histogram_builder(data_id, export=False, **inputs):
+    histogram_col, histogram_type, bins, group = (
+        inputs.get(p)
+        for p in [
+            "histogram_col",
+            "histogram_type",
+            "histogram_bins",
+            "histogram_group",
+        ]
+    )
+
+    data, code = build_figure_data(data_id, **inputs)
+    if data is None:
+        return None, None
+    chart_builder = chart_wrapper(data_id, data, inputs)
+
+    def build_histogram_code():
+        series_key = next(iter(data["data"]), None)
+        series = data["data"].get(series_key)
+        title = "{} histogram".format(histogram_col)
+        if series_key and series_key != "all":
+            title = "{} - {}".format(series_key, title)
+        if histogram_type == "bins":
+            title = "{} (bins: {})".format(title, bins)
+        if len(data["data"]) > 1:
+            code.append(
+                GROUP_WARNING.format(series_key=triple_quote(series.get("_filter_")))
+            )
+
+        pp = pprint.PrettyPrinter(indent=4)
+        histogram_code = [
+            "s = df[~pd.isnull(df['{col}'])][['{col}']]".format(col=histogram_col)
+        ]
+        hist_kwargs = (
+            "density=True" if histogram_type == "density" else "bins={}".format(bins)
+        )
+        histogram_code.append(
+            "chart, labels = np.histogram(s['{col}'], {hist_kwargs})".format(
+                col=histogram_col, hist_kwargs=hist_kwargs
+            )
+        )
+        layout = pp.pformat(
+            go.Layout(
+                **{
+                    "barmode": "group",
+                    "legend": {"orientation": "h"},
+                    "title": {"text": title},
+                    "yaxis": {"title": {"text": "Frequency"}, "side": "left"},
+                }
+            )
+        )
+        histogram_code.append(
+            "figure = go.Figure(data=charts, layout=go.{layout})".format(layout=layout)
+        )
+        return histogram_code
+
+    # run this before we pop off group filters
+    code += build_histogram_code()
+
+    title = "{} Histogram".format(histogram_col)
+    if histogram_type == "bins":
+        title = "{} (bins: {})".format(title, bins)
+
+    def build_histogram_cfg(series_key, series):
+        series_title = title
+        if series_key and series_key != "all":
+            series_title = "{} - {}".format(title, series_key)
+
+        df = pd.DataFrame({col: series[col] for col in series})
+        HistogramProps = namedtuple("HistogramProps", "args")
+        req = HistogramProps(
+            args=dict(
+                target=None,
+                bins=bins,
+                density="true" if histogram_type == "density" else "false",
+            )
+        )
+        analysis = HistogramAnalysis(req)
+        return_data, _ = analysis.build_histogram_data(df["x"])
+        yaxis_title = "{}{}".format(
+            histogram_col,
+            " - {}".format(series_key) if series_key and series_key != "all" else "",
+        )
+        return {
+            "data": [dict(x=return_data["labels"], y=return_data["data"], type="bar")],
+            "layout": build_layout(
+                {
+                    "barmode": "group",
+                    "title": {"text": series_title},
+                    "xaxis": dict_merge(
+                        {
+                            "title": {"text": histogram_type.capitalize()},
+                            "type": "category",
+                        },
+                        build_spaced_ticks(return_data["labels"], mode="array"),
+                    ),
+                    "yaxis": {"title": {"text": yaxis_title}, "type": "linear"},
+                }
+            ),
+        }
+
+    def build_charts():
+        for series_key, series in data["data"].items():
+            figure_cfg = build_histogram_cfg(series_key, series)
+            graph = graph_wrapper(
+                figure=figure_cfg, modal=inputs.get("modal", False), export=export
+            )
+            if export:
+                yield graph
+
+            chart = chart_builder(
+                graph,
+                group_filter={}
+                if series_key == "all"
+                else dict(group=series.get("_filter_")),
+            )
+
+            # clean up filters when passing to graph
+            series.pop("_filter_", None)
+            yield chart
+
+    if export:
+        return next(build_charts())
+    data_cfgs = cpg_chunker(list(build_charts()))
+
+    if not inputs.get("animate_by"):
+        return data_cfgs, code
+
+    figure_cfg = {
+        "data": [],
+        "layout": build_layout({"title": {"text": title}, "barmode": "group"}),
+    }
+
+    for series_key, series in data["data"].items():
+        series_cfg = build_histogram_cfg(series_key, series)
+        figure_cfg["data"].append(series_cfg["data"][0])
+        break
+
+    def build_frame(frame):
+        data, layout = [], {}
+        for series_key, series in frame["data"].items():
+            series_cfg = build_histogram_cfg(series_key, series)
+            series_data = series_cfg["data"][0]
+            series_data["customdata"] = [frame["name"]] * len(series["x"])
+            data.append(series_data)
+            layout = series_cfg["layout"]
+        return dict(data=data, layout=layout, name=frame["name"])
+
+    def build_histogram_frames(data, frame_builder):
+        frames, slider_steps = [], []
+        for frame in data.get("frames", []):
+            frames.append(frame_builder(frame))
+            slider_steps.append(frame["name"])
+        return frames, slider_steps
+
+    update_cfg_w_frames(
+        figure_cfg, inputs.get("animate_by"), *build_histogram_frames(data, build_frame)
+    )
+    figure_cfg["data"] = figure_cfg["frames"][0]["data"]
+
+    return graph_wrapper(figure=figure_cfg, modal=inputs.get("modal", False)), code
 
 
 def build_map_frames(data, animate_by, frame_builder):
@@ -2873,6 +3093,7 @@ def map_builder(data_id, export=False, **inputs):
             global_state.get_context_variables(data_id),
             pct=inputs.get("load"),
             pct_type=inputs.get("load_type"),
+            stratified_group=inputs.get("stratified_group"),
         )
         code = build_code_export(data_id, query=query)
         wrapper = chart_wrapper(data_id, raw_data, inputs)
@@ -2914,10 +3135,15 @@ def get_map_props(inputs):
         "agg",
         "animate_by",
         "map_group",
+        "map_dropna",
         "group_val",
     ]
     MapProps = namedtuple("MapProps", " ".join(props))
-    return MapProps(**{p: inputs.get(p) for p in props})
+    map_props = MapProps(**{p: inputs.get(p) for p in props})
+    map_props._replace(
+        map_dropna=True if map_props.map_dropna is None else map_props.map_dropna
+    )
+    return map_props
 
 
 def build_scattergeo(inputs, raw_data, layout):
@@ -2940,6 +3166,7 @@ def build_scattergeo(inputs, raw_data, layout):
             props.agg,
             z=props.map_val,
             animate_by=props.animate_by,
+            dropna=props.map_dropna,
         )
         code += agg_code
 
@@ -3052,6 +3279,7 @@ def build_mapbox(inputs, raw_data, layout):
             props.agg,
             z=props.map_val,
             animate_by=props.animate_by,
+            dropna=props.map_dropna,
         )
         code += agg_code
 
@@ -3151,7 +3379,13 @@ def build_choropleth(inputs, raw_data, layout):
     choropleth_kwargs = {}
     if props.agg is not None:
         data, agg_code, _ = build_agg_data(
-            data, props.loc, props.map_val, {}, props.agg, animate_by=props.animate_by
+            data,
+            props.loc,
+            props.map_val,
+            {},
+            props.agg,
+            animate_by=props.animate_by,
+            dropna=props.map_dropna,
         )
         code += agg_code
     if not len(data):
@@ -3279,6 +3513,7 @@ def build_figure_data(
     data=None,
     extended_aggregation=[],
     cleaners=[],
+    dropna=True,
     **kwargs
 ):
     """
@@ -3329,6 +3564,7 @@ def build_figure_data(
                 or k.startswith("funnel_")
                 or k.startswith("clustergram_")
                 or k.startswith("pareto_")
+                or k.startswith("histogram_")
             },
         )
     ):
@@ -3340,6 +3576,7 @@ def build_figure_data(
         global_state.get_context_variables(data_id),
         pct=kwargs.get("load"),
         pct_type=kwargs.get("load_type"),
+        stratified_group=kwargs.get("stratified_group"),
     )
     if data is None or not len(data):
         return None, None
@@ -3349,28 +3586,36 @@ def build_figure_data(
             "{}_value".format(chart_type),
             "{}_label".format(chart_type),
             "{}_group".format(chart_type),
+            "{}_dropna".format(chart_type),
         ]
-        y, x, group = (kwargs.get(p) for p in props)
+        y, x, group, dropna = (kwargs.get(p) for p in props)
         y = make_list(y)
 
     if chart_type == "pareto":
-        x, bars, line, sort, sort_dir, group = (
+        x, bars, line, sort, sort_dir, group, dropna = (
             kwargs.get("pareto_{}".format(prop))
-            for prop in ["x", "bars", "line", "sort", "dir", "group"]
+            for prop in ["x", "bars", "line", "sort", "dir", "group", "dropna"]
         )
         y = [c for c in [bars, line, sort] if c is not None]
+
+    if chart_type == "histogram":
+        x, group = (
+            kwargs.get("histogram_{}".format(prop)) for prop in ["col", "group"]
+        )
+        y = []
 
     code = build_code_export(data_id, query=query)
     chart_kwargs = dict(
         group_col=group,
         group_type=group_type,
         group_val=group_val,
+        dropna=dropna,
         bins_val=bins_val,
         bin_type=bin_type,
         agg=agg,
         extended_aggregation=extended_aggregation,
         cleaners=cleaners,
-        allow_duplicates=chart_type == "scatter",
+        allow_duplicates=chart_type in ["scatter", "histogram"],
         rolling_win=window,
         rolling_comp=rolling_comp,
     )
@@ -3378,7 +3623,9 @@ def build_figure_data(
         chart_kwargs["animate_by"] = animate_by
     if chart_type in ZAXIS_CHARTS:
         chart_kwargs["z"] = z
-    if not y:  # this is to handle when a user wants to see the count of just the x-axis
+    if (
+        not y and chart_type != "histogram"
+    ):  # this is to handle when a user wants to see the count of just the x-axis
         data.loc[:, "count"] = 1
         y = "count"
     data, chart_code = build_base_chart(data, x, y, unlimited_data=True, **chart_kwargs)
@@ -3445,21 +3692,28 @@ def build_raw_figure_data(
         raise ValueError("invalid chart configuration: {}".format(chart_params))
 
     data = run_query(
-        handle_predefined(data_id),
-        query,
-        global_state.get_context_variables(data_id),
+        handle_predefined(data_id), query, global_state.get_context_variables(data_id)
     )
     if chart_type == "maps":
+        props = get_map_props(kwargs)
         if kwargs.get("map_type") == "choropleth":
-            loc, map_val = (kwargs.get(p) for p in ["loc", "map_val"])
-            data, _ = retrieve_chart_data(data, loc, map_val)
+            data, _ = retrieve_chart_data(data, props.loc, props.map_val)
             if agg is not None:
-                data, _, _ = build_agg_data(data, loc, map_val, {}, agg)
+                data, _, _ = build_agg_data(
+                    data, props.loc, props.map_val, {}, agg, dropna=props.map_dropna
+                )
             return data
-        lat, lon, map_val = (kwargs.get(p) for p in ["lat", "lon", "map_val"])
-        data, _ = retrieve_chart_data(data, lat, lon, map_val)
+        data, _ = retrieve_chart_data(data, props.lat, props.lon, props.map_val)
         if agg is not None:
-            data, _, _ = build_agg_data(data, lat, lon, {}, agg, z=map_val)
+            data, _, _ = build_agg_data(
+                data,
+                props.lat,
+                props.lon,
+                {},
+                agg,
+                z=props.map_val,
+                dropna=props.map_dropna,
+            )
         return data
 
     chart_kwargs = dict(
@@ -3493,6 +3747,8 @@ def build_chart(data_id=None, data=None, **inputs):
         - treemap
         - funnel
         - clustergram
+        - pareto
+        - histogram
 
     :param data_id: identifier of data to build axis configurations against
     :type data_id: str
@@ -3507,42 +3763,47 @@ def build_chart(data_id=None, data=None, **inputs):
 
     reset_charts()
     code = None
+    export_all_charts_href = export_all_charts_link(data_id, data, inputs)
     try:
         chart_type = inputs.get("chart_type")
         if chart_type == "heatmap":
             chart, code = heatmap_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "maps":
             chart, code = map_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "candlestick":
             chart, code = candlestick_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "treemap":
             chart, code = treemap_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "funnel":
             chart, code = funnel_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "clustergram":
             chart, code = clustergram_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
 
         if chart_type == "pareto":
             chart, code = pareto_builder(data_id, **inputs)
-            return chart, None, code
+            return chart, None, code, export_all_charts_href
+
+        if chart_type == "histogram":
+            chart, code = histogram_builder(data_id, **inputs)
+            return chart, None, code, export_all_charts_href
 
         data, code = build_figure_data(data_id, data=data, **inputs)
         if data is None:
-            return None, None, None
+            return None, None, None, ""
 
         if "error" in data:
-            return build_error(data["error"], data["traceback"]), None, code
+            return build_error(data["error"], data["traceback"]), None, code, ""
 
         range_data = dict(min=data["min"], max=data["max"])
         axis_inputs = inputs.get("yaxis") or {}
@@ -3566,7 +3827,7 @@ def build_chart(data_id=None, data=None, **inputs):
         chart_inputs = {
             k: v
             for k, v in inputs.items()
-            if k not in ["chart_type", "x", "y", "z", "group"]
+            if k not in ["chart_type", "x", "y", "z", "group", "dropna"]
         }
 
         if chart_type == "wordcloud":
@@ -3581,15 +3842,12 @@ def build_chart(data_id=None, data=None, **inputs):
                 ),
                 range_data,
                 code,
+                export_all_charts_href,
             )
 
         if chart_type == "pie":
             chart, pie_code = pie_builder(data, x, y, chart_builder, **chart_inputs)
-            return (
-                chart,
-                range_data,
-                code + pie_code,
-            )
+            return (chart, range_data, code + pie_code, export_all_charts_href)
 
         axes_builder = build_axes(
             data, x, axis_inputs, z=z, scale=scale, data_id=data_id
@@ -3638,7 +3896,12 @@ def build_chart(data_id=None, data=None, **inputs):
                 scatter_charts = scatter_builder(
                     data, x, y, axes_builder, chart_builder, **kwargs
                 )
-            return cpg_chunker(scatter_charts), range_data, code + scatter_code
+            return (
+                cpg_chunker(scatter_charts),
+                range_data,
+                code + scatter_code,
+                export_all_charts_href,
+            )
 
         if chart_type == "surface":
             chart, chart_code = surface_builder(
@@ -3651,11 +3914,7 @@ def build_chart(data_id=None, data=None, **inputs):
                 agg=agg,
                 colorscale=inputs.get("colorscale"),
             )
-            return (
-                chart,
-                range_data,
-                code + chart_code,
-            )
+            return (chart, range_data, code + chart_code, export_all_charts_href)
 
         if chart_type == "bar":
             chart_code = bar_code_builder(data, x, y, axes_builder, **chart_inputs)
@@ -3663,6 +3922,7 @@ def build_chart(data_id=None, data=None, **inputs):
                 bar_builder(data, x, y, axes_builder, chart_builder, **chart_inputs),
                 range_data,
                 code + chart_code,
+                export_all_charts_href,
             )
 
         if chart_type == "line":
@@ -3671,15 +3931,30 @@ def build_chart(data_id=None, data=None, **inputs):
                 line_builder(data, x, y, axes_builder, chart_builder, **chart_inputs),
                 range_data,
                 code + line_code,
+                export_all_charts_href,
             )
 
         raise NotImplementedError("chart type: {}".format(chart_type))
     except BaseException as e:
-        return build_error(e, traceback.format_exc()), None, code
+        return build_error(e, traceback.format_exc()), None, code, ""
 
 
 def chart_builder_passthru(chart, group_filter=None):
     return chart
+
+
+def find_figures(content, figures):
+    if hasattr(content, "figure"):
+        figure = content.figure
+        figure["layout"]["colorway"] = px.colors.qualitative.D3
+        figures.append(figure)
+        return
+
+    if not hasattr(content, "children"):
+        return
+
+    for sub_content in make_list(content.children):
+        find_figures(sub_content, figures)
 
 
 def build_raw_chart(data_id=None, **inputs):
@@ -3707,6 +3982,10 @@ def build_raw_chart(data_id=None, **inputs):
     def clean_output(output):
         while isinstance(output, list):
             output = output[0]
+        if inputs.get("export_all", False):
+            formatted_output = []
+            find_figures(output, formatted_output)
+            output = formatted_output
         if isinstance(output, dcc.Graph):
             output = output.figure
             if inputs.get("title"):
@@ -3740,6 +4019,9 @@ def build_raw_chart(data_id=None, **inputs):
 
         if chart_type == "pareto":
             return pareto_builder(data_id, **inputs)
+
+        if chart_type == "histogram":
+            return histogram_builder(data_id, **inputs)
 
         data, _ = build_figure_data(data_id, **inputs)
         if data is None:
@@ -3828,16 +4110,41 @@ def export_chart(data_id, params):
     )
     html_buffer = StringIO()
     config = dict(topojsonURL="")
-    write_html(
-        chart,
-        file=html_buffer,
-        include_plotlyjs=True,
-        auto_open=False,
-        post_script=post_script_css,
-        config=config,
-    )
-    html_buffer.seek(0)
-    html_str = html_buffer.getvalue()
+    if params.get("export_all", False):
+        if isinstance(chart, list):
+            write_html(
+                chart[0],
+                file=html_buffer,
+                include_plotlyjs=True,
+                auto_open=False,
+                post_script=post_script_css,
+                config=config,
+            )
+            html_buffer.seek(0)
+            html_str = html_buffer.getvalue()
+
+            from bs4 import BeautifulSoup
+
+            soup = BeautifulSoup(html_str)
+            for inner_chart in chart[1:]:
+                inner_html_buffer = StringIO()
+                write_html(inner_chart, file=inner_html_buffer, include_plotlyjs=False)
+                inner_html_buffer.seek(0)
+                inner_html_str = inner_html_buffer.getvalue()
+                inner_soup = BeautifulSoup(inner_html_str)
+                soup.body.append(BeautifulSoup(inner_soup.body.div.__str__()))
+            html_str = soup.__str__()
+    else:
+        write_html(
+            chart,
+            file=html_buffer,
+            include_plotlyjs=True,
+            auto_open=False,
+            post_script=post_script_css,
+            config=config,
+        )
+        html_buffer.seek(0)
+        html_str = html_buffer.getvalue()
     if params.get("chart_type") == "maps":
         return map_chart_post_processing(html_str, params)
     return html_str
@@ -3867,11 +4174,11 @@ def map_chart_post_processing(html_str, params):
         else:
             topo_name = "usa_110m"
         topo_replace = [".fetchTopojson=function(){"]
-        with open(os.path.join(map_path, "{}.json".format(topo_name)), "r") as file:
-            data = file.read().replace("\n", "")
-            topo_replace.append(
-                "PlotlyGeoAssets.topojson['{}'] = {};".format(topo_name, data)
-            )
+        data = read_file(os.path.join(map_path, "{}.json".format(topo_name)))
+        data = data.replace("\n", "")
+        topo_replace.append(
+            "PlotlyGeoAssets.topojson['{}'] = {};".format(topo_name, data)
+        )
         topo_replace.append("}")
         topo_replace = "".join(topo_replace)
         return html_str.replace(topo_find, topo_replace)

@@ -4,18 +4,17 @@ from imp import reload
 
 import mock
 import pandas as pd
-import pandas.util.testing as pdt
 import pytest
 from six import PY3
 
 from dtale.cli import loaders, script
 from dtale.cli.clickutils import run
-from tests import ExitStack
+from dtale.pandas_util import check_pandas_version
+from tests import ExitStack, pdt
 
 
 @pytest.mark.unit
 def test_main(unittest):
-
     props = [
         "host",
         "port",
@@ -93,7 +92,7 @@ def test_main(unittest):
             df, pd.DataFrame([dict(a=1, b=2, c=3)]), "loader should load csv"
         )
 
-    if PY3:
+    if PY3 and check_pandas_version("0.25.0"):
         with ExitStack() as stack:
             mock_show = stack.enter_context(
                 mock.patch("dtale.cli.script.show", mock.Mock())
@@ -209,14 +208,14 @@ def test_main(unittest):
 def test_sqlite_loader():
     props = ["host", "port", "debug", "subprocess", "data_loader", "reaper_on"]
     with mock.patch("dtale.cli.script.show", mock.Mock()) as mock_show:
-        csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test.sqlite3")
+        sqlite_path = os.path.join(os.path.dirname(__file__), "..", "data/test.sqlite3")
         args = [
             "--host",
             "test",
             "--port",
             "9999",
             "--sqlite-path",
-            csv_path,
+            sqlite_path,
             "--sqlite-table",
             "test_simpsons",
         ]
@@ -238,14 +237,13 @@ def test_sqlite_loader():
 def test_arctic_loader_integration(
     mongo_host, library_name, library, chunkstore_name, chunkstore_lib
 ):
-
-    node = pd.DataFrame(
+    symbol = pd.DataFrame(
         [
             {"date": pd.Timestamp("20000101"), "a": 1, "b": 1.0},
             {"date": pd.Timestamp("20000102"), "a": 2, "b": 2.0},
         ]
     ).set_index(["date", "a"])
-    chunkstore_lib.write("test_node", node)
+    chunkstore_lib.write("test_symbol", symbol)
 
     with ExitStack() as stack:
         mock_show = stack.enter_context(
@@ -258,8 +256,8 @@ def test_arctic_loader_integration(
             mongo_host,
             "--arctic-library",
             chunkstore_name,
-            "--arctic-node",
-            "test_node",
+            "--arctic-symbol",
+            "test_symbol",
             "--arctic-start",
             "20000101",
             "--arctic-end",
@@ -269,15 +267,15 @@ def test_arctic_loader_integration(
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
         assert kwargs["data_loader"] is not None
-        pdt.assert_frame_equal(kwargs["data_loader"](), node)
+        pdt.assert_frame_equal(kwargs["data_loader"](), symbol)
 
-    node2 = pd.DataFrame(
+    symbol2 = pd.DataFrame(
         [
             {"date": pd.Timestamp("20000101"), "a": 1, "b": 1.0},
             {"date": pd.Timestamp("20000102"), "a": 2, "b": 2.0},
         ]
     ).set_index(["date", "a"])
-    library.write("test_node2", node2)
+    library.write("test_symbol2", symbol2)
     with ExitStack() as stack:
         mock_show = stack.enter_context(
             mock.patch("dtale.cli.script.show", mock.Mock())
@@ -289,19 +287,19 @@ def test_arctic_loader_integration(
             mongo_host,
             "--arctic-library",
             library_name,
-            "--arctic-node",
-            "test_node2",
+            "--arctic-symbol",
+            "test_symbol2",
         ]
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
         assert kwargs["data_loader"] is not None
-        pdt.assert_frame_equal(kwargs["data_loader"](), node2)
+        pdt.assert_frame_equal(kwargs["data_loader"](), symbol2)
 
 
 @pytest.mark.unit
 def test_artic_loader(builtin_pkg):
-    node = pd.DataFrame(
+    symbol = pd.DataFrame(
         [
             {"date": pd.Timestamp("20000101"), "a": 1, "b": 1.0},
             {"date": pd.Timestamp("20000102"), "a": 2, "b": 2.0},
@@ -317,7 +315,7 @@ def test_artic_loader(builtin_pkg):
             __name__ = "VersionedItem"
 
             def __init__(self):
-                self.data = node
+                self.data = symbol
                 pass
 
         def import_mock(name, *args, **kwargs):
@@ -348,8 +346,8 @@ def test_artic_loader(builtin_pkg):
             "test_host",
             "--arctic-library",
             "test_lib",
-            "--arctic-node",
-            "test_node",
+            "--arctic-symbol",
+            "test_symbol",
             "--arctic-start",
             "20000101",
             "--arctic-end",
@@ -360,12 +358,12 @@ def test_artic_loader(builtin_pkg):
         _, kwargs = mock_show.call_args
         assert kwargs["data_loader"] is not None
         output = kwargs["data_loader"]()
-        pdt.assert_frame_equal(output, node)
+        pdt.assert_frame_equal(output, symbol)
         mock_arctic.Arctic.assert_called_with("test_host")
         mock_arctic_class.get_library.assert_called_with("test_lib")
-        read_call = mock_arctic_lib.read.mock_calls[0]
-        assert read_call.args[0] == "test_node"
-        assert "chunk_range" in read_call.kwargs
+        read_args, read_kwargs = mock_arctic_lib.read.call_args
+        assert read_args[0] == "test_symbol"
+        assert "chunk_range" in read_kwargs
 
         mock_arctic.reset_mock()
         mock_arctic_lib.reset_mock()
@@ -380,16 +378,47 @@ def test_artic_loader(builtin_pkg):
             "--arctic-library",
             "test_lib",
             "--arctic-node",
-            "test_node2",
+            "test_node",
+            "--arctic-start",
+            "20000101",
+            "--arctic-end",
+            "20000102",
         ]
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
         _, kwargs = mock_show.call_args
         assert kwargs["data_loader"] is not None
-        pdt.assert_frame_equal(kwargs["data_loader"](), node)
+        output = kwargs["data_loader"]()
+        pdt.assert_frame_equal(output, symbol)
         mock_arctic.Arctic.assert_called_with("test_host")
         mock_arctic_class.get_library.assert_called_with("test_lib")
-        mock_arctic_lib.read.assert_called_with("test_node2")
+        read_args, read_kwargs = mock_arctic_lib.read.call_args
+        assert read_args[0] == "test_node"
+        assert "chunk_range" in read_kwargs
+
+        mock_arctic.reset_mock()
+        mock_arctic_lib.reset_mock()
+        mock_arctic_class.reset_mock()
+        mock_show.reset_mock()
+
+        args = [
+            "--port",
+            "9999",
+            "--arctic-host",
+            "test_host",
+            "--arctic-library",
+            "test_lib",
+            "--arctic-symbol",
+            "test_symbol2",
+        ]
+        script.main(args, standalone_mode=False)
+        mock_show.assert_called_once()
+        _, kwargs = mock_show.call_args
+        assert kwargs["data_loader"] is not None
+        pdt.assert_frame_equal(kwargs["data_loader"](), symbol)
+        mock_arctic.Arctic.assert_called_with("test_host")
+        mock_arctic_class.get_library.assert_called_with("test_lib")
+        mock_arctic_lib.read.assert_called_with("test_symbol2")
 
 
 @pytest.mark.unit
@@ -413,8 +442,8 @@ def test_arctic_import_error(builtin_pkg):
             "arctic_host",
             "--arctic-library",
             "arctic_lib",
-            "--arctic-node",
-            "arctic_node",
+            "--arctic-symbol",
+            "arctic_symbol",
             "--arctic-start",
             "20000101",
             "--arctic-end",
@@ -480,8 +509,8 @@ def test_arctic_version_data(builtin_pkg):
             "arctic_host",
             "--arctic-library",
             "arctic_lib",
-            "--arctic-node",
-            "arctic_node",
+            "--arctic-symbol",
+            "arctic_symbol",
         ]
         script.main(args, standalone_mode=False)
         mock_show.assert_called_once()
@@ -499,11 +528,13 @@ def test_arctic_version_data(builtin_pkg):
             mock.patch("dtale.cli.loaders.arctic_loader.show", mock.Mock())
         )
 
-        dtale.show_arctic(host="arctic_host", library="arctic_lib", node="arctic_node")
+        dtale.show_arctic(
+            host="arctic_host", library="arctic_lib", symbol="arctic_symbol"
+        )
 
 
 @pytest.mark.unit
-def test_run():
+def test_csv_loader():
     props = ["host", "port", "debug", "subprocess", "data_loader", "reaper_on"]
     with ExitStack() as stack:
         csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
@@ -533,7 +564,7 @@ def test_run():
         assert port == 9999
         assert reaper_on
         assert data_loader is not None
-        assert mock_exit.called_with(0)
+        mock_exit.assert_called_with(0)
 
     with ExitStack() as stack:
         csv_path = os.path.join(os.path.dirname(__file__), "..", "data/test_df.csv")
@@ -561,12 +592,11 @@ def test_run():
         assert port == 9999
         assert reaper_on
         assert data_loader is not None
-        assert mock_exit.called_with(1)
+        mock_exit.assert_called_with(1)
 
 
 @pytest.mark.unit
 def test_custom_cli_loaders():
-
     custom_loader_path = os.path.join(os.path.dirname(__file__), "..", "data")
     os.environ["DTALE_CLI_LOADERS"] = custom_loader_path
 
@@ -611,7 +641,7 @@ def test_loader_retrieval():
             mock.patch("dtale.cli.loaders.get_py2_loader", mock.Mock())
         )
         custom_module_loader()("custom.loaders", "loader.py")
-        assert mock_loader.called_once()
+        mock_loader.assert_called_once()
 
     with ExitStack() as stack:
         stack.enter_context(
@@ -635,7 +665,7 @@ def test_loader_retrieval():
             mock.patch("dtale.cli.loaders.get_py33_loader", mock.Mock())
         )
         custom_module_loader()("custom.loaders", "loader.py")
-        assert mock_loader.called_once()
+        mock_loader.assert_called_once()
 
     with ExitStack() as stack:
         stack.enter_context(
@@ -647,7 +677,7 @@ def test_loader_retrieval():
             mock.patch("dtale.cli.loaders.get_py35_loader", mock.Mock())
         )
         custom_module_loader()("custom.loaders", "loader.py")
-        assert mock_loader.called_once()
+        mock_loader.assert_called_once()
 
 
 @pytest.mark.unit
@@ -674,17 +704,16 @@ def test_loader_retrievers(builtin_pkg):
         )
 
         assert get_py35_loader("custom.loaders", "loader.py") is not None
-        assert mock_importlib_util.spec_from_file_location.called_once()
-        mock_spec = mock_importlib_util.spec_from_file_location.return_value
-        assert mock_importlib_util.module_from_spec.called_once()
-        mock_loader = mock_spec.loader.return_value
-        assert mock_loader.exec_module.called_once()
+        mock_importlib_util.util.spec_from_file_location.assert_called_once()
+        mock_spec = mock_importlib_util.util.spec_from_file_location.return_value
+        mock_importlib_util.util.module_from_spec.assert_called_once()
+        mock_spec.loader.exec_module.assert_called_once()
         assert get_py33_loader("custom.loaders", "loader.py") is not None
-        assert mock_importlib_machinery.SourceFileLoader.called_once()
+        mock_importlib_machinery.SourceFileLoader.assert_called_once()
         mock_sourcefileloader = mock_importlib_machinery.SourceFileLoader.return_value
-        assert mock_sourcefileloader.load_module.called_once()
+        mock_sourcefileloader.load_module.assert_called_once()
         assert get_py2_loader("custom.loaders", "loader.py") is not None
-        assert mock_imp.load_source.called_once()
+        mock_imp.load_source.assert_called_once()
 
 
 @pytest.mark.unit
@@ -695,9 +724,14 @@ def test_streamlit(unittest):
         build_app_mock = stack.enter_context(
             mock.patch("dtale.app.build_app", mock.Mock())
         )
-        start_listening_mock = stack.enter_context(
-            mock.patch("streamlit.server.server.start_listening", mock.Mock())
-        )
+        try:
+            start_listening_mock = stack.enter_context(
+                mock.patch("streamlit.server.server.start_listening", mock.Mock())
+            )
+        except BaseException:
+            start_listening_mock = stack.enter_context(
+                mock.patch("streamlit.web.server.server.start_listening", mock.Mock())
+            )
 
         import dtale.cli.streamlit_script as streamlit_script
 

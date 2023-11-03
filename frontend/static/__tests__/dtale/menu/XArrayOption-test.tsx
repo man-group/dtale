@@ -1,34 +1,48 @@
-import { mount } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 
 import { MenuTooltip } from '../../../dtale/menu/MenuTooltip';
 import XArrayOption from '../../../dtale/menu/XArrayOption';
+import { ActionType } from '../../../redux/actions/AppActions';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
+
 describe('XArrayOption tests', () => {
+  const mockDispatch = jest.fn();
+
+  beforeEach(() => useDispatchMock.mockImplementation(() => mockDispatch));
+
   afterEach(jest.restoreAllMocks);
 
   it('renders selected xarray dimensions', async () => {
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
-    store.getState().xarray = true;
-    store.getState().xarrayDim = { foo: 1 };
-    let result = mount(
-      <Provider store={store}>
-        <XArrayOption columns={[]} />
-        <MenuTooltip />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    buildInnerHTML({ settings: '', xarray: 'True' }, store);
+    store.dispatch({ type: ActionType.UPDATE_XARRAY_DIM, xarrayDim: { foo: 1 } });
+    await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <XArrayOption columns={[]} />
+            <MenuTooltip />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
     );
+    const menuItem = screen.getByText('XArray Dimensions');
     await act(async () => {
-      result.find('li').simulate('mouseover');
+      await fireEvent.mouseOver(menuItem);
+      await fireEvent.mouseLeave(menuItem);
     });
-    result = result.update();
-    expect(result.find('div.hoverable__content').text().endsWith('1 (foo)')).toBe(true);
+    expect(mockDispatch.mock.calls[0][0].content.endsWith('1 (foo)')).toBe(true);
   });
 });

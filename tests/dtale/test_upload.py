@@ -6,6 +6,7 @@ import pytest
 from six import BytesIO, PY3
 
 from dtale.app import build_app
+from dtale.pandas_util import check_pandas_version
 from tests import ExitStack
 from tests.dtale import build_data_inst
 
@@ -42,7 +43,7 @@ def test_upload(unittest):
             },
         )
         assert global_state.size() == 2
-        new_key = next((k for k in global_state.keys() if k != c.port), None)
+        new_key = next((k for k in global_state.keys() if k != str(c.port)), None)
         assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
 
     with build_app(url=URL).test_client() as c:
@@ -62,7 +63,7 @@ def test_upload(unittest):
             },
         )
         assert global_state.size() == 2
-        new_key = next((k for k in global_state.keys() if k != c.port), None)
+        new_key = next((k for k in global_state.keys() if k != str(c.port)), None)
         assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
 
     with build_app(url=URL).test_client() as c:
@@ -70,7 +71,7 @@ def test_upload(unittest):
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
         assert global_state.size() == 1
-        if PY3:
+        if PY3 and check_pandas_version("0.25.0"):
             c.post(
                 "/dtale/upload",
                 data={
@@ -83,7 +84,7 @@ def test_upload(unittest):
                 },
             )
             assert global_state.size() == 2
-            new_key = next((k for k in global_state.keys() if k != c.port), None)
+            new_key = next((k for k in global_state.keys() if k != str(c.port)), None)
             assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
 
     with build_app(url=URL).test_client() as c:
@@ -118,8 +119,7 @@ def test_upload(unittest):
             sheets = resp.json["sheets"]
             assert len(sheets) == 2
             unittest.assertEqual(
-                sorted([s["name"] for s in sheets]),
-                ["Sheet 1", "Sheet 2"],
+                sorted([s["name"] for s in sheets]), ["Sheet 1", "Sheet 2"]
             )
 
 
@@ -154,8 +154,7 @@ def test_web_upload(unittest):
             c.get("/dtale/web-upload", query_string=params)
             load_csv.assert_called_once()
             unittest.assertEqual(
-                load_csv.call_args.kwargs,
-                {"path": "http://test.com", "proxy": None},
+                load_csv.call_args[1], {"path": "http://test.com", "proxy": None}
             )
             assert global_state.size() == 1
             load_csv.reset_mock()
@@ -164,7 +163,7 @@ def test_web_upload(unittest):
             c.get("/dtale/web-upload", query_string=params)
             load_csv.assert_called_once()
             unittest.assertEqual(
-                load_csv.call_args.kwargs,
+                load_csv.call_args[1],
                 {"path": "http://test.com", "proxy": None, "delimiter": "\t"},
             )
             assert global_state.size() == 2
@@ -177,7 +176,7 @@ def test_web_upload(unittest):
             c.get("/dtale/web-upload", query_string=params)
             load_json.assert_called_once()
             unittest.assertEqual(
-                load_json.call_args.kwargs,
+                load_json.call_args[1],
                 {"path": "http://test.com", "proxy": "http://testproxy.com"},
             )
             assert global_state.size() == 3
@@ -186,8 +185,7 @@ def test_web_upload(unittest):
             c.get("/dtale/web-upload", query_string=params)
             load_excel.assert_called_once()
             unittest.assertEqual(
-                load_excel.call_args.kwargs,
-                {"path": "http://test.com", "proxy": None},
+                load_excel.call_args[1], {"path": "http://test.com", "proxy": None}
             )
             assert global_state.size() == 4
             global_state.clear_store()
@@ -200,8 +198,7 @@ def test_web_upload(unittest):
             sheets = resp.json["sheets"]
             assert len(sheets) == 2
             unittest.assertEqual(
-                sorted([s["name"] for s in sheets]),
-                ["Sheet 1", "Sheet 2"],
+                sorted([s["name"] for s in sheets]), ["Sheet 1", "Sheet 2"]
             )
 
 

@@ -1,25 +1,35 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import { Provider } from 'react-redux';
-import { MultiGrid } from 'react-virtualized';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
-import Formatting from '../../popups/formats/Formatting';
-import { RemovableError } from '../../RemovableError';
+import * as serverState from '../../dtale/serverStateManagement';
+import { ActionType } from '../../redux/actions/AppActions';
 import * as DataRepository from '../../repository/DataRepository';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, mockChartJS, tickUpdate } from '../test-utils';
+import { buildInnerHTML, mockChartJS } from '../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('DataViewer tests', () => {
-  let result: ReactWrapper;
+  let container: HTMLElement;
+  const mockDispatch = jest.fn();
+  let store: Store;
   let loadDataSpy: jest.SpyInstance;
+  let loadFilteredRangesSpy: jest.SpyInstance;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
   });
+  let calls = 0;
 
   beforeAll(() => {
     dimensions.beforeAll();
@@ -27,27 +37,37 @@ describe('DataViewer tests', () => {
   });
 
   beforeEach(async () => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => {
-      if (url === '/dtale/data/1?ids=%5B%22100-101%22%5D') {
-        return Promise.resolve({ data: { error: 'No data found' } });
+    useDispatchMock.mockImplementation(() => mockDispatch);
+    (axios.get as any).mockImplementation((url: string) => {
+      if (url.startsWith('/dtale/data')) {
+        calls++;
+        if (calls === 4) {
+          return Promise.resolve({ data: { error: 'No data found' } });
+        }
+        return Promise.resolve({ data: { ...reduxUtils.DATA, total: 200, final_query: `foo == ${calls}` } });
       }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     loadDataSpy = jest.spyOn(DataRepository, 'load');
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
-    result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
-    );
-    await act(async () => await tickUpdate(result));
-    return result.update();
+    loadFilteredRangesSpy = jest.spyOn(serverState, 'loadFilteredRanges');
+    store = reduxUtils.createDtaleStore();
   });
+
+  const buildContainer = async (hiddenProps?: Record<string, string>): Promise<void> => {
+    buildInnerHTML({ settings: '', ...hiddenProps }, store);
+    await act(() => {
+      const result = render(
+        <Provider store={store}>
+          <DataViewer />
+        </Provider>,
+        {
+          container: document.getElementById('content') ?? undefined,
+        },
+      );
+
+      container = result.container;
+    });
+  };
 
   afterEach(jest.resetAllMocks);
 
@@ -56,62 +76,43 @@ describe('DataViewer tests', () => {
     jest.restoreAllMocks();
   });
 
-  const dataViewer = (): ReactWrapper => result.find(DataViewer);
-
-  it('DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...', async () => {
-    await act(async () => {
-      dataViewer().find(Formatting).props().propagateState({ refresh: true });
+  it('DataViewer: reloading data', async () => {
+    await buildContainer();
+    await act(() => {
+      store.dispatch({
+        type: ActionType.UPDATE_SETTINGS,
+        settings: { ...store.getState().settings, idx: 1 },
+      });
     });
-    await act(async () => {
-      dataViewer().find(Formatting).props().propagateState({ refresh: true });
+    await act(() => {
+      store.dispatch({
+        type: ActionType.UPDATE_SETTINGS,
+        settings: { ...store.getState().settings, idx: 2 },
+      });
     });
-    result = result.update();
     expect(loadDataSpy.mock.calls).toEqual([
       ['1', { ids: '["0-55"]' }],
-      ['1', { ids: '["0-55"]' }],
-      ['1', { ids: '["0-55"]' }],
+      ['1', { ids: '["5-73"]' }],
+      ['1', { ids: '["0-73"]' }],
+      ['1', { ids: '["0-73"]' }],
     ]);
     loadDataSpy.mockClear();
+
+    const scrollContainer = container.getElementsByClassName('ReactVirtualized__Grid__innerScrollContainer')[0];
     await act(async () => {
-      dataViewer().find(MultiGrid).props().onSectionRendered?.({
-        rowStartIndex: 0,
-        rowStopIndex: 55,
-        columnStartIndex: 0,
-        columnStopIndex: 10,
-        columnOverscanStartIndex: 1,
-        columnOverscanStopIndex: 1,
-        rowOverscanStartIndex: 1,
-        rowOverscanStopIndex: 1,
-      });
+      await fireEvent.scroll(scrollContainer, { target: { scrollTop: 100 } });
     });
-    result = result.update();
     await act(async () => {
-      dataViewer().find(MultiGrid).props().onSectionRendered?.({
-        rowStartIndex: 0,
-        rowStopIndex: 3,
-        columnStartIndex: 0,
-        columnStopIndex: 10,
-        columnOverscanStartIndex: 1,
-        columnOverscanStopIndex: 1,
-        rowOverscanStartIndex: 1,
-        rowOverscanStopIndex: 1,
-      });
+      await fireEvent.scroll(scrollContainer, { target: { scrollTop: 500 } });
     });
-    result = result.update();
     await act(async () => {
-      dataViewer().find(MultiGrid).props().onSectionRendered?.({
-        rowStartIndex: 100,
-        rowStopIndex: 101,
-        columnStartIndex: 0,
-        columnStopIndex: 10,
-        columnOverscanStartIndex: 1,
-        columnOverscanStopIndex: 1,
-        rowOverscanStartIndex: 1,
-        rowOverscanStopIndex: 1,
-      });
+      await fireEvent.scroll(scrollContainer, { target: { scrollTop: 1000 } });
     });
-    result = result.update();
-    expect(loadDataSpy.mock.calls).toEqual([['1', { ids: '["100-101"]' }]]);
-    expect(result.find(RemovableError).length).toBe(1);
+    expect(screen.getByRole('alert')).toBeDefined();
+    // last call to dispatch should be for updateFilteredRanges
+    await act(async () => {
+      await mockDispatch.mock.calls[mockDispatch.mock.calls.length - 1][0](store.dispatch, store.getState);
+    });
+    expect(loadFilteredRangesSpy).toHaveBeenCalled();
   });
 });

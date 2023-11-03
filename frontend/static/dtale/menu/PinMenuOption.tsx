@@ -3,13 +3,13 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType, ToggleMenuPinnedAction } from '../../redux/actions/AppActions';
-import { AppState } from '../../redux/state/AppState';
+import { selectMenuPinned } from '../../redux/selectors';
 import * as serverState from '../serverStateManagement';
 
 import { MenuItem } from './MenuItem';
 
 const PinMenuOption: React.FC<WithTranslation> = ({ t }) => {
-  const menuPinned = useSelector((state: AppState) => state.menuPinned);
+  const menuPinned = useSelector(selectMenuPinned);
   const dispatch = useDispatch();
   const toggleMenuPinned = (): ToggleMenuPinnedAction => dispatch({ type: ActionType.TOGGLE_MENU_PINNED });
 

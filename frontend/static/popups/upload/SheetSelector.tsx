@@ -69,7 +69,7 @@ const SheetSelector: React.FC<SheetSelectorProps & WithTranslation> = ({ mergeRe
         </Modal.Header>
         <Modal.Body>
           {error}
-          <div style={{ maxHeight: 300, overflowY: 'auto' }} className="col-md-4">
+          <div style={{ maxHeight: 300, overflowY: 'auto' }} className="col-md-4" data-testid="sheet-selector">
             <ul>
               {sheets.map((sheet, i) => (
                 <li key={i}>

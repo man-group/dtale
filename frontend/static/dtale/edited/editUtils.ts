@@ -1,4 +1,4 @@
-import { AppActions, ClearEditAction } from '../../redux/actions/AppActions';
+import { ClearEditAction, OpenChartAction } from '../../redux/actions/AppActions';
 import { InstanceSettings, Popups, PopupType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerData, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
@@ -18,7 +18,7 @@ interface CellEditKeyDownProps extends EditedCellInfoProps {
   settings: InstanceSettings;
   maxColumnWidth?: number;
   clearEdit: () => ClearEditAction;
-  openChart: (chartData: Popups) => AppActions<void>;
+  openChart: (chartData: Popups) => OpenChartAction;
 }
 
 export const onKeyDown = async (
@@ -48,5 +48,8 @@ export const onKeyDown = async (
       ...(c.name === colCfg.name ? width : {}),
     }));
     propagateState({ columns: updatedColumns, data: updatedData, triggerResize: true }, props.clearEdit);
+  }
+  if (gu.ColumnType.BOOL === gu.findColType(colCfg?.dtype) && e.key === 'n') {
+    await onKeyDown({ key: 'Enter' } as any as React.KeyboardEvent, colCfg, rowIndex, 'nan', origValue, props);
   }
 };

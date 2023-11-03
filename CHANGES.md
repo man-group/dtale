@@ -1,5 +1,177 @@
 ## Changelog
 
+### 3.7.0 (2023-10-2)
+* Turn off "Custom Filter" functionality by default
+* [#811](https://github.com/man-group/dtale/issues/811): weekday name function
+
+### 3.6.0 (2023-9-29)
+* [#804](https://github.com/man-group/dtale/issues/804): updated summarize code to string join using a pipe instead of comma
+* [#805](https://github.com/man-group/dtale/issues/805): allow D-Tale to be run under HTTPS
+* [#803](https://github.com/man-group/dtale/issues/803): Frequency Table
+
+### 3.5.0 (2023-9-14)
+* [#796](https://github.com/man-group/dtale/issues/796): option to hide ribbon n & column menus
+* [#797](https://github.com/man-group/dtale/issues/797): added 'Counts & Percentages' summarize function
+* [#800](https://github.com/man-group/dtale/issues/800): heatmap locked column fix
+* [#798](https://github.com/man-group/dtale/issues/798): added 'Duplicate' function to column menu
+
+### 3.4.0 (2023-9-5)
+* [#792](https://github.com/man-group/dtale/issues/792): adding in percentage to 'Value Counts' describe chart
+* [#788](https://github.com/man-group/dtale/issues/788): fix for when column names have a pipe character
+* [#786](https://github.com/man-group/dtale/issues/786): updates to shutdown
+* update to AcrticDB `get_num_rows` handling
+
+### 3.3.0 (2023-7-19)
+* [#779](https://github.com/man-group/dtale/issues/779): dtale.show(background_mode) not working
+* [#778](https://github.com/man-group/dtale/issues/778): Bump matplotlib to >=3.7.0
+* dependency upgrades
+
+### 3.2.0 (2023-7-5)
+* [#773](https://github.com/man-group/dtale/issues/773): creating a comma-separated string of values from a GroupBy
+* [#771](https://github.com/man-group/dtale/issues/771): Support for Python 3.11
+ 
+### 3.1.7 (2023-6-29)
+* Fixes for ArcticDB date filtering
+
+### 3.1.6 (2023-6-28)
+* Added support to `/dtale/data/` endpoint for ArcticDB instances hosted using gunicorn
+
+### 3.1.0 (2023-6-23)
+* Added handling for ArcticDB locations with high libraries & symbols
+* Added handling for wide dataframes
+* Allowed ArcticDB data paths to passed in from URLs
+
+### 3.0.0 (2023-6-9)
+* Added support for ArcticDB as the storage mechanism for pandas dataframes
+
+### 2.16.0 (2023-5-16)
+* [#759](https://github.com/man-group/dtale/issues/759): freeze header menu option
+* Updated data_id storage to use strings rather than numbers
+* Fixed bug where calling 'cleanup' didn't cleanup instance name reference
+
+### 2.15.2 (2023-5-1)
+* tweaked requirements for older versions of python
+
+### 2.15.1 (2023-4-29)
+* updates to how app's _override_routes rebuilds url_map
+* requirement tweaks to werkzeug
+
+### 2.15.0 (2023-4-28)
+* [#490](https://github.com/man-group/dtale/issues/490): stratified random sample in charts
+* Updated sklearn column_builders to handle import failures
+
+### 2.14.4 (2023-4-19)
+* Added dataclasses requirement for python environments >= 3.6 and < 3.7
+
+### 2.14.3 (2023-4-19)
+* backwards compatability for pandas `string` dtype and tests
+
+### 2.14.2 (2023-4-18)
+* removed extraneous dependency `soupsieve`
+
+### 2.14.1 (2023-4-17)
+* update requirements to no longer pin and allow for older versions of packages
+* update unit tests to allow for backwards compatibility with older versions of mock library
+* update how `Flask.url_for` is detected rather than pinning to specific version of python
+* separated black & Flake8 code formatting checks into own job in CircleCI
+
+### 2.14.0 (2023-4-10)
+* [#748](https://github.com/man-group/dtale/issues/748): update auto-generated column deletion code
+* [#746](https://github.com/man-group/dtale/issues/746): editing cells while filtering
+* [#743](https://github.com/man-group/dtale/issues/743): passing a list of columns to 'allow_cell_edits'
+* [#742](https://github.com/man-group/dtale/issues/742): custom edit options bug
+* updates for pandas 2.0.0
+* bump redis & replace node-sass with sass
+
+### 2.13.0 (2023-3-3)
+* [#685](https://github.com/man-group/dtale/issues/685): Histogram chart builder
+* [#730](https://github.com/man-group/dtale/issues/730): fix for exporting charts with multiple y-axis
+
+### 2.12.3 (2023-2-22)
+* Updated D-Tale streamlit startup command to have a wider exception handler for importing `streamlit.server`
+
+### 2.12.2 (2023-2-7)
+* [#726](https://github.com/man-group/dtale/issues/726): updated `global_state.set_app_settings` to persist updates to instance settings
+
+### 2.12.1 (2023-2-2)
+* [#726](https://github.com/man-group/dtale/issues/726): fix for turning off header editor using `dtale.show`
+
+### 2.12.0 (2023-2-2)
+* [#726](https://github.com/man-group/dtale/issues/726): added option to turn off header editor
+* [#700](https://github.com/man-group/dtale/issues/700): export all charts in one HTML file
+* [#592](https://github.com/man-group/dtale/issues/592): highlight rows of a dataframe filter
+* [#647](https://github.com/man-group/dtale/issues/647): added option to auto-hide columns consisting entirely of NaN values
+
+### 2.11.0 (2023-1-23)
+* [#659](https://github.com/man-group/dtale/issues/659): editing cells with predefined values
+* [#692](https://github.com/man-group/dtale/issues/692): updated dash to throw regular exceptions instead of 204s when in Google Colab
+
+### 2.10.0 (2023-1-11)
+* Updated usage to dash_bootstrap_components.Checkbox to be backwards compatible
+
+### 2.9.2 (2023-1-11)
+* [#719](https://github.com/man-group/dtale/issues/719): allow NaN values in groupby
+* Updated cell editor and header editor to use select dropdown on category columns
+* [#708](https://github.com/man-group/dtale/issues/708): render boolean column values as checkboxes)
+
+### 2.9.1 (2022-12-28)
+* [#709](https://github.com/man-group/dtale/issues/709): added additional VSCode check for VSCODE_INJECTION
+* [#714](https://github.com/man-group/dtale/issues/714): pushed plotly legend below x-axis labels
+* [#711](https://github.com/man-group/dtale/issues/711): fix for predefined filters to return numbers to the backend when necessary
+* frontend package upgrades:
+  * upgraded to latest version of react
+  * dropped enzyme in favor of @testing-library/react
+  * upgraded chart.js
+
+### 2.9.0 (2022-11-4)
+* [#703](https://github.com/man-group/dtale/issues/703): fix for matplotlib imports
+* [#704](https://github.com/man-group/dtale/issues/704): fix for replacing nan with zero
+* [#677](https://github.com/man-group/dtale/issues/677): include row dropping in history
+
+### 2.8.1 (2022-9-9)
+* Added DESCRIPTION.md to MANIFEST.in
+
+### 2.8.0 (2022-9-8)
+* [#693](https://github.com/man-group/dtale/issues/693): updated streamlit script to work with 1.12.0
+* [#694](https://github.com/man-group/dtale/issues/694): shortened setup.py long_description to help with hadoop downloads
+
+### 2.7.1 (2022-8-7)
+* updating pillow dependency in python 3.6
+
+### 2.7.0 (2022-8-7)
+* [#688](https://github.com/man-group/dtale/issues/688): updated calls to Flask.url_for for version 2.2.1
+* [#676](https://github.com/man-group/dtale/issues/676): Changed final_query to include column
+* Fix filtering string columns with special characters and explicitly support regex
+
+### 2.6.0 (2022-6-16)
+* added build of python 3.10
+* [#671](https://github.com/man-group/dtale/issues/671): updated substring replacement function regex
+* [#254](https://github.com/man-group/dtale/issues/254): Fixes for disabling actions
+
+### 2.5.1 (2022-5-29)
+* fixed networkx dependencies
+
+### 2.5.0 (2022-5-28)
+* [#617](https://github.com/man-group/dtale/issues/617): encoding updates for stylesheets
+* [#668](https://github.com/man-group/dtale/issues/668): update warning filtering to only filter dash_html_components message
+* [#669](https://github.com/man-group/dtale/issues/669): fixed correlation code export
+
+### 2.4.0 (2022-5-8)
+* [#665](https://github.com/man-group/dtale/issues/665): removed dependency on ppscore and unpinned sklearn
+
+### 2.3.0 (2022-5-3)
+* Added the ability to export correlations or PPS heatmaps to PNG
+* [#653](https://github.com/man-group/dtale/issues/653): added "__version__" entry to dtale module
+
+### 2.2.0 (2022-3-23)
+* [#601](https://github.com/man-group/dtale/issues/601): added update_id functionality
+* [#649](https://github.com/man-group/dtale/issues/649): fixed incorrect property in pivot opertaions
+
+### 2.1.2 (2022-3-15)
+* [#617](https://github.com/man-group/dtale/issues/617): file loading on windows
+* [#643](https://github.com/man-group/dtale/issues/643): correlation grid dropdown display
+* [#646](https://github.com/man-group/dtale/issues/646): initial show/hide grid display
+
 ### 2.1.0 (2022-3-13)
 * [#617](https://github.com/man-group/dtale/issues/617): HTML Exports of data grid
 * Added option for JSONL line files in json-loader

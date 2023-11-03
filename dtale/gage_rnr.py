@@ -53,7 +53,6 @@ ResultNames = {
 
 
 class Statistics(object):
-
     title = "Statistics"
 
     def __init__(self, data, labels=None):

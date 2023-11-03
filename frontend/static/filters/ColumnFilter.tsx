@@ -2,14 +2,16 @@ import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import { components, GetStyles, GroupBase, LoadingIndicatorProps } from 'react-select';
+import { AnyAction } from 'redux';
 
 import { ColumnDef, ColumnFilter as ColumnFilterObj, OutlierFilter } from '../dtale/DataViewerState';
 import * as gu from '../dtale/gridUtils';
 import * as menuFuncs from '../dtale/menu/dataViewerMenuUtils';
-import { AppActions } from '../redux/actions/AppActions';
+import { OpenChartAction } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import * as settingsActions from '../redux/actions/settings';
-import { AppState, InstanceSettings, Popups, PopupType } from '../redux/state/AppState';
+import { selectDataId } from '../redux/selectors';
+import { InstanceSettings, Popups, PopupType } from '../redux/state/AppState';
 import * as ColumnFilterRepository from '../repository/ColumnFilterRepository';
 
 import DateFilter from './DateFilter';
@@ -50,11 +52,11 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   t,
   ...props
 }) => {
-  const dataId = useSelector((state: AppState) => state.dataId);
+  const dataId = useSelector(selectDataId);
   const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
 
   const colCfg: ColumnDef | undefined = columns.find((column) => column.name === selectedCol);
   const dtype = colCfg?.dtype ?? '';
@@ -153,7 +155,7 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   };
 
   if (loadingState || lastCol !== selectedCol) {
-    const indicatorProps = { getStyles: getStyles, cx: () => '' } as unknown as LoadingIndicatorProps<
+    const indicatorProps = { getStyles, cx: () => '', getClassNames: () => '' } as unknown as LoadingIndicatorProps<
       unknown,
       false,
       GroupBase<unknown>
@@ -173,6 +175,7 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   let markup = null;
   switch (colType) {
     case gu.ColumnType.STRING:
+    case gu.ColumnType.CATEGORY:
     case gu.ColumnType.UNKNOWN: {
       if (!dtype.startsWith('timedelta')) {
         markup = (
@@ -230,7 +233,7 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
       <li className="hoverable">
         {renderIcon()}
         <div className="m-auto">
-          <div className="column-filter m-2">{markup}</div>
+          <div className={`column-filter ${colType}-filter m-2`}>{markup}</div>
         </div>
         <div className="hoverable__content col-menu-desc">{t('filter')}</div>
       </li>

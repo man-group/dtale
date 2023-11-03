@@ -8,7 +8,8 @@ import FilterSelect from '../../popups/analysis/filters/FilterSelect';
 import ColumnSelect from '../../popups/create/ColumnSelect';
 import { ActionType, HideSidePanelAction } from '../../redux/actions/AppActions';
 import { buildURLString } from '../../redux/actions/url-utils';
-import { AppState, BaseOption } from '../../redux/state/AppState';
+import { selectDataId } from '../../redux/selectors';
+import { BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as DtypesRepository from '../../repository/DtypesRepository';
 import { capitalize } from '../../stringUtils';
@@ -52,7 +53,7 @@ const FREQS = [
 ];
 
 const MissingNoCharts: React.FC<WithTranslation> = ({ t }) => {
-  const dataId = useSelector((state: AppState) => state.dataId);
+  const dataId = useSelector(selectDataId);
   const dispatch = useDispatch();
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
 
@@ -104,17 +105,17 @@ const MissingNoCharts: React.FC<WithTranslation> = ({ t }) => {
         <div className="col" />
         <div className="col-auto pr-0">
           <button className="btn btn-plain" onClick={() => window.open(imageUrl, '_blank')}>
-            <i className="ico-open-in-new pointer" title={t('Open In New Tab', { ns: 'side' })} />
+            <i className="ico-open-in-new pointer" title={t('Open In New Tab', { ns: 'side' }) ?? undefined} />
           </button>
         </div>
         <div className="col-auto pr-0">
           <button className="btn btn-plain" onClick={() => window.open(fileUrl, '_blank')}>
-            <i className="fas fa-file-code pointer" title={t('missing:Download')} />
+            <i className="fas fa-file-code pointer" title={t('missing:Download') ?? undefined} />
           </button>
         </div>
         <div className="col-auto">
           <button className="btn btn-plain" onClick={hideSidePanel}>
-            <i className="ico-close pointer" title={t('side:Close')} />
+            <i className="ico-close pointer" title={t('side:Close') ?? undefined} />
           </button>
         </div>
       </div>

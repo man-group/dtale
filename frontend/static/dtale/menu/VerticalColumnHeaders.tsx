@@ -1,25 +1,29 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { ActionType } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState } from '../../redux/state/AppState';
+import { selectDataId, selectVerticalHeaders } from '../../redux/selectors';
 import * as serverState from '../serverStateManagement';
 
 import { MenuItem } from './MenuItem';
 
+const selectResult = createSelector([selectDataId, selectVerticalHeaders], (dataId, verticalHeaders) => ({
+  dataId,
+  verticalHeaders: verticalHeaders ?? false,
+}));
+
 const VerticalColumnHeaders: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, verticalHeaders } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    verticalHeaders: state.settings?.verticalHeaders ?? false,
-  }));
+  const { dataId, verticalHeaders } = useSelector(selectResult);
   const dispatch = useDispatch();
 
   const setVerticalHeaders = async (): Promise<void> => {
     const updates = { verticalHeaders: !verticalHeaders };
     await serverState.updateSettings(updates, dataId);
-    dispatch(settingsActions.updateSettings(updates));
+    dispatch(settingsActions.updateSettings(updates) as any as AnyAction);
     dispatch({ type: ActionType.HIDE_RIBBON_MENU });
   };
 

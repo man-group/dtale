@@ -70,9 +70,40 @@ python_variables: &python_variables
   CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
   CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
   CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-  VERSION: 2.1.0
+  VERSION: 3.7.0
   PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
-  RUN_BLACK: true
+python_formatting: &python_formatting
+    parallelism: 1
+    shell: /bin/bash --login
+    steps:
+      - attach_workspace:
+          at: /tmp
+      - checkout
+      - restore_cache:
+          keys:
+            # This branch if available
+            - v1-dep-{{ .Branch }}-
+            # Default branch if not
+            - v1-dep-master-
+            # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+            - v1-dep-
+      - run:
+          name: Create and activate virtualenv
+          command: |
+            virtualenv ci
+            . ci/bin/activate
+      - run:
+          name: Run Flake8
+          command: |
+            . ci/bin/activate
+            pip install flake8
+            flake8
+      - run:
+          name: Run black
+          command: |
+            . ci/bin/activate
+            pip install black
+            black --check setup.py dtale tests
 python: &python
     parallelism: 1
     shell: /bin/bash --login
@@ -126,7 +157,23 @@ python: &python
             # possibly switch this script to use "pip install -r requirements.txt"
             pip install xlrd
             pip install xarray
+            if [ "${CIRCLE_JOB}" == "build_3_10" ]; then
+              pip install pybind11
+              pip install -r requirements.txt
+            fi
+            # dash>=2.0.0 has a dependency on typing_extensions>=3.6.4 and for some reason circleci allows you to
+            # download versions greater than 4.1.1 which aren't compatible with python 3.6
+            if [ "${CIRCLE_JOB}" == "build_3_6" ]; then
+              pip install typing_extensions==4.1.1
+              pip install soupsieve==2.3.2
+            fi
             python setup.py develop
+      - run:
+          name: Print environment
+          command: |
+            set -e
+            . ci/bin/activate
+            pip freeze
       # Save dependency cache
       - save_cache:
           key: v1-dep-{{ .Branch }}-{{ epoch }}
@@ -140,25 +187,13 @@ python: &python
             ls -al /tmp/dtale/static/dash
             cp -r /tmp/dtale/static/dash ./dtale/static/
       - run:
-          name: Run Flake8
-          command: |
-            . ci/bin/activate
-            pip install flake8
-            flake8
-      - run:
-          name: Run black
-          command: |
-            if [ "$RUN_BLACK" = "true" ]; then
-              . ci/bin/activate
-              pip install black==20.8b1
-              black --check setup.py dtale tests
-            fi
-      - run:
           name: Setup tests
           command: |
             set -e
             . ci/bin/activate
-            pip install -e ".[arctic]"
+            if [ "${CIRCLE_JOB}" != "build_2_7" ]; then
+              pip install -e ".[arcticdb]"
+            fi
             pip install -e ".[dash-bio]"
             pip install -e ".[redis]"
             pip install -e ".[r]"
@@ -219,7 +254,8 @@ python: &python
                 exit 1
               fi # rst2html.py alwaysexits with 0, check log size
               python setup.py bdist_wheel --universal
-              python setup.py bdist_egg
+              # Deprecated by pypi
+              # python setup.py bdist_egg
               python setup.py sdist
               cp -r ./dist /tmp/circleci-artifacts
             fi
@@ -236,15 +272,21 @@ jobs:
   build_JS:
     working_directory: /mnt/ramdisk
     docker:
-      - image: circleci/node:16.8.0
+      - image: cimg/node:19.0.1
     <<: *javascript
+  check_python_formatting:
+    working_directory: ~/man-group/dtale_python_formatting
+    docker:
+        - image: circleci/python:3.10-buster
+    environment:
+      <<: *python_variables
+    <<: *python_formatting
   build_2_7:
     working_directory: ~/man-group/dtale_2_7
     docker:
       - image: circleci/python:2.7-buster
     environment:
       <<: *python_variables
-      RUN_BLACK: false
     <<: *python
   build_3_6:
     working_directory: ~/man-group/dtale_3_6
@@ -274,23 +316,51 @@ jobs:
     environment:
       <<: *python_variables
     <<: *python
+  build_3_10:
+    working_directory: ~/man-group/dtale_3_10
+    docker:
+      - image: circleci/python:3.10-buster
+    environment:
+      <<: *python_variables
+    <<: *python
+  build_3_11:
+    working_directory: ~/man-group/dtale_3_11
+    docker:
+      - image: cimg/python:3.11.4-node
+    environment:
+      <<: *python_variables
+    <<: *python
 workflows:
   version: 2
   build_all:
     jobs:
       - build_JS
+      - check_python_formatting
       - build_2_7:
           requires:
             - build_JS
+            - check_python_formatting
       - build_3_6:
           requires:
             - build_JS
+            - check_python_formatting
       - build_3_7:
           requires:
             - build_JS
+            - check_python_formatting
       - build_3_8:
           requires:
             - build_JS
+            - check_python_formatting
       - build_3_9:
           requires:
             - build_JS
+            - check_python_formatting
+      - build_3_10:
+          requires:
+            - build_JS
+            - check_python_formatting
+      - build_3_11:
+          requires:
+            - build_JS
+            - check_python_formatting

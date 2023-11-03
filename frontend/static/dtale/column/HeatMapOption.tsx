@@ -1,10 +1,12 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
-import { AppActions } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, InstanceSettings } from '../../redux/state/AppState';
+import { selectSettings } from '../../redux/selectors';
+import { InstanceSettings } from '../../redux/state/AppState';
 import { ColumnDef } from '../DataViewerState';
 
 /** Component properties of HeatMapOption */
@@ -13,14 +15,16 @@ interface HeatMapOptionProps {
   colCfg: ColumnDef;
 }
 
+const selectResult = createSelector([selectSettings], (settings) => ({ settings }));
+
 const HeatMapOption: React.FC<HeatMapOptionProps & WithTranslation> = ({ selectedCol, colCfg, t }) => {
-  const { settings } = useSelector((state: AppState) => state);
+  const { settings } = useSelector(selectResult);
   const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
   const heatmapType = `heatmap-col-${selectedCol}`;
   const heatmapActive = settings.backgroundMode === heatmapType;
-  const toggleBackground = (): AppActions<void> =>
+  const toggleBackground = (): AnyAction =>
     updateSettings({ backgroundMode: settings.backgroundMode === heatmapType ? undefined : heatmapType });
 
   return (

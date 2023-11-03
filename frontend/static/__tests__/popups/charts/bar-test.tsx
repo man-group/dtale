@@ -1,16 +1,12 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
-import { default as AxisEditor, AxisEditorProps } from '../../../popups/charts/AxisEditor';
-import ChartsBody from '../../../popups/charts/ChartsBody';
-import { getLastChart } from '../../test-utils';
+import { getLastChart, selectOption } from '../../test-utils';
 
 import * as TestSupport from './charts.test.support';
 
 describe('Charts bar tests', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeAll(() => spies.beforeAll());
 
@@ -21,96 +17,56 @@ describe('Charts bar tests', () => {
 
   afterAll(() => spies.afterAll());
 
-  const axisEditor = (): ReactWrapper<AxisEditorProps> => result.find(AxisEditor).first();
+  const axisEditor = (): Element => result.querySelector('.toolbar__axis')!;
 
   it('Charts: rendering', async () => {
-    const filters = result.find(Select);
+    await selectOption(screen.getByText('X').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col4');
+    await selectOption(screen.getByText('Y').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await spies.updateChartType('bar');
     await act(async () => {
-      filters
-        .first()
-        .props()
-        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
-      filters
-        .at(1)
-        .props()
-        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
+      await fireEvent.click(result.getElementsByTagName('button')[0]);
     });
-    result = result.update();
-    result = await spies.updateChartType(result, 'bar');
-    await act(async () => {
-      result.find('button').first().simulate('click');
-    });
-    result = result.update();
     let lastChart = getLastChart(spies.createChartSpy);
     expect(lastChart.type).toBe('bar');
+    await selectOption(screen.getByText('X').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    const axisEditorLink = axisEditor().querySelector('span.axis-select')!;
     await act(async () => {
-      result
-        .find(ChartsBody)
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(axisEditorLink);
     });
-    result = result.update();
     await act(async () => {
-      axisEditor().find('span.axis-select').simulate('click');
+      await fireEvent.change(screen.getByTestId('col1-min'), { target: { value: '40' } });
     });
-    result = result.update();
     await act(async () => {
-      axisEditor()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '40' } });
+      await fireEvent.change(screen.getByTestId('col1-max'), { target: { value: '42' } });
     });
-    result = result.update();
-    await act(async () => {
-      axisEditor()
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: '42' } });
-    });
-    result = result.update();
     await spies.callLastCloseMenu();
-    result = result.update();
     lastChart = getLastChart(spies.createChartSpy);
     expect(lastChart.options?.scales?.['y-col1']?.ticks).toEqual({
       min: 40,
       max: 42,
     });
     await act(async () => {
-      axisEditor().find('span.axis-select').simulate('click');
+      await fireEvent.click(axisEditorLink);
     });
-    result = result.update();
     await act(async () => {
-      axisEditor()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '40' } });
+      await fireEvent.change(screen.getByTestId('col1-min'), { target: { value: '40' } });
     });
-    result = result.update();
     await act(async () => {
-      axisEditor()
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: 'a' } });
+      await fireEvent.change(screen.getByTestId('col1-max'), { target: { value: 'a' } });
     });
-    result = result.update();
     await spies.callLastCloseMenu();
-    result = result.update();
     lastChart = getLastChart(spies.createChartSpy);
     expect(lastChart.options?.scales?.['y-col1']?.ticks).toEqual({
       min: 40,
       max: 42,
     });
     await act(async () => {
-      axisEditor()
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: '39' } });
+      await fireEvent.click(axisEditorLink);
     });
-    result = result.update();
+    await act(async () => {
+      await fireEvent.change(screen.getByTestId('col1-max'), { target: { value: '39' } });
+    });
     await spies.callLastCloseMenu();
-    result = result.update();
     lastChart = getLastChart(spies.createChartSpy);
     expect(lastChart.options?.scales?.['y-col1']?.ticks).toEqual({
       min: 40,

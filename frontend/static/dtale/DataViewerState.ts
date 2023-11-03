@@ -34,7 +34,7 @@ export interface ColumnDef extends Bounds {
 /** Type definition for each cell displayed in the DataViewer */
 export interface DataRecord {
   view: string;
-  raw?: string | number;
+  raw?: string | number | boolean;
   style?: React.CSSProperties;
 }
 
@@ -56,7 +56,7 @@ export interface Bounds {
 }
 
 /** Actions available to column filters */
-export type ColumnFilterAction = 'equals' | 'startswith' | 'endswith' | 'contains' | 'length';
+export type ColumnFilterAction = 'equals' | 'startswith' | 'endswith' | 'contains' | 'regex' | 'length';
 
 /** Operands available to column filters */
 export type ColumnFilterOperand = '=' | 'ne' | '<' | '>' | '<=' | '>=' | '[]' | '()';
@@ -107,7 +107,6 @@ export interface PropagatedState {
   columns: ColumnDef[];
   rowCount: number;
   triggerResize: boolean;
-  fixedColumnCount: number;
   triggerBgResize: boolean;
   data: DataViewerData;
   renameUpdate: (data: DataViewerData) => DataViewerData;

@@ -8,9 +8,9 @@ interface ColumnMenuOptionProps {
 }
 
 export const ColumnMenuOption: React.FC<ColumnMenuOptionProps> = ({ open, label, iconClass }) => (
-  <li>
+  <li onClick={open}>
     <span className="toggler-action">
-      <button className="btn btn-plain" onClick={open}>
+      <button className="btn btn-plain">
         <i className={iconClass} />
         <span className="font-weight-bold">{label}</span>
       </button>

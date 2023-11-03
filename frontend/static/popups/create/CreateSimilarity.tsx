@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 
@@ -25,13 +26,13 @@ const buildAlgos = (t: TFunction): Array<BaseOption<SimilarityAlgoType>> => [
 
 export const validateSimilarityCfg = (t: TFunction, cfg: SimilarityConfig): string | undefined => {
   if (!cfg.left) {
-    return t('Please select a left column!');
+    return t('Please select a left column!') ?? undefined;
   }
   if (!cfg.right) {
-    return t('Please select a right column!');
+    return t('Please select a right column!') ?? undefined;
   }
   if (cfg.algo === SimilarityAlgoType.JACCARD && (!cfg.k || parseInt(cfg.k, 10) < 1)) {
-    return t('Please select a valid value for k!');
+    return t('Please select a valid value for k!') ?? undefined;
   }
   return undefined;
 };

@@ -22,6 +22,8 @@ export const isIntCol = (dtype?: string): boolean => startswithOne((dtype ?? '')
 export const isFloatCol = (dtype?: string): boolean => (dtype ?? '').toLowerCase().startsWith('float');
 export const isDateCol = (dtype?: string): boolean =>
   startswithOne((dtype ?? '').toLowerCase(), ['timestamp', 'datetime']);
+export const isBoolCol = (dtype?: string): boolean => (dtype ?? '').toLowerCase().startsWith('bool');
+export const isCategoryCol = (dtype?: string): boolean => (dtype ?? '').toLowerCase().startsWith('category');
 export const getDtype = (col: string | undefined, columns: ColumnDef[]): string | undefined =>
   columns.find(({ name }) => name === col)?.dtype;
 
@@ -31,6 +33,8 @@ export enum ColumnType {
   INT = 'int',
   FLOAT = 'float',
   DATE = 'date',
+  BOOL = 'bool',
+  CATEGORY = 'category',
   UNKNOWN = 'unknown',
 }
 
@@ -43,19 +47,27 @@ export const findColType = (dtype?: string): ColumnType => {
     return ColumnType.FLOAT;
   } else if (isDateCol(dtype)) {
     return ColumnType.DATE;
+  } else if (isBoolCol(dtype)) {
+    return ColumnType.BOOL;
+  } else if (isCategoryCol(dtype)) {
+    return ColumnType.CATEGORY;
   }
   return ColumnType.UNKNOWN;
 };
 
-const buildNumeral = (val: string | number, fmt: string, nanDisplay?: string): string =>
+const buildNumeral = (val: string | number | boolean, fmt: string, nanDisplay?: string): string =>
   ['nan', 'inf', '-', '', nanDisplay].includes(`${val}`) ? `${val}` : numeral(val).format(fmt);
-const buildString = (val: string | number, cfg?: StringColumnFormat): string =>
+const buildString = (val: string | number | boolean, cfg?: StringColumnFormat): string =>
   cfg?.truncate ? truncate(`${val}`, cfg.truncate) : `${val}`;
 
-const buildValue = (colCfg: ColumnDef, rawValue?: string | number, settings?: InstanceSettings): string => {
+const buildValue = (
+  colCfg: ColumnDef | undefined,
+  rawValue?: string | number | boolean,
+  settings?: InstanceSettings,
+): string => {
   if (rawValue !== undefined) {
-    const fmt = settings?.columnFormats?.[colCfg.name]?.fmt;
-    switch (findColType(colCfg.dtype)) {
+    const fmt = settings?.columnFormats?.[colCfg?.name ?? '']?.fmt;
+    switch (findColType(colCfg?.dtype)) {
       case ColumnType.FLOAT:
         return buildNumeral(
           rawValue,
@@ -65,7 +77,7 @@ const buildValue = (colCfg: ColumnDef, rawValue?: string | number, settings?: In
       case ColumnType.INT:
         return buildNumeral(rawValue, (fmt as string) ?? '0', settings?.nanDisplay);
       case ColumnType.DATE:
-        return fmt ? moment(new Date(rawValue)).format(fmt as string) : `${rawValue}`;
+        return fmt ? moment(new Date(`${rawValue}`)).format(fmt as string) : `${rawValue}`;
       case ColumnType.STRING:
       default:
         return buildString(rawValue, fmt as StringColumnFormat);
@@ -75,16 +87,16 @@ const buildValue = (colCfg: ColumnDef, rawValue?: string | number, settings?: In
 };
 
 export const buildDataProps = (
-  colCfg: ColumnDef,
-  rawValue?: string | number,
+  colCfg: ColumnDef | undefined,
+  rawValue?: string | number | boolean,
   settings?: InstanceSettings,
 ): DataRecord => ({
   raw: rawValue,
   view: buildValue(colCfg, rawValue, settings),
   style: menuFuncs.buildStyling(
     rawValue,
-    findColType(colCfg.dtype),
-    settings?.columnFormats?.[colCfg.name]?.style ?? {},
+    findColType(colCfg?.dtype),
+    settings?.columnFormats?.[colCfg?.name ?? '']?.style ?? {},
   ),
 });
 
@@ -97,7 +109,10 @@ export const heatmapAllActive = (backgroundMode?: string): boolean =>
   ['heatmap-col-all', 'heatmap-all-all'].includes(backgroundMode ?? '');
 
 export const getActiveCols = (columns: ColumnDef[], backgroundMode?: string): ColumnDef[] =>
-  columns?.filter((c) => (heatmapActive(backgroundMode) ? getHeatActive(c) : c.visible ?? false)) ?? [];
+  columns.filter((c) => (heatmapActive(backgroundMode) ? getHeatActive(c) : c.visible ?? false)) ?? [];
+
+export const getActiveLockedCols = (columns: ColumnDef[], backgroundMode?: string): ColumnDef[] =>
+  getActiveCols(columns, backgroundMode).filter((c) => c.locked) ?? [];
 
 export const getCol = (index: number, columns: ColumnDef[], backgroundMode?: string): ColumnDef | undefined =>
   getActiveCols(columns, backgroundMode)[index];
@@ -156,7 +171,7 @@ export const getRanges = (array: number[]): string[] => {
 const getMaxLengthStr = (col: string, data?: DataViewerData): string =>
   Object.values(data ?? {}).sort(
     (a: Record<string, DataRecord>, b: Record<string, DataRecord>) =>
-      (a[col]?.view?.length ?? 0) - (b[col]?.view?.length ?? 0),
+      (b[col]?.view?.length ?? 0) - (a[col]?.view?.length ?? 0),
   )[0]?.[col]?.view ?? '';
 
 const calcDataWidth = (name: string, dtype: string, data?: DataViewerData): number | undefined => {
@@ -271,7 +286,7 @@ export const noFilters = (state: Partial<InstanceSettings>): boolean =>
   !Object.keys(filterPredefined(state.predefinedFilters ?? {})).length;
 
 export const hasNoInfo = (settings: Partial<InstanceSettings>, columns: ColumnDef[]): boolean =>
-  !settings.sortInfo?.length && noFilters(settings) && noHidden(columns);
+  !settings.isArcticDB && !settings.sortInfo?.length && noFilters(settings) && noHidden(columns);
 
 export const convertCellIdxToCoords = (cellIdx: string): number[] =>
   (cellIdx ?? '').split('|').map((v) => parseInt(v, 10));
@@ -333,10 +348,25 @@ export const refreshColumns = (
     }));
   const updatedColumns = buildColMap(newColumns);
   const finalColumns = [
-    ...columns.map((c) => (c.dtype !== updatedColumns[c.name].dtype ? { ...c, ...updatedColumns[c.name] } : c)),
+    ...columns.map((c) => {
+      if (c.dtype !== updatedColumns[c.name].dtype) {
+        return { ...c, ...updatedColumns[c.name] };
+      }
+      return { ...c, visible: updatedColumns[c.name].visible };
+    }),
     ...newCols,
   ];
   return { columns: finalColumns, ...getTotalRange(finalColumns) };
 };
 
 export const range = (start: number, end: number): number[] => [...Array(end - start).keys()].map((i) => i + start);
+
+export const isCellEditable = (allowCellEdits: boolean | string[], column?: ColumnDef): boolean => {
+  if (allowCellEdits === true) {
+    return true;
+  }
+  if (allowCellEdits === false) {
+    return false;
+  }
+  return allowCellEdits.indexOf(column?.name ?? '') > -1;
+};

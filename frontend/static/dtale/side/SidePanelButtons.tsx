@@ -1,17 +1,31 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType, HideSidePanelAction } from '../../redux/actions/AppActions';
 import { buildURLString } from '../../redux/actions/url-utils';
-import { AppState, SidePanelType } from '../../redux/state/AppState';
+import * as selectors from '../../redux/selectors';
+import { SidePanelType } from '../../redux/state/AppState';
 import * as menuFuncs from '../menu/dataViewerMenuUtils';
 
-const SidePanelButtons: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, column, visible, view } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    ...state.sidePanel,
-  }));
+/** Component properties for SidePanelButtons */
+interface SidePanelButtonsProps {
+  buttons?: React.ReactNode;
+}
+
+const selectResult = createSelector(
+  [
+    selectors.selectDataId,
+    selectors.selectSidePanelColumn,
+    selectors.selectSidePanelVisible,
+    selectors.selectSidePanelView,
+  ],
+  (dataId, column, visible, view) => ({ dataId, column, visible, view }),
+);
+
+const SidePanelButtons: React.FC<SidePanelButtonsProps & WithTranslation> = ({ buttons, t }) => {
+  const { dataId, column, visible, view } = useSelector(selectResult);
   const dispatch = useDispatch();
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
 
@@ -29,6 +43,7 @@ const SidePanelButtons: React.FC<WithTranslation> = ({ t }) => {
 
   return (
     <>
+      {buttons}
       <div className="col-auto pr-0 mb-auto mt-auto">
         <button className="btn btn-plain" onClick={openTab}>
           <i className="ico-open-in-new pointer" />

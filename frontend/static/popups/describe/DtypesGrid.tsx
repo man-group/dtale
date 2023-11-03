@@ -1,6 +1,15 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { AutoSizer, Column, SortDirectionType, Table, TableHeaderProps } from 'react-virtualized';
+import {
+  AutoSizer as _AutoSizer,
+  Column as _Column,
+  Table as _Table,
+  AutoSizerProps,
+  ColumnProps,
+  SortDirectionType,
+  TableHeaderProps,
+  TableProps,
+} from 'react-virtualized';
 
 import { ColumnDef } from '../../dtale/DataViewerState';
 import * as gu from '../../dtale/gridUtils';
@@ -10,11 +19,18 @@ import { VisibilityState } from './DescribeState';
 
 require('./DtypesGrid.css');
 
+const AutoSizer = _AutoSizer as unknown as React.FC<AutoSizerProps>;
+const Column = _Column as unknown as React.FC<ColumnProps>;
+const Table = _Table as unknown as React.FC<TableProps>;
+
 /** Component properties for SortIndicator */
 interface SortIndicatorProps {
   sort: SortDef;
   dataKey: string;
 }
+
+export const ASC_PATH = 'M7 14l5-5 5 5z';
+export const DESC_PATH = 'M7 10l5 5 5-5z';
 
 export const SortIndicator: React.FC<SortIndicatorProps> = ({ sort, dataKey }) => (
   <React.Fragment>
@@ -27,8 +43,8 @@ export const SortIndicator: React.FC<SortIndicatorProps> = ({ sort, dataKey }) =
         viewBox="0 0 24 24"
         style={{ verticalAlign: 'bottom' }}
       >
-        {sort[1] === SortDir.ASC && <path d="M7 14l5-5 5 5z" />}
-        {sort[1] === SortDir.DESC && <path d="M7 10l5 5 5-5z" />}
+        {sort[1] === SortDir.ASC && <path d={ASC_PATH} />}
+        {sort[1] === SortDir.DESC && <path d={DESC_PATH} />}
         <path d="M0 0h24v24H0z" fill="none" />
       </svg>
     )}
@@ -86,15 +102,17 @@ const DtypesGrid: React.FC<DtypesGridProps & WithTranslation> = ({
   setVisibility,
 }) => {
   const [sort, setSort] = React.useState<SortDef>(['index', SortDir.ASC]);
-  const [data, setData] = React.useState<DtypesGridRow[]>(
-    dtypes.map((col, index) => ({ ...col, selected: selected ? selected.index === col.index : index === 0 })),
-  );
+  const [data, setData] = React.useState<DtypesGridRow[]>([]);
   const [dtypesFilter, setDtypesFilter] = React.useState<string>();
   const [allVisible, setAllVisible] = React.useState(gu.noHidden(dtypes));
 
   React.useEffect(() => {
     setData(data.map((row) => ({ ...row, selected: selected ? selected.index === row.index : row.selected })));
   }, [selected]);
+
+  React.useEffect(() => {
+    setData(dtypes.map((col, index) => ({ ...col, selected: selected ? selected.index === col.index : index === 0 })));
+  }, [dtypes]);
 
   const headerRenderer = (props: TableHeaderProps): JSX.Element => {
     const { dataKey, label } = props;
@@ -108,7 +126,7 @@ const DtypesGrid: React.FC<DtypesGridProps & WithTranslation> = ({
       };
       return (
         <div className="headerCell pointer" onClick={onClick}>
-          {label}
+          {label as any}
           <i className={`ico-check-box${allVisible ? '' : '-outline-blank'}`} onClick={onClick} />
         </div>
       );
@@ -117,7 +135,7 @@ const DtypesGrid: React.FC<DtypesGridProps & WithTranslation> = ({
       <div className="headerCell filterable">
         <div className="row">
           <div className="col-auto">
-            {label}
+            {label as any}
             <SortIndicator dataKey={dataKey} sort={sort} />
           </div>
           {dataKey === 'name' && (
@@ -157,6 +175,12 @@ const DtypesGrid: React.FC<DtypesGridProps & WithTranslation> = ({
           sortDirection={sort[1]}
           width={width}
           onRowClick={(info) => {
+            const elements = document.querySelectorAll('.Select');
+            for (const element of Array.from(elements)) {
+              if ((element as Element).contains(info.event.target as Element)) {
+                return;
+              }
+            }
             setData(data.map((d) => ({ ...d, selected: d.name === info.rowData.name })));
             setSelected(info.rowData);
           }}

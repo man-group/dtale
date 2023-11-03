@@ -1,10 +1,10 @@
 import dash_bootstrap_components as dbc
 
 from dash.dependencies import Input, Output, State
-from dash.exceptions import PreventUpdate
 
 from dtale.charts.utils import AGGS, NON_EXT_AGGREGATION
 from dtale.dash_application import dcc, html
+from dtale.dash_application.exceptions import DtalePreventUpdate
 from dtale.dash_application.layout.utils import (
     build_hoverable,
     build_input,
@@ -20,10 +20,7 @@ INPUT_IDS = list(range(1, MAX_INPUTS + 1))
 
 def build_error(error):
     return html.Div(
-        [
-            html.I(className="ico-error"),
-            html.Span(error),
-        ],
+        [html.I(className="ico-error"), html.Span(error)],
         className="dtale-alert alert alert-danger",
     )
 
@@ -122,10 +119,7 @@ def build_body(ext_aggs):
                                         build_option("median", text("Median")),
                                         build_option("min", text("Minimum")),
                                         build_option("skew", text("Skew")),
-                                        build_option(
-                                            "std",
-                                            text("Standard Deviation"),
-                                        ),
+                                        build_option("std", text("Standard Deviation")),
                                         build_option("sum", text("Sum")),
                                         build_option("var", text("Variance")),
                                     ],
@@ -195,10 +189,7 @@ def build_modal(ext_aggs, chart_type, y):
                             id="clear-extended-agg-modal",
                             className="ml-auto",
                         ),
-                        dbc.Button(
-                            text("Apply"),
-                            id="apply-extended-agg-modal",
-                        ),
+                        dbc.Button(text("Apply"), id="apply-extended-agg-modal"),
                     ]
                 ),
             ],
@@ -312,12 +303,7 @@ def init_callbacks(dash_app):
                             )
                             continue
                     ext_aggs.append(
-                        dict(
-                            col=col,
-                            agg=agg,
-                            window=window,
-                            rolling_comp=rolling_comp,
-                        )
+                        dict(col=col, agg=agg, window=window, rolling_comp=rolling_comp)
                     )
 
                 if len(errors):
@@ -355,7 +341,7 @@ def init_callbacks(dash_app):
     )
     def populate_col_dropdowns(is_open, input_data):
         if not is_open:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         y = make_list(input_data.get("y"))
         z = make_list(input_data.get("z"))
         col_options = [build_option(sub_col) for sub_col in (y if not len(z) else z)]

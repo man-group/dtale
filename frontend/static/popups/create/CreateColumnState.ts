@@ -218,6 +218,7 @@ export enum DatetimePropertyType {
   TIME = 'time',
   DATE = 'date',
   WEEKDAY = 'weekday',
+  WEEKDAY_NAME = 'weekday_name',
   MONTH = 'month',
   QUARTER = 'quarter',
   YEAR = 'year',

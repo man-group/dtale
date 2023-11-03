@@ -1,10 +1,12 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { createFilter, default as Select } from 'react-select';
 
 import { ColumnDef } from '../../dtale/DataViewerState';
-import { AppState, BaseOption, ChartsPopupData } from '../../redux/state/AppState';
+import { selectChartData, selectDataId } from '../../redux/selectors';
+import { BaseOption, ChartsPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as ChartsRepository from '../../repository/ChartsRepository';
 import * as DtypesRepository from '../../repository/DtypesRepository';
@@ -25,12 +27,13 @@ export interface ChartsState {
   rollingWindow?: string;
 }
 
-const Charts: React.FC<WithTranslation> = ({ t }) => {
-  const { chartData, dataId } = useSelector((state: AppState) => ({
-    chartData: state.chartData as ChartsPopupData,
-    dataId: state.dataId,
-  }));
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  chartData: chartData as ChartsPopupData,
+  dataId,
+}));
 
+const Charts: React.FC<WithTranslation> = ({ t }) => {
+  const { chartData, dataId } = useSelector(selectResult);
   const [columns, setColumns] = React.useState<ColumnDef[]>();
   const [state, setState] = React.useState<ChartsState>({
     x: chartData.x ? { value: chartData.x } : undefined,

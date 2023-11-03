@@ -1,15 +1,13 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, render, RenderResult } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 
 import { NetworkUrlParams, NetworkUrlParamsProps } from '../../network/NetworkUrlParams';
 import * as actions from '../../redux/actions/dtale';
-import { tickUpdate } from '../test-utils';
 
 describe('NetworkUrlParams', () => {
   const { onpopstate } = window;
   const { history } = global;
-  let result: ReactWrapper;
+  let result: RenderResult;
   let props: NetworkUrlParamsProps;
   let getParamsSpy: jest.SpyInstance<Record<string, string | string[]>, []>;
   const params = { to: 'to', from: 'from', group: 'group', weight: 'weight' };
@@ -25,9 +23,7 @@ describe('NetworkUrlParams', () => {
       params: {},
     };
     getParamsSpy = jest.spyOn(actions, 'getParams');
-    result = mount(<NetworkUrlParams {...props} />);
-
-    await act(async () => await tickUpdate(result));
+    result = await act(() => render(<NetworkUrlParams {...props} />));
   });
 
   afterEach(jest.restoreAllMocks);
@@ -38,7 +34,7 @@ describe('NetworkUrlParams', () => {
   });
 
   it('renders successfully', () => {
-    expect(result.html()).toBeNull();
+    expect(result.container.innerHTML).toBe('');
   });
 
   it('correctly updates history', () => {
@@ -47,7 +43,7 @@ describe('NetworkUrlParams', () => {
       value: pushState,
     });
     getParamsSpy.mockReturnValue({});
-    result.setProps({ params });
+    result.rerender(<NetworkUrlParams {...{ ...props, params }} />);
     expect(pushState).toHaveBeenLastCalledWith({}, '', '?to=to&from=from&group=group&weight=weight');
     (window as any).onpopstate();
     expect(props.propagateState).toHaveBeenLastCalledWith({
@@ -57,10 +53,10 @@ describe('NetworkUrlParams', () => {
       weight: undefined,
     });
     pushState.mockClear();
-    result.setProps({ params });
+    result.rerender(<NetworkUrlParams {...{ ...props, params }} />);
     expect(pushState).not.toHaveBeenCalled();
     getParamsSpy.mockReturnValue(params);
-    result.setProps({ params: { ...params, test: 'blah' } });
+    result.rerender(<NetworkUrlParams {...{ ...props, params: { ...params, test: 'blah' } }} />);
     expect(pushState).not.toHaveBeenCalled();
     result.unmount();
   });

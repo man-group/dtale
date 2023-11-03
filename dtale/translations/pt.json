@@ -179,5 +179,6 @@
   "Tail": "Cauda",
   "load_random": "Selecione um percentual aleatório de registros deste dataframe.",
   "load_head": "Selecione os N primeiros (percentual de registros) deste dataframe.",
-  "load_tail": "Selecione os N últimos (percentual de registros) deste dataframe."
+  "load_tail": "Selecione os N últimos (percentual de registros) deste dataframe.",
+  "load_stratified": "Take a stratified random sample of records from this dataframe based on a specific grouping."
 }

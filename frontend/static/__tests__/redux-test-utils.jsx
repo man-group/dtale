@@ -1,5 +1,6 @@
 /* eslint max-lines: "off" */
 import dtaleApp from '../redux/reducers/app';
+import mergeApp from '../redux/reducers/merge';
 import { createAppStore } from '../redux/store';
 import chartsData from './data/charts.json';
 import groupedChartsData from './data/charts-grouped.json';
@@ -187,7 +188,7 @@ function urlFetcher(url) {
   } else if (url.startsWith('/dtale/dtypes')) {
     return DTYPES;
   } else if (url.startsWith('/dtale/column-analysis')) {
-    return { code: 'column analysis code test', ...columnAnalysisData };
+    return { code: 'column analysis code test', ...columnAnalysisData, cols: DTYPES.dtypes };
   } else if (url.startsWith('/dtale/correlations-ts')) {
     return { code: 'correlations ts code test', ...correlationsTsData };
   } else if (url.startsWith('/dtale/correlations/')) {
@@ -303,6 +304,7 @@ function urlFetcher(url) {
 export default {
   urlFetcher,
   createDtaleStore: () => createAppStore(dtaleApp),
+  createMergeStore: () => createAppStore(mergeApp),
   DATA,
   DTYPES,
 };

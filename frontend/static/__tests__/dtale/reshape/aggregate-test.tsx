@@ -1,22 +1,18 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
+import selectEvent from 'react-select-event';
 
 import { OutputType } from '../../../popups/create/CreateColumnState';
-import { default as Aggregate, validateAggregateCfg } from '../../../popups/reshape/Aggregate';
-import {
-  AggregationOperationType,
-  BaseReshapeComponentProps,
-  ReshapeAggregateConfig,
-  ReshapeType,
-} from '../../../popups/reshape/ReshapeState';
+import { validateAggregateCfg } from '../../../popups/reshape/Aggregate';
+import { AggregationOperationType, ReshapeAggregateConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
+import { ActionType } from '../../../redux/actions/AppActions';
+import { selectOption } from '../../test-utils';
 
 import * as TestSupport from './Reshape.test.support';
 
 describe('Aggregate', () => {
   const { location, open, opener } = window;
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: RenderResult;
 
   beforeAll(() => {
     delete (window as any).location;
@@ -35,7 +31,7 @@ describe('Aggregate', () => {
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'GroupBy');
+    await spies.clickBuilder('GroupBy');
   });
 
   afterEach(() => spies.afterEach());
@@ -47,55 +43,25 @@ describe('Aggregate', () => {
     spies.afterAll();
   });
 
-  const findAgg = (): ReactWrapper<BaseReshapeComponentProps, Record<string, any>> => result.find(Aggregate);
-
-  const aggInputs = (): ReactWrapper => findAgg().find(Select);
-
   it("reshapes data using aggregate 'By Column'", async () => {
-    expect(findAgg()).toHaveLength(1);
+    expect(screen.getByText('Agg:')).toBeDefined();
+    await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'Count');
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col2');
     await act(async () => {
-      aggInputs()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
+      fireEvent.click(result.container.getElementsByClassName('ico-check-box')[0]);
     });
-    result = result.update();
     await act(async () => {
-      aggInputs()
-        .at(2)
-        .find('input')
-        .simulate('change', { target: { value: 'count' } });
+      fireEvent.click(result.container.getElementsByClassName('ico-add-circle')[0]);
     });
-    result = result.update();
     await act(async () => {
-      aggInputs().at(2).find('input').simulate('keyDown', { keyCode: 9, key: 'Tab' });
+      fireEvent.click(screen.getByText('Override Current'));
     });
-    result = result.update();
-    await act(async () => {
-      aggInputs()
-        .at(1)
-        .find('input')
-        .simulate('change', { target: [{ value: 'col2' }] });
-    });
-    result = result.update();
-    await act(async () => {
-      aggInputs().at(1).find('input').simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    });
-    result = result.update();
-    await act(async () => {
-      findAgg().find('i').first().simulate('click');
-    });
-    result = result.update();
-    await act(async () => {
-      result.find('div.modal-body').find('div.row').last().find('button').last().simulate('click');
-    });
-    result = result.update();
-
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         agg: { type: AggregationOperationType.COL, cols: { col2: ['count'] } },
         index: ['col1'],
+        dropna: false,
       },
       type: ReshapeType.AGGREGATE,
       output: OutputType.OVERRIDE,
@@ -103,63 +69,102 @@ describe('Aggregate', () => {
     expect(window.location.assign).toHaveBeenCalledWith('/dtale/main/2');
 
     await act(async () => {
-      result.find('div.modal-body').find('div.row').last().find('button').first().simulate('click');
+      fireEvent.click(screen.getByText('New Instance'));
     });
-    result = result.update();
-
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         agg: { type: AggregationOperationType.COL, cols: { col2: ['count'] } },
         index: ['col1'],
+        dropna: false,
       },
       type: ReshapeType.AGGREGATE,
       output: OutputType.NEW,
     });
     expect(window.open).toHaveBeenCalledWith('/dtale/main/2', '_blank');
-    expect(spies.onCloseSpy).toHaveBeenCalled();
+    expect(spies.mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.CLOSE_CHART });
+  });
+
+  it("reshapes data using aggregate 'By Column' w/ gmean", async () => {
+    expect(screen.getByText('Agg:')).toBeDefined();
+    await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'Geometric Mean');
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col2');
+    await act(async () => {
+      fireEvent.click(result.container.getElementsByClassName('ico-add-circle')[0]);
+    });
+    await spies.validateCfg({
+      cfg: {
+        agg: { type: AggregationOperationType.COL, cols: { col2: ['gmean'] } },
+        index: ['col1'],
+        dropna: true,
+      },
+      type: ReshapeType.AGGREGATE,
+      output: OutputType.NEW,
+    });
+  });
+
+  it("reshapes data using aggregate 'By Column' w/ str_joiner", async () => {
+    expect(screen.getByText('Agg:')).toBeDefined();
+    await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col3');
+    await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'String Joiner');
+    await act(async () => {
+      fireEvent.click(result.container.getElementsByClassName('ico-add-circle')[0]);
+    });
+    await spies.validateCfg({
+      cfg: {
+        agg: { type: AggregationOperationType.COL, cols: { col3: ['str_joiner'] } },
+        index: ['col1'],
+        dropna: true,
+      },
+      type: ReshapeType.AGGREGATE,
+      output: OutputType.NEW,
+    });
   });
 
   it("reshapes data using aggregate 'By Function'", async () => {
     await act(async () => {
-      aggInputs()
-        .first()
-        .simulate('change', { target: { value: 'col1' } });
+      fireEvent.click(screen.getByText('By Function'));
     });
-    result = result.update();
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'Count');
+    await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'col1');
     await act(async () => {
-      findAgg().find('button').last().simulate('click');
+      fireEvent.click(screen.getByText('Override Current'));
     });
-    result = result.update();
     await act(async () => {
-      aggInputs()
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: 'count' } });
+      fireEvent.click(screen.getByText('Execute'));
     });
-    result = result.update();
-    await act(async () => {
-      aggInputs().at(1).find('input').simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    });
-    result = result.update();
-    await act(async () => {
-      aggInputs()
-        .at(2)
-        .find('input')
-        .simulate('change', { target: { value: 'col2' } });
-    });
-    result = result.update();
-    await act(async () => {
-      aggInputs().at(2).find('input').simulate('keyDown', { keyCode: 9, key: 'Tab' });
-    });
-    result = result.update();
-    await act(async () => {
-      result.find('div.modal-body').find('div.row').last().find('button').last().simulate('click');
-    });
-    result = result.update();
 
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         agg: { type: AggregationOperationType.FUNC, cols: ['col1'], func: 'count' },
+        dropna: true,
+      },
+      type: ReshapeType.AGGREGATE,
+      output: OutputType.OVERRIDE,
+    });
+    expect(window.location.assign).toHaveBeenCalledWith('/dtale/main/2');
+  });
+
+  it("reshapes data using aggregate 'By Function' w/ Counts & Percentages", async () => {
+    await act(async () => {
+      fireEvent.click(screen.getByText('By Function'));
+    });
+    await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'Counts & Percentages');
+    await selectOption(result.container.getElementsByClassName('Select')[2] as HTMLElement, 'col2');
+    await act(async () => {
+      fireEvent.click(screen.getByText('Override Current'));
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText('Execute'));
+    });
+
+    await spies.validateCfg({
+      cfg: {
+        index: ['col1'],
+        agg: { type: AggregationOperationType.FUNC, cols: ['col2'], func: 'count_pct' },
+        dropna: true,
       },
       type: ReshapeType.AGGREGATE,
       output: OutputType.OVERRIDE,
@@ -168,28 +173,95 @@ describe('Aggregate', () => {
   });
 
   it('handles errors', async () => {
-    result = await spies.validateError(result, 'Missing an aggregation selection!');
+    await spies.validateError('Missing an aggregation selection! Please click "+" button next to Agg input.');
+    await selectOption(result.container.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await spies.validateError('Missing an aggregation selection! Please click "+" button next to Agg input.');
     await act(async () => {
-      aggInputs()
-        .first()
-        .simulate('change', { target: { value: 'col1' } });
+      fireEvent.click(screen.getByText('By Function'));
     });
-    result = result.update();
-    result = await spies.validateError(result, 'Missing an aggregation selection!');
-    await act(async () => {
-      findAgg().find('button').last().simulate('click');
-    });
-    result = result.update();
-    result = await spies.validateError(result, 'Missing an aggregation selection!');
+    await spies.validateError('Missing an aggregation selection! Please click "+" button next to Agg input.');
   });
 
   it('validates configuration', () => {
-    const cfg: ReshapeAggregateConfig = { agg: { type: AggregationOperationType.FUNC } };
-    expect(validateAggregateCfg(cfg)).toBe('Missing an aggregation selection!');
+    const cfg: ReshapeAggregateConfig = { agg: { type: AggregationOperationType.FUNC }, dropna: true };
+    expect(validateAggregateCfg(cfg)).toBe(
+      'Missing an aggregation selection! Please click "+" button next to Agg input.',
+    );
     cfg.index = ['x'];
     cfg.agg = { type: AggregationOperationType.COL, cols: {} };
-    expect(validateAggregateCfg(cfg)).toBe('Missing an aggregation selection!');
+    expect(validateAggregateCfg(cfg)).toBe(
+      'Missing an aggregation selection! Please click "+" button next to Agg input.',
+    );
     cfg.agg.cols = { col1: ['count'] };
     expect(validateAggregateCfg(cfg)).toBeUndefined();
+  });
+
+  it('changes aggregation options based on unselected column', async () => {
+    await act(async () => {
+      await selectEvent.openMenu(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
+    expect([...document.body.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+      'Count',
+      'Unique Count',
+      'Sum',
+      'Mean',
+      'Keep First',
+      'Keep Last',
+      'Median',
+      'Minimum',
+      'Maximum',
+      'Standard Deviation',
+      'Variance',
+      'Mean Absolute Deviation',
+      'Product of All Items',
+      'Geometric Mean',
+      'String Joiner',
+    ]);
+    await act(async () => {
+      await selectEvent.clearFirst(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
+  });
+
+  it('changes aggregation options based on float column', async () => {
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col2');
+    await act(async () => {
+      await selectEvent.openMenu(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
+    expect([...document.body.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+      'Count',
+      'Unique Count',
+      'Sum',
+      'Mean',
+      'Keep First',
+      'Keep Last',
+      'Median',
+      'Minimum',
+      'Maximum',
+      'Standard Deviation',
+      'Variance',
+      'Mean Absolute Deviation',
+      'Product of All Items',
+      'Geometric Mean',
+    ]);
+    await act(async () => {
+      await selectEvent.clearFirst(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
+  });
+
+  it('changes aggregation options based on string column', async () => {
+    await selectOption(result.container.getElementsByClassName('Select')[1] as HTMLElement, 'col3');
+    await act(async () => {
+      await selectEvent.openMenu(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
+    expect([...document.body.getElementsByClassName('Select__option')].map((o) => o.textContent)).toEqual([
+      'Count',
+      'Unique Count',
+      'Keep First',
+      'Keep Last',
+      'String Joiner',
+    ]);
+    await act(async () => {
+      await selectEvent.clearFirst(document.body.getElementsByClassName('Select')[2] as HTMLElement);
+    });
   });
 });

@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 
@@ -24,10 +25,10 @@ const buildAlgoOptions = (t: TFunction): Array<BaseOption<EncoderAlgoType>> => [
 
 export const validateEncoderCfg = (t: TFunction, cfg: EncoderConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Please select a column!');
+    return t('Please select a column!') ?? undefined;
   }
   if (cfg.algo === EncoderAlgoType.FEATURE_HASHER && (!cfg.n || parseInt(cfg.n, 10) < 1)) {
-    return t('Features must be an integer greater than zero!');
+    return t('Features must be an integer greater than zero!') ?? undefined;
   }
   return undefined;
 };
@@ -107,7 +108,7 @@ const CreateEncoder: React.FC<BaseCreateComponentProps & WithTranslation> = ({
         dtypes={['string', 'int']}
       />
       {algo.value === EncoderAlgoType.FEATURE_HASHER && (
-        <LabeledInput type="number" label={t('Features')} value={n} setter={setN} />
+        <LabeledInput type="number" label={t('Features') ?? ''} value={n} setter={setN} />
       )}
     </React.Fragment>
   );

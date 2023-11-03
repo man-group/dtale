@@ -1,16 +1,14 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 
 import * as chartUtils from '../../chartUtils';
-import TextEnterFilter from '../../popups/analysis/filters/TextEnterFilter';
 import Variance from '../../popups/variance/Variance';
+import { ActionType } from '../../redux/actions/AppActions';
 import { VariancePopupData } from '../../redux/state/AppState';
-import { RemovableError } from '../../RemovableError';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS, tickUpdate } from '../test-utils';
+import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS } from '../test-utils';
 
 import { ANALYSIS_DATA } from './ColumnAnalysis.test.support';
 
@@ -54,31 +52,31 @@ const props = {
 };
 
 describe('Variance tests', () => {
-  let result: ReactWrapper;
+  let result: Element;
   let createChartSpy: CreateChartSpy;
 
   const updateProps = async (newProps: any): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
-    store.getState().dataId = newProps.dataId ?? props.dataId;
-    store.getState().chartData = newProps.chartData ?? props.chartData;
-    result = mount(
-      <Provider store={store}>
-        <Variance {...newProps} />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    buildInnerHTML({ dataId: newProps.dataId ?? props.dataId, settings: '' }, store);
+    store.dispatch({ type: ActionType.OPEN_CHART, chartData: newProps.chartData ?? props.chartData });
+    result = await act(
+      () =>
+        render(
+          <Provider store={store}>
+            <Variance {...newProps} />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
     );
-    await act(async () => await tickUpdate(result));
   };
 
   beforeAll(() => mockChartJS());
 
   beforeEach(async () => {
     createChartSpy = jest.spyOn(chartUtils, 'createChart');
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/variance')) {
         const col = new URLSearchParams(url.split('?')[1]).get('col');
         if (col === 'error') {
@@ -109,51 +107,51 @@ describe('Variance tests', () => {
 
   afterEach(jest.restoreAllMocks);
 
-  const input = (): ReactWrapper => result.find('input');
+  const input = (): HTMLInputElement => result.getElementsByTagName('input')[0];
 
   it('Variance rendering variance report', async () => {
     await updateProps(props);
-    expect(result.find('h1').text()).toBe(`Based on checks 1 & 2 "bar" does not have Low Variance`);
+    expect(result.getElementsByTagName('h1')[0].textContent).toBe(
+      `Based on checks 1 & 2 "bar" does not have Low Variance`,
+    );
+  });
+
+  it('Variance rendering low variance report', async () => {
     await updateProps({
       chartData: { visible: true, selectedCol: 'lowVariance' },
     });
-    expect(result.find('h1').text()).toBe(`Based on checks 1 & 2 "lowVariance" has Low Variance`);
+    expect(result.getElementsByTagName('h1')[0].textContent).toBe(
+      `Based on checks 1 & 2 "lowVariance" has Low Variance`,
+    );
   });
 
   it('Variance rendering histogram', async () => {
     await updateProps(props);
-    expect(input().prop('value')).toBe('20');
+    expect(input().value).toBe('20');
     expect(getLastChart(createChartSpy).type).toBe('bar');
     expect(getLastChart(createChartSpy).options?.scales?.x).toEqual({ title: { display: true, text: 'Bin' } });
     await act(async () => {
-      input().simulate('change', { target: { value: '' } });
+      await fireEvent.change(input(), { target: { value: '' } });
     });
-    result = result.update();
     await act(async () => {
-      input().simulate('keyDown', { key: 'Shift' });
+      await fireEvent.keyDown(input(), { key: 'Shift' });
     });
-    result = result.update();
     await act(async () => {
-      input().simulate('keyDown', { key: 'Enter' });
+      await fireEvent.keyDown(input(), { key: 'Enter' });
     });
-    result = result.update();
     await act(async () => {
-      input().simulate('change', { target: { value: 'a' } });
+      await fireEvent.change(input(), { target: { value: 'a' } });
     });
-    result = result.update();
     await act(async () => {
-      input().simulate('keyDown', { key: 'Enter' });
+      await fireEvent.keyDown(input(), { key: 'Enter' });
     });
-    result = result.update();
     await act(async () => {
-      input().simulate('change', { target: { value: '50' } });
+      await fireEvent.change(input(), { target: { value: '50' } });
     });
-    result = result.update();
     await act(async () => {
-      input().simulate('keyDown', { key: 'Enter' });
+      await fireEvent.keyDown(input(), { key: 'Enter' });
     });
-    result = result.update();
-    expect(result.find(TextEnterFilter).find('input').props().value).toBe('50');
+    expect(screen.getByTestId('bins-input').getAttribute('value')).toBe('50');
   });
 
   it('Variance error', async () => {
@@ -161,6 +159,6 @@ describe('Variance tests', () => {
       ...props,
       chartData: { ...props.chartData, selectedCol: 'error' },
     });
-    expect(result.find(RemovableError).text()).toBe('variance error');
+    expect(screen.getByRole('alert').textContent).toBe('variance error');
   });
 });

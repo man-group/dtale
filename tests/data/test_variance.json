@@ -18,7 +18,7 @@
         },
         "jarqueBera": {
             "pvalue": 0.0,
-            "statistic": 176.04166666666663
+            "statistic": 176.0417
         },
         "missingCt": 0,
         "outlierCt": 0,
@@ -47,13 +47,13 @@
         },
         "jarqueBera": {
             "pvalue": 0.0,
-            "statistic": 649480728.9999514
+            "statistic": 649480729.0
         },
         "missingCt": 0,
         "outlierCt": 1,
         "shapiroWilk": {
             "pvalue": 0.0,
-            "statistic": 0.005482077598571777
+            "statistic": 0.0055
         },
         "size": 2500
     }

@@ -1,21 +1,25 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import {
   ActionType,
-  AppActions,
   HideRibbonMenuAction,
+  OpenChartAction,
   SidePanelAction,
   ToggleMenuAction,
 } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, Popups, PopupType, RibbonDropdownType, SidePanelType } from '../../redux/state/AppState';
+import * as selectors from '../../redux/selectors';
+import { Popups, PopupType, RibbonDropdownType, SidePanelType } from '../../redux/state/AppState';
 import * as InstanceRepository from '../../repository/InstanceRepository';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 import AboutOption from '../menu/AboutOption';
+import ArcticDBOption from '../menu/ArcticDBOption';
 import BuildColumnOption from '../menu/BuildColumnOption';
 import ChartsOption from '../menu/ChartsOption';
 import CleanColumn from '../menu/CleanOption';
@@ -29,8 +33,10 @@ import ExportOption from '../menu/ExportOption';
 import FilterOption from '../menu/FilterOption';
 import GageRnROption from '../menu/GageRnROption';
 import HeatMapOption from '../menu/HeatMapOption';
+import HideHeaderEditor from '../menu/HideHeaderEditor';
 import HighlightOption from '../menu/HighlightOption';
 import InstancesOption from '../menu/InstancesOption';
+import JumpToColumnOption from '../menu/JumpToColumnOption';
 import LanguageOption from '../menu/LanguageOption';
 import LogoutOption from '../menu/LogoutOption';
 import LowVarianceOption from '../menu/LowVarianceOption';
@@ -83,22 +89,46 @@ export interface RibbonDropdownProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector(
+  [
+    selectors.selectDataId,
+    selectors.selectIsVSCode,
+    selectors.selectSettings,
+    selectors.selectIsArcticDB,
+    selectors.selectColumnCount,
+    selectors.selectRibbonDropdownVisible,
+    selectors.selectRibbonDropdownElement,
+    selectors.selectRibbonDropdownName,
+  ],
+  (dataId, isVSCode, settings, isArcticDB, columnCount, visible, element, name) => ({
+    dataId,
+    isVSCode,
+    settings,
+    isArcticDB,
+    columnCount,
+    visible,
+    element,
+    name,
+  }),
+);
+
 const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ columns, rows, propagateState, t }) => {
-  const { dataId, isVSCode, element, name, settings, visible } = useSelector((state: AppState) => ({
-    ...state.ribbonDropdown,
-    dataId: state.dataId,
-    isVSCode: state.isVSCode,
-    settings: state.settings,
-  }));
+  const { dataId, isVSCode, element, name, settings, visible, isArcticDB, columnCount } = useSelector(selectResult);
+  const largeArcticDB = React.useMemo(
+    () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
+    [isArcticDB, columnCount],
+  );
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
   const closeMenu = (): ToggleMenuAction => dispatch({ type: ActionType.CLOSE_MENU });
   const hideRibbonMenu = (): HideRibbonMenuAction => dispatch({ type: ActionType.HIDE_RIBBON_MENU });
   const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
-  const updateBg = (bgType: string): AppActions<void> =>
+  const updateBg = (bgType: string): AnyAction =>
     dispatch(
-      settingsActions.updateSettings({ backgroundMode: settings.backgroundMode === bgType ? undefined : bgType }),
+      settingsActions.updateSettings({
+        backgroundMode: settings.backgroundMode === bgType ? undefined : bgType,
+      }) as any as AnyAction,
     );
 
   const [style, setStyle] = React.useState<React.CSSProperties>();
@@ -152,6 +182,7 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
   return (
     <div
       className={`ribbon-menu-dd-content${visible ? ' is-expanded' : ''}`}
+      data-testid="ribbon-dropdown"
       style={style}
       ref={ref}
       onClick={(e): void => {
@@ -162,20 +193,34 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
       {name === RibbonDropdownType.MAIN && visible && (
         <ul>
           <NewTabOption />
-          <UploadOption open={hideWrapper(openPopup({ type: PopupType.UPLOAD, visible: true }, 450))} />
+          {!!isArcticDB && (
+            <ArcticDBOption open={hideWrapper(openPopup({ type: PopupType.ARCTICDB, visible: true }, 450))} />
+          )}
+          {columnCount > 100 && (
+            <JumpToColumnOption
+              open={hideWrapper(openPopup({ type: PopupType.JUMP_TO_COLUMN, columns, visible: true }, 450))}
+            />
+          )}
+          {!isArcticDB && (
+            <UploadOption open={hideWrapper(openPopup({ type: PopupType.UPLOAD, visible: true }, 450))} />
+          )}
           <CodeExportOption open={hideWrapper(buttonHandlers.CODE)} />
           <ExportOption rows={rows} ribbonWrapper={hideWrapper} />
           <ReloadOption />
-          <InstancesOption open={hideWrapper(openPopup({ type: PopupType.INSTANCES, visible: true }, 450, 750))} />
-          <MenuItem description={t('menu_description:clear_data')} onClick={cleanupThis}>
-            <span className="toggler-action">
-              <button className="btn btn-plain">
-                <i className="ico-delete ml-2 mr-4" />
-                <span className="font-weight-bold align-middle">{t('Clear Data', { ns: 'menu' })}</span>
-              </button>
-            </span>
-          </MenuItem>
-          {processes.length > 1 && (
+          {!isArcticDB && (
+            <InstancesOption open={hideWrapper(openPopup({ type: PopupType.INSTANCES, visible: true }, 450, 750))} />
+          )}
+          {!isArcticDB && (
+            <MenuItem description={t('menu_description:clear_data')} onClick={cleanupThis}>
+              <span className="toggler-action">
+                <button className="btn btn-plain">
+                  <i className="ico-delete ml-2 mr-4" />
+                  <span className="font-weight-bold align-middle">{t('Clear Data', { ns: 'menu' })}</span>
+                </button>
+              </span>
+            </MenuItem>
+          )}
+          {!isArcticDB && processes.length > 1 && (
             <>
               <li>
                 <span className="font-weight-bold w-100 text-center">Other Data</span>
@@ -195,32 +240,40 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
       {name === RibbonDropdownType.ACTIONS && visible && (
         <ul>
           <ShowHideColumnsOption open={hideWrapper(() => showSidePanel(SidePanelType.SHOW_HIDE))} />
-          <XArrayOption columns={columns.filter((col) => col.name !== 'dtale_index')} />
-          <FilterOption open={hideWrapper(() => showSidePanel(SidePanelType.FILTER))} />
-          <PredefinedFiltersOption open={() => showSidePanel(SidePanelType.PREDEFINED_FILTERS)} />
-          <BuildColumnOption open={hideWrapper(buttonHandlers.BUILD)} />
-          <CleanColumn open={hideWrapper(buttonHandlers.CLEAN)} />
-          <MergeOption open={hideWrapper(() => window.open(fullPath('/dtale/popup/merge'), '_blank'))} />
-          <SummarizeOption open={hideWrapper(openPopup({ type: PopupType.RESHAPE, visible: true }, 400, 770))} />
-          <CorrelationAnalysisOption open={hideWrapper(() => showSidePanel(SidePanelType.CORR_ANALYSIS))} />
+          {!isArcticDB && <XArrayOption columns={columns.filter((col) => col.name !== 'dtale_index')} />}
+          {!isArcticDB && <FilterOption open={hideWrapper(() => showSidePanel(SidePanelType.FILTER))} />}
+          {!isArcticDB && <PredefinedFiltersOption open={() => showSidePanel(SidePanelType.PREDEFINED_FILTERS)} />}
+          {!isArcticDB && <BuildColumnOption open={hideWrapper(buttonHandlers.BUILD)} />}
+          {!isArcticDB && <CleanColumn open={hideWrapper(buttonHandlers.CLEAN)} />}
+          {!isArcticDB && (
+            <MergeOption open={hideWrapper(() => window.open(fullPath('/dtale/popup/merge'), '_blank'))} />
+          )}
+          {!isArcticDB && (
+            <SummarizeOption open={hideWrapper(openPopup({ type: PopupType.RESHAPE, visible: true }, 400, 770))} />
+          )}
+          {!largeArcticDB && (
+            <CorrelationAnalysisOption open={hideWrapper(() => showSidePanel(SidePanelType.CORR_ANALYSIS))} />
+          )}
         </ul>
       )}
       {name === RibbonDropdownType.VISUALIZE && visible && (
         <ul>
           <DescribeOption open={hideWrapper(buttonHandlers.DESCRIBE)} />
-          <DuplicatesOption open={hideWrapper(buttonHandlers.DUPLICATES)} />
-          <MissingOption open={hideWrapper(() => showSidePanel(SidePanelType.MISSINGNO))} />
-          <CorrelationsOption open={hideWrapper(() => showSidePanel(SidePanelType.CORRELATIONS))} />
-          <PPSOption open={hideWrapper(() => showSidePanel(SidePanelType.PPS))} />
-          <TimeseriesAnalysisOption open={hideWrapper(() => showSidePanel(SidePanelType.TIMESERIES_ANALYSIS))} />
+          {!largeArcticDB && <DuplicatesOption open={hideWrapper(buttonHandlers.DUPLICATES)} />}
+          {!largeArcticDB && <MissingOption open={hideWrapper(() => showSidePanel(SidePanelType.MISSINGNO))} />}
+          {!largeArcticDB && <CorrelationsOption open={hideWrapper(() => showSidePanel(SidePanelType.CORRELATIONS))} />}
+          {!largeArcticDB && <PPSOption open={hideWrapper(() => showSidePanel(SidePanelType.PPS))} />}
+          {!largeArcticDB && (
+            <TimeseriesAnalysisOption open={hideWrapper(() => showSidePanel(SidePanelType.TIMESERIES_ANALYSIS))} />
+          )}
           <ChartsOption open={hideWrapper(buttonHandlers.CHARTS)} />
           <NetworkOption open={hideWrapper(buttonHandlers.NETWORK)} />
-          <GageRnROption open={hideWrapper(() => showSidePanel(SidePanelType.GAGE_RNR))} />
+          {!largeArcticDB && <GageRnROption open={hideWrapper(() => showSidePanel(SidePanelType.GAGE_RNR))} />}
         </ul>
       )}
       {name === RibbonDropdownType.HIGHLIGHT && visible && (
         <ul>
-          <HeatMapOption toggleBackground={updateBg} />
+          {!largeArcticDB && <HeatMapOption toggleBackground={updateBg} />}
           <HighlightOption
             open={hideWrapper(() => updateBg('dtypes'))}
             mode="dtypes"
@@ -233,17 +286,21 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
             label="Missing"
             current={settings.backgroundMode}
           />
-          <HighlightOption
-            open={hideWrapper(() => updateBg('outliers'))}
-            mode="outliers"
-            label="Outliers"
-            current={settings.backgroundMode}
-          />
+          {!largeArcticDB && (
+            <HighlightOption
+              open={hideWrapper(() => updateBg('outliers'))}
+              mode="outliers"
+              label="Outliers"
+              current={settings.backgroundMode}
+            />
+          )}
           <RangeHighlightOption {...{ columns, propagateState }} ribbonWrapper={hideWrapper} />
-          <LowVarianceOption
-            toggleLowVarianceBackground={() => updateBg('lowVariance')}
-            backgroundMode={settings.backgroundMode}
-          />
+          {!largeArcticDB && (
+            <LowVarianceOption
+              toggleLowVarianceBackground={() => updateBg('lowVariance')}
+              backgroundMode={settings.backgroundMode}
+            />
+          )}
         </ul>
       )}
       {name === RibbonDropdownType.SETTINGS && visible && (
@@ -254,6 +311,7 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
           <MaxHeightOption />
           <ShowNonNumericHeatmapColumns />
           <VerticalColumnHeaders />
+          <HideHeaderEditor />
         </ul>
       )}
     </div>

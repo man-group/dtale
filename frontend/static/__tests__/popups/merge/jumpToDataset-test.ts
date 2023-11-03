@@ -67,4 +67,23 @@ describe('jumpToDataset', () => {
     jumpToDataset('1', () => ({}));
     expect(window.location.assign).toHaveBeenLastCalledWith('http://1');
   });
+
+  it('correctly handles arcticdb in startup', () => {
+    (window as any).location = { assign: jest.fn(), pathname: '/dtale/popup/arcticdb', origin: 'foo' };
+    window.close = jest.fn();
+    const { jumpToDataset } = require('../../../popups/upload/uploadUtils');
+    jumpToDataset('1', () => ({}), true);
+    expect(window.location.assign).toHaveBeenLastCalledWith('foo');
+    expect(window.close).not.toHaveBeenCalled();
+  });
+
+  it('correctly handles arcticdb in popup', () => {
+    (window as any).location = { assign: jest.fn(), pathname: '/dtale/popup/arcticdb', origin: 'foo' };
+    window.opener = { location: { assign: jest.fn(), pathname: '/dtale/popup/arcticdb', href: 'http://localhost' } };
+    window.close = jest.fn();
+    const { jumpToDataset } = require('../../../popups/upload/uploadUtils');
+    jumpToDataset('1', () => ({}), true);
+    expect(window.opener.location.assign).toHaveBeenLastCalledWith('http://1');
+    expect(window.close).toHaveBeenCalled();
+  });
 });

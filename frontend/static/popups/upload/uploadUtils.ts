@@ -12,7 +12,10 @@ export const jumpToDataset = async (
       await mergeRefresher?.();
     }
     return;
-  } else if (window.location.pathname.startsWith('/dtale/popup/upload')) {
+  } else if (
+    window.location.pathname.startsWith('/dtale/popup/upload') ||
+    window.location.pathname.startsWith('/dtale/popup/arcticdb')
+  ) {
     if (window.opener) {
       if (window.opener.location.pathname.startsWith('/dtale/popup/merge')) {
         window.opener.location.assign('/dtale/popup/merge');

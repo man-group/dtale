@@ -31,7 +31,7 @@ def test_pivot(custom_data, unittest):
             query_string=dict(output="new", type="pivot", cfg=json.dumps(reshape_cfg)),
         )
         response_data = json.loads(resp.data)
-        new_key = int(c.port) + 1
+        new_key = str(c.port + 1)
         assert response_data["data_id"] == new_key
         assert len(global_state.keys()) == 2
         unittest.assertEqual(
@@ -105,7 +105,7 @@ def test_aggregate(custom_data, unittest):
             ),
         )
         response_data = json.loads(resp.data)
-        new_key = int(c.port) + 1
+        new_key = str(c.port + 1)
         assert response_data["data_id"] == new_key
         assert len(global_state.keys()) == 2
         unittest.assertEqual(
@@ -169,14 +169,15 @@ def test_aggregate(custom_data, unittest):
         assert response_data["data_id"] == new_key
         assert len(global_state.keys()) == 2
         unittest.assertEqual(
-            [d["name"] for d in global_state.get_dtypes(new_key)],
-            ["Col0", "Col1"],
+            [d["name"] for d in global_state.get_dtypes(new_key)], ["Col0", "Col1"]
         )
         assert len(global_state.get_data(new_key)) == 1
         assert global_state.get_settings(new_key).get("startup_code") is not None
         c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
-        reshape_cfg = dict(index="date", agg=dict(type="func", func="mean"))
+        reshape_cfg = dict(
+            index="date", agg=dict(type="func", func="mean", dropna=True)
+        )
         resp = c.get(
             "/dtale/reshape/{}".format(c.port),
             query_string=dict(
@@ -191,6 +192,65 @@ def test_aggregate(custom_data, unittest):
             ["date", "security_id", "int_val", "Col0", "Col1", "Col2", "bool_val"],
         )
         assert len(global_state.get_data(new_key)) == 365
+        assert global_state.get_settings(new_key).get("startup_code") is not None
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
+        reshape_cfg = dict(
+            index="bool_val", agg=dict(type="func", func="count_pct"), dropna=False
+        )
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        assert response_data["data_id"] == new_key
+        assert len(global_state.keys()) == 2
+        unittest.assertEqual(
+            [d["name"] for d in global_state.get_dtypes(new_key)],
+            ["bool_val", "Count", "Percentage"],
+        )
+        assert sum(global_state.get_data(new_key)["Percentage"].values) == 100
+        assert global_state.get_settings(new_key).get("startup_code") is not None
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
+
+@pytest.mark.unit
+def test_aggregate_str_joiner(unittest):
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame([{"a": 1, "b": "foo"}, {"a": 1, "b": "bar"}])
+    df, _ = format_data(df)
+    global_state.clear_store()
+    with app.test_client() as c:
+        data = {c.port: df}
+        dtypes = {c.port: build_dtypes_state(df)}
+        settings = {c.port: {}}
+
+        build_data_inst(data)
+        build_dtypes(dtypes)
+        build_settings(settings)
+        reshape_cfg = dict(
+            index="a", agg=dict(type="col", cols={"b": ["count", "str_joiner"]})
+        )
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        new_key = str(c.port + 1)
+        assert response_data["data_id"] == new_key
+        assert len(global_state.keys()) == 2
+        unittest.assertEqual(
+            [d["name"] for d in global_state.get_dtypes(new_key)],
+            ["a", "b count", "b str_joiner"],
+        )
+        output = global_state.get_data(new_key)
+        assert len(output) == 1
+        assert output["b str_joiner"].values[0] == "foo|bar"
         assert global_state.get_settings(new_key).get("startup_code") is not None
         c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
@@ -217,7 +277,7 @@ def test_transpose(custom_data, unittest):
             ),
         )
         response_data = json.loads(resp.data)
-        new_key = int(c.port) + 1
+        new_key = str(c.port + 1)
         assert "error" in response_data
 
         min_date = custom_data["date"].min().strftime("%Y-%m-%d")
@@ -252,7 +312,7 @@ def test_transpose(custom_data, unittest):
             ),
         )
         response_data = json.loads(resp.data)
-        assert response_data["data_id"] == c.port
+        assert response_data["data_id"] == str(c.port)
 
 
 @pytest.mark.unit
@@ -284,7 +344,7 @@ def test_resample(unittest):
         )
 
         response_data = json.loads(resp.data)
-        new_key = int(c.port) + 1
+        new_key = str(c.port + 1)
         assert response_data["data_id"] == new_key
         assert len(global_state.keys()) == 2
         unittest.assertEqual(

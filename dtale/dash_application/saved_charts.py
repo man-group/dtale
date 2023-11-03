@@ -1,10 +1,11 @@
 import dash_bootstrap_components as dbc
+
 from dash.dependencies import Input, Output, State
-from dash.exceptions import PreventUpdate
 
 from dtale.charts.utils import ANIMATION_CHARTS, ANIMATE_BY_CHARTS, ZAXIS_CHARTS
 from dtale.dash_application import dcc, html
 from dtale.dash_application.charts import build_chart, valid_chart
+from dtale.dash_application.exceptions import DtalePreventUpdate
 from dtale.dash_application.layout.utils import build_hoverable
 from dtale.utils import dict_merge, is_app_root_defined, flatten_lists, make_list
 from dtale.translations import text
@@ -106,15 +107,24 @@ def build_saved_header(config):
             final_data.append(("Trendline", "\u2714"))
 
     if group_by:
-        final_data.append(("Group By", ", ".join(make_list(group_by))))
-        group_type = config["group_type"]
+        group_by_cols = make_list(group_by)
+        final_data.append(("Group By", ", ".join(group_by_cols)))
+        group_type = config.get("group_type")
         final_data.append(("Group Type", group_type))
         if group_type == "bins":
             final_data.append(("Bin Type", config["bin_type"]))
             final_data.append(("Bins", config["bin_val"]))
         else:
             final_data.append(
-                ("Selected Groups", ", ".join(make_list(config["groups"])))
+                (
+                    "Selected Groups",
+                    ", ".join(
+                        [
+                            "({})".format(",".join([v[c] for c in group_by_cols]))
+                            for v in make_list(config.get("group_val"))
+                        ]
+                    ),
+                )
             )
 
     if config["cpg"]:
@@ -171,7 +181,7 @@ def init_callbacks(dash_app):
 
         if delete_idx is None:
             if save_clicks == prev_save_clicks:
-                raise PreventUpdate
+                raise DtalePreventUpdate
 
             config = dict_merge(
                 inputs,
@@ -183,7 +193,7 @@ def init_callbacks(dash_app):
             )
 
             if not valid_chart(**config):
-                raise PreventUpdate
+                raise DtalePreventUpdate
 
             for index, saved_config in enumerate(updated_configs):
                 if saved_config is None:
@@ -196,12 +206,12 @@ def init_callbacks(dash_app):
 
     def load_saved_chart(_ts, config, prev_config):
         if config == prev_config:
-            raise PreventUpdate
+            raise DtalePreventUpdate
         if config is None:
             return dict(display="none"), None, None, None
         if is_app_root_defined(dash_app.server.config.get("APPLICATION_ROOT")):
             config["app_root"] = dash_app.server.config["APPLICATION_ROOT"]
-        charts, _, _ = build_chart(**config)
+        charts, _, _, _ = build_chart(**config)
         return dict(display="block"), charts, config, build_saved_header(config)
 
     dash_app.callback(

@@ -12,7 +12,9 @@ interface CollapsibleProps {
 const Collapsible: React.FC<CollapsibleProps> = ({ title, content, onExpand }) => {
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
 
-  React.useEffect(() => onExpand?.(), [isOpen]);
+  React.useEffect(() => {
+    onExpand?.();
+  }, [isOpen]);
 
   if (!content) {
     return null;

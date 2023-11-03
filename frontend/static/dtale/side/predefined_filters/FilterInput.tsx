@@ -44,7 +44,7 @@ const buildFinal = (
 export interface FilterInputProps {
   dataId: string;
   filter: PredefinedFilter;
-  save: (name: string, value: string | string[] | undefined, active: boolean) => Promise<void>;
+  save: (name: string, value: any | any[] | undefined, active: boolean) => Promise<void>;
   columns: ColumnDef[];
   value: PredefinedFilterValue;
 }
@@ -86,7 +86,7 @@ const FilterInput: React.FC<FilterInputProps & WithTranslation> = ({ dataId, fil
     const colType = gu.findColType(colCfg?.dtype);
     const finalValue = buildFinal(currentValue, inputType);
     const newErrors: string[] = [];
-    const finalValues: string[] = [];
+    const finalValues: any[] = [];
     (Array.isArray(finalValue) ? finalValue : [finalValue]).forEach((val) => {
       if (val === undefined) {
         return;
@@ -96,14 +96,14 @@ const FilterInput: React.FC<FilterInputProps & WithTranslation> = ({ dataId, fil
         if (isNaN(parsedVal)) {
           newErrors.push(`Invalid integer, ${val}!`);
         } else {
-          finalValues.push(`${parsedVal}`);
+          finalValues.push(parsedVal);
         }
       } else if (colType === gu.ColumnType.FLOAT && val) {
         const parsedVal = parseFloat(val);
         if (isNaN(parsedVal)) {
           newErrors.push(`Invalid float, ${val}!`);
         } else {
-          finalValues.push(`${parsedVal}`);
+          finalValues.push(parsedVal);
         }
       } else {
         finalValues.push(val);

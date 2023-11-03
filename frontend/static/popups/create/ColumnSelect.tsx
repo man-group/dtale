@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 import { createFilter, default as Select } from 'react-select';
 
 import { ColumnDef } from '../../dtale/DataViewerState';
@@ -105,7 +106,12 @@ interface ColumnSelectProps extends ColumnSelectInputProps {
   label: React.ReactNode;
 }
 
-const ColumnSelect: React.FC<ColumnSelectProps & WithTranslation> = ({ label, children, t, ...inputProps }) => (
+const ColumnSelect: React.FC<React.PropsWithChildren<ColumnSelectProps & WithTranslation>> = ({
+  label,
+  children,
+  t,
+  ...inputProps
+}) => (
   <div className="form-group row">
     <label className="col-md-3 col-form-label text-right">{label || inputProps.prop}</label>
     <div className="col-md-8">

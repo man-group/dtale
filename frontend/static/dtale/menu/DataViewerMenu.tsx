@@ -1,16 +1,20 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
-import { ActionType, AppActions, SidePanelAction, ToggleMenuAction } from '../../redux/actions/AppActions';
+import { ActionType, OpenChartAction, SidePanelAction, ToggleMenuAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
+import * as selectors from '../../redux/selectors';
+import { Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 
 import AboutOption from './AboutOption';
+import ArcticDBOption from './ArcticDBOption';
 import BuildColumnOption from './BuildColumnOption';
 import ChartsOption from './ChartsOption';
 import CleanColumn from './CleanOption';
@@ -26,6 +30,7 @@ import GageRnROption from './GageRnROption';
 import HeatMapOption from './HeatMapOption';
 import HighlightOption from './HighlightOption';
 import InstancesOption from './InstancesOption';
+import JumpToColumnOption from './JumpToColumnOption';
 import LanguageOption from './LanguageOption';
 import LogoutOption from './LogoutOption';
 import LowVarianceOption from './LowVarianceOption';
@@ -54,24 +59,54 @@ export interface DataViewerMenuProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector(
+  [
+    selectors.selectDataId,
+    selectors.selectMenuPinned,
+    selectors.selectMainTitle,
+    selectors.selectMainTitleFont,
+    selectors.selectIsArcticDB,
+    selectors.selectIsVSCode,
+    selectors.selectSettings,
+    selectors.selectMenuOpen,
+    selectors.selectColumnCount,
+  ],
+  (dataId, menuPinned, mainTitle, mainTitleFont, isArcticDB, isVSCode, settings, menuOpen, columnCount) => ({
+    dataId,
+    menuPinned,
+    mainTitle,
+    mainTitleFont,
+    isArcticDB,
+    isVSCode,
+    settings,
+    menuOpen,
+    columnCount,
+  }),
+);
+
 const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, columns, rows, propagateState }) => {
-  const { dataId, menuPinned, mainTitle, mainTitleFont, isVSCode, settings, menuOpen } = useSelector(
-    (state: AppState) => state,
+  const { dataId, menuPinned, mainTitle, mainTitleFont, isArcticDB, isVSCode, settings, menuOpen, columnCount } =
+    useSelector(selectResult);
+  const largeArcticDB = React.useMemo(
+    () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
+    [isArcticDB, columnCount],
   );
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
   const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
   const closeMenu = (): ToggleMenuAction => dispatch({ type: ActionType.CLOSE_MENU });
   const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
-  const updateBg = (bgType: string): AppActions<void> =>
+  const updateBg = (bgType: string): AnyAction =>
     dispatch(
-      settingsActions.updateSettings({ backgroundMode: settings.backgroundMode === bgType ? undefined : bgType }),
+      settingsActions.updateSettings({
+        backgroundMode: settings.backgroundMode === bgType ? undefined : bgType,
+      }) as any as AnyAction,
     );
 
   const buttonHandlers = menuFuncs.buildHotkeyHandlers({ dataId, columns, openChart, openMenu, closeMenu, isVSCode });
   const { openPopup } = buttonHandlers;
   const refreshWidths = (): void => propagateState({ columns: columns.map((c) => ({ ...c })) });
-  const hasNoInfo = gu.hasNoInfo(settings, columns);
+  const hasNoInfo = gu.hasNoInfo({ ...settings, isArcticDB }, columns);
   const containerProps = menuPinned
     ? { className: 'pinned-data-viewer-menu' }
     : {
@@ -85,7 +120,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
       };
   const height = `calc(100vh - ${menuPinned ? 35 : hasNoInfo ? 68 : 98}px)`;
   return (
-    <div {...containerProps}>
+    <div data-testid="data-viewer-menu" {...containerProps}>
       {!menuPinned && menuOpen && (
         <GlobalHotKeys
           keyMap={{ CLOSE_MENU: 'esc' }}
@@ -107,24 +142,30 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
       >
         <ul>
           <NewTabOption />
-          <XArrayOption columns={columns.filter(({ name }) => name !== gu.IDX)} />
+          {!!isArcticDB && <ArcticDBOption open={openPopup({ type: PopupType.ARCTICDB, visible: true }, 450)} />}
+          {columnCount > 100 && (
+            <JumpToColumnOption open={openPopup({ type: PopupType.JUMP_TO_COLUMN, columns, visible: true }, 450)} />
+          )}
+          {!isArcticDB && <XArrayOption columns={columns.filter(({ name }) => name !== gu.IDX)} />}
           <DescribeOption open={buttonHandlers.DESCRIBE} />
-          <FilterOption open={() => showSidePanel(SidePanelType.FILTER)} />
-          <PredefinedFiltersOption open={() => showSidePanel(SidePanelType.PREDEFINED_FILTERS)} />
+          {!isArcticDB && <FilterOption open={() => showSidePanel(SidePanelType.FILTER)} />}
+          {!isArcticDB && <PredefinedFiltersOption open={() => showSidePanel(SidePanelType.PREDEFINED_FILTERS)} />}
           <ShowHideColumnsOption open={() => showSidePanel(SidePanelType.SHOW_HIDE)} />
-          <BuildColumnOption open={buttonHandlers.BUILD} />
-          <CleanColumn open={buttonHandlers.CLEAN} />
-          <MergeOption open={() => window.open(menuFuncs.fullPath('/dtale/popup/merge'), '_blank')} />
-          <SummarizeOption open={openPopup({ type: PopupType.RESHAPE, title: 'Reshape', visible: true }, 400, 770)} />
-          <TimeseriesAnalysisOption open={() => showSidePanel(SidePanelType.TIMESERIES_ANALYSIS)} />
-          <DuplicatesOption open={buttonHandlers.DUPLICATES} />
-          <MissingOption open={() => showSidePanel(SidePanelType.MISSINGNO)} />
-          <CorrelationAnalysisOption open={() => showSidePanel(SidePanelType.CORR_ANALYSIS)} />
-          <CorrelationsOption open={() => showSidePanel(SidePanelType.CORRELATIONS)} />
-          <PPSOption open={() => showSidePanel(SidePanelType.PPS)} />
+          {!isArcticDB && <BuildColumnOption open={buttonHandlers.BUILD} />}
+          {!isArcticDB && <CleanColumn open={buttonHandlers.CLEAN} />}
+          {!isArcticDB && <MergeOption open={() => window.open(menuFuncs.fullPath('/dtale/popup/merge'), '_blank')} />}
+          {!isArcticDB && (
+            <SummarizeOption open={openPopup({ type: PopupType.RESHAPE, title: 'Reshape', visible: true }, 400, 770)} />
+          )}
+          {!largeArcticDB && <TimeseriesAnalysisOption open={() => showSidePanel(SidePanelType.TIMESERIES_ANALYSIS)} />}
+          {!largeArcticDB && <DuplicatesOption open={buttonHandlers.DUPLICATES} />}
+          {!largeArcticDB && <MissingOption open={() => showSidePanel(SidePanelType.MISSINGNO)} />}
+          {!largeArcticDB && <CorrelationAnalysisOption open={() => showSidePanel(SidePanelType.CORR_ANALYSIS)} />}
+          {!largeArcticDB && <CorrelationsOption open={() => showSidePanel(SidePanelType.CORRELATIONS)} />}
+          {!largeArcticDB && <PPSOption open={() => showSidePanel(SidePanelType.PPS)} />}
           <ChartsOption open={buttonHandlers.CHARTS} />
           <NetworkOption open={buttonHandlers.NETWORK} />
-          <HeatMapOption toggleBackground={updateBg} />
+          {!largeArcticDB && <HeatMapOption toggleBackground={updateBg} />}
           <HighlightOption
             open={() => updateBg('dtypes')}
             mode="dtypes"
@@ -137,24 +178,30 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
             label="Missing"
             current={settings.backgroundMode}
           />
-          <HighlightOption
-            open={() => updateBg('outliers')}
-            mode="outliers"
-            label="Outliers"
-            current={settings.backgroundMode}
-          />
+          {!largeArcticDB && (
+            <HighlightOption
+              open={() => updateBg('outliers')}
+              mode="outliers"
+              label="Outliers"
+              current={settings.backgroundMode}
+            />
+          )}
           <RangeHighlightOption columns={columns} />
-          <LowVarianceOption
-            toggleLowVarianceBackground={() => updateBg('lowVariance')}
-            backgroundMode={settings.backgroundMode}
-          />
-          <GageRnROption open={() => showSidePanel(SidePanelType.GAGE_RNR)} />
-          <InstancesOption
-            open={openPopup({ type: PopupType.INSTANCES, title: 'Instances', visible: true }, 450, 750)}
-          />
+          {!largeArcticDB && (
+            <LowVarianceOption
+              toggleLowVarianceBackground={() => updateBg('lowVariance')}
+              backgroundMode={settings.backgroundMode}
+            />
+          )}
+          {!largeArcticDB && <GageRnROption open={() => showSidePanel(SidePanelType.GAGE_RNR)} />}
+          {!isArcticDB && (
+            <InstancesOption
+              open={openPopup({ type: PopupType.INSTANCES, title: 'Instances', visible: true }, 450, 750)}
+            />
+          )}
           <CodeExportOption open={buttonHandlers.CODE} />
           <ExportOption rows={rows} />
-          <UploadOption open={openPopup({ type: PopupType.UPLOAD, visible: true }, 450)} />
+          {!isArcticDB && <UploadOption open={openPopup({ type: PopupType.UPLOAD, visible: true }, 450)} />}
           <MenuItem description={t('menu_description:widths')} onClick={refreshWidths}>
             <span className="toggler-action">
               <button className="btn btn-plain">

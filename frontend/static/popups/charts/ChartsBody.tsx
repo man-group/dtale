@@ -306,7 +306,7 @@ const ChartsBody: React.FC<ChartsBodyProps & WithTranslation> = ({ t, ...props }
   };
 
   const updateAxis = (settings: chartUtils.AxisSpec): void => {
-    if (settings === { min: data?.min, max: data?.max }) {
+    if (JSON.stringify(settings) === JSON.stringify({ min: data?.min, max: data?.max })) {
       return;
     }
     charts.current?.forEach((c) => c?.destroy());
@@ -423,7 +423,7 @@ const ChartsBody: React.FC<ChartsBodyProps & WithTranslation> = ({ t, ...props }
   return (
     <React.Fragment>
       {renderControls()}
-      <div>
+      <div data-testid="charts-body">
         <div id="chart-bouncer" style={{ display: 'none' }}>
           <Bouncer />
         </div>

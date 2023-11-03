@@ -1,10 +1,11 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { createFilter, default as Select } from 'react-select';
 
 import { ColumnFilter, ColumnFilterOperand } from '../dtale/DataViewerState';
-import { AppState } from '../redux/state/AppState';
+import { selectColumnCount, selectDataId, selectIsArcticDB } from '../redux/selectors';
 
 import AsyncValueSelect from './AsyncValueSelect';
 import { BaseColumnFilterProps, UniquesProps } from './ColumnFilterState';
@@ -17,11 +18,17 @@ enum StringFilterAction {
   STARTSWITH = 'startswith',
   ENDSWITH = 'endswith',
   CONTAINS = 'contains',
+  REGEX = 'regex',
   LENGTH = 'length',
 }
 
 /** Component properties for StringFilter */
 export type StringFilterProps = BaseColumnFilterProps & UniquesProps;
+
+const selectResult = createSelector(
+  [selectDataId, selectIsArcticDB, selectColumnCount],
+  (dataId, isArcticDB, columnCount) => ({ dataId, isArcticDB, columnCount }),
+);
 
 export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
   selectedCol,
@@ -32,7 +39,11 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
   uniqueCt,
   t,
 }) => {
-  const dataId = useSelector((state: AppState) => state.dataId);
+  const { dataId, isArcticDB, columnCount } = useSelector(selectResult);
+  const largeArcticDB = React.useMemo(
+    () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
+    [isArcticDB, columnCount],
+  );
   const [selected, setSelected] = React.useState<string[]>(columnFilter?.value as string[]);
   const [operand, setOperand] = React.useState<ColumnFilterOperand>(columnFilter?.operand ?? '=');
   const [action, setAction] = React.useState<StringFilterAction>(
@@ -70,6 +81,8 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
     const base = t('Press ENTER to submit', { ns: 'correlations' });
     if (action === StringFilterAction.LENGTH) {
       return `${base}. Enter integers for length. For a range enter '1,3' which means '1 <= str.length <= 3'.`;
+    } else if (action === StringFilterAction.REGEX) {
+      return `${base}. Enter Python\'s regular expression understood by re.search().`;
     }
     return base;
   };
@@ -88,7 +101,7 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
                 setOperand(active ? EQ_OPTION.value : NE_OPTION.value);
                 setTriggerSave(true);
               }}
-              title={t(active ? NE_OPTION.hint : EQ_OPTION.hint)}
+              title={t(active ? NE_OPTION.hint : EQ_OPTION.hint) ?? ''}
               disabled={missing}
             >
               {NE_OPTION.label}
@@ -116,6 +129,7 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
             isClearable={false}
             className="Select is-clearable is-searchable Select--single"
             classNamePrefix="Select"
+            isDisabled={!!isArcticDB}
             options={Object.values(StringFilterAction).map((value) => ({
               label: value.valueOf(),
               value: value as StringFilterAction,
@@ -131,7 +145,7 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
       </div>
       <div className="row">
         <div className="col-md-12 string-filter-inputs">
-          {action === StringFilterAction.EQUALS && !requiresAsync && (
+          {action === StringFilterAction.EQUALS && !requiresAsync && !largeArcticDB && (
             <ValueSelect<string>
               {...{ selected, uniques: uniques, missing }}
               updateState={async (option?: string[] | string) => {
@@ -140,7 +154,7 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
               }}
             />
           )}
-          {action === StringFilterAction.EQUALS && requiresAsync && (
+          {action === StringFilterAction.EQUALS && requiresAsync && !largeArcticDB && (
             <AsyncValueSelect<string>
               {...{ dataId, selected, selectedCol, uniques, missing }}
               updateState={async (option?: string[] | string) => {
@@ -149,7 +163,7 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
               }}
             />
           )}
-          {action !== StringFilterAction.EQUALS && (
+          {(action !== StringFilterAction.EQUALS || largeArcticDB) && (
             <div data-tip={renderInputHint()}>
               <input
                 type="text"

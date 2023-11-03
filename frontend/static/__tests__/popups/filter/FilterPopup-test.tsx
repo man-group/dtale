@@ -1,22 +1,20 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import * as serverState from '../../../dtale/serverStateManagement';
 import FilterPopup from '../../../popups/filter/FilterPopup';
-import StructuredFilters from '../../../popups/filter/StructuredFilters';
+import { ActionType } from '../../../redux/actions/AppActions';
 import * as chartActions from '../../../redux/actions/charts';
 import { InstanceSettings, QueryEngine } from '../../../redux/state/AppState';
-import { RemovableError } from '../../../RemovableError';
 import * as CustomFilterRepository from '../../../repository/CustomFilterRepository';
 import * as GenericRepository from '../../../repository/GenericRepository';
 import reduxUtils from '../../redux-test-utils';
-import { buildInnerHTML, tickUpdate } from '../../test-utils';
+import { buildInnerHTML } from '../../test-utils';
 
 describe('FilterPopup', () => {
-  let wrapper: ReactWrapper;
+  let wrapper: Element;
   let store: Store;
   let loadInfoSpy: jest.SpyInstance<Promise<CustomFilterRepository.LoadInfoResponse | undefined>, [string]>;
   let saveFilterSpy: jest.SpyInstance<Promise<GenericRepository.BaseResponse | undefined>, [string, string]>;
@@ -32,6 +30,7 @@ describe('FilterPopup', () => {
       predefinedFilters: {},
       contextVars: [],
       invertFilter: false,
+      highlightFilter: false,
       success: true,
     });
     saveFilterSpy = jest.spyOn(CustomFilterRepository, 'save');
@@ -41,56 +40,48 @@ describe('FilterPopup', () => {
     updateQueryEngineSpy = jest.spyOn(serverState, 'updateQueryEngine');
     updateQueryEngineSpy.mockResolvedValue(Promise.resolve({ success: true }));
     store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '', dataId: '1', queryEngine: 'python' }, store);
-    store.getState().chartData = { visible: true };
-    wrapper = mount(
-      <Provider store={store}>
-        <FilterPopup />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
+    buildInnerHTML({ settings: '', dataId: '1', queryEngine: 'python', enableCustomFilters: 'True' }, store);
+    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { visible: true } });
+    wrapper = await act(
+      async () =>
+        await render(
+          <Provider store={store}>
+            <FilterPopup />
+          </Provider>,
+          {
+            container: document.getElementById('content') ?? undefined,
+          },
+        ).container,
     );
-    await act(async () => await tickUpdate(wrapper));
-    wrapper = wrapper.update();
   });
 
   afterEach(jest.resetAllMocks);
   afterAll(jest.restoreAllMocks);
 
-  const clickFilterBtn = async (text: string): Promise<ReactWrapper> => {
+  const clickFilterBtn = async (text: string): Promise<void> => {
     await act(async () => {
-      wrapper
-        .find(FilterPopup)
-        .first()
-        .find('button')
-        .findWhere((btn) => btn.text() === text)
-        .first()
-        .simulate('click');
+      await fireEvent.click(screen.getByText(text));
     });
-    return wrapper.update();
   };
 
   it('renders successfully', () => {
-    expect(wrapper.html()).not.toBeNull();
+    expect(wrapper.innerHTML).not.toBe('');
   });
 
   it('drops filter', async () => {
     await act(async () => {
-      wrapper.find(StructuredFilters).first().props().dropFilter('0');
+      await fireEvent.click(screen.queryAllByTestId('structured-filters')[0].querySelector('.ico-cancel')!);
     });
-    wrapper = wrapper.update();
     expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
-    expect(wrapper.find(StructuredFilters).first().props().filters).toEqual({});
+    expect(screen.queryAllByTestId('structured-filters')).toHaveLength(1);
   });
 
   it('saves filter', async () => {
     const onCloseSpy = jest.spyOn(chartActions, 'closeChart');
     await act(async () => {
-      wrapper.find('textarea').simulate('change', { target: { value: 'foo == foo' } });
+      await fireEvent.change(wrapper.getElementsByTagName('textarea')[0], { target: { value: 'foo == foo' } });
     });
-    wrapper = wrapper.update();
-    wrapper = await clickFilterBtn('Apply');
+    await clickFilterBtn('Apply');
     expect(saveFilterSpy).toHaveBeenCalledWith('1', 'foo == foo');
     expect(store.getState().settings.query).toBe('foo == foo');
     expect(onCloseSpy).toHaveBeenCalledTimes(1);
@@ -100,30 +91,36 @@ describe('FilterPopup', () => {
   it('save failure', async () => {
     saveFilterSpy.mockResolvedValue({ error: 'error', success: false });
     await act(async () => {
-      wrapper.find('textarea').simulate('change', { target: { value: 'foo == foo' } });
+      await fireEvent.change(wrapper.getElementsByTagName('textarea')[0], { target: { value: 'foo == foo' } });
     });
-    wrapper = wrapper.update();
-    wrapper = await clickFilterBtn('Apply');
-    expect(wrapper.find(RemovableError).props().error).toBe('error');
+    await clickFilterBtn('Apply');
+    expect(screen.getByRole('alert').textContent).toBe('error');
     await act(async () => {
-      wrapper.find(RemovableError).first().props().onRemove?.();
+      await fireEvent.click(screen.getByRole('alert').querySelector('.ico-cancel')!);
     });
-    wrapper = wrapper.update();
-    expect(wrapper.find(RemovableError)).toHaveLength(0);
+    expect(screen.queryAllByRole('alert')).toHaveLength(0);
   });
 
   it('clears filter', async () => {
     const onCloseSpy = jest.spyOn(chartActions, 'closeChart');
-    wrapper = await clickFilterBtn('Clear');
+    await clickFilterBtn('Clear');
     expect(updateSettingsSpy).toHaveBeenCalledWith({ query: '' }, '1');
     expect(onCloseSpy).toHaveBeenCalledTimes(1);
     onCloseSpy.mockRestore();
   });
 
   it('updates query engine', async () => {
-    wrapper = await clickFilterBtn('numexpr');
+    await clickFilterBtn('numexpr');
     expect(updateQueryEngineSpy).toHaveBeenCalledTimes(1);
     expect(updateQueryEngineSpy.mock.calls[0][0]).toBe('numexpr');
+  });
+
+  it('toggle highlight filter', async () => {
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Highlight Filtered Rows').parentElement?.getElementsByTagName('i')[0]!);
+    });
+    expect(updateSettingsSpy).toHaveBeenLastCalledWith({ highlightFilter: true }, '1');
+    expect(store.getState().settings.highlightFilter).toBe(true);
   });
 
   describe('new window', () => {
@@ -152,27 +149,33 @@ describe('FilterPopup', () => {
 
     it('drops filter', async () => {
       await act(async () => {
-        wrapper.find(StructuredFilters).first().props().dropFilter('0');
+        await fireEvent.click(screen.queryAllByTestId('structured-filters')[0].querySelector('.ico-cancel')!);
       });
-      wrapper = wrapper.update();
       expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
       expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
     });
 
     it('saves filter', async () => {
       await act(async () => {
-        wrapper.find('textarea').simulate('change', { target: { value: 'foo == foo' } });
+        await fireEvent.change(wrapper.getElementsByTagName('textarea')[0], { target: { value: 'foo == foo' } });
       });
-      wrapper = wrapper.update();
-      wrapper = await clickFilterBtn('Apply');
+      await clickFilterBtn('Apply');
       expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
       expect(window.close).toHaveBeenCalledTimes(1);
     });
 
     it('clears filter', async () => {
-      wrapper = await clickFilterBtn('Clear');
+      await clickFilterBtn('Clear');
       expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
       expect(window.close).toHaveBeenCalledTimes(1);
+    });
+
+    it('toggle highlight filter', async () => {
+      await act(async () => {
+        await fireEvent.click(screen.getByText('Highlight Filtered Rows').parentElement?.getElementsByTagName('i')[0]!);
+      });
+      expect(updateSettingsSpy).toHaveBeenLastCalledWith({ highlightFilter: true }, '1');
+      expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,20 +1,41 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 
 import { usePrevious } from '../../customHooks';
-import { AppState } from '../../redux/state/AppState';
+import { AppState, MenuTooltipProps } from '../../redux/state/AppState';
+
+const selectMenuPinned = (state: AppState): boolean => state.menuPinned;
+const selectMenuTooltip = (state: AppState): MenuTooltipProps => state.menuTooltip;
+const selectMenuTooltipElement = createSelector([selectMenuTooltip], (menuTooltip) => menuTooltip.element);
+const selectMenuTooltipContent = createSelector([selectMenuTooltip], (menuTooltip) => menuTooltip.content);
+const selectMenuTooltipVisible = createSelector([selectMenuTooltip], (menuTooltip) => menuTooltip.visible);
+const selectMenuTooltipElementRect = createSelector([selectMenuTooltipElement], (element) => {
+  if (element) {
+    const { top, left, width, height } = element.getBoundingClientRect();
+    return { top, left, width, height };
+  }
+  return undefined;
+});
+
+const selectMenuTooltipProps = createSelector(
+  [selectMenuPinned, selectMenuTooltipVisible, selectMenuTooltipElementRect, selectMenuTooltipContent],
+  (menuPinned: boolean, visible: boolean, elementRect?: Record<string, number>, content?: React.ReactNode) => ({
+    menuPinned: menuPinned,
+    elementRect,
+    content,
+    visible,
+  }),
+);
 
 export const MenuTooltip: React.FC = () => {
-  const { menuPinned, element, content, visible } = useSelector((state: AppState) => ({
-    menuPinned: state.menuPinned,
-    ...state.menuTooltip,
-  }));
+  const { menuPinned, elementRect, content, visible } = useSelector(selectMenuTooltipProps, shallowEqual);
   const [style, setStyle] = React.useState<React.CSSProperties>({ display: 'none' });
   const [bottom, setBottom] = React.useState(false);
   const [right, setRight] = React.useState(false);
 
   const tooltipRef = React.useRef<HTMLDivElement>(null);
-  const lastElementRect = usePrevious(element?.getBoundingClientRect());
+  const lastElementRect = usePrevious(elementRect);
   const lastStyle = usePrevious(style);
 
   const checkForWindowEdge = (): void => {
@@ -43,8 +64,8 @@ export const MenuTooltip: React.FC = () => {
   };
 
   const computeStyle = (): void => {
-    if (visible && element) {
-      const rect = element.getBoundingClientRect();
+    if (visible && elementRect) {
+      const rect = elementRect;
       const top = rect.top - (menuPinned ? 0 : rect.height - 26);
       setStyle({ display: 'block', top, left: rect.left + rect.width + 8 });
     } else {
@@ -54,16 +75,13 @@ export const MenuTooltip: React.FC = () => {
     }
   };
 
-  React.useEffect(
-    () => computeStyle(),
-    [visible, element?.getBoundingClientRect()?.top, element?.getBoundingClientRect()?.left],
-  );
+  React.useEffect(() => computeStyle(), [visible, elementRect?.top, elementRect?.left]);
 
   React.useEffect(() => {
     if (lastStyle?.display === 'none') {
       checkForWindowEdge();
     }
-  }, [style]);
+  }, [JSON.stringify(style)]);
 
   return (
     <div

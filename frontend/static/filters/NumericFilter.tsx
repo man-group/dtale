@@ -1,11 +1,13 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { MultiValue, SingleValue } from 'react-select';
 
+import { useDebounce, useDidUpdateEffect } from '../customHooks';
 import { ColumnFilter, ColumnFilterOperand } from '../dtale/DataViewerState';
 import { ColumnType } from '../dtale/gridUtils';
-import { AppState } from '../redux/state/AppState';
+import { selectColumnCount, selectDataId, selectIsArcticDB } from '../redux/selectors';
 
 import AsyncValueSelect from './AsyncValueSelect';
 import { BaseColumnFilterProps, UniquesProps } from './ColumnFilterState';
@@ -38,6 +40,11 @@ interface NumericFilterProps extends BaseColumnFilterProps, UniquesProps {
   max: number;
 }
 
+const selectResult = createSelector(
+  [selectDataId, selectIsArcticDB, selectColumnCount],
+  (dataId, isArcticDB, columnCount) => ({ dataId, isArcticDB, columnCount }),
+);
+
 export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
   selectedCol,
   columnFilter,
@@ -50,15 +57,22 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
   max,
   t,
 }) => {
-  const dataId = useSelector((state: AppState) => state.dataId);
+  const { dataId, isArcticDB, columnCount } = useSelector(selectResult);
+  const largeArcticDB = React.useMemo(
+    () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
+    [isArcticDB, columnCount],
+  );
   const [operand, setOperand] = React.useState<ColumnFilterOperand>(columnFilter?.operand ?? '=');
   const [selected, setSelected] = React.useState<string[]>(
     ['=', 'ne'].includes(operand) ? (columnFilter?.value as string[]) : [],
   );
+  const debouncedSelected = useDebounce(selected, 300);
   const [minimum, setMinimum] = React.useState<string>(`${columnFilter?.min ?? min ?? ''}`);
+  const debouncedMinimum = useDebounce(minimum, 300);
   const [maximum, setMaximum] = React.useState<string>(`${columnFilter?.max ?? max ?? ''}`);
+  const debouncedMaximum = useDebounce(maximum, 300);
   const [value, setValue] = React.useState<string>(`${columnFilter?.value ?? ''}`);
-  const [triggerSave, setTriggerSave] = React.useState<boolean>(false);
+  const debouncedValue = useDebounce(value, 300);
 
   const parseFunc: (val: string) => number =
     colType === ColumnType.INT ? (val: string) => parseInt(val, 10) : parseFloat;
@@ -76,7 +90,7 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
     switch (operand) {
       case '=':
       case 'ne': {
-        if (colType === ColumnType.INT) {
+        if (colType === ColumnType.INT && !largeArcticDB) {
           cfg = { ...cfg, value: selected ?? [], operand };
         } else {
           cfg = updateCfgForVal(cfg);
@@ -115,12 +129,9 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
     await updateState(cfg);
   };
 
-  React.useEffect(() => {
-    if (triggerSave) {
-      save();
-      setTriggerSave(false);
-    }
-  }, [triggerSave]);
+  useDidUpdateEffect(() => {
+    save();
+  }, [operand, debouncedSelected, debouncedMinimum, debouncedMaximum, debouncedValue]);
 
   const createValueInput = (setter: (inputVal: string) => void, label: string, inputValue?: string): JSX.Element => (
     <div className="row pt-3">
@@ -133,7 +144,6 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
           disabled={missing}
           onChange={async (e) => {
             setter(e.target.value);
-            setTriggerSave(true);
           }}
         />
       </div>
@@ -159,7 +169,7 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
       case 'ne':
       default:
         {
-          if (colType === ColumnType.FLOAT) {
+          if (colType === ColumnType.FLOAT || largeArcticDB) {
             return createValueInput(setValue, 'Value', value);
           }
           const requiresAsync = uniqueCt > 500;
@@ -173,7 +183,6 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
                     selected={selected}
                     updateState={async (option?: MultiValue<string> | SingleValue<string>) => {
                       setSelected(option ? (option as string[]) : []);
-                      setTriggerSave(true);
                     }}
                   />
                 )}
@@ -183,7 +192,6 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
                     selected={selected}
                     updateState={async (option?: MultiValue<string> | SingleValue<string>) => {
                       setSelected(option ? (option as string[]) : []);
-                      setTriggerSave(true);
                     }}
                   />
                 )}
@@ -197,10 +205,15 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
 
   return (
     <React.Fragment>
-      <div className="row">
+      <div className="row numeric-filter-inputs">
         <div className="col-md-12">
           <div className="btn-group compact m-auto font-weight-bold column-sorting" style={{ fontSize: '16px' }}>
-            {OPERANDS.map((option, i) => {
+            {OPERANDS.filter((option) => {
+              if (!isArcticDB) {
+                return true;
+              }
+              return !['[]', '()'].includes(option.value);
+            }).map((option, i) => {
               const active = operand === option.value;
               return (
                 <button
@@ -209,9 +222,8 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
                   className={`btn btn-primary ${active ? 'active' : ''} font-weight-bold`}
                   onClick={async () => {
                     setOperand(option.value);
-                    setTriggerSave(true);
                   }}
-                  title={t(option.hint)}
+                  title={t(option.hint) ?? undefined}
                   disabled={active || missing}
                 >
                   {option.label ?? option.value}

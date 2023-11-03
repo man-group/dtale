@@ -2,13 +2,13 @@ import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { AppState } from '../../redux/state/AppState';
+import { selectPredefinedFilterConfigs } from '../../redux/selectors';
 
 import { MenuItem } from './MenuItem';
 import { MenuOptionProps } from './MenuState';
 
 const PredefinedFiltersOption: React.FC<MenuOptionProps & WithTranslation> = ({ open, t }) => {
-  const predefinedFilters = useSelector((state: AppState) => state.predefinedFilters);
+  const predefinedFilters = useSelector(selectPredefinedFilterConfigs);
   if (predefinedFilters.length) {
     return (
       <MenuItem description={t('menu_description:predefined_filters')} onClick={open}>

@@ -1,21 +1,17 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
-import DataViewerInfo from '../../dtale/info/DataViewerInfo';
-import FilterPanel from '../../popups/filter/FilterPanel';
-import StructuredFilters, { StructuredFiltersProps } from '../../popups/filter/StructuredFilters';
-import { RemovableError } from '../../RemovableError';
+import { DISABLED_CUSTOM_FILTERS_MSG } from '../../popups/filter/FilterPopup';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, tickUpdate } from '../test-utils';
+import { buildInnerHTML, clickMainMenuButton, mockChartJS } from '../test-utils';
 
 describe('FilterPanel', () => {
-  let result: ReactWrapper;
+  let container: Element;
   let store: Store;
   const { open } = window;
   const dimensions = new DimensionsHelper({
@@ -36,8 +32,7 @@ describe('FilterPanel', () => {
   });
 
   beforeEach(async () => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
   });
 
   afterEach(jest.resetAllMocks);
@@ -49,92 +44,78 @@ describe('FilterPanel', () => {
   });
 
   const toggleFilterMenu = async (): Promise<void> => {
-    result = await clickMainMenuButton(result, 'Custom Filter');
+    await clickMainMenuButton('Custom Filter');
   };
 
-  const buildResult = async (dataId = '1'): Promise<void> => {
+  const buildResult = async (dataId = '1', overrides?: Record<string, string>): Promise<void> => {
     store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '', dataId }, store);
-    result = mount(
-      <Provider store={store}>
-        <DataViewer />
-      </Provider>,
-      {
-        attachTo: document.getElementById('content') ?? undefined,
-      },
-    );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+    buildInnerHTML({ settings: '', dataId, enableCustomFilters: 'True', ...overrides }, store);
+    await act(() => {
+      const result = render(
+        <Provider store={store}>
+          <DataViewer />
+        </Provider>,
+        {
+          container: document.getElementById('content') ?? undefined,
+        },
+      );
+      container = result.container;
+    });
     await toggleFilterMenu();
   };
 
   const clickFilterBtn = async (text: string): Promise<void> => {
     await act(async () => {
-      result
-        .find(FilterPanel)
-        .first()
-        .find('button')
-        .findWhere((btn) => btn.text() === text)
-        .first()
-        .simulate('click');
+      const buttons = screen.getByTestId('filter-panel').getElementsByTagName('button');
+      fireEvent.click([...buttons].find((b) => b.textContent === text)!);
     });
-    result = result.update();
   };
 
   it('DataViewer: filtering', async () => {
     await buildResult();
-    expect(result.find(FilterPanel).length).toBe(1);
+    expect(screen.getByTestId('filter-panel')).toBeDefined();
     await clickFilterBtn('Close');
-    result.update();
-    expect(result.find(FilterPanel).length).toBe(0);
+    expect(screen.queryByTestId('filter-panel')).toBeNull();
     await toggleFilterMenu();
     await clickFilterBtn('Clear');
-    expect(result.find(FilterPanel).length).toBe(0);
+    expect(screen.queryByTestId('filter-panel')).toBeNull();
     await toggleFilterMenu();
-    await act(async () => {
-      result
-        .find(FilterPanel)
-        .find('button')
-        .findWhere((btn) => btn.text() === 'numexpr')
-        .first()
-        .simulate('click');
-    });
-    result = result.update();
+    await clickFilterBtn('numexpr');
     expect(store.getState().queryEngine).toBe('numexpr');
     await act(async () => {
-      result
-        .find(FilterPanel)
-        .first()
-        .find('textarea')
-        .simulate('change', { target: { value: 'test' } });
+      await fireEvent.click(screen.getByText('Highlight Filtered Rows').parentElement?.getElementsByTagName('i')[0]!);
     });
-    result = result.update();
-    await clickFilterBtn('Apply');
-    expect(result.find(DataViewerInfo).first().text()).toBe('Filter:test');
+    expect(store.getState().settings.highlightFilter).toBe(true);
     await act(async () => {
-      result.find(DataViewerInfo).first().find('i.ico-cancel').last().simulate('click');
+      const textarea = screen.getByTestId('filter-panel').getElementsByTagName('textarea')[0];
+      fireEvent.change(textarea, { target: { value: 'test' } });
     });
-    result = result.update();
-    expect(result.find(DataViewerInfo).find('div.data-viewer-info.is-expanded').length).toBe(0);
+    await clickFilterBtn('Apply');
+    expect(container.getElementsByClassName('data-viewer-info')[0].textContent).toBe('Filter:test');
+    await act(async () => {
+      const cancelIcons = container.getElementsByClassName('data-viewer-info')[0].getElementsByClassName('ico-cancel');
+      fireEvent.click(cancelIcons[cancelIcons.length - 1]);
+    });
+    expect(
+      container.getElementsByClassName('data-viewer-info')[0].querySelectorAll('div.data-viewer-info.is-expanded')
+        .length,
+    ).toBe(0);
   });
 
   it('DataViewer: filtering with errors & documentation', async () => {
     await buildResult();
     await act(async () => {
-      result
-        .find(FilterPanel)
-        .first()
-        .find('textarea')
-        .simulate('change', { target: { value: 'error' } });
+      const textarea = screen.getByTestId('filter-panel').getElementsByTagName('textarea')[0];
+      fireEvent.change(textarea, { target: { value: 'error' } });
     });
-    result = result.update();
     await clickFilterBtn('Apply');
-    expect(result.find(RemovableError).find('div.dtale-alert').text()).toBe('No data found');
+    expect(container.getElementsByClassName('dtale-alert')[0].textContent).toBe('No data found');
     await act(async () => {
-      result.find(FilterPanel).find(RemovableError).first().props().onRemove?.();
+      const filterPanel = screen.getByTestId('filter-panel');
+      const error = filterPanel.getElementsByClassName('dtale-alert')[0];
+      fireEvent.click(error.getElementsByClassName('ico-cancel')[0]);
     });
-    result = result.update();
-    expect(result.find(FilterPanel).find('div.dtale-alert').length).toBe(0);
+    expect(screen.getByTestId('filter-panel').getElementsByClassName('dtale-alert').length).toBe(0);
     await clickFilterBtn('Help');
     const pandasURL = 'https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#indexing-query';
     expect(openFn.mock.calls[openFn.mock.calls.length - 1][0]).toBe(pandasURL);
@@ -142,20 +123,27 @@ describe('FilterPanel', () => {
 
   it('DataViewer: filtering, context variables error', async () => {
     await buildResult('error');
-    expect(result.find(FilterPanel).find(RemovableError).find('div.dtale-alert').text()).toBe(
+    expect(screen.getByTestId('filter-panel').getElementsByClassName('dtale-alert')[0].textContent).toBe(
       'Error loading context variables',
     );
   });
 
   it('DataViewer: column filters', async () => {
     await buildResult();
-    const columnFilters = (): ReactWrapper<StructuredFiltersProps, Record<string, any>> =>
-      result.find(FilterPanel).find(StructuredFilters).first();
-    expect(columnFilters().text()).toBe('Active Column Filters:foo == 1 and');
+    expect(screen.getByTestId('structured-filters').textContent).toBe('Active Column Filters:foo == 1 and');
     await act(async () => {
-      columnFilters().find('i.ico-cancel').first().simulate('click');
+      fireEvent.click(screen.getByTestId('structured-filters').getElementsByClassName('ico-cancel')[0]);
     });
-    result = result.update();
-    expect(columnFilters()).toHaveLength(0);
+    expect(screen.queryByTestId('structured-filters')).toBeNull();
+  });
+
+  it('DataViewer: filtering with custom filtering not enabled', async () => {
+    await buildResult('1', { enableCustomFilters: 'False' });
+    const textarea = screen.getByTestId('filter-panel').getElementsByTagName('textarea')[0];
+    expect(textarea.value).toBe(DISABLED_CUSTOM_FILTERS_MSG);
+    expect(textarea).toBeDisabled();
+    const buttons = [...screen.getByTestId('filter-panel').querySelectorAll('button')];
+    expect(buttons.filter((b) => b.textContent === 'Apply')).toHaveLength(0);
+    expect(buttons.filter((b) => b.textContent === 'Clear')).toHaveLength(0);
   });
 });

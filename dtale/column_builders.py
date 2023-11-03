@@ -9,17 +9,10 @@ import unicodedata
 import numpy as np
 import pandas as pd
 from scipy.stats import mstats
-from sklearn.preprocessing import (
-    LabelEncoder,
-    OrdinalEncoder,
-    PowerTransformer,
-    QuantileTransformer,
-    RobustScaler,
-)
-from sklearn.feature_extraction import FeatureHasher
 from strsimpy.jaro_winkler import JaroWinkler
 
 import dtale.global_state as global_state
+import dtale.pandas_util as pandas_util
 from dtale.translations import text
 from dtale.utils import classify_type, apply, find_dtype_formatter
 
@@ -181,8 +174,11 @@ class ReplaceColumnBuilder(object):
             self.cfg.get(p)
             for p in ["col", "search", "replacement", "caseSensitive", "regex"]
         )
+        kwargs = dict(case=case)
+        if pandas_util.check_pandas_version("0.23.0"):
+            kwargs["regex"] = regex
         return pd.Series(
-            data[col].str.replace(search, replacement, case=case, regex=regex),
+            data[col].str.replace(search, replacement, **kwargs),
             index=data.index,
             name=self.name,
         )
@@ -192,12 +188,16 @@ class ReplaceColumnBuilder(object):
             self.cfg.get(p)
             for p in ["col", "search", "replacement", "caseSensitive", "regex"]
         )
-        return "data['{col}'].str.replace('{search}', '{replacement}', case={case}, regex={regex})".format(
+        kwargs = ""
+        if pandas_util.check_pandas_version("0.23.0"):
+            kwargs = ", regex='{}'".format("True" if regex else "False")
+
+        return "data['{col}'].str.replace('{search}', '{replacement}', case={case}{kwargs})".format(
             col=col,
             search=search,
             replacement=replacement,
             case="True" if case else "False",
-            regex="True" if regex else "False",
+            kwargs=kwargs,
         )
 
 
@@ -212,6 +212,8 @@ class DatetimeColumnBuilder(object):
     def build_column(self, data):
         col = self.cfg["col"]
         if "property" in self.cfg:
+            if self.cfg["property"] == "weekday_name":
+                return data[col].dt.day_name()
             return getattr(data[col].dt, self.cfg["property"])
         conversion_key = self.cfg["conversion"]
         [freq, how] = conversion_key.split("_")
@@ -227,6 +229,10 @@ class DatetimeColumnBuilder(object):
 
     def build_code(self):
         if "property" in self.cfg:
+            if self.cfg["property"] == "weekday_name":
+                return "df.loc[:, '{name}'] = df['{col}'].dt.day_name()".format(
+                    name=self.name, **self.cfg
+                )
             return "df.loc[:, '{name}'] = df['{col}'].dt.{property}".format(
                 name=self.name, **self.cfg
             )
@@ -346,10 +352,10 @@ class RandomColumnBuilder(object):
             if timestamps:
 
                 def pp(start, end, n):
-                    start_u = start.value // 10 ** 9
-                    end_u = end.value // 10 ** 9
+                    start_u = start.value // 10**9
+                    end_u = end.value // 10**9
                     return pd.DatetimeIndex(
-                        (10 ** 9 * np.random.randint(start_u, end_u, n)).view("M8[ns]")
+                        (10**9 * np.random.randint(start_u, end_u, n)).view("M8[ns]")
                     )
 
                 dates = pp(pd.Timestamp(start), pd.Timestamp(end), len(data))
@@ -634,8 +640,7 @@ class TypeConversionColumnBuilder(object):
                 unit = self.cfg.get("unit") or "D"
                 if unit == "YYYYMMDD":
                     return "pd.Series({s}.astype(str).apply(pd.Timestamp), name='{name}', index={s}.index)".format(
-                        s=s,
-                        name=self.name,
+                        s=s, name=self.name
                     )
                 return "pd.Series(pd.to_datetime({s}, unit='{unit}'), name='{name}', index={s}.index)".format(
                     s=s, name=self.name, unit=unit
@@ -897,11 +902,32 @@ class StandardizedColumnBuilder(object):
     def build_column(self, data):
         col, algo = (self.cfg.get(p) for p in ["col", "algo"])
         if algo == "robust":
-            transformer = RobustScaler()
+            try:
+                from sklearn.preprocessing import RobustScaler
+
+                transformer = RobustScaler()
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.17.0 installed in order to use the RobustScaler!"
+                )
         elif algo == "quantile":
-            transformer = QuantileTransformer()
+            try:
+                from sklearn.preprocessing import QuantileTransformer
+
+                transformer = QuantileTransformer()
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.19.0 installed in order to use the QuantileTransformer!"
+                )
         elif algo == "power":
-            transformer = PowerTransformer(method="yeo-johnson", standardize=True)
+            try:
+                from sklearn.preprocessing import PowerTransformer
+
+                transformer = PowerTransformer(method="yeo-johnson", standardize=True)
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.20.0 installed in order to use the PowerTransformer!"
+                )
         standardized = transformer.fit_transform(data[[col]]).reshape(-1)
         return pd.Series(standardized, index=data.index, name=self.name)
 
@@ -941,27 +967,54 @@ class EncoderColumnBuilder(object):
         if algo == "one_hot":
             return pd.get_dummies(data, columns=[col], drop_first=True)
         elif algo == "ordinal":
-            is_nan = data[col].isnull()
-            ordinals = (
-                OrdinalEncoder().fit_transform(data[[col]].astype("str")).reshape(-1)
-            )
-            return pd.Series(ordinals, index=data.index, name=self.name).where(
-                ~is_nan, 0
-            )
+            try:
+                from sklearn.preprocessing import OrdinalEncoder
+
+                is_nan = data[col].isnull()
+                ordinals = (
+                    OrdinalEncoder()
+                    .fit_transform(data[[col]].astype("str"))
+                    .reshape(-1)
+                )
+                return pd.Series(ordinals, index=data.index, name=self.name).where(
+                    ~is_nan, 0
+                )
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.20.0 installed in order to use the OrdinalEncoder!"
+                )
         elif algo == "label":
-            is_nan = data[col].isnull()
-            labels = LabelEncoder().fit_transform(data[col].astype("str"))
-            return pd.Series(labels, index=data.index, name=self.name).where(~is_nan, 0)
+            try:
+                from sklearn.preprocessing import LabelEncoder
+
+                is_nan = data[col].isnull()
+                labels = LabelEncoder().fit_transform(data[col].astype("str"))
+                return pd.Series(labels, index=data.index, name=self.name).where(
+                    ~is_nan, 0
+                )
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.12.0 installed in order to use the LabelEncoder!"
+                )
         elif algo == "feature_hasher":
-            n = int(self.cfg.get("n"))
-            features = (
-                FeatureHasher(n_features=n, input_type="string")
-                .transform(data[col].astype("str"))
-                .toarray()
-            )
-            features = pd.DataFrame(features, index=data.index)
-            features.columns = ["{}_{}".format(col, col2) for col2 in features.columns]
-            return features
+            try:
+                from sklearn.feature_extraction import FeatureHasher
+
+                n = int(self.cfg.get("n"))
+                features = (
+                    FeatureHasher(n_features=n, input_type="string")
+                    .transform(data[[col]].astype("str").values)
+                    .toarray()
+                )
+                features = pd.DataFrame(features, index=data.index)
+                features.columns = [
+                    "{}_{}".format(col, col2) for col2 in features.columns
+                ]
+                return features
+            except ImportError:
+                raise Exception(
+                    "You must have at least scikit-learn 0.13.0 installed in order to use the FeatureHasher!"
+                )
         raise NotImplementedError("{} not implemented yet!".format(algo))
 
     def build_code(self):
@@ -1033,8 +1086,12 @@ def get_cleaner_configs():
 
 
 def clean(s, cleaner, cfg):
+    replace_kwargs = {}
+    if pandas_util.is_pandas2():
+        replace_kwargs["regex"] = True
+
     if cleaner == "drop_multispace":
-        return s.str.replace(r"[ ]+", " ")
+        return s.str.replace(r"[ ]+", " ", **replace_kwargs)
     elif cleaner == "drop_punctuation":
         if six.PY3:
             return apply(
@@ -1073,18 +1130,24 @@ def clean(s, cleaner, cfg):
                 "You must install the 'nltk' package in order to use this cleaner!"
             )
     elif cleaner == "drop_numbers":
-        return s.str.replace(r"[\d]+", "")
+        return s.str.replace(r"[\d]+", "", **replace_kwargs)
     elif cleaner == "keep_alpha":
         return apply(s, lambda x: "".join(c for c in x if c.isalpha()))
     elif cleaner == "normalize_accents":
+        normalizer = "NFKD"
+        if not six.PY3:
+            normalizer = normalizer.decode("utf-8")
         return apply(
             s,
-            lambda x: unicodedata.normalize("NFKD", u"{}".format(x))
+            lambda x: unicodedata.normalize(
+                normalizer,
+                "{}".format(x) if six.PY3 else "{}".format(x).decode("utf-8"),
+            )
             .encode("ASCII", "ignore")
             .decode("utf-8"),
         )
     elif cleaner == "drop_all_space":
-        return s.str.replace(r"[ ]+", "")
+        return s.str.replace(r"[ ]+", "", **replace_kwargs)
     elif cleaner == "drop_repeated_words":
 
         def drop_repeats(val):
@@ -1100,7 +1163,7 @@ def clean(s, cleaner, cfg):
 
         return apply(s, drop_repeats)
     elif cleaner == "add_word_number_space":
-        return s.str.replace(r"(\d+(\.\d+)?)", r" \1 ")
+        return s.str.replace(r"(\d+(\.\d+)?)", r" \1 ", **replace_kwargs)
     elif cleaner == "drop_repeated_chars":
 
         def drop_repeats(val):
@@ -1118,19 +1181,23 @@ def clean(s, cleaner, cfg):
         case = cfg.get("caseType")
         return getattr(s.str, case)()
     elif cleaner == "space_vals_to_empty":
-        return s.str.replace(r"[ ]+", "")
+        return s.str.replace(r"[ ]+", "", **replace_kwargs)
     elif cleaner == "underscore_to_space":
-        return s.str.replace("_", " ")
+        return s.str.replace("_", " ", **replace_kwargs)
     elif cleaner == "hidden_chars":
         return s.str.replace(r"[^{}]+".format(printable), "")
     elif cleaner == "replace_hyphen_w_space":
-        return s.str.replace(r"[‐᠆﹣－⁃−\-]+", " ")
+        return s.str.replace(r"[‐᠆﹣－⁃−\-]+", " ", **replace_kwargs)
     return s
 
 
 def clean_code(cleaner, cfg):
+    replace_kwargs = ""
+    if pandas_util.is_pandas2():
+        replace_kwargs = ", regex = True"
+
     if cleaner == "drop_multispace":
-        return ["s = s.str.replace(r'[ ]+', ' ')"]
+        return ["s = s.str.replace(r'[ ]+', ' '{})".format(replace_kwargs)]
     elif cleaner == "drop_punctuation":
         if six.PY3:
             return [
@@ -1160,7 +1227,7 @@ def clean_code(cleaner, cfg):
             "s = s.apply(clean_nltk_stopwords)",
         ]
     elif cleaner == "drop_numbers":
-        return ["""s = s.str.replace(r'[\\d]+', '')"""]
+        return ["""s = s.str.replace(r'[\\d]+', ''{})""".format(replace_kwargs)]
     elif cleaner == "keep_alpha":
         return ["s = s.apply(lambda x: ''.join(c for c in x if c.isalpha()))"]
     elif cleaner == "normalize_accents":
@@ -1171,7 +1238,7 @@ def clean_code(cleaner, cfg):
             ")",
         ]
     elif cleaner == "drop_all_space":
-        return ["s.str.replace(r'[ ]+', '')"]
+        return ["s.str.replace(r'[ ]+', ''{})".format(replace_kwargs)]
     elif cleaner == "drop_repeated_words":
         return [
             "def drop_repeated_words(val):",
@@ -1186,7 +1253,9 @@ def clean_code(cleaner, cfg):
             "s = s.apply(drop_repeated_words)",
         ]
     elif cleaner == "add_word_number_space":
-        return ["s = s.str.replace(r'(\\d+(\\.\\d+)?)', r' \\1 ')"]
+        return [
+            "s = s.str.replace(r'(\\d+(\\.\\d+)?)', r' \\1 '{})".format(replace_kwargs)
+        ]
     elif cleaner == "drop_repeated_chars":
         return [
             "def drop_repeated_chars(val):",
@@ -1203,16 +1272,16 @@ def clean_code(cleaner, cfg):
         case = cfg.get("caseType")
         return ["s = s.str.{}()".format(case)]
     elif cleaner == "space_vals_to_empty":
-        return ["s = s.str.replace(r'[ ]+', '')"]
+        return ["s = s.str.replace(r'[ ]+', ''{})".format(replace_kwargs)]
     elif cleaner == "underscore_to_space":
-        return ["s = s.str.replace('_', ' ')"]
+        return ["s = s.str.replace('_', ' '{})".format(replace_kwargs)]
     elif cleaner == "hidden_chars":
         return [
             "printable = r'\\w \\!\"#\\$%&'\\(\\)\\*\\+,\\-\\./:;<»«؛،ـ\\=>\\?@\\[\\\\\\]\\^_\\`\\{\\|\\}~'",
             "s = s.str.replacer(r'[^{}]+'.format(printable), '')",
         ]
     elif cleaner == "replace_hyphen_w_space":
-        return ("s = s.str.replacer(s.str.replace(r'[‐᠆﹣－⁃−-]+', ' ')",)
+        return "s = s.str.replace(r'[‐᠆﹣－⁃−-]+', ' '{})".format(replace_kwargs)
     return []
 
 
@@ -1253,9 +1322,7 @@ class DiffColumnBuilder(object):
     def build_code(self):
         col, periods = (self.cfg.get(p) for p in ["col", "periods"])
         return "df.loc[:, '{name}'] = pd.Series(df['{col}'].diff({periods}), index=df.index, name='{name}')".format(
-            name=self.name,
-            col=col,
-            periods=periods,
+            name=self.name, col=col, periods=periods
         )
 
 
@@ -1419,13 +1486,11 @@ class ShiftBuilder(object):
             self.cfg.get(p) for p in ["col", "periods", "fillValue", "dtype"]
         )
         kwargs = {}
-        if fill_value is not None:
+        if fill_value is not None and pandas_util.check_pandas_version("0.24.0"):
             fill_formatter = find_dtype_formatter(dtype)
             kwargs["fill_value"] = fill_formatter(fill_value)
         return pd.Series(
-            data[col].shift(periods or 1, **kwargs),
-            index=data.index,
-            name=self.name,
+            data[col].shift(periods or 1, **kwargs), index=data.index, name=self.name
         )
 
     def build_code(self):
@@ -1433,7 +1498,7 @@ class ShiftBuilder(object):
             self.cfg.get(p) for p in ["col", "periods", "fillValue", "dtype"]
         )
         kwargs = ""
-        if fill_value is not None:
+        if fill_value is not None and pandas_util.check_pandas_version("0.24.0"):
             if classify_type(dtype) == "S":
                 kwargs = ", fill_value='{}'".format(fill_value)
             else:

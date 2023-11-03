@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import * as React from 'react';
 
 import chartsData from './data/charts.json';
@@ -9,7 +9,7 @@ describe('dash tests', () => {
 
   it('dash rendering', () => {
     const { Wordcloud } = require('../dash/lib');
-    const result = mount(<Wordcloud id="wc-test" data={chartsData} y={['col1']} />);
-    expect(result.find('CustomMockComponent').length).toBe(1);
+    render(<Wordcloud id="wc-test" data={chartsData} y={['col1']} />);
+    expect(document.getElementById('wc-test')).toBeDefined();
   });
 });

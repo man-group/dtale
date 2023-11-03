@@ -123,20 +123,10 @@ def test_stack(unittest):
 
     global_state.clear_store()
     df1 = pd.DataFrame(
-        {
-            "A": ["A0", "A1"],
-            "B": ["B0", "B1"],
-            "C": ["C0", "C1"],
-            "D": ["D0", "D1"],
-        }
+        {"A": ["A0", "A1"], "B": ["B0", "B1"], "C": ["C0", "C1"], "D": ["D0", "D1"]}
     )
     df2 = pd.DataFrame(
-        {
-            "A": ["A2", "A3"],
-            "B": ["B3", "B3"],
-            "C": ["C3", "C3"],
-            "D": ["D3", "D3"],
-        }
+        {"A": ["A2", "A3"], "B": ["B3", "B3"], "C": ["C3", "C3"], "D": ["D3", "D3"]}
     )
 
     with app.test_client() as c:

@@ -63,7 +63,7 @@ export const ColumnAnalysisChart: React.FC<ColumnAnalysisChartProps> = ({
 
   const plotly = isPlotly(finalParams?.type);
   return (
-    <div style={{ height: height ?? 400 }}>
+    <div style={{ height: height ?? 400 }} data-testid="column-analysis-chart">
       {plotly && <div id={id} />}
       {!plotly && <canvas id={id} />}
     </div>

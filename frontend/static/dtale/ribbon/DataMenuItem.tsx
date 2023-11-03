@@ -8,7 +8,7 @@ import {
   HideRibbonMenuAction,
   ShowMenuTooltipAction,
 } from '../../redux/actions/AppActions';
-import { AppState } from '../../redux/state/AppState';
+import { selectIFrame } from '../../redux/selectors';
 
 /** Component properties for DataMenuItem */
 export interface DataMenuItemProps {
@@ -18,7 +18,7 @@ export interface DataMenuItemProps {
 }
 
 const DataMenuItem: React.FC<DataMenuItemProps & WithTranslation> = ({ id, name, cleanup, t }) => {
-  const iframe = useSelector((state: AppState) => state.iframe);
+  const iframe = useSelector(selectIFrame);
   const dispatch = useDispatch();
   const showTooltip = (element: HTMLLIElement, content: React.ReactNode): ShowMenuTooltipAction =>
     dispatch({ type: ActionType.SHOW_MENU_TOOLTIP, element, content });
@@ -38,7 +38,7 @@ const DataMenuItem: React.FC<DataMenuItemProps & WithTranslation> = ({ id, name,
   };
 
   return (
-    <li ref={liRef} className="hoverable">
+    <li ref={liRef} className="hoverable" data-testid="data-menu-item">
       <button
         className="btn btn-plain toggler-action w-100 text-left pointer p-3"
         onMouseOver={() => showTooltip(liRef.current!, t('open_process'))}
@@ -52,6 +52,7 @@ const DataMenuItem: React.FC<DataMenuItemProps & WithTranslation> = ({ id, name,
         onClick={() => onClick(() => cleanup(id))}
         onMouseOver={() => showTooltip(liRef.current!, t('clear_data'))}
         onMouseLeave={hideTooltip}
+        data-testid="data-menu-item-cleanup"
       />
     </li>
   );

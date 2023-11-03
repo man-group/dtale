@@ -1,57 +1,39 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
-import { BaseCreateComponentProps, CreateColumnType, ShiftConfig } from '../../../popups/create/CreateColumnState';
-import { default as CreateShift, validateShiftCfg } from '../../../popups/create/CreateShift';
-import { mockT as t } from '../../test-utils';
+import { CreateColumnType, ShiftConfig } from '../../../popups/create/CreateColumnState';
+import { validateShiftCfg } from '../../../popups/create/CreateShift';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('DataViewer tests', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Shifting');
+    await spies.clickBuilder('Shifting');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const shiftInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
-    result.find(CreateShift).first();
-
   it('DataViewer: build shift column', async () => {
-    expect(shiftInputs()).toHaveLength(1);
+    expect(screen.getByText('Shifting')).toHaveClass('active');
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col2');
     await act(async () => {
-      shiftInputs()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(screen.getByText('Periods').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '3' },
+      });
     });
-    result = result.update();
     await act(async () => {
-      shiftInputs()
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: '3' } });
+      await fireEvent.change(screen.getByText('Fill Value').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '5.5' },
+      });
     });
-    result = result.update();
-    await act(async () => {
-      shiftInputs()
-        .find('div.form-group')
-        .at(2)
-        .find('input')
-        .simulate('change', { target: { value: '5.5' } });
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col2',
         periods: 3,

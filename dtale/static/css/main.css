@@ -7929,6 +7929,10 @@ a.text-dark:focus, a.text-dark:hover {
   border-width: 0 5px 5px;
 }
 
+.Select .Select__indicators {
+  height: inherit;
+}
+
 .is-searchable > .Select__control--is-focused,
 .is-searchable > .Select-control--is-focused {
   cursor: text;
@@ -8758,12 +8762,15 @@ caption {
 .column-toggle,
 .sort-menu-toggle,
 .filter-menu-toggle,
-.hidden-menu-toggle {
+.hidden-menu-toggle,
+.arctic-menu-toggle {
   position: relative;
   text-align: center;
 }
 
-.sort-menu-toggle .column-toggle__dropdown {
+.sort-menu-toggle .column-toggle__dropdown,
+.arctic-menu-toggle .column-toggle__dropdown
+{
   position: fixed;
   min-width: 11em;
   top: 1em;
@@ -10410,6 +10417,12 @@ li.hoverable.clickable-menu-item:hover button {
     right: unset;
     left: -2em;
 }
+.hoverable__content.export-charts {
+    min-width: 5em;
+    width: 5em;
+    right: unset;
+    left: -3em;
+}
 .hoverable__content.build-code {
     width: auto;
     right: unset;
@@ -10913,7 +10926,9 @@ div.container-fluid.login > #content {
   height: 100%;
   padding-top: 3.5em;
 }
-
+div.container-fluid.arcticdb > div#popup-content > div.modal-body {
+    height: calc(100vh - 76px);
+}
 div.modal-dialog div.modal-body.describe-body {
   height: 500px;
   overflow-y: auto;

@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
 import { BaseOption } from '../../redux/state/AppState';
@@ -13,7 +14,7 @@ import { DtaleSelect } from '../create/LabeledSelect';
 import { BaseReplacementComponentProps, ReplacementType, ValueConfig, ValueConfigType } from './CreateReplacementState';
 
 export const validateValueCfg = (t: TFunction, cfgs: ValueConfig[]): string | undefined =>
-  !cfgs.length ? t('Please add (+) a replacement!') : undefined;
+  !cfgs.length ? t('Please add (+) a replacement!') ?? undefined : undefined;
 
 export const validateCfg = (
   t: TFunction,
@@ -23,15 +24,13 @@ export const validateCfg = (
   replace?: any,
 ): string | undefined => {
   if (!value) {
-    return t('Please select a value to search for!');
+    return t('Please select a value to search for!') ?? undefined;
   }
-  if (!replace) {
-    if (type === ValueConfigType.RAW) {
-      return t('Please enter a raw value!');
-    } else if (type === ValueConfigType.COL) {
-      return t('Please select a column!');
+  if (!replace && type !== ValueConfigType.RAW) {
+    if (type === ValueConfigType.COL) {
+      return t('Please select a column!') ?? undefined;
     }
-    return t('Please select an aggregation!');
+    return t('Please select an aggregation!') ?? undefined;
   }
   if (type === ValueConfigType.RAW && cfgs.find((cfg) => cfg.type === ValueConfigType.RAW && cfg.value === value)) {
     return `${t('A replacement for')} ${value} ${t('already exists, please remove it before adding this one!')}`;
@@ -109,10 +108,14 @@ const Value: React.FC<BaseReplacementComponentProps & WithTranslation> = ({
         raw === 'nan'
           ? raw
           : colType === 'float'
-          ? parseFloat(raw ?? '')
+          ? raw
+            ? parseFloat(raw)
+            : 'nan'
           : colType === 'int'
-          ? parseInt(raw ?? '', 10)
-          : raw;
+          ? raw
+            ? parseInt(raw, 10)
+            : 'nan'
+          : raw ?? '';
     } else {
       replace = agg?.value;
     }

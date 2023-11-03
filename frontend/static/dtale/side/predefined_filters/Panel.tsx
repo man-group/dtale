@@ -1,11 +1,14 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { ColumnDef } from '../../../dtale/DataViewerState';
-import { ActionType, AppActions, HideSidePanelAction } from '../../../redux/actions/AppActions';
+import { ActionType, HideSidePanelAction } from '../../../redux/actions/AppActions';
 import * as settingsActions from '../../../redux/actions/settings';
-import { AppState, InstanceSettings, PredefinedFilter } from '../../../redux/state/AppState';
+import { selectDataId, selectPredefinedFilterConfigs, selectPredefinedFilters } from '../../../redux/selectors';
+import { InstanceSettings, PredefinedFilter } from '../../../redux/state/AppState';
 import { RemovableError } from '../../../RemovableError';
 import * as DtypesRepository from '../../../repository/DtypesRepository';
 import * as serverState from '../../serverStateManagement';
@@ -17,16 +20,17 @@ require('./Panel.css');
 const filterFilters = (filters: PredefinedFilter[], columns: ColumnDef[]): PredefinedFilter[] =>
   filters.filter((f) => columns.find((col) => col.name === f.column) !== undefined);
 
+const selectResult = createSelector(
+  [selectDataId, selectPredefinedFilterConfigs, selectPredefinedFilters],
+  (dataId, predefinedFilters, filterValues) => ({ dataId, predefinedFilters, filterValues }),
+);
+
 const Panel: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, predefinedFilters, filterValues } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    predefinedFilters: state.predefinedFilters,
-    filterValues: state.settings.predefinedFilters,
-  }));
+  const { dataId, predefinedFilters, filterValues } = useSelector(selectResult);
   const dispatch = useDispatch();
   const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
 
   const [filters, setFilters] = React.useState<PredefinedFilter[]>([]);
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
@@ -45,7 +49,7 @@ const Panel: React.FC<WithTranslation> = ({ t }) => {
     });
   }, []);
 
-  const save = async (name: string, value: string | string[] | undefined, active: boolean): Promise<void> => {
+  const save = async (name: string, value: any | any[] | undefined, active: boolean): Promise<void> => {
     const updatedFilterValues = { ...filterValues };
     if (value) {
       updatedFilterValues[name] = { value, active };
@@ -81,7 +85,7 @@ const Panel: React.FC<WithTranslation> = ({ t }) => {
         <div className="col" />
         <div className="col-auto pr-0">
           <button className="btn btn-plain" onClick={hideSidePanel}>
-            <i className="ico-close pointer" title={t('side:Close')} />
+            <i className="ico-close pointer" title={t('side:Close') ?? ''} />
           </button>
         </div>
       </div>

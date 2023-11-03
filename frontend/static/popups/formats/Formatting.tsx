@@ -1,16 +1,19 @@
+import { createSelector } from '@reduxjs/toolkit';
 import { Resizable } from 're-resizable';
 import React from 'react';
 import { default as Modal } from 'react-bootstrap/Modal';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { ColumnDef, ColumnFormat, DataViewerData, DataViewerPropagateState } from '../../dtale/DataViewerState';
 import { buildDataProps, calcColWidth, ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
 import * as serverState from '../../dtale/serverStateManagement';
-import { ActionType, AppActions, CloseFormattingAction } from '../../redux/actions/AppActions';
+import { ActionType, CloseFormattingAction } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, BaseOption, InstanceSettings } from '../../redux/state/AppState';
+import { selectDataId, selectFormattingOpen, selectMaxColumnWidth, selectSettings } from '../../redux/selectors';
+import { BaseOption, InstanceSettings } from '../../redux/state/AppState';
 import { LabeledCheckbox } from '../create/LabeledCheckbox';
 import { LabeledSelect } from '../create/LabeledSelect';
 import DraggableModalDialog from '../DraggableModalDialog';
@@ -27,14 +30,19 @@ interface FormattingProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector(
+  [selectDataId, selectSettings, selectMaxColumnWidth, selectFormattingOpen],
+  (dataId, settings, maxColumnWidth, formattingOpen) => ({ dataId, settings, maxColumnWidth, formattingOpen }),
+);
+
 const Formatting: React.FC<FormattingProps & WithTranslation> = ({ data, columns, rowCount, propagateState, t }) => {
-  const { dataId, settings, maxColumnWidth, formattingOpen } = useSelector((state: AppState) => state);
+  const { dataId, settings, maxColumnWidth, formattingOpen } = useSelector(selectResult);
   const visible = formattingOpen !== null;
   const columnFormats = settings.columnFormats ?? {};
   const dispatch = useDispatch();
   const hide = (): CloseFormattingAction => dispatch({ type: ActionType.CLOSE_FORMATTING });
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback: () => void): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings, callback));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback: () => void): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings, callback) as any as AnyAction);
 
   const [colDtype, colType] = React.useMemo(() => {
     const dtype = getDtype(formattingOpen ?? undefined, columns);
@@ -120,14 +128,14 @@ const Formatting: React.FC<FormattingProps & WithTranslation> = ({ data, columns
               </Modal.Title>
               <i className="ico-close pointer" onClick={hide} />
             </Modal.Header>
-            <div style={{ paddingBottom: '5em' }}>
+            <div className="modal-body" style={{ paddingBottom: '5em' }} data-testid="formatting-body">
               {[ColumnType.FLOAT, ColumnType.INT].includes(colType) && (
                 <NumericFormatting columnFormats={columnFormats} selectedCol={formattingOpen} updateState={setFmt} />
               )}
               {ColumnType.DATE === colType && (
                 <DateFormatting columnFormats={columnFormats} selectedCol={formattingOpen} updateState={setFmt} />
               )}
-              {[ColumnType.STRING, ColumnType.UNKNOWN].includes(colType) && (
+              {[ColumnType.STRING, ColumnType.CATEGORY, ColumnType.UNKNOWN].includes(colType) && (
                 <StringFormatting columnFormats={columnFormats} selectedCol={formattingOpen} updateState={setFmt} />
               )}
               <LabeledCheckbox

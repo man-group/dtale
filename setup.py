@@ -9,6 +9,7 @@ from setuptools.command.test import test as TestCommand
 
 
 def read_file(path):
+    # if this fails on windows then add the following environment variable (PYTHONUTF8=1)
     with open(path) as contents:
         return contents.read()
 
@@ -21,11 +22,9 @@ try:
     pypandoc_func = (
         pypandoc.convert_file if hasattr(pypandoc, "convert_file") else pypandoc.convert
     )
-    long_description = pypandoc_func("README.md", "rst")
-    changelog = pypandoc_func("CHANGES.md", "rst")
+    long_description = pypandoc_func("DESCRIPTION.md", "rst")
 except (IOError, ImportError, OSError):
-    long_description = read_file("README.md")
-    changelog = read_file("CHANGES.md")
+    long_description = read_file("DESCRIPTION.md")
 
 
 class PyTest(TestCommand):
@@ -73,23 +72,25 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="2.1.0",
+    version="3.7.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
     license="LGPL",
-    long_description="\n".join((long_description, changelog)),
+    long_description=long_description,
     keywords=["numeric", "pandas", "visualization", "flask"],
     url="https://github.com/man-group/dtale",
     install_requires=read_file("requirements.txt"),
     extras_require={
         "arctic": ["arctic <= 1.79.4"],
+        "arcticdb": ["arcticdb"],
         "dash-bio": [
+            "ParmEd==3.4.3; python_version == '3.6'",
             "dash-bio; python_version > '3.0'",
             "dash-bio==0.7.1; python_version == '2.7'",
         ],
         "r": ["rpy2; python_version > '3.0'"],
-        "redis": ["redislite"],
+        "redis": read_file("requirements-redis.txt"),
         "streamlit": ["streamlit"],
         "swifter": ["swifter"],
         "tests": read_file("requirements-test.txt"),
@@ -106,6 +107,8 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     cmdclass={"test": PyTest},
     packages=find_packages(exclude=["tests*", "script*"]),

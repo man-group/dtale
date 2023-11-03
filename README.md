@@ -8,14 +8,14 @@
 
 -----------------
 
-[![CircleCI](https://circleci.com/gh/man-group/dtale.svg?style=shield&circle-token=4b67588a87157cc03b484fb96be438f70b5cd151)](https://circleci.com/gh/man-group/dtale)
+[![CircleCI](https://circleci.com/gh/man-group/dtale.svg?style=shield)](https://circleci.com/gh/man-group/dtale)
 [![PyPI Python Versions](https://img.shields.io/pypi/pyversions/dtale.svg)](https://pypi.python.org/pypi/dtale/)
 [![PyPI](https://img.shields.io/pypi/v/dtale)](https://pypi.org/project/dtale/)
 [![Conda](https://img.shields.io/conda/v/conda-forge/dtale)](https://anaconda.org/conda-forge/dtale)
 [![ReadTheDocs](https://readthedocs.org/projects/dtale/badge)](https://dtale.readthedocs.io)
 [![codecov](https://codecov.io/gh/man-group/dtale/branch/master/graph/badge.svg)](https://codecov.io/gh/man-group/dtale)
-[![Downloads](https://pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
-[![Open in VS Code](https://open.vscode.dev/badges/open-in-vscode.svg)](https://open.vscode.dev/man-group/dtale)
+[![Downloads](https://static.pepy.tech/badge/dtale)](https://pepy.tech/project/dtale)
+[![Open in VS Code](https://img.shields.io/badge/Visual_Studio_Code-0078D4?style=flat&logo=visual%20studio%20code&logoColor=white)](https://open.vscode.dev/man-group/dtale)
 
 ## What is it?
 
@@ -80,6 +80,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Authentication](#authentication)
   - [Predefined Filters](#predefined-filters)
   - [Using Swifter](#using-swifter)
+  - [Behavior for Wide Dataframes](#behavior-for-wide-dataframes)
 - [UI](#ui)
   - [Dimensions/Ribbon Menu/Main Menu](#dimensionsribbon-menumain-menu)
   - [Header](#header)
@@ -87,7 +88,7 @@ D-Tale was the product of a SAS to Python conversion.  What was originally a per
   - [Editing Cells](#editing-cells)
   - [Copy Cells Into Clipboard](#copy-cells-into-clipboard)
   - [Main Menu Functions](#main-menu-functions)
-    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Dataframe Functions](#dataframe-functions), [Merge & Stack](#merge-&-stack), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Missing Analysis](#missing-analysis), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data-&-sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Unpin/Pin Menu](#unpinpin-menu), [Language](#language), [Shutdown](#shutdown)
+    - [XArray Operations](#xarray-operations), [Describe](#describe), [Outlier Detection](#outlier-detection), [Custom Filter](#custom-filter), [Dataframe Functions](#dataframe-functions), [Merge & Stack](#merge--stack), [Summarize Data](#summarize-data), [Duplicates](#duplicates), [Missing Analysis](#missing-analysis), [Correlations](#correlations), [Predictive Power Score](#predictive-power-score), [Heat Map](#heat-map), [Highlight Dtypes](#highlight-dtypes), [Highlight Missing](#highlight-missing), [Highlight Outliers](#highlight-outliers), [Highlight Range](#highlight-range), [Low Variance Flag](#low-variance-flag), [Instances](#instances), [Code Exports](#code-exports), [Export CSV](#export-csv), [Load Data & Sample Datasets](#load-data--sample-datasets), [Refresh Widths](#refresh-widths), [About](#about), [Theme](#theme), [Reload Data](#reload-data), [Unpin/Pin Menu](#unpinpin-menu), [Language](#language), [Shutdown](#shutdown)
   - [Column Menu Functions](#column-menu-functions)
     - [Filtering](#filtering), [Moving Columns](#moving-columns), [Hiding Columns](#hiding-columns), [Delete](#delete), [Rename](#rename), [Replacements](#replacements), [Lock](#lock), [Unlock](#unlock), [Sorting](#sorting), [Formats](#formats), [Describe (Column Analysis)](#describe-column-analysis)
   - [Charts](#charts)
@@ -150,10 +151,10 @@ import pandas as pd
 
 df = pd.DataFrame([dict(a=1,b=2,c=3)])
 
-# Assigning a reference to a running D-Tale process
+# Assigning a reference to a running D-Tale process.
 d = dtale.show(df)
 
-# Accessing data associated with D-Tale process
+# Accessing data associated with D-Tale process.
 tmp = d.data.copy()
 tmp['d'] = 4
 
@@ -164,16 +165,16 @@ d.data = tmp
 # Shutting down D-Tale process
 d.kill()
 
-# using Python's `webbrowser` package it will try and open your server's default browser to this process
+# Using Python's `webbrowser` package it will try and open your server's default browser to this process.
 d.open_browser()
 
-# There is also some helpful metadata about the process
-d._data_id  # the process's data identifier
-d._url  # the url to access the process
+# There is also some helpful metadata about the process.
+d._data_id  # The process's data identifier.
+d._url  # The url to access the process.
 
-d2 = dtale.get_instance(d._data_id)  # returns a new reference to the instance running at that data_id
+d2 = dtale.get_instance(d._data_id)  # Returns a new reference to the instance running at that data_id.
 
-dtale.instances()  # prints a list of all ids & urls of running D-Tale sessions
+dtale.instances()  # Prints a list of all ids & urls of running D-Tale sessions.
 
 ```
 
@@ -406,9 +407,17 @@ Base CLI options (run `dtale --help` to see all options available)
 |`--open-browser`|flag to automatically open up your server's default browser to your D-Tale instance|
 |`--force`|flag to force D-Tale to try an kill any pre-existing process at the port you've specified so it can use it|
 
+Loading data from [**ArcticDB**(high performance, serverless DataFrame database)](https://github.com/man-group/ArcticDB) (this requires either installing **arcticdb** or **dtale[arcticdb]**)
+```bash
+dtale --arcticdb-uri lmdb:///<path> --arcticdb-library jdoe.my_lib --arcticdb-symbol my_symbol
+```
+If you would like to change your storage mechanism to ArcticDB then add the `--arcticdb-use_store` flag
+```bash
+dtale --arcticdb-uri lmdb:///<path> --arcticdb-library my_lib --arcticdb-symbol my_symbol --arcticdb-use_store
+```
 Loading data from [**arctic**(high performance datastore for pandas dataframes)](https://github.com/man-group/arctic) (this requires either installing **arctic** or **dtale[arctic]**)
 ```bash
-dtale --arctic-host mongodb://localhost:27027 --arctic-library jdoe.my_lib --arctic-node my_node --arctic-start 20130101 --arctic-end 20161231
+dtale --arctic-uri mongodb://localhost:27027 --arctic-library my_lib --arctic-symbol my_symbol --arctic-start 20130101 --arctic-end 20161231
 ```
 Loading data from **CSV**
 ```bash
@@ -443,7 +452,7 @@ Loading data from a **Custom** loader
 - Any python module containing the global variables LOADER_KEY & LOADER_PROPS will be picked up as a custom loader
   - LOADER_KEY: the key that will be associated with your loader.  By default you are given **arctic** & **csv** (if you use one of these are your key it will override these)
   - LOADER_PROPS: the individual props available to be specified.
-    - For example, with arctic we have host, library, node, start & end.
+    - For example, with arctic we have host, library, symbol, start & end.
     - If you leave this property as an empty list your loader will be treated as a flag.  For example, instead of using all the arctic properties we would simply specify `--arctic` (this wouldn't work well in arctic's case since it depends on all those properties)
 - You will also need to specify a function with the following signature `def find_loader(kwargs)` which returns a function that returns a dataframe or `None`
 - Here is an example of a custom loader:
@@ -714,6 +723,36 @@ It will be used for the following operations:
 - Handling of empty strings when calculating missing counts
 - Building unique values by data type in "Describe" popup
 
+
+### Behavior for Wide Dataframes
+
+There is currently a performance bottleneck on the front-end when loading "wide dataframes" (dataframes with many columns). The current solution to this problem is that upon initial load of these dataframes to D-Tale any column with an index greater than 100 (going from left to right) will be hidden on the front-end.  You can still unhide these columns the same way you would any other and you still have the option to show all columns using the "Describe" popup. Here's a sample of this behavior:
+
+Say you loaded this dataframe into D-Tale.
+
+```python
+import pandas as pd
+import dtale
+
+dtale.show(pd.DataFrame(
+    {'col{}'.format(i): list(range(1000)) for i in range(105)}
+))
+```
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/wide_dataframes/initial_load.png)
+
+You will now have access to a new "Jump To Column" menu item.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/wide_dataframes/jump_to_col_menu_item.png)
+
+It would be too hard to scroll to the column you're looking for. So now you'll be able to type in the name of the column you're looking for and select it.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/wide_dataframes/jump_to_col_popup.png)
+
+And now you'll see only the columns you've had locked (we've locked no columns in this example) and the column you chose to jump to.
+
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/wide_dataframes/jump_to_col_done.png)
+
 ### Accessing CLI Loaders in Notebook or Console
 I am pleased to announce that all CLI loaders will be available within notebooks & consoles.  Here are some examples (the last working if you've installed `dtale[arctic]`):
 - `dtale.show_csv(path='test.csv', parse_dates=['date'])`
@@ -724,7 +763,77 @@ I am pleased to announce that all CLI loaders will be available within notebooks
 - `dtale.show_json(path='http://json-endpoint', parse_dates=['date'])`
 - `dtale.show_json(path='test.json', parse_dates=['date'])`
 - `dtale.show_r(path='text.rda')`
-- `dtale.show_arctic(host='host', library='library', node='node', start_date='20200101', end_date='20200101')`
+- `dtale.show_arctic(uri='uri', library='library', symbol='symbol', start='20200101', end='20200101')`
+- `dtale.show_arcticdb(uri='uri', library='library', symbol='symbol', start='20200101', end='20200101', use_store=True)`
+
+### Using ArcticDB as your data store for D-Tale
+So one of the major drawbacks of using D-Tale is that it stores a copy of your dataframe in memory (unless you specify the `inplace=True` when calling `dtale.show`). One way around this is to switch your storage mechanism to ArcticDB. This will use ArcticDB's [QueryBuilder](https://docs.arcticdb.io/api/query_builder) to perform all data loading and filtering.  This will significantly drop your memory footprint, but it will remove a lot of the original D-Tale functionality:
+- Custom Filtering
+- Range filtering in Numeric Column Filters
+- Regex filtering on String Column Filters
+- Editing Cells
+- Data Reshaping
+- Dataframe Functions
+- Drop Filtered Rows
+- Sorting
+
+If the symbol you're loading from ArcticDB contains more than 1,000,000 rows then you will also lose the following:
+- Column Filtering using dropdowns of unique values (you'll have to manually type your values)
+- Outlier Highlighting
+- Most of the details in the "Describe" screen
+
+In order to update your storage mechanism there are a few options, the first being `use_arcticdb_store`:
+```python
+import dtale.global_state as global_state
+import dtale
+
+global_state.use_arcticdb_store(uri='lmdb:///<path>')
+dtale.show_arcticdb(library='my_lib', symbol='my_symbol')
+```
+
+Or you can set your library ahead of time so you can use `dtale.show`:
+```python
+import dtale.global_state as global_state
+import dtale
+
+global_state.use_arcticdb_store(uri='lmdb:///<path>', library='my_lib')
+dtale.show('my_symbol')
+```
+
+Or you can set your library using `dtale.show` with a pipe-delimited identifier:
+```python
+import dtale.global_state as global_state
+import dtale
+
+global_state.use_arcticdb_store(uri='lmdb:///<path>')
+dtale.show('my_lib|my_symbol')
+```
+
+You can also do everything using `dtale.show_arcticdb`:
+```python
+import dtale
+
+dtale.show_arcticdb(uri='lmdb:///<path>', library='my_lib', symbol='my_symbol', use_store=True)
+```
+
+### Navigating to different libraries/symbols in your ArcticDB database
+
+When starting D-Tale with no data
+```python
+import dtale.global_state as global_state
+import dtale
+
+global_state.use_arcticdb_store(uri='lmdb:///<path>')
+dtale.show()
+```
+
+you'll be presented with this screen on startup
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/arcticdb/select_library_and_symbol.png)
+
+Once you choose a library and a symbol you can click "Load" and it will bring you to the main grid comprised of the data for that symbol.
+
+You can also view information about the symbol you've selected before loading it by clicking the "Info" button
+![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/arcticdb/description.png)
 
 ## UI
 Once you have kicked off your D-Tale session please copy & paste the link on the last line of output in your browser
@@ -867,6 +976,20 @@ outliers = s[(s < iqr_lower) | (s > iqr_upper)]
 If you click on the "Apply outlier filter" link this will add an addtional "outlier" filter for this column which can be removed from the [header](#header) or the [custom filter](#custom-filter) shown in picture above to the right.
 
 #### Custom Filter
+
+**Starting with version 3.7.0 this feature will be turned off by default.
+Custom filters are vulnerable to code injection attacks, please only use in trusted environments.**
+
+**You can turn this feature on by doing one of the following:**
+ - **add `enable_custom_filters=True` to your `dtale.show` call**
+ - **add `enable_custom_filters = True` to the [app] section of your dtale.ini config file ([more info](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md))**
+ - **run this code before calling dtale.show:**
+```python
+import dtale.global_state as global_state
+global_state.set_app_settings(dict(enable_custom_filters=True))
+```
+
+
 Apply a custom pandas `query` to your data (link to pandas documentation included in popup)  
 
 |Editing|Result|
@@ -943,7 +1066,7 @@ The folowing screen shots are for a dataframe with the following data:
 |Function|Description|Preview|
 |:------:|:---------:|:-----:|
 |**Remove Duplicate Columns**|Remove any columns that contain the same data as another and you can either keep the first, last or none of these columns that match this criteria.  You can test which columns will be removed by clicking the "View Duplicates" button.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/columns.png)|
-|**Remove Duplicate Column Names**|Remove any columns with the same name (name comparison is case-insensitive) and you can either keep the first, last or none of these columns that match this criteria. You can test which columns will be removed by clicking the "View Duplicates" button.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/columns_names.png)|
+|**Remove Duplicate Column Names**|Remove any columns with the same name (name comparison is case-insensitive) and you can either keep the first, last or none of these columns that match this criteria. You can test which columns will be removed by clicking the "View Duplicates" button.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/column_names.png)|
 |**Remove Duplicate Rows**|Remove any rows from your dataframe where the values of a subset of columns are considered duplicates. You can choose to keep the first, last or none of the rows considered duplicated.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/rows.png)|
 |**Show Duplicates**|Break any duplicate rows (based on a subset of columns) out into another dataframe viewable in your D-Tale session. You can choose to view all duplicates or select specific groups based on the duplicated value.|![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/duplicates/show.png)|
 
@@ -1676,6 +1799,7 @@ Contributors:
  * Mike Kelly
  * [Vincent Riemer](https://github.com/vincentriemer)
  * [Youssef Habchi](http://youssef-habchi.com/) - title font
+ * [Yadhu Krishna](https://github.com/yadhukrishnam)
  * ... and many others ...
 
 Contributions welcome!

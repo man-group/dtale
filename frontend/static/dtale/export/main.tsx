@@ -1,5 +1,5 @@
 import * as React from 'react';
-import ReactDOM from 'react-dom';
+import * as ReactDOMClient from 'react-dom/client';
 import { Provider } from 'react-redux';
 
 import '../../i18n';
@@ -16,9 +16,17 @@ require('../../publicPath');
 const store = createAppStore<AppState>(appReducers);
 store.dispatch(actions.init());
 actions.loadBackgroundMode(store);
-ReactDOM.render(
+actions.loadHideShutdown(store);
+actions.loadAllowCellEdits(store);
+actions.loadHideHeaderEditor(store);
+actions.loadLockHeaderMenu(store);
+actions.loadHideHeaderMenu(store);
+actions.loadHideMainMenu(store);
+actions.loadHideColumnMenus(store);
+actions.loadEnableCustomFilters(store);
+const root = ReactDOMClient.createRoot(document.getElementById('content')!);
+root.render(
   <Provider store={store}>
     <ServerlessDataViewer response={(global as any).RESPONSE! as DataResponseContent} />
   </Provider>,
-  document.getElementById('content'),
 );

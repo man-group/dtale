@@ -1,30 +1,21 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
+import axios from 'axios';
 
-import {
-  BaseCreateComponentProps,
-  CreateColumnType,
-  SaveAs,
-  TypeConversionUnit,
-} from '../../../popups/create/CreateColumnState';
-import {
-  default as CreateTypeConversion,
-  validateTypeConversionCfg,
-} from '../../../popups/create/CreateTypeConversion';
+import { CreateColumnType, SaveAs, TypeConversionUnit } from '../../../popups/create/CreateColumnState';
+import { validateTypeConversionCfg } from '../../../popups/create/CreateTypeConversion';
 import { mockColumnDef } from '../../mocks/MockColumnDef';
 import reduxUtils from '../../redux-test-utils';
-import { mockT as t } from '../../test-utils';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateTypeConversion', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    spies.axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('/dtale/dtypes')) {
         return Promise.resolve({
           data: {
@@ -43,52 +34,32 @@ describe('CreateTypeConversion', () => {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Type Conversion');
+    await spies.clickBuilder('Type Conversion');
     await act(async () => {
-      result
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: 'conv_col' } });
+      await fireEvent.change(result.getElementsByTagName('input')[0], { target: { value: 'conv_col' } });
     });
-    result = result.update();
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const findTypeConversion = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
-    result.find(CreateTypeConversion);
+  const colSelect = (): HTMLElement =>
+    screen.getByText('Column To Convert').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
+  const formatSelect = (): HTMLElement =>
+    screen.getByText('Unit/Format').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
 
   it('build an int conversion column', async () => {
-    expect(findTypeConversion()).toHaveLength(1);
+    expect(screen.getByText('Type Conversion')).toHaveClass('active');
+    await selectOption(colSelect(), 'col1');
     await act(async () => {
-      findTypeConversion()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Str'));
     });
-    result = result.update();
     await act(async () => {
-      findTypeConversion().find('div.form-group').at(1).find('button').last().simulate('click');
+      await fireEvent.click(screen.getByText('Date'));
     });
-    result = result.update();
-    await act(async () => {
-      findTypeConversion().find('div.form-group').at(1).find('button').first().simulate('click');
-    });
-    result = result.update();
-    await act(async () => {
-      findTypeConversion()
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.({ value: 'YYYYMMDD' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await selectOption(formatSelect(), 'YYYYMMDD');
+    await spies.validateCfg({
       cfg: {
         to: 'date',
         from: 'int64',
@@ -102,23 +73,14 @@ describe('CreateTypeConversion', () => {
   });
 
   it('builds a float conversion column', async () => {
+    await selectOption(colSelect(), 'col2');
     await act(async () => {
-      findTypeConversion()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Hex'));
     });
-    result = result.update();
     await act(async () => {
-      findTypeConversion().find('div.form-group').at(1).find('button').last().simulate('click');
+      await fireEvent.click(screen.getByText('Int'));
     });
-    result = result.update();
-    await act(async () => {
-      findTypeConversion().find('div.form-group').at(1).find('button').first().simulate('click');
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col2',
         to: 'int',
@@ -131,28 +93,16 @@ describe('CreateTypeConversion', () => {
   });
 
   it('builds a string conversion column', async () => {
+    await selectOption(colSelect(), 'col3');
     await act(async () => {
-      findTypeConversion()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col3' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Date'));
     });
-    result = result.update();
     await act(async () => {
-      findTypeConversion().find('div.form-group').at(1).find('button').first().simulate('click');
+      await fireEvent.change(screen.getByText('Date Format').parentElement!.getElementsByTagName('input')[0], {
+        target: { value: '%d/%m/%Y' },
+      });
     });
-    result = result.update();
-    await act(async () => {
-      findTypeConversion()
-        .find('div.form-group')
-        .at(2)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '%d/%m/%Y' } });
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col3',
         to: 'date',
@@ -167,26 +117,16 @@ describe('CreateTypeConversion', () => {
 
   it('builda a mixed conversion column', async () => {
     await act(async () => {
-      result.find('div.form-group').first().find('button').first().simulate('click');
+      await fireEvent.click(result.querySelector('div.form-group')!.getElementsByTagName('button')[0]);
     });
-    result = result.update();
+    await selectOption(colSelect(), 'col5');
     await act(async () => {
-      findTypeConversion()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col5' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Date'));
     });
-    result = result.update();
     await act(async () => {
-      findTypeConversion().find('div.form-group').at(1).find('button').first().simulate('click');
+      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
-    await act(async () => {
-      findTypeConversion().find('i.ico-check-box-outline-blank').simulate('click');
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col5',
         to: 'date',
@@ -202,27 +142,12 @@ describe('CreateTypeConversion', () => {
   });
 
   it('builds a date conversion column', async () => {
+    await selectOption(colSelect(), 'col4');
     await act(async () => {
-      findTypeConversion()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Int'));
     });
-    result = result.update();
-    await act(async () => {
-      findTypeConversion().find('div.form-group').at(1).find('button').first().simulate('click');
-    });
-    result = result.update();
-    await act(async () => {
-      findTypeConversion()
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.({ value: 'ms' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await selectOption(formatSelect(), 'ms');
+    await spies.validateCfg({
       cfg: {
         col: 'col4',
         to: 'int',

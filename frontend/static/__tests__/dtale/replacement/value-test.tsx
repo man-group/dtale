@@ -1,63 +1,42 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
 import { SaveAs } from '../../../popups/create/CreateColumnState';
-import {
-  BaseReplacementComponentProps,
-  ReplacementType,
-  ValueConfigType,
-} from '../../../popups/replacement/CreateReplacementState';
-import { validateValueCfg, default as Value } from '../../../popups/replacement/Value';
-import { RemovableError } from '../../../RemovableError';
-import { mockT as t } from '../../test-utils';
+import { ReplacementType, ValueConfigType } from '../../../popups/replacement/CreateReplacementState';
+import { validateValueCfg } from '../../../popups/replacement/Value';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateReplacement.test.support';
 
 describe('Value', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: RenderResult;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Value(s)');
+    await spies.clickBuilder('Value(s)');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const findValue = (): ReactWrapper<BaseReplacementComponentProps, Record<string, any>> => result.find(Value);
-  const findValueInputRow = (idx = 0): ReactWrapper => findValue().find('div.form-group').at(idx);
+  const findValueInputRow = (idx = 0): Element => result.container.querySelectorAll('div.form-group')[idx];
 
   it('handles value raw replacement w/ new col', async () => {
-    expect(findValue()).toHaveLength(1);
-    result = await spies.setName(result, 'cut_col');
+    expect(screen.getByText('Search For')).toBeDefined();
+    await spies.setName('cut_col');
     await act(async () => {
-      findValueInputRow()
-        .find('input')
-        .simulate('change', { target: { value: '3' } });
+      fireEvent.change(findValueInputRow(2).getElementsByTagName('input')[0], { target: { value: '3' } });
     });
-    result = result.update();
+    await spies.executeSave();
     await act(async () => {
-      findValueInputRow(1).find('i').last().simulate('click');
+      fireEvent.change(findValueInputRow(3).getElementsByTagName('input')[0], { target: { value: 'nan' } });
     });
-    result = result.update();
-    result = await spies.executeSave(result);
-    expect(result.find(RemovableError)).toHaveLength(1);
-    expect(result.find(RemovableError).props().error).toBe('Please enter a raw value!');
     await act(async () => {
-      findValueInputRow(1)
-        .find('input')
-        .simulate('change', { target: { value: 'nan' } });
+      fireEvent.click(findValueInputRow(3).getElementsByTagName('i')[0]);
     });
-    result = result.update();
-    await act(async () => {
-      findValueInputRow(1).find('i').first().simulate('click');
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       type: ReplacementType.VALUE,
       cfg: [{ type: ValueConfigType.RAW, replace: 'nan', value: 3 }],
       col: 'col1',
@@ -68,22 +47,13 @@ describe('Value', () => {
 
   it('DataViewer: value agg replacement', async () => {
     await act(async () => {
-      findValueInputRow(1).find('button').at(1).simulate('click');
+      fireEvent.click(screen.getByText('Agg'));
     });
-    result = result.update();
+    await selectOption(findValueInputRow(3).getElementsByClassName('Select')[0] as HTMLElement, 'Median');
     await act(async () => {
-      findValueInputRow(1)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'median' }, {} as ActionMeta<unknown>);
+      fireEvent.click(findValueInputRow(3).getElementsByTagName('i')[0]);
     });
-    result = result.update();
-    await act(async () => {
-      findValueInputRow(1).find('i').first().simulate('click');
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       type: ReplacementType.VALUE,
       cfg: [{ type: ValueConfigType.AGG, value: 'nan', replace: 'median' }],
       col: 'col1',
@@ -93,22 +63,13 @@ describe('Value', () => {
 
   it('DataViewer: value col replacement', async () => {
     await act(async () => {
-      findValueInputRow(1).find('button').last().simulate('click');
+      fireEvent.click(screen.getByText('Col'));
     });
-    result = result.update();
+    await selectOption(findValueInputRow(3).getElementsByClassName('Select')[0] as HTMLElement, 'col2');
     await act(async () => {
-      findValueInputRow(1)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
+      fireEvent.click(findValueInputRow(3).getElementsByTagName('i')[0]);
     });
-    result = result.update();
-    await act(async () => {
-      findValueInputRow(1).find('i').first().simulate('click');
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       type: ReplacementType.VALUE,
       cfg: [{ type: ValueConfigType.COL, value: 'nan', replace: 'col2' }],
       col: 'col1',

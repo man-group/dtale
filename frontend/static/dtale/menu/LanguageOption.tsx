@@ -3,14 +3,14 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { ActionType, SetLanguageAction } from '../../redux/actions/AppActions';
-import { AppState } from '../../redux/state/AppState';
+import { selectLanguage } from '../../redux/selectors';
 import * as serverState from '../serverStateManagement';
 
 import { MenuItem } from './MenuItem';
 import { RibbonOptionProps } from './MenuState';
 
 const LanguageOption: React.FC<RibbonOptionProps & WithTranslation> = ({ ribbonWrapper = (func) => func, t, i18n }) => {
-  const language = useSelector((state: AppState) => state.language);
+  const language = useSelector(selectLanguage);
   const dispatch = useDispatch();
   const setLanguage = (updatedLanguage: string): SetLanguageAction =>
     dispatch({ type: ActionType.SET_LANGUAGE, language: updatedLanguage });
@@ -29,7 +29,7 @@ const LanguageOption: React.FC<RibbonOptionProps & WithTranslation> = ({ ribbonW
         <i className="fas fa-language" />
       </span>
       <span className="font-weight-bold pl-2">{t('Language')}</span>
-      <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting">
+      <div className="btn-group compact ml-auto mr-3 font-weight-bold column-sorting" data-testid="language-options">
         {Object.keys(i18n.options.resources ?? {}).map((value) => (
           <button
             key={value}

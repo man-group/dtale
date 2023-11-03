@@ -16,17 +16,8 @@ from flask import (
     request,
     Response,
 )
-import matplotlib
 
-# flake8: NOQA
-matplotlib.use("agg")
-
-import matplotlib.pyplot as plt
-
-# flake8: NOQA
-plt.rcParams["font.sans-serif"] = ["SimHei"]  # Or any other Chinese characters
-matplotlib.rcParams["font.family"] = ["Heiti TC"]
-
+import itertools
 import missingno as msno
 import networkx as nx
 import numpy as np
@@ -34,8 +25,8 @@ import pandas as pd
 import platform
 import requests
 import scipy.stats as sts
+import seaborn as sns
 import xarray as xr
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from six import BytesIO, PY3, string_types, StringIO
 
 import dtale.correlations as correlations
@@ -43,6 +34,7 @@ import dtale.datasets as datasets
 import dtale.env_util as env_util
 import dtale.gage_rnr as gage_rnr
 import dtale.global_state as global_state
+import dtale.pandas_util as pandas_util
 import dtale.predefined_filters as predefined_filters
 from dtale import dtale
 from dtale.charts.utils import build_base_chart, CHART_POINTS_LIMIT
@@ -68,8 +60,10 @@ from dtale.code_export import build_code_export
 from dtale.query import (
     build_col_key,
     build_query,
+    build_query_builder,
     handle_predefined,
     load_filterable_data,
+    load_index_filter,
     run_query,
 )
 from dtale.timeseries_analysis import TimeseriesAnalysis
@@ -86,12 +80,14 @@ from dtale.utils import (
     export_to_csv_buffer,
     find_dtype,
     find_dtype_formatter,
+    format_data,
     format_grid,
     get_bool_arg,
     get_dtypes,
     get_int_arg,
     get_json_arg,
     get_str_arg,
+    get_url_quote,
     grid_columns,
     grid_formatter,
     json_date,
@@ -100,12 +96,15 @@ from dtale.utils import (
     json_timestamp,
     jsonify,
     jsonify_error,
+    read_file,
     make_list,
+    optimize_df,
+    option,
     retrieve_grid_params,
     running_with_flask_debug,
     running_with_pytest,
     sort_df_for_grid,
-    optimize_df,
+    unique_count,
 )
 from dtale.translations import text
 
@@ -124,6 +123,35 @@ def exception_decorator(func):
     return _handle_exceptions
 
 
+def matplotlib_decorator(func):
+    @wraps(func)
+    def _handle_matplotlib(*args, **kwargs):
+        try:
+            import matplotlib
+
+            current_backend = matplotlib.get_backend()
+
+            matplotlib.use("agg")  # noqa: E261
+
+            import matplotlib.pyplot as plt
+
+            plt.rcParams["font.sans-serif"] = [
+                "SimHei"
+            ]  # Or any other Chinese characters
+            matplotlib.rcParams["font.family"] = ["Heiti TC"]
+
+            return func(*args, **kwargs)
+        except BaseException as e:
+            raise e
+        finally:
+            try:
+                matplotlib.pyplot.switch_backend(current_backend)
+            except BaseException:
+                pass
+
+    return _handle_matplotlib
+
+
 class NoDataLoadedException(Exception):
     """Container class for any scenario where no data has been loaded into D-Tale.
 
@@ -134,8 +162,9 @@ class NoDataLoadedException(Exception):
 def head_endpoint(popup_type=None):
     data_keys = global_state.keys()
     if not len(data_keys):
-        return "popup/upload"
+        return "popup/{}".format("arcticdb" if global_state.is_arcticdb else "upload")
     head_id = sorted(data_keys)[0]
+    head_id = get_url_quote()(get_url_quote()(head_id, safe=""))
     if popup_type:
         return "popup/{}/{}".format(popup_type, head_id)
     return "main/{}".format(head_id)
@@ -163,7 +192,10 @@ def kill(base):
     This function fires a request to this instance's 'shutdown' route to kill it
 
     """
-    requests.get(build_shutdown_url(base))
+    try:
+        requests.get(build_shutdown_url(base))
+    except BaseException:
+        logger.info("Shutdown complete")
 
 
 def is_up(base):
@@ -208,8 +240,6 @@ class DtaleData(object):
     """
 
     def __init__(self, data_id, url, is_proxy=False, app_root=None):
-        if data_id is not None:
-            data_id = int(data_id)
         self._data_id = data_id
         self._url = url
         self._notebook_handle = None
@@ -218,9 +248,16 @@ class DtaleData(object):
         self.app_root = app_root
 
     def build_main_url(self, name=None):
-        return "{}/dtale/main/{}".format(
-            self.app_root if self.is_proxy else self._url, name or self._data_id
-        )
+        if name or self._data_id:
+            quoted_data_id = get_url_quote()(
+                get_url_quote()(name or self._data_id, safe="")
+            )
+            return "{}/dtale/main/{}".format(
+                self.app_root if self.is_proxy else self._url, quoted_data_id
+            )
+        return (
+            self.app_root if self.is_proxy else self._url
+        )  # "load data" or "library/symbol selection" screens
 
     @property
     def _main_url(self):
@@ -245,6 +282,30 @@ class DtaleData(object):
 
         """
         startup(self._url, data=data, data_id=self._data_id)
+
+    def get_corr_matrix(self, encode_strings=False, as_df=False):
+        """Helper function to build correlation matrix from data (can be an image or dataframe)."""
+        matrix_data = build_correlations_matrix(
+            self._data_id, is_pps=False, encode_strings=encode_strings, image=not as_df
+        )
+        _, _, _, _, _, _, df_or_image = matrix_data
+        return df_or_image
+
+    def get_pps_matrix(self, encode_strings=False, as_df=False):
+        """Helper function to build correlation matrix from data (can be an image or dataframe)."""
+        matrix_data = build_correlations_matrix(
+            self._data_id, is_pps=True, encode_strings=encode_strings, image=not as_df
+        )
+        _, _, _, _, _, _, df_or_image = matrix_data
+        return df_or_image
+
+    def update_id(self, new_data_id):
+        """
+        Update current data_id to new data_id
+
+        :param new_data_id: the data_id to update to
+        """
+        self._data_id = global_state.update_id(self._data_id, new_data_id)
 
     def main_url(self):
         """
@@ -274,19 +335,35 @@ class DtaleData(object):
         Helper function for updating instance-specific settings. For example:
         * allow_cell_edits - whether cells can be edited
         * locked - which columns are locked to the left of the grid
+        * sort - The sort to apply to the data on startup (EX: [("col1", "ASC"), ("col2", "DESC"),...])
         * custom_formats - display formatting for specific columns
         * background_mode - different background displays in grid
         * range_highlights - specify background colors for ranges of values in the grid
         * vertical_headers - if True, then rotate column headers vertically
+        * column_edit_options - the options to allow on the front-end when editing a cell for the columns specified
+        * highlight_filter - if True, then highlight rows on the frontend which will be filtered when applying a filter
+                             rather than hiding them from the dataframe
+        * hide_shutdown - if true, this will hide the "Shutdown" button from users
+        * nan_display - if value in dataframe is :attr:`numpy:numpy.nan` then return this value on the frontend
+        * hide_header_editor - if true, this will hide header editor when editing cells on the frontend
+        * lock_header_menu - if true, this will always the display the header menu which usually only displays when you
+                             hover over the top
+        * hide_header_menu - if true, this will hide the header menu from the screen
+        * hide_main_menu - if true, this will hide the main menu from the screen
+        * hide_column_menus - if true, this will hide the column menus from the screen
+        * enable_custom_filters - if True, allow users to specify custom filters from the UI using pandas.query strings
+
+        After applying please refresh any open browsers!
         """
         name_updates = dict(
             range_highlights="rangeHighlight",
             column_formats="columnFormats",
             background_mode="backgroundMode",
             vertical_headers="verticalHeaders",
+            highlight_filter="highlightFilter",
         )
         settings = {name_updates.get(k, k): v for k, v in updates.items()}
-        _update_settings(self._data_id, settings)
+        global_state.update_settings(self._data_id, settings)
 
     def get_settings(self):
         """Helper function for retrieving any instance-specific settings."""
@@ -318,6 +395,10 @@ class DtaleData(object):
                 return ""
             self.notebook()
             return ""
+
+        if global_state.is_arcticdb and global_state.store.get(self._data_id).is_large:
+            return self.main_url()
+
         return self.data.__str__()
 
     def __repr__(self):
@@ -366,6 +447,7 @@ class DtaleData(object):
                 iframe_url = "{}?{}".format(iframe_url, params)
             else:
                 iframe_url = "{}?{}".format(iframe_url, url_encode_func()(params))
+
         return IFrame(iframe_url, width=width, height=height)
 
     def notebook(self, route="/dtale/iframe/", params=None, width="100%", height=475):
@@ -511,7 +593,9 @@ class DtaleData(object):
         yaxis=None,
         filepath=None,
         title=None,
+        # fmt: off
         **kwargs
+        # fmt: on
     ):
         """
         Builds the HTML for a plotly chart figure to saved to a file or output to a jupyter notebook
@@ -609,10 +693,6 @@ class DtaleData(object):
             logger.debug("You must ipython>=5.0 installed to use this functionality")
 
 
-def unique_count(s):
-    return int(len(s.dropna().unique()))
-
-
 def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
     """
     Helper function to build formatter for the descriptive information about each column in the dataframe you
@@ -642,10 +722,14 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             dtype=dtype,
             index=col_index,
             visible=visible,
-            unique_ct=unique_count(s),
-            hasMissing=int(s.isnull().sum()),
             hasOutliers=0,
+            hasMissing=1,
         )
+        if global_state.is_arcticdb:
+            return dtype_data
+
+        dtype_data["unique_ct"] = unique_count(s)
+        dtype_data["hasMissing"] = int(s.isnull().sum())
         classification = classify_type(dtype)
         if (
             classification in ["F", "I"] and not s.isnull().all() and col in data_ranges
@@ -696,13 +780,23 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
     return _formatter
 
 
-def calc_data_ranges(data):
+def calc_data_ranges(data, dtypes={}):
     try:
         return data.agg(["min", "max"]).to_dict()
     except ValueError:
         # I've seen when transposing data and data types get combined into one column this exception emerges
         # when calling 'agg' on the new data
         return {}
+    except TypeError:
+        non_str_cols = [
+            c for c in data.columns if classify_type(dtypes.get(c, "")) != "S"
+        ]
+        if not len(non_str_cols):
+            return {}
+        try:
+            return data[non_str_cols].agg(["min", "max"]).to_dict()
+        except BaseException:
+            return {}
 
 
 def build_dtypes_state(data, prev_state=None, ranges=None):
@@ -714,100 +808,10 @@ def build_dtypes_state(data, prev_state=None, ranges=None):
     :return: a list of dictionaries containing column names, indexes and data types
     """
     prev_dtypes = {c["name"]: c for c in prev_state or []}
-    dtype_f = dtype_formatter(
-        data, get_dtypes(data), ranges or calc_data_ranges(data), prev_dtypes
-    )
+    dtypes = get_dtypes(data)
+    loaded_ranges = ranges or calc_data_ranges(data, dtypes)
+    dtype_f = dtype_formatter(data, dtypes, loaded_ranges, prev_dtypes)
     return [dtype_f(i, c) for i, c in enumerate(data.columns)]
-
-
-def format_data(data, inplace=False, drop_index=False):
-    """
-    Helper function to build globally managed state pertaining to a D-Tale instances data.  Some updates being made:
-     - convert all column names to strings
-     - drop any indexes back into the dataframe so what we are left is a natural index [0,1,2,...,n]
-     - convert inputs that are indexes into dataframes
-     - replace any periods in column names with underscores
-
-    :param data: dataframe to build data type information for
-    :type data: :class:`pandas:pandas.DataFrame`
-    :param allow_cell_edits: If false, this will not allow users to edit cells directly in their D-Tale grid
-    :type allow_cell_edits: bool, optional
-    :param inplace: If true, this will call `reset_index(inplace=True)` on the dataframe used as a way to save memory.
-                    Otherwise this will create a brand new dataframe, thus doubling memory but leaving the dataframe
-                    input unchanged.
-    :type inplace: bool, optional
-    :param drop_index: If true, this will drop any pre-existing index on the dataframe input.
-    :type drop_index: bool, optional
-    :return: formatted :class:`pandas:pandas.DataFrame` and a list of strings constituting what columns were originally
-             in the index
-    :raises: Exception if the dataframe contains two columns of the same name
-    """
-    if isinstance(data, (pd.DatetimeIndex, pd.MultiIndex)):
-        data = data.to_frame(index=False)
-
-    if isinstance(data, (np.ndarray, list, dict)):
-        try:
-            data = pd.DataFrame(data)
-        except BaseException:
-            data = pd.Series(data).to_frame()
-
-    index = [
-        str(i) for i in make_list(data.index.name or data.index.names) if i is not None
-    ]
-    drop = True
-    if not len(index) and not data.index.equals(pd.RangeIndex(0, len(data))):
-        drop = False
-        index = ["index"]
-
-    if inplace:
-        data.reset_index(inplace=True, drop=drop_index)
-    else:
-        data = data.reset_index(drop=drop_index)
-
-    if drop:
-        if inplace:
-            data.drop("index", axis=1, errors="ignore", inplace=True)
-        else:
-            data = data.drop("index", axis=1, errors="ignore")
-
-    def _format_colname(colname):
-        if isinstance(colname, tuple):
-            formatted_vals = [
-                find_dtype_formatter(type(v).__name__)(v, as_string=True)
-                for v in colname
-            ]
-            return "_".join([v for v in formatted_vals if v])
-        return str(colname).strip()
-
-    data.columns = [_format_colname(c) for c in data.columns]
-    if len(data.columns) > len(set(data.columns)):
-        distinct_cols = set()
-        dupes = set()
-        for c in data.columns:
-            if c in distinct_cols:
-                dupes.add(c)
-            distinct_cols.add(c)
-        raise Exception(
-            "data contains duplicated column names: {}".format(", ".join(sorted(dupes)))
-        )
-
-    for col in data.columns:
-        dtype = find_dtype(data[col])
-        all_null = data[col].isnull().all()
-        if dtype.startswith("mixed") and not all_null:
-            try:
-                unique_count(data[col])
-            except TypeError:
-                # convert any columns with complex data structures (list, dict, etc...) to strings
-                data.loc[:, col] = data[col].astype("str")
-        elif dtype.startswith("period") and not all_null:
-            # convert any pandas period_range columns to timestamps
-            data.loc[:, col] = data[col].apply(lambda x: x.to_timestamp())
-        elif dtype.startswith("datetime") and not all_null:
-            # remove timezone information for filtering purposes
-            data.loc[:, col] = data[col].dt.tz_localize(None)
-
-    return data, index
 
 
 def check_duplicate_data(data):
@@ -894,6 +898,17 @@ def startup(
     app_root=None,
     is_proxy=None,
     vertical_headers=False,
+    hide_shutdown=None,
+    column_edit_options=None,
+    auto_hide_empty_columns=False,
+    highlight_filter=False,
+    hide_header_editor=None,
+    lock_header_menu=None,
+    hide_header_menu=None,
+    hide_main_menu=None,
+    hide_column_menus=None,
+    enable_custom_filters=None,
+    force_save=True,
 ):
     """
     Loads and stores data globally
@@ -951,15 +966,95 @@ def startup(
     :type range_highlights: dict, optional
     :param vertical_headers: if True, then rotate column headers vertically
     :type vertical_headers: boolean, optional
+    :param column_edit_options: The options to allow on the front-end when editing a cell for the columns specified
+    :type column_edit_options: dict, optional
+    :param auto_hide_empty_columns: if True, then auto-hide any columns on the front-end that are comprised entirely of
+                                    NaN values
+    :type auto_hide_empty_columns: boolean, optional
+    :param highlight_filter: if True, then highlight rows on the frontend which will be filtered when applying a filter
+                             rather than hiding them from the dataframe
+    :type highlight_filter: boolean, optional
     """
 
     if (
         data_loader is None and data is None
     ):  # scenario where we'll force users to upload a CSV/TSV
-        return DtaleData(1, url, is_proxy=is_proxy, app_root=app_root)
+        return DtaleData("1", url, is_proxy=is_proxy, app_root=app_root)
 
     if data_loader is not None:
         data = data_loader()
+        if isinstance(data, string_types) and global_state.contains(data):
+            return DtaleData(data, url, is_proxy=is_proxy, app_root=app_root)
+        elif (
+            data is None and global_state.is_arcticdb
+        ):  # send user to the library/symbol selection screen
+            return DtaleData(None, url, is_proxy=is_proxy, app_root=app_root)
+
+    if global_state.is_arcticdb and isinstance(data, string_types):
+        data_id = data
+        data_id_segs = data_id.split("|")
+        if len(data_id_segs) < 2:
+            if not global_state.store.lib:
+                raise ValueError(
+                    (
+                        "When specifying a data identifier for ArcticDB it must be comprised of a library and a symbol."
+                        "Use the following format: [library]|[symbol]"
+                    )
+                )
+            data_id = "{}|{}".format(global_state.store.lib.name, data_id)
+        global_state.new_data_inst(data_id)
+        instance = global_state.store.get(data_id)
+        data = instance.base_df
+        ret_data = startup(
+            url=url,
+            data=data,
+            data_id=data_id,
+            force_save=False,
+            name=name,
+            context_vars=context_vars,
+            ignore_duplicate=ignore_duplicate,
+            allow_cell_edits=allow_cell_edits,
+            precision=precision,
+            show_columns=show_columns,
+            hide_columns=hide_columns,
+            column_formats=column_formats,
+            nan_display=nan_display,
+            sort=sort,
+            locked=locked,
+            background_mode=background_mode,
+            range_highlights=range_highlights,
+            app_root=app_root,
+            is_proxy=is_proxy,
+            vertical_headers=vertical_headers,
+            hide_shutdown=hide_shutdown,
+            column_edit_options=column_edit_options,
+            auto_hide_empty_columns=auto_hide_empty_columns,
+            highlight_filter=highlight_filter,
+            hide_header_editor=hide_header_editor,
+            lock_header_menu=lock_header_menu,
+            hide_header_menu=hide_header_menu,
+            hide_main_menu=hide_main_menu,
+            hide_column_menus=hide_column_menus,
+            enable_custom_filters=enable_custom_filters,
+        )
+        startup_code = (
+            "from arcticdb import Arctic\n"
+            "from arcticdb.version_store._store import VersionedItem\n\n"
+            "conn = Arctic('{uri}')\n"
+            "lib = conn.get_library('{library}')\n"
+            "df = lib.read('{symbol}')\n"
+            "if isinstance(data, VersionedItem):\n"
+            "\tdf = df.data\n"
+        ).format(
+            uri=global_state.store.uri,
+            library=global_state.store.lib.name,
+            symbol=data_id,
+        )
+        curr_settings = global_state.get_settings(data_id)
+        global_state.set_settings(
+            data_id, dict_merge(curr_settings, dict(startup_code=startup_code))
+        )
+        return ret_data
 
     if data is not None:
         data = handle_koalas(data)
@@ -1003,6 +1098,16 @@ def startup(
                 app_root=app_root,
                 is_proxy=is_proxy,
                 vertical_headers=vertical_headers,
+                hide_shutdown=hide_shutdown,
+                column_edit_options=column_edit_options,
+                auto_hide_empty_columns=auto_hide_empty_columns,
+                highlight_filter=highlight_filter,
+                hide_header_editor=hide_header_editor,
+                lock_header_menu=lock_header_menu,
+                hide_header_menu=hide_header_menu,
+                hide_main_menu=hide_main_menu,
+                hide_column_menus=hide_column_menus,
+                enable_custom_filters=enable_custom_filters,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1011,7 +1116,7 @@ def startup(
 
         data, curr_index = format_data(data, inplace=inplace, drop_index=drop_index)
         # check to see if this dataframe has already been loaded to D-Tale
-        if data_id is None and not ignore_duplicate:
+        if data_id is None and not ignore_duplicate and not global_state.is_arcticdb:
             check_duplicate_data(data)
 
         logger.debug(
@@ -1040,6 +1145,7 @@ def startup(
         global_state.set_name(data_id, name)
         # in the case that data has been updated we will drop any sorts or filter for ease of use
         base_settings = dict(
+            indexes=curr_index,
             locked=curr_locked,
             allow_cell_edits=True if allow_cell_edits is None else allow_cell_edits,
             precision=precision,
@@ -1047,6 +1153,7 @@ def startup(
             backgroundMode=background_mode,
             rangeHighlight=range_highlights,
             verticalHeaders=vertical_headers,
+            highlightFilter=highlight_filter,
         )
         base_predefined = predefined_filters.init_filters()
         if base_predefined:
@@ -1056,24 +1163,85 @@ def startup(
             data = sort_df_for_grid(data, dict(sort=sort))
         if nan_display is not None:
             base_settings["nanDisplay"] = nan_display
+        if hide_shutdown is not None:
+            base_settings["hide_shutdown"] = hide_shutdown
+        if hide_header_editor is not None:
+            base_settings["hide_header_editor"] = hide_header_editor
+        if lock_header_menu is not None:
+            base_settings["lock_header_menu"] = lock_header_menu
+        if hide_header_menu is not None:
+            base_settings["hide_header_menu"] = hide_header_menu
+        if hide_main_menu is not None:
+            base_settings["hide_main_menu"] = hide_main_menu
+        if hide_column_menus is not None:
+            base_settings["hide_column_menus"] = hide_column_menus
+        if enable_custom_filters is not None:
+            base_settings["enable_custom_filters"] = enable_custom_filters
+        if column_edit_options is not None:
+            base_settings["column_edit_options"] = column_edit_options
         global_state.set_settings(data_id, base_settings)
-        if optimize_dataframe:
+        if optimize_dataframe and not global_state.is_arcticdb:
             data = optimize_df(data)
-        global_state.set_data(data_id, data)
-        dtypes_state = build_dtypes_state(data, global_state.get_dtypes(data_id) or [])
-        if show_columns or hide_columns:
+        if force_save or (
+            global_state.is_arcticdb and not global_state.contains(data_id)
+        ):
+            data = data[curr_locked + [c for c in data.columns if c not in curr_locked]]
+            global_state.set_data(data_id, data)
+        dtypes_data = data
+        ranges = None
+        if global_state.is_arcticdb:
+            instance = global_state.store.get(data_id)
+            if not instance.is_large:
+                dtypes_data = instance.load_data()
+                dtypes_data, _ = format_data(
+                    dtypes_data, inplace=inplace, drop_index=drop_index
+                )
+                ranges = calc_data_ranges(dtypes_data)
+                dtypes_data = dtypes_data[
+                    curr_locked
+                    + [c for c in dtypes_data.columns if c not in curr_locked]
+                ]
+        dtypes_state = build_dtypes_state(
+            dtypes_data, global_state.get_dtypes(data_id) or [], ranges=ranges
+        )
+
+        for col in dtypes_state:
+            if show_columns and col["name"] not in show_columns:
+                col["visible"] = False
+                continue
+            if hide_columns and col["name"] in hide_columns:
+                col["visible"] = False
+                continue
+            if col["index"] >= 100:
+                col["visible"] = False
+        if auto_hide_empty_columns and not global_state.is_arcticdb:
+            is_empty = data.isnull().all()
+            is_empty = list(is_empty[is_empty].index.values)
             for col in dtypes_state:
-                if show_columns and col["name"] not in show_columns:
-                    col["visible"] = False
-                if hide_columns and col["name"] in hide_columns:
+                if col["name"] in is_empty:
                     col["visible"] = False
         global_state.set_dtypes(data_id, dtypes_state)
         global_state.set_context_variables(
             data_id, build_context_variables(data_id, context_vars)
         )
+        if global_state.load_flag(data_id, "enable_custom_filters", False):
+            logger.warning(
+                (
+                    "Custom filtering enabled. Custom filters are vulnerable to code injection attacks, please only "
+                    "use in trusted environments."
+                )
+            )
         return DtaleData(data_id, url, is_proxy=is_proxy, app_root=app_root)
     else:
         raise NoDataLoadedException("No data has been loaded into this D-Tale session!")
+
+
+def is_vscode():
+    if os.environ.get("VSCODE_PID") is not None:
+        return True
+    if "1" == os.environ.get("VSCODE_INJECTION"):
+        return True
+    return False
 
 
 def base_render_template(template, data_id, **kwargs):
@@ -1088,21 +1256,55 @@ def base_render_template(template, data_id, **kwargs):
     curr_settings = global_state.get_settings(data_id) or {}
     curr_app_settings = global_state.get_app_settings()
     _, version = retrieve_meta_info_and_version("dtale")
+    hide_shutdown = global_state.load_flag(data_id, "hide_shutdown", False)
+    allow_cell_edits = global_state.load_flag(data_id, "allow_cell_edits", True)
+    github_fork = global_state.load_flag(data_id, "github_fork", False)
+    hide_header_editor = global_state.load_flag(data_id, "hide_header_editor", False)
+    lock_header_menu = global_state.load_flag(data_id, "lock_header_menu", False)
+    hide_header_menu = global_state.load_flag(data_id, "hide_header_menu", False)
+    hide_main_menu = global_state.load_flag(data_id, "hide_main_menu", False)
+    hide_column_menus = global_state.load_flag(data_id, "hide_column_menus", False)
+    enable_custom_filters = global_state.load_flag(
+        data_id, "enable_custom_filters", False
+    )
+    app_overrides = dict(
+        allow_cell_edits=json.dumps(allow_cell_edits),
+        hide_shutdown=hide_shutdown,
+        hide_header_editor=hide_header_editor,
+        lock_header_menu=lock_header_menu,
+        hide_header_menu=hide_header_menu,
+        hide_main_menu=hide_main_menu,
+        hide_column_menus=hide_column_menus,
+        enable_custom_filters=enable_custom_filters,
+        github_fork=github_fork,
+    )
+    is_arcticdb = 0
+    arctic_conn = ""
+    if global_state.is_arcticdb:
+        instance = global_state.store.get(data_id)
+        is_arcticdb = instance.rows()
+        arctic_conn = global_state.store.uri
     return render_template(
         template,
-        data_id=data_id,
+        data_id=get_url_quote()(get_url_quote()(data_id, safe=""))
+        if data_id is not None
+        else "",
         xarray=global_state.get_data_inst(data_id).is_xarray_dataset,
         xarray_dim=json.dumps(global_state.get_dataset_dim(data_id)),
         settings=json.dumps(curr_settings),
         version=str(version),
         processes=global_state.size(),
-        allow_cell_edits=global_state.load_flag(data_id, "allow_cell_edits", True),
         python_version=platform.python_version(),
         predefined_filters=json.dumps(
             [f.asdict() for f in predefined_filters.get_filters()]
         ),
-        is_vscode=os.environ.get("VSCODE_PID") is not None,
-        **dict_merge(kwargs, curr_app_settings)
+        is_vscode=is_vscode(),
+        is_arcticdb=is_arcticdb,
+        arctic_conn=arctic_conn,
+        column_count=len(global_state.get_dtypes(data_id) or []),
+        # fmt: off
+        **dict_merge(kwargs, curr_app_settings, app_overrides)
+        # fmt: on
     )
 
 
@@ -1134,6 +1336,12 @@ def view_main(data_id=None):
     :return: HTML
     """
     if not global_state.contains(data_id):
+        if global_state.is_arcticdb:
+            try:
+                startup(data=data_id)
+                return _view_main(data_id)
+            except BaseException as ex:
+                logger.exception(ex)
         return redirect("/dtale/{}".format(head_endpoint()))
     return _view_main(data_id)
 
@@ -1181,6 +1389,7 @@ POPUP_TITLES = {
     "upload": "Load Data",
     "pps": "Predictive Power Score",
     "merge": "Merge & Stack",
+    "arcticdb": "Load ArcticDB Data",
 }
 
 
@@ -1197,7 +1406,7 @@ def view_popup(popup_type, data_id=None):
     :type data_id: str
     :return: HTML
     """
-    if data_id is None and popup_type not in ["upload", "merge"]:
+    if data_id is None and popup_type not in ["upload", "merge", "arcticdb"]:
         return redirect("/dtale/{}".format(head_endpoint(popup_type)))
     main_title = global_state.get_app_settings().get("main_title")
     title = main_title or "D-Tale"
@@ -1333,12 +1542,6 @@ def process_keys():
     )
 
 
-def _update_settings(data_id, settings):
-    curr_settings = global_state.get_settings(data_id) or {}
-    updated_settings = dict_merge(curr_settings, settings)
-    global_state.set_settings(data_id, updated_settings)
-
-
 @dtale.route("/update-settings/<data_id>")
 @exception_decorator
 def update_settings(data_id):
@@ -1351,7 +1554,7 @@ def update_settings(data_id):
     :return: JSON
     """
 
-    _update_settings(data_id, get_json_arg(request, "settings", {}))
+    global_state.update_settings(data_id, get_json_arg(request, "settings", {}))
     return jsonify(dict(success=True))
 
 
@@ -1540,8 +1743,9 @@ def update_locked(data_id):
     col = get_str_arg(request, "col")
     curr_settings = global_state.get_settings(data_id)
     curr_data = global_state.get_data(data_id)
+    curr_settings["locked"] = curr_settings.get("locked") or []
     if action == "lock" and col not in curr_settings["locked"]:
-        curr_settings["locked"].append(col)
+        curr_settings["locked"] = curr_settings["locked"] + [col]
     elif action == "unlock":
         curr_settings["locked"] = [c for c in curr_settings["locked"] if c != col]
 
@@ -1629,24 +1833,26 @@ def build_column(data_id):
         new_col_data = builder.build_column()
         new_cols = []
         if isinstance(new_col_data, pd.Series):
-            data.loc[:, name] = new_col_data
+            if pandas_util.is_pandas2():
+                data[name] = new_col_data
+            else:
+                data.loc[:, name] = new_col_data
             new_cols.append(name)
         else:
             for i in range(len(new_col_data.columns)):
                 new_col = new_col_data.iloc[:, i]
-                data.loc[:, str(new_col.name)] = new_col
+                if pandas_util.is_pandas2():
+                    data[str(new_col.name)] = new_col
+                else:
+                    data.loc[:, str(new_col.name)] = new_col
 
         new_types = {}
         data_ranges = {}
         for new_col in new_cols:
             dtype = find_dtype(data[new_col])
             if classify_type(dtype) == "F" and not data[new_col].isnull().all():
-                try:
-                    data_ranges[new_col] = (
-                        data[[new_col]].agg(["min", "max"]).to_dict()[new_col]
-                    )
-                except ValueError:
-                    pass
+                new_ranges = calc_data_ranges(data[[new_col]])
+                data_ranges[new_col] = new_ranges.get(new_col, data_ranges.get(new_col))
             new_types[new_col] = dtype
         dtype_f = dtype_formatter(data, new_types, data_ranges)
         global_state.set_data(data_id, data)
@@ -1764,7 +1970,7 @@ def build_replacement(data_id):
     replacement_type = get_str_arg(request, "type")
     cfg = json.loads(get_str_arg(request, "cfg"))
 
-    builder = ColumnReplacement(data_id, col, replacement_type, cfg)
+    builder = ColumnReplacement(data_id, col, replacement_type, cfg, name)
     output = builder.build_replacements()
     dtype = find_dtype(output)
     curr_dtypes = global_state.get_dtypes(data_id)
@@ -1807,6 +2013,16 @@ def test_filter(data_id):
     :return: JSON {success: True/False}
     """
     query = get_str_arg(request, "query")
+    if query and not global_state.load_flag(data_id, "enable_custom_filters", False):
+        return jsonify(
+            dict(
+                success=False,
+                error=(
+                    "Custom Filters not enabled! Custom filters are vulnerable to code injection attacks, please only "
+                    "use in trusted environments."
+                ),
+            )
+        )
     run_query(
         handle_predefined(data_id),
         build_query(data_id, query),
@@ -1982,64 +2198,110 @@ def describe(data_id):
 
     """
     column = get_str_arg(request, "col")
-    data = load_filterable_data(data_id, request)
+    curr_settings = global_state.get_settings(data_id) or {}
+    columns_to_load = [column]
+    indexes = curr_settings.get("indexes", [])
+    # TODO: update this to use arcticdb's index function once it becomes available
+    if global_state.is_arcticdb and column in indexes:
+        column_to_load = next(
+            (
+                c
+                for c in global_state.get_dtypes(data_id) or []
+                if c["name"] not in indexes
+            ),
+            None,
+        )
+        columns_to_load = [column_to_load["name"]] if column_to_load else None
+    data = load_filterable_data(data_id, request, columns=columns_to_load)
     data = data[[column]]
     additional_aggs = None
     dtype = global_state.get_dtype_info(data_id, column)
     classification = classify_type(dtype["dtype"])
-    if classification in ["I", "F"]:
+    if classification == "I":
         additional_aggs = ["sum", "median", "mode", "var", "sem"]
+    elif classification == "F":
+        additional_aggs = ["sum", "median", "var", "sem"]
     code = build_code_export(data_id)
     desc, desc_code = load_describe(data[column], additional_aggs=additional_aggs)
     code += desc_code
     return_data = dict(describe=desc, success=True)
-    if "unique" not in return_data["describe"]:
+    if "unique" not in return_data["describe"] and "unique_ct" in dtype:
         return_data["describe"]["unique"] = json_int(dtype["unique_ct"], as_string=True)
     for p in ["skew", "kurt"]:
         if p in dtype:
             return_data["describe"][p] = dtype[p]
 
-    uniq_vals = data[column].value_counts().sort_values(ascending=False)
-    uniq_vals.index.name = "value"
-    uniq_vals.name = "count"
-    uniq_vals = uniq_vals.reset_index()
+    if classification != "F" and not global_state.store.get(data_id).is_large:
+        uniq_vals = data[column].value_counts().sort_values(ascending=False)
+        uniq_vals.index.name = "value"
+        uniq_vals.name = "count"
+        uniq_vals = uniq_vals.reset_index()
 
-    # build top
-    top_freq = uniq_vals["count"].values[0]
-    top_vals = uniq_vals[uniq_vals["count"] == top_freq].sort_values("value").head(5)
-    top_vals_f = grid_formatter(grid_columns(top_vals), as_string=True)
-    top_vals = top_vals_f.format_lists(top_vals)
-    return_data["describe"]["top"] = ", ".join(top_vals["value"])
-    return_data["describe"]["freq"] = int(top_freq)
+        # build top
+        top_freq = uniq_vals["count"].values[0]
+        top_freq_pct = (top_freq / uniq_vals["count"].sum()) * 100
+        top_vals = (
+            uniq_vals[uniq_vals["count"] == top_freq].sort_values("value").head(5)
+        )
+        top_vals_f = grid_formatter(grid_columns(top_vals), as_string=True)
+        top_vals = top_vals_f.format_lists(top_vals)
+        return_data["describe"]["top"] = "{} ({}%)".format(
+            ", ".join(top_vals["value"]), json_float(top_freq_pct, as_string=True)
+        )
+        return_data["describe"]["freq"] = int(top_freq)
 
-    code.append(
-        (
-            "uniq_vals = data['{}'].value_counts().sort_values(ascending=False)\n"
-            "uniq_vals.index.name = 'value'\n"
-            "uniq_vals.name = 'count'\n"
-            "uniq_vals = uniq_vals.reset_index()"
-        ).format(column)
-    )
-
-    if dtype["dtype"].startswith("mixed"):
-        uniq_vals["type"] = apply(uniq_vals["value"], lambda i: type(i).__name__)
-        dtype_counts = uniq_vals.groupby("type").sum().reset_index()
-        dtype_counts.columns = ["dtype", "count"]
-        return_data["dtype_counts"] = dtype_counts.to_dict(orient="records")
         code.append(
             (
-                "uniq_vals['type'] = uniq_vals['value'].apply( lambda i: type(i).__name__)\n"
-                "dtype_counts = uniq_vals.groupby('type').sum().reset_index()\n"
-                "dtype_counts.columns = ['dtype', 'count']"
-            )
-        )
-    else:
-        uniq_vals.loc[:, "type"] = find_dtype(uniq_vals["value"])
-        code.append(
-            "uniq_vals.loc[:, 'type'] = '{}'".format(uniq_vals["type"].values[0])
+                "uniq_vals = data['{}'].value_counts().sort_values(ascending=False)\n"
+                "uniq_vals.index.name = 'value'\n"
+                "uniq_vals.name = 'count'\n"
+                "uniq_vals = uniq_vals.reset_index()"
+            ).format(column)
         )
 
-    if classification in ["I", "F", "D"]:
+        if dtype["dtype"].startswith("mixed"):
+            uniq_vals["type"] = apply(uniq_vals["value"], lambda i: type(i).__name__)
+            dtype_counts = uniq_vals.groupby("type")["count"].sum().reset_index()
+            dtype_counts.columns = ["dtype", "count"]
+            return_data["dtype_counts"] = dtype_counts.to_dict(orient="records")
+            code.append(
+                (
+                    "uniq_vals['type'] = uniq_vals['value'].apply( lambda i: type(i).__name__)\n"
+                    "dtype_counts = uniq_vals.groupby('type')['count'].sum().reset_index()\n"
+                    "dtype_counts.columns = ['dtype', 'count']"
+                )
+            )
+        else:
+            uniq_vals.loc[:, "type"] = find_dtype(uniq_vals["value"])
+            code.append(
+                "uniq_vals.loc[:, 'type'] = '{}'".format(uniq_vals["type"].values[0])
+            )
+
+        return_data["uniques"] = {}
+        for uniq_type, uniq_grp in uniq_vals.groupby("type"):
+            total = len(uniq_grp)
+            top = total > 100
+            uniq_grp = (
+                uniq_grp[["value", "count"]]
+                .sort_values(["count", "value"], ascending=[False, True])
+                .head(100)
+            )
+            # pandas started supporting string dtypes in 1.1.0
+            conversion_type = (
+                uniq_type
+                if pandas_util.check_pandas_version("1.1.0") and uniq_type == "string"
+                else "object"
+            )
+            uniq_grp["value"] = uniq_grp["value"].astype(conversion_type)
+            uniq_f, _ = build_formatters(uniq_grp)
+            return_data["uniques"][uniq_type] = dict(
+                data=uniq_f.format_dicts(uniq_grp.itertuples()), total=total, top=top
+            )
+
+    if (
+        classification in ["I", "F", "D"]
+        and not global_state.store.get(data_id).is_large
+    ):
         sd_metrics, sd_code = build_sequential_diffs(data[column], column)
         return_data["sequential_diffs"] = sd_metrics
         code.append(sd_code)
@@ -2051,23 +2313,6 @@ def describe(data_id):
         )
         return_data["string_metrics"] = sm_metrics
         code += sm_code
-
-    return_data["uniques"] = {}
-    for uniq_type, uniq_grp in uniq_vals.groupby("type"):
-        total = len(uniq_grp)
-        top = total > 100
-        uniq_grp = (
-            uniq_grp[["value", "count"]]
-            .sort_values(["count", "value"], ascending=[False, True])
-            .head(100)
-        )
-        uniq_grp["value"] = uniq_grp["value"].astype(uniq_type)
-        uniq_f, _ = build_formatters(uniq_grp)
-        return_data["uniques"][uniq_type] = dict(
-            data=uniq_f.format_dicts(uniq_grp.itertuples()),
-            total=total,
-            top=top,
-        )
 
     return_data["code"] = "\n".join(code)
     return jsonify(return_data)
@@ -2232,11 +2477,7 @@ def delete_col(data_id):
     data = global_state.get_data(data_id)
     data = data[[c for c in data.columns if c not in columns]]
     curr_history = global_state.get_history(data_id) or []
-    curr_history += [
-        "df = df[[c for c in df.columns if c not in ['{}']]]".format(
-            "','".join(columns)
-        )
-    ]
+    curr_history += ["df = df.drop(columns=['{}'])".format("','".join(columns))]
     global_state.set_history(data_id, curr_history)
     dtypes = global_state.get_dtypes(data_id)
     dtypes = [dt for dt in dtypes if dt["name"] not in columns]
@@ -2278,6 +2519,39 @@ def rename_col(data_id):
     return jsonify(success=True)
 
 
+@dtale.route("/duplicate-col/<data_id>")
+@exception_decorator
+def duplicate_col(data_id):
+    column = get_str_arg(request, "col")
+    data = global_state.get_data(data_id)
+    dupe_idx = 2
+    new_col = "{}_{}".format(column, dupe_idx)
+    while new_col in data.columns:
+        dupe_idx += 1
+        new_col = "{}_{}".format(column, dupe_idx)
+
+    data.loc[:, new_col] = data[column]
+    curr_history = global_state.get_history(data_id) or []
+    curr_history += ["df.loc[:, '%s'] = df['%s']" % (new_col, column)]
+    global_state.set_history(data_id, curr_history)
+    dtypes = []
+    cols = []
+    idx = 0
+    for dt in global_state.get_dtypes(data_id):
+        dt["index"] = idx
+        dtypes.append(dt)
+        cols.append(dt["name"])
+        idx += 1
+        if dt["name"] == column:
+            dtypes.append(dict_merge(dt, dict(name=new_col, index=idx)))
+            cols.append(new_col)
+            idx += 1
+
+    global_state.set_data(data_id, data[cols])
+    global_state.set_dtypes(data_id, dtypes)
+    return jsonify(success=True, col=new_col)
+
+
 @dtale.route("/edit-cell/<data_id>")
 @exception_decorator
 def edit_cell(data_id):
@@ -2286,22 +2560,26 @@ def edit_cell(data_id):
     updated = get_str_arg(request, "updated")
     updated_str = updated
     curr_settings = global_state.get_settings(data_id)
+
+    # make sure to load filtered data in order to get correct row index
     data = run_query(
         handle_predefined(data_id),
         build_query(data_id, curr_settings.get("query")),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
+    row_index_val = data.iloc[[row_index]].index[0]
+    data = global_state.get_data(data_id)
     dtype = find_dtype(data[column])
 
     code = []
     if updated in ["nan", "inf"]:
         updated_str = "np.{}".format(updated)
         updated = getattr(np, updated)
-        data.loc[row_index, column] = updated
+        data.loc[row_index_val, column] = updated
         code.append(
             "df.loc[{row_index}, '{column}'] = {updated}".format(
-                row_index=row_index, column=column, updated=updated_str
+                row_index=row_index_val, column=column, updated=updated_str
             )
         )
     else:
@@ -2321,17 +2599,33 @@ def edit_cell(data_id):
             updated = pd.Timedelta(updated)
         else:
             if dtype.startswith("category") and updated not in data[column].unique():
-                data[column].cat.add_categories(updated, inplace=True)
-                code.append(
-                    "data['{column}'].cat.add_categories('{updated}', inplace=True)".format(
-                        column=column, updated=updated
+                if pandas_util.is_pandas2():
+                    data.loc[:, column] = pd.Categorical(
+                        data[column],
+                        categories=data[column].cat.add_categories(updated),
+                        ordered=True,
                     )
-                )
+                    code.append(
+                        (
+                            "data.loc[:, '{column}'] = pd.Categorical(\n"
+                            "\tdata['{column}'],\n"
+                            "\tcategories=data['{column}'].cat.add_categories('{updated}'),\n"
+                            "\tordered=True\n"
+                            ")"
+                        ).format(column=column, updated=updated)
+                    )
+                else:
+                    data[column].cat.add_categories(updated, inplace=True)
+                    code.append(
+                        "data['{column}'].cat.add_categories('{updated}', inplace=True)".format(
+                            column=column, updated=updated
+                        )
+                    )
             updated_str = "'{}'".format(updated)
-        data.at[row_index, column] = updated
+        data.at[row_index_val, column] = updated
         code.append(
             "df.at[{row_index}, '{column}'] = {updated}".format(
-                row_index=row_index, column=column, updated=updated_str
+                row_index=row_index_val, column=column, updated=updated_str
             )
         )
     global_state.set_data(data_id, data)
@@ -2341,11 +2635,7 @@ def edit_cell(data_id):
 
     data = global_state.get_data(data_id)
     dtypes = global_state.get_dtypes(data_id)
-    ranges = {}
-    try:
-        ranges[column] = data[[column]].agg(["min", "max"]).to_dict()[column]
-    except ValueError:
-        pass
+    ranges = calc_data_ranges(data[[column]])
     dtype_f = dtype_formatter(data, {column: dtype}, ranges)
     dtypes = [
         dtype_f(dt["index"], column) if dt["name"] == column else dt for dt in dtypes
@@ -2361,7 +2651,7 @@ def build_filter_vals(series, data_id, column, fmt):
         vals = sorted(vals)
     except BaseException:
         pass  # if there are mixed values (EX: strings with ints) this fails
-    if dtype_info["unique_ct"] > 500:
+    if dtype_info.get("unique_ct", 0) > 500:
         # columns with too many unique values will need to use asynchronous loading, so for now we'll give the
         # first 5 values
         vals = vals[:5]
@@ -2372,6 +2662,8 @@ def build_filter_vals(series, data_id, column, fmt):
 @dtale.route("/column-filter-data/<data_id>")
 @exception_decorator
 def get_column_filter_data(data_id):
+    if global_state.is_arcticdb and global_state.store.get(data_id).is_large:
+        return jsonify(dict(success=True, hasMissing=True))
     column = get_str_arg(request, "col")
     s = global_state.get_data(data_id)[column]
     dtype = find_dtype(s)
@@ -2396,10 +2688,6 @@ def get_async_column_filter_data(data_id):
     dtype = find_dtype(s)
     fmt = find_dtype_formatter(dtype)
     vals = s[s.astype("str").str.startswith(input)]
-
-    def option(v):
-        return dict(value=v, label="{}".format(v))
-
     vals = [option(fmt(v)) for v in sorted(vals.unique())[:5]]
     return jsonify(vals)
 
@@ -2438,17 +2726,11 @@ def get_data(data_id):
         success: True/False
     }
     """
-    data = global_state.get_data(data_id)
 
-    # this will check for when someone instantiates D-Tale programmatically and directly alters the internal
-    # state of the dataframe (EX: d.data['new_col'] = 'foo')
-    curr_dtypes = [c["name"] for c in global_state.get_dtypes(data_id)]
-    if any(c not in curr_dtypes for c in data.columns):
-        data, _ = format_data(data)
-        global_state.set_data(data_id, data)
-        global_state.set_dtypes(
-            data_id, build_dtypes_state(data, global_state.get_dtypes(data_id) or [])
-        )
+    # handling for gunicorn-hosted instances w/ ArcticDB
+    if global_state.is_arcticdb and not len(global_state.get_dtypes(data_id) or []):
+        global_state.store.build_instance(data_id)
+        startup(data=data_id)
 
     params = retrieve_grid_params(request)
     export = get_bool_arg(request, "export")
@@ -2456,58 +2738,205 @@ def get_data(data_id):
     if not export and ids is None:
         return jsonify({})
 
-    col_types = global_state.get_dtypes(data_id)
     curr_settings = global_state.get_settings(data_id) or {}
-    f = grid_formatter(col_types, nan_display=curr_settings.get("nanDisplay", "nan"))
-    if curr_settings.get("sortInfo") != params.get("sort"):
-        data = sort_df_for_grid(data, params)
-        global_state.set_data(data_id, data)
-    if params.get("sort") is not None:
-        curr_settings = dict_merge(curr_settings, dict(sortInfo=params["sort"]))
-    else:
-        curr_settings = {k: v for k, v in curr_settings.items() if k != "sortInfo"}
+    curr_locked = curr_settings.get("locked", [])
     final_query = build_query(data_id, curr_settings.get("query"))
-    data = run_query(
-        handle_predefined(data_id),
-        final_query,
-        global_state.get_context_variables(data_id),
-        ignore_empty=True,
-    )
-    global_state.set_settings(data_id, curr_settings)
+    highlight_filter = curr_settings.get("highlightFilter") or False
 
-    total = len(data)
-    results = {}
-    if total:
-        if export:
-            export_rows = get_int_arg(request, "export_rows")
-            if export_rows:
-                data = data.head(export_rows)
-            results = f.format_dicts(data.itertuples())
-            results = [dict_merge({IDX_COL: i}, r) for i, r in enumerate(results)]
+    if global_state.is_arcticdb:
+        col_types = global_state.get_dtypes(data_id) or []
+        columns_to_load = [c["name"] for c in col_types if c["visible"]]
+        f = grid_formatter(
+            [c for c in col_types if c["visible"]],
+            nan_display=curr_settings.get("nanDisplay", "nan"),
+        )
+
+        query_builder = build_query_builder(data_id)
+        date_range = load_index_filter(data_id)
+        instance = global_state.store.get(data_id)
+        total = instance.rows()
+        results = {}
+        if total:
+            if export:
+                export_rows = get_int_arg(request, "export_rows")
+                if export_rows:
+                    if query_builder:
+                        data = instance.load_data(
+                            query_builder=query_builder, **date_range
+                        )
+                        data = data.head(export_rows)
+                    elif len(date_range):
+                        data = instance.load_data(**date_range)
+                        data = data.head(export_rows)
+                    else:
+                        data = instance.load_data(row_range=[0, export_rows])
+                data, _ = format_data(data)
+                data = data[
+                    curr_locked + [c for c in data.columns if c not in curr_locked]
+                ]
+                results = f.format_dicts(data.itertuples())
+                results = [dict_merge({IDX_COL: i}, r) for i, r in enumerate(results)]
+            elif query_builder:
+                df = instance.load_data(
+                    query_builder=query_builder,
+                    columns=columns_to_load,
+                    # fmt: off
+                    **date_range
+                    # fmt: on
+                )
+                total = len(df)
+                df, _ = format_data(df)
+                df = df[curr_locked + [c for c in df.columns if c not in curr_locked]]
+                for sub_range in ids:
+                    sub_range = list(map(int, sub_range.split("-")))
+                    if len(sub_range) == 1:
+                        sub_df = df.iloc[sub_range[0] : sub_range[0] + 1]
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        results[sub_range[0]] = dict_merge(
+                            {IDX_COL: sub_range[0]}, sub_df[0]
+                        )
+                    else:
+                        [start, end] = sub_range
+                        sub_df = (
+                            df.iloc[start:]
+                            if end >= total - 1
+                            else df.iloc[start : end + 1]
+                        )
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        for i, d in zip(range(start, end + 1), sub_df):
+                            results[i] = dict_merge({IDX_COL: i}, d)
+            elif len(date_range):
+                df = instance.load_data(columns=columns_to_load, **date_range)
+                total = len(df)
+                df, _ = format_data(df)
+                df = df[curr_locked + [c for c in df.columns if c not in curr_locked]]
+                for sub_range in ids:
+                    sub_range = list(map(int, sub_range.split("-")))
+                    if len(sub_range) == 1:
+                        sub_df = df.iloc[sub_range[0] : sub_range[0] + 1]
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        results[sub_range[0]] = dict_merge(
+                            {IDX_COL: sub_range[0]}, sub_df[0]
+                        )
+                    else:
+                        [start, end] = sub_range
+                        sub_df = (
+                            df.iloc[start:]
+                            if end >= total - 1
+                            else df.iloc[start : end + 1]
+                        )
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        for i, d in zip(range(start, end + 1), sub_df):
+                            results[i] = dict_merge({IDX_COL: i}, d)
+            else:
+                for sub_range in ids:
+                    sub_range = list(map(int, sub_range.split("-")))
+                    if len(sub_range) == 1:
+                        sub_df = instance.load_data(
+                            row_range=[sub_range[0], sub_range[0] + 1],
+                            columns=columns_to_load,
+                        )
+                        sub_df, _ = format_data(sub_df)
+                        sub_df = sub_df[
+                            curr_locked
+                            + [c for c in sub_df.columns if c not in curr_locked]
+                        ]
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        results[sub_range[0]] = dict_merge(
+                            {IDX_COL: sub_range[0]}, sub_df[0]
+                        )
+                    else:
+                        [start, end] = sub_range
+                        sub_df = instance.load_data(
+                            row_range=[start, total if end >= total else end + 1],
+                            columns=columns_to_load,
+                        )
+                        sub_df, _ = format_data(sub_df)
+                        sub_df = sub_df[
+                            curr_locked
+                            + [c for c in sub_df.columns if c not in curr_locked]
+                        ]
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        for i, d in zip(range(start, end + 1), sub_df):
+                            results[i] = dict_merge({IDX_COL: i}, d)
+    else:
+        data = global_state.get_data(data_id)
+
+        # this will check for when someone instantiates D-Tale programmatically and directly alters the internal
+        # state of the dataframe (EX: d.data['new_col'] = 'foo')
+        curr_dtypes = [c["name"] for c in global_state.get_dtypes(data_id)]
+        if any(c not in curr_dtypes for c in data.columns):
+            data, _ = format_data(data)
+            data = data[curr_locked + [c for c in data.columns if c not in curr_locked]]
+            global_state.set_data(data_id, data)
+            global_state.set_dtypes(
+                data_id,
+                build_dtypes_state(data, global_state.get_dtypes(data_id) or []),
+            )
+
+        col_types = global_state.get_dtypes(data_id)
+        f = grid_formatter(
+            col_types, nan_display=curr_settings.get("nanDisplay", "nan")
+        )
+        if curr_settings.get("sortInfo") != params.get("sort"):
+            data = sort_df_for_grid(data, params)
+            global_state.set_data(data_id, data)
+        if params.get("sort") is not None:
+            curr_settings = dict_merge(curr_settings, dict(sortInfo=params["sort"]))
         else:
-            for sub_range in ids:
-                sub_range = list(map(int, sub_range.split("-")))
-                if len(sub_range) == 1:
-                    sub_df = data.iloc[sub_range[0] : sub_range[0] + 1]
-                    sub_df = f.format_dicts(sub_df.itertuples())
-                    results[sub_range[0]] = dict_merge(
-                        {IDX_COL: sub_range[0]}, sub_df[0]
-                    )
-                else:
-                    [start, end] = sub_range
-                    sub_df = (
-                        data.iloc[start:]
-                        if end >= len(data) - 1
-                        else data.iloc[start : end + 1]
-                    )
-                    sub_df = f.format_dicts(sub_df.itertuples())
-                    for i, d in zip(range(start, end + 1), sub_df):
-                        results[i] = dict_merge({IDX_COL: i}, d)
+            curr_settings = {k: v for k, v in curr_settings.items() if k != "sortInfo"}
+        filtered_indexes = []
+        data = run_query(
+            handle_predefined(data_id),
+            final_query,
+            global_state.get_context_variables(data_id),
+            ignore_empty=True,
+            highlight_filter=highlight_filter,
+        )
+        if highlight_filter:
+            data, filtered_indexes = data
+        global_state.set_settings(data_id, curr_settings)
+
+        total = len(data)
+        results = {}
+        if total:
+            if export:
+                export_rows = get_int_arg(request, "export_rows")
+                if export_rows:
+                    data = data.head(export_rows)
+                results = f.format_dicts(data.itertuples())
+                results = [dict_merge({IDX_COL: i}, r) for i, r in enumerate(results)]
+            else:
+                for sub_range in ids:
+                    sub_range = list(map(int, sub_range.split("-")))
+                    if len(sub_range) == 1:
+                        sub_df = data.iloc[sub_range[0] : sub_range[0] + 1]
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        results[sub_range[0]] = dict_merge(
+                            {IDX_COL: sub_range[0]}, sub_df[0]
+                        )
+                        if highlight_filter and sub_range[0] in filtered_indexes:
+                            results[sub_range[0]]["__filtered"] = True
+                    else:
+                        [start, end] = sub_range
+                        sub_df = (
+                            data.iloc[start:]
+                            if end >= total - 1
+                            else data.iloc[start : end + 1]
+                        )
+                        sub_df = f.format_dicts(sub_df.itertuples())
+                        for i, d in zip(range(start, end + 1), sub_df):
+                            results[i] = dict_merge({IDX_COL: i}, d)
+                            if highlight_filter and i in filtered_indexes:
+                                results[i]["__filtered"] = True
     columns = [
         dict(name=IDX_COL, dtype="int64", visible=True)
     ] + global_state.get_dtypes(data_id)
     return_data = dict(
-        results=results, columns=columns, total=total, final_query=final_query
+        results=results,
+        columns=columns,
+        total=total,
+        final_query=None if highlight_filter else final_query,
     )
 
     if export:
@@ -2517,14 +2946,14 @@ def get_data(data_id):
 
 
 def export_html(data_id, return_data):
-    def load_file(fpath):
-        with open(
-            os.path.join(os.path.dirname(__file__), "static/{}".format(fpath)), "r"
-        ) as file:
-            return file.read()
+    def load_file(fpath, encoding="utf-8"):
+        return read_file(
+            os.path.join(os.path.dirname(__file__), "static/{}".format(fpath)),
+            encoding=encoding,
+        )
 
-    istok_woff = load_file("fonts/istok_woff64.txt")
-    istok_bold_woff = load_file("fonts/istok-bold_woff64.txt")
+    istok_woff = load_file("fonts/istok_woff64.txt", encoding=None)
+    istok_bold_woff = load_file("fonts/istok-bold_woff64.txt", encoding=None)
 
     font_styles = (
         """
@@ -2548,19 +2977,19 @@ def export_html(data_id, return_data):
         """
     )
 
-    main_styles = load_file("css/main.css").split("\n")
+    main_styles = load_file("css/main.css", encoding="utf-8" if PY3 else None).split(
+        "\n"
+    )
     main_styles = "\n".join(main_styles[28:])
     main_styles = "{}\n{}\n".format(font_styles, main_styles)
+
+    if not PY3:
+        main_styles = main_styles.decode("utf-8")
 
     return_data["results"] = {r[IDX_COL]: r for r in return_data["results"]}
 
     polyfills_js = load_file("dist/polyfills_bundle.js")
     export_js = load_file("dist/export_bundle.js")
-
-    if not PY3:
-        main_styles = main_styles.decode("utf-8")
-        polyfills_js = polyfills_js.decode("utf-8")
-        export_js = export_js.decode("utf-8")
 
     return send_file(
         base_render_template(
@@ -2673,6 +3102,133 @@ def get_column_analysis(data_id):
     return jsonify(**analysis.build())
 
 
+@matplotlib_decorator
+def build_correlations_matrix_image(
+    data,
+    is_pps,
+    valid_corr_cols,
+    valid_str_corr_cols,
+    valid_date_cols,
+    dummy_col_mappings,
+    pps_data,
+    code,
+):
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
+    plt.figure(figsize=(20, 12))
+    ax0 = plt.gca()
+    cmap = "Blues" if is_pps else "RdYlGn"
+    vmin = 0.0 if is_pps else -1.0
+    sns.heatmap(
+        data.mask(data.apply(lambda x: x.name == x.index)),
+        ax=ax0,
+        vmin=vmin,
+        vmax=1.0,
+        xticklabels=True,
+        yticklabels=True,
+        cmap=cmap,
+    )
+    output = BytesIO()
+    FigureCanvas(ax0.get_figure()).print_png(output)
+    return (
+        valid_corr_cols,
+        valid_str_corr_cols,
+        valid_date_cols,
+        dummy_col_mappings,
+        pps_data,
+        code,
+        output.getvalue(),
+    )
+
+
+def build_correlations_matrix(data_id, is_pps=False, encode_strings=False, image=False):
+    curr_settings = global_state.get_settings(data_id) or {}
+    data = run_query(
+        handle_predefined(data_id),
+        build_query(data_id, curr_settings.get("query")),
+        global_state.get_context_variables(data_id),
+    )
+    valid_corr_cols, valid_str_corr_cols, valid_date_cols = correlations.get_col_groups(
+        data_id, data
+    )
+
+    str_encodings_code = ""
+    dummy_col_mappings = {}
+    if encode_strings and valid_str_corr_cols:
+        data = data[valid_corr_cols + valid_str_corr_cols]
+        dummy_kwargs = {}
+        if pandas_util.is_pandas2():
+            dummy_kwargs["dtype"] = "int"
+        for str_col in valid_str_corr_cols:
+            dummies = pd.get_dummies(data[[str_col]], columns=[str_col], **dummy_kwargs)
+            dummy_cols = list(dummies.columns)
+            dummy_col_mappings[str_col] = dummy_cols
+            data[dummy_cols] = dummies
+            valid_corr_cols += dummy_cols
+        str_encodings_code = (
+            "str_corr_cols = [\n\t'{valid_str_corr_cols}'\n]\n"
+            "dummies = pd.get_dummies(corr_data, str_corr_cols)\n"
+            "corr_data.loc[:, dummies.columns] = dummies\n"
+        ).format(valid_str_corr_cols="', '".join(valid_str_corr_cols))
+    else:
+        data = data[valid_corr_cols]
+
+    corr_cols_str = "'\n\t'".join(
+        ["', '".join(chunk) for chunk in divide_chunks(valid_corr_cols, 8)]
+    )
+
+    pps_data = None
+    if is_pps:
+        code = build_code_export(data_id, imports="import ppscore\n")
+        code.append(
+            (
+                "corr_cols = [\n"
+                "\t'{corr_cols}'\n"
+                "]\n"
+                "corr_data = df[corr_cols]\n"
+                "{str_encodings}"
+                "corr_data = ppscore.matrix(corr_data)\n"
+            ).format(corr_cols=corr_cols_str, str_encodings=str_encodings_code)
+        )
+
+        data, pps_data = get_ppscore_matrix(data[valid_corr_cols])
+    else:
+        data, matrix_code = correlations.build_matrix(
+            data_id,
+            data,
+            valid_corr_cols,
+            {"corr_cols": corr_cols_str, "str_encodings": str_encodings_code},
+        )
+        code = [matrix_code]
+
+    code.append(
+        "corr_data.index.name = str('column')\ncorr_data = corr_data.reset_index()"
+    )
+    code = "\n".join(code)
+    data.index.name = str("column")
+    if image:
+        return build_correlations_matrix_image(
+            data,
+            is_pps,
+            valid_corr_cols,
+            valid_str_corr_cols,
+            valid_date_cols,
+            dummy_col_mappings,
+            pps_data,
+            code,
+        )
+    return (
+        valid_corr_cols,
+        valid_str_corr_cols,
+        valid_date_cols,
+        dummy_col_mappings,
+        pps_data,
+        code,
+        data,
+    )
+
+
 @dtale.route("/correlations/<data_id>")
 @exception_decorator
 def get_correlations(data_id):
@@ -2690,66 +3246,28 @@ def get_correlations(data_id):
         data: [{column: col1, col1: 1.0, col2: 0.99, colN: 0.45},...,{column: colN, col1: 0.34, col2: 0.88, colN: 1.0}],
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
-    curr_settings = global_state.get_settings(data_id) or {}
-    data = run_query(
-        handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
-        global_state.get_context_variables(data_id),
+    is_pps = get_bool_arg(request, "pps")
+    image = get_bool_arg(request, "image")
+    matrix_data = build_correlations_matrix(
+        data_id,
+        is_pps=is_pps,
+        encode_strings=get_bool_arg(request, "encodeStrings"),
+        image=image,
     )
-    valid_corr_cols, valid_str_corr_cols, valid_date_cols = correlations.get_col_groups(
-        data_id, data
-    )
+    (
+        valid_corr_cols,
+        valid_str_corr_cols,
+        valid_date_cols,
+        dummy_col_mappings,
+        pps_data,
+        code,
+        df_or_image,
+    ) = matrix_data
+    if image:
+        fname = "{}.png".format("predictive_power_score" if is_pps else "correlations")
+        return send_file(df_or_image, fname, "image/png")
 
-    str_encodings_code = ""
-    dummy_col_mappings = {}
-    if get_bool_arg(request, "encodeStrings") and valid_str_corr_cols:
-        data = data[valid_corr_cols + valid_str_corr_cols]
-        for str_col in valid_str_corr_cols:
-            dummies = pd.get_dummies(data[[str_col]], columns=[str_col])
-            dummy_cols = list(dummies.columns)
-            dummy_col_mappings[str_col] = dummy_cols
-            data[dummy_cols] = dummies
-            valid_corr_cols += dummy_cols
-        str_encodings_code = (
-            "str_corr_cols = [\n\t'{valid_str_corr_cols}'\n]\n"
-            "dummies = pd.get_dummies(corr_data, str_corr_cols)\n"
-            "corr_data.loc[:, dummies.columns] = dummies\n"
-        ).format(valid_str_corr_cols="', '".join(valid_str_corr_cols))
-    else:
-        data = data[valid_corr_cols]
-
-    corr_cols_str = "'\n\t'".join(
-        ["', '".join(chunk) for chunk in divide_chunks(valid_corr_cols, 8)]
-    )
-    pps_data = None
-    if get_bool_arg(request, "pps"):
-        code = build_code_export(data_id, imports="import ppscore\n")
-        code.append(
-            (
-                "corr_cols = [\n"
-                "\t'{corr_cols}'\n"
-                "]\n"
-                "corr_data = df[corr_cols]\n"
-                "{str_encodings}"
-                "corr_data = ppscore.matrix(corr_data)\n"
-            ).format(corr_cols=corr_cols_str, str_encodings=str_encodings_code)
-        )
-
-        data, pps_data = get_ppscore_matrix(data[valid_corr_cols])
-    else:
-        data, matrix_code = correlations.build_matrix(data_id, data, valid_corr_cols)
-        code = [
-            matrix_code.format(
-                corr_cols=corr_cols_str, str_encodings=str_encodings_code
-            )
-        ]
-
-    code.append(
-        "corr_data.index.name = str('column')\ncorr_data = corr_data.reset_index()"
-    )
-    code = "\n".join(code)
-    data.index.name = str("column")
-    data = data.reset_index()
+    data = df_or_image.reset_index()
     col_types = grid_columns(data)
     f = grid_formatter(col_types, nan_display=None)
     return jsonify(
@@ -2824,8 +3342,10 @@ def get_chart_data(data_id):
 
 
 def get_ppscore(df, col1, col2):
+    if not PY3:
+        return None
     try:
-        import ppscore
+        import dtale.ppscore as ppscore
 
         pps = ppscore.score(df, col1, col2)
         pps["model"] = pps["model"].__str__()
@@ -2838,8 +3358,10 @@ def get_ppscore(df, col1, col2):
 
 
 def get_ppscore_matrix(df):
+    if not PY3:
+        return [], None
     try:
-        import ppscore
+        import dtale.ppscore as ppscore
 
         pps_data = ppscore.matrix(df)
         data = (
@@ -2858,7 +3380,10 @@ def get_ppscore_matrix(df):
 def update_df_for_encoded_strings(df, dummy_cols, cols, code):
     if not dummy_cols:
         return df
-    dummies = pd.get_dummies(df[dummy_cols], columns=dummy_cols)
+    dummy_kwargs = {}
+    if pandas_util.is_pandas2():
+        dummy_kwargs["dtype"] = "int"
+    dummies = pd.get_dummies(df[dummy_cols], columns=dummy_cols, **dummy_kwargs)
     dummies = dummies[[c for c in dummies.columns if c in cols]]
     df[dummies.columns] = dummies
 
@@ -3183,6 +3708,7 @@ def get_filter_info(data_id):
             "outlierFilters",
             "predefinedFilters",
             "invertFilter",
+            "highlightFilter",
         ]
     }
     return jsonify(contextVars=ctxt_vars, success=True, **curr_settings)
@@ -3274,6 +3800,17 @@ def chart_export(data_id):
     return send_file(output, filename, content_type)
 
 
+@dtale.route("/chart-export-all/<data_id>")
+@exception_decorator
+def chart_export_all(data_id):
+    params = chart_url_params(request.args.to_dict())
+    params["export_all"] = True
+    output = export_chart(data_id, params)
+    filename = build_chart_filename(params["chart_type"])
+    content_type = "text/html"
+    return send_file(output, filename, content_type)
+
+
 @dtale.route("/chart-csv-export/<data_id>")
 @exception_decorator
 def chart_csv_export(data_id):
@@ -3320,6 +3857,23 @@ def handle_excel_upload(dfs):
 UPLOAD_SEPARATORS = {"comma": ",", "tab": "\t", "colon": ":", "pipe": "|"}
 
 
+def build_csv_kwargs(request):
+    # Set engine to python to auto detect delimiter...
+    kwargs = {"sep": None}
+    sep_type = request.form.get("separatorType")
+
+    if sep_type in UPLOAD_SEPARATORS:
+        kwargs["sep"] = UPLOAD_SEPARATORS[sep_type]
+    elif sep_type == "custom" and request.form.get("separator"):
+        kwargs["sep"] = request.form["separator"]
+        kwargs["sep"] = str(kwargs["sep"]) if PY3 else kwargs["sep"].encode("utf8")
+
+    if "header" in request.form:
+        kwargs["header"] = 0 if request.form["header"] == "true" else None
+
+    return kwargs
+
+
 @dtale.route("/upload", methods=["POST"])
 @exception_decorator
 def upload():
@@ -3329,19 +3883,7 @@ def upload():
         contents = request.files[filename]
         _, ext = os.path.splitext(filename)
         if ext in [".csv", ".tsv"]:
-            # Set engine to python to auto detect delimiter...
-            kwargs = {"sep": None}
-            sep_type = request.form.get("separatorType")
-            if sep_type in UPLOAD_SEPARATORS:
-                kwargs["sep"] = UPLOAD_SEPARATORS[sep_type]
-            elif sep_type == "custom" and request.form.get("separator"):
-                kwargs["sep"] = request.form["separator"]
-                kwargs["sep"] = (
-                    str(kwargs["sep"]) if PY3 else kwargs["sep"].encode("utf8")
-                )
-
-            if "header" in request.form:
-                kwargs["header"] = 0 if request.form["header"] == "true" else None
+            kwargs = build_csv_kwargs(request)
             df = pd.read_csv(
                 StringIO(contents.read().decode()), engine="python", **kwargs
             )
@@ -3498,7 +4040,8 @@ def network_data(data_id):
     edges.columns = ["to", "from"]
     if weight:
         edges.loc[:, "value"] = df[weight]
-    edges = edges.to_dict(orient="records")
+    edge_f = grid_formatter(grid_columns(edges), nan_display="nan")
+    edges = edge_f.format_dicts(edges.itertuples())
 
     def build_mapping(col):
         if col:
@@ -3608,8 +4151,10 @@ def build_merge():
 
 
 @dtale.route("/missingno/<chart_type>/<data_id>")
+@matplotlib_decorator
 @exception_decorator
 def build_missingno_chart(chart_type, data_id):
+    from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
     df = global_state.get_data(data_id)
     if chart_type == "matrix":
@@ -3639,6 +4184,14 @@ def build_missingno_chart(chart_type, data_id):
 def drop_filtered_rows(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
     final_query = build_query(data_id, curr_settings.get("query"))
+    curr_history = global_state.get_history(data_id) or []
+    curr_history += [
+        (
+            "# drop filtered rows\n"
+            'df = df.query("{}")'.format(final_query.replace("`", ""))
+        )
+    ]
+    global_state.set_history(data_id, curr_history)
     data = run_query(
         handle_predefined(data_id),
         final_query,
@@ -3648,7 +4201,7 @@ def drop_filtered_rows(data_id):
     global_state.set_data(data_id, data)
     global_state.set_dtypes(data_id, build_dtypes_state(data, []))
     curr_predefined = curr_settings.get("predefinedFilters", {})
-    _update_settings(
+    global_state.update_settings(
         data_id,
         dict(
             query="",
@@ -3668,7 +4221,7 @@ def drop_filtered_rows(data_id):
 def move_filters_to_custom(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
     query = build_query(data_id, curr_settings.get("query"))
-    _update_settings(
+    global_state.update_settings(
         data_id,
         {
             "columnFilters": {},
@@ -3724,3 +4277,129 @@ def get_timeseries_analysis(data_id):
     ts_rpt = TimeseriesAnalysis(data_id, report_type, cfg)
     data = ts_rpt.run()
     return jsonify(dict_merge(dict(success=True), data))
+
+
+@dtale.route("/arcticdb/libraries")
+@exception_decorator
+def get_arcticdb_libraries():
+    if get_bool_arg(request, "refresh"):
+        global_state.store.load_libraries()
+
+    libraries = global_state.store.libraries
+    is_async = False
+    if len(libraries) > 500:
+        is_async = True
+        libraries = libraries[:5]
+    ret_data = {"success": True, "libraries": libraries, "async": is_async}
+    if global_state.store.lib is not None:
+        ret_data["library"] = global_state.store.lib.name
+    return jsonify(ret_data)
+
+
+@dtale.route("/arcticdb/async-libraries")
+@exception_decorator
+def get_async_arcticdb_libraries():
+    libraries = global_state.store.libraries
+    input = get_str_arg(request, "input")
+    vals = list(
+        itertools.islice((option(lib) for lib in libraries if lib.startswith(input)), 5)
+    )
+    return jsonify(vals)
+
+
+@dtale.route("/arcticdb/<library>/symbols")
+@exception_decorator
+def get_arcticdb_symbols(library):
+    if get_bool_arg(request, "refresh") or library not in global_state.store._symbols:
+        global_state.store.load_symbols(library)
+
+    symbols = global_state.store._symbols[library]
+    is_async = False
+    if len(symbols) > 500:
+        is_async = True
+        symbols = symbols[:5]
+    return jsonify({"success": True, "symbols": symbols, "async": is_async})
+
+
+@dtale.route("/arcticdb/<library>/async-symbols")
+@exception_decorator
+def get_async_arcticdb_symbols(library):
+    symbols = global_state.store._symbols[library]
+    input = get_str_arg(request, "input")
+    vals = list(
+        itertools.islice((option(sym) for sym in symbols if sym.startswith(input)), 5)
+    )
+    return jsonify(vals)
+
+
+@dtale.route("/arcticdb/load-description")
+@exception_decorator
+def load_arcticdb_description():
+    from arcticc.pb2.descriptors_pb2 import _TYPEDESCRIPTOR_VALUETYPE
+
+    library = get_str_arg(request, "library")
+    symbol = get_str_arg(request, "symbol")
+
+    lib = global_state.store.conn[library]
+    description = lib.get_description(symbol)
+
+    columns = list(
+        map(
+            lambda c: "{} ({})".format(
+                c.name, _TYPEDESCRIPTOR_VALUETYPE.values[c.dtype.value_type].name
+            ),
+            sorted(description.columns, key=lambda c: c.name),
+        )
+    )
+    index = list(
+        map(
+            lambda i: "{} ({})".format(
+                i[0], _TYPEDESCRIPTOR_VALUETYPE.values[i[1].value_type].name
+            ),
+            zip(description.index.name, description.index.dtype),
+        )
+    )
+    rows = description.row_count
+
+    description_str = (
+        "ROWS: {rows:,.0f}\n"
+        "INDEX:\n"
+        "\t- {index}\n"
+        "COLUMNS ({col_count}):\n"
+        "\t- {columns}\n"
+    ).format(
+        rows=rows,
+        index="\n\t- ".join(index),
+        col_count=len(columns),
+        columns="\n\t- ".join(columns),
+    )
+    return jsonify(
+        dict(success=True, library=library, symbol=symbol, description=description_str)
+    )
+
+
+@dtale.route("/arcticdb/load-symbol")
+@exception_decorator
+def load_arcticdb_symbol():
+    library = get_str_arg(request, "library")
+    symbol = get_str_arg(request, "symbol")
+    data_id = "{}|{}".format(library, symbol)
+
+    if not global_state.store.lib or global_state.store.lib.name != library:
+        global_state.store.update_library(library)
+
+    startup(data=data_id)
+    startup_code = (
+        "from arcticdb import Arctic\n"
+        "from arcticdb.version_store._store import VersionedItem\n\n"
+        "conn = Arctic('{uri}')\n"
+        "lib = conn.get_library('{library}')\n"
+        "df = lib.read('{symbol}')\n"
+        "if isinstance(data, VersionedItem):\n"
+        "\tdf = df.data\n"
+    ).format(uri=global_state.store.uri, library=library, symbol=symbol)
+    curr_settings = global_state.get_settings(data_id)
+    global_state.set_settings(
+        data_id, dict_merge(curr_settings, dict(startup_code=startup_code))
+    )
+    return dict(success=True, data_id=data_id)

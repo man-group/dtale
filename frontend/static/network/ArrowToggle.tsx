@@ -11,7 +11,7 @@ interface ArrowToggleProps {
 }
 
 export const ArrowToggle: React.FC<ArrowToggleProps & WithTranslation> = ({ updateArrows, to, from, t }) => (
-  <div className="col-auto pl-0">
+  <div className="col-auto pl-0" data-testid="arrow-toggle">
     <b>{t('Arrows')}</b>
     <div className="btn-group compact col-auto">
       <button className={`btn btn-primary ${to ? 'active' : 'inactive'}`} onClick={() => updateArrows({ to: !to })}>

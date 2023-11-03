@@ -112,7 +112,7 @@ const Aggregations: React.FC<AggregationsProps & WithTranslation> = ({
           />
         </div>
       </div>
-      ,{renderRolling()}
+      {renderRolling()}
     </React.Fragment>
   );
 };

@@ -38,13 +38,13 @@ describe('CreateReplacement buildCode tests', () => {
     cfg.value = 'foo';
     code = buildStringsCode('foo', 'string', cfg);
     expect(code?.slice(2)).toStrictEqual([
-      `regex_pat = re.compile(r'^ *' + re.escape('foo') + ' *$', flags=re.UNICODE)`,
+      `regex_pat = re.compile(r'^.*' + re.escape('foo') + '.*$', flags=re.UNICODE)`,
       `df.loc[:, 'foo'] = df['foo'].replace(regex_pat, np.nan, regex=True)`,
     ]);
     cfg = { value: 'f', isChar: true, ignoreCase: true, replace: 'bizz' };
     code = buildStringsCode('foo', 'string', cfg);
     expect(code?.slice(2)).toStrictEqual([
-      `regex_pat = re.compile(r'^ *[' + re.escape('f') + ']+ *$', flags=re.UNICODE | re.IGNORECASE)`,
+      `regex_pat = re.compile(r'^.*[' + re.escape('f') + ']+.*$', flags=re.UNICODE | re.IGNORECASE)`,
       `df.loc[:, 'foo'] = df['foo'].replace(regex_pat, 'bizz', regex=True)`,
     ]);
   });

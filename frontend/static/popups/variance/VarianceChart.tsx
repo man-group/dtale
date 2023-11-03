@@ -1,8 +1,10 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 
-import { AppState, VariancePopupData } from '../../redux/state/AppState';
+import { selectChartData, selectDataId } from '../../redux/selectors';
+import { VariancePopupData } from '../../redux/state/AppState';
 import { AnalysisState, AnalysisType } from '../analysis/ColumnAnalysisState';
 import { dataLoader } from '../analysis/columnAnalysisUtils';
 import TextEnterFilter from '../analysis/filters/TextEnterFilter';
@@ -13,11 +15,13 @@ interface VarianceChartProps {
   filtered: boolean;
 }
 
+const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({
+  dataId,
+  chartData: chartData as VariancePopupData,
+}));
+
 const VarianceChart: React.FC<VarianceChartProps & WithTranslation> = ({ height = 400, filtered, t }) => {
-  const { dataId, chartData } = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    chartData: state.chartData as VariancePopupData,
-  }));
+  const { dataId, chartData } = useSelector(selectResult);
   const [bins, setBins] = React.useState(20);
   const [error, setError] = React.useState<JSX.Element>();
   const [chart, setChart] = React.useState<JSX.Element>();

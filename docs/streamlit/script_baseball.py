@@ -26,7 +26,7 @@ CSS = """
       width: 100%;
       border: none;
     }
-    .reportview-container .main .block-container {
+    .main .block-container {
       max-width: inherit;
       padding: 1rem 1.5rem 1rem 1.5rem;
     }
@@ -88,9 +88,8 @@ def load_player_suggestions(input):
 
 
 def parse_player_df(content):
-    name = content.select("h1[itemprop=name]")[0].text.strip()
-    standard_batting = content.find(id="div_batting_standard")
-    standard_batting_tbl = standard_batting.find("table")
+    name = content.select_one("#info").select_one("h1").text.strip()
+    standard_batting_tbl = content.find(id="batting_standard")
 
     standard_batting_data = []
     headers = [
@@ -136,6 +135,7 @@ def build_chart_url(names):
         "x": "Season",
         "y": json.dumps(["HR"]),
         "group": json.dumps(["name"]),
+        "group_type": "groups",
         "group_val": json.dumps([{"name": name} for name in names]),
     }
     return "/dtale/charts/1?{}".format(urllib.parse.urlencode(params))
@@ -154,7 +154,9 @@ def load_iframes():
             '<h3 style="padding-top: 10px">Data For: {}</h3>'
             '<iframe class="grid" src="/dtale/main/1?_id={}"/>'
         ).format(name_str, uuid.uuid4().hex)
-        charts = '<iframe class="chart" src="{}&_id={}" />'.format(chart_url, uuid.uuid4().hex)
+        charts = '<iframe class="chart" src="{}&_id={}" />'.format(
+            chart_url, uuid.uuid4().hex
+        )
         return grid, charts
     return "", ""
 

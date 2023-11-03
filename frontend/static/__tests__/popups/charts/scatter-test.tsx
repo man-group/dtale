@@ -1,48 +1,33 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
-import { getLastChart } from '../../test-utils';
+import { getLastChart, selectOption } from '../../test-utils';
 
 import * as TestSupport from './charts.test.support';
 
 describe('Charts scatter tests', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
 
   beforeAll(() => spies.beforeAll());
 
   beforeEach(async () => {
     spies.setupMockImplementations();
-    result = await spies.setupCharts();
+    await spies.setupCharts();
   });
 
   afterAll(() => spies.afterAll());
 
   it('Charts: rendering', async () => {
-    const filters = result.find(Select);
+    await selectOption(screen.getByText('X').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col4');
+    await selectOption(screen.getByText('Y').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await spies.updateChartType('scatter');
     await act(async () => {
-      filters
-        .first()
-        .props()
-        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
-      filters
-        .at(1)
-        .props()
-        .onChange?.([{ value: 'col1' }], {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Load'));
     });
-    result = result.update();
-    result = await spies.updateChartType(result, 'scatter');
-    await act(async () => {
-      result.find('button').first().simulate('click');
-    });
-    result = result.update();
     expect(getLastChart(spies.createChartSpy).type).toBe('scatter');
-    result = await spies.updateChartType(result, 'bar');
+    await spies.updateChartType('bar');
     await act(async () => {
-      result.find('button').first().simulate('click');
+      await fireEvent.click(screen.getByText('Load'));
     });
-    result = result.update();
     expect(getLastChart(spies.createChartSpy).type).toBe('bar');
   });
 });

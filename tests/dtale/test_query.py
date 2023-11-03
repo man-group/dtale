@@ -3,6 +3,7 @@ import pytest
 from six import PY3
 
 import dtale.query as query
+from dtale.pandas_util import check_pandas_version
 
 
 @pytest.mark.unit
@@ -14,7 +15,7 @@ def test_run_query():
 
     assert len(query.run_query(df, "`a` in @a", {"a": [1, 2, 3]})) == 3
 
-    if PY3:
+    if PY3 and check_pandas_version("0.25.0"):
         df = pd.DataFrame(
             [
                 {"a.b": 1, "b": 2, "c": 3},

@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 
@@ -9,7 +10,7 @@ import { BaseCreateComponentProps, CreateColumnType, CreateColumnUpdateState, Cu
 
 export const validateCumsumCfg = (t: TFunction, cfg: CumsumConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Please select a column!');
+    return t('Please select a column!') ?? undefined;
   }
   return undefined;
 };

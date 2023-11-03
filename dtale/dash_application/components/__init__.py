@@ -9,6 +9,8 @@ import dash as _dash
 from ._imports_ import *  # noqa: F401,F403
 from ._imports_ import __all__
 
+from dtale.utils import read_file
+
 if not hasattr(_dash, "development"):
     print(
         "Dash was not successfully imported. "
@@ -20,8 +22,7 @@ if not hasattr(_dash, "development"):
 
 _basepath = _os.path.dirname(__file__)
 _filepath = _os.path.abspath(_os.path.join(_basepath, "package-info.json"))
-with open(_filepath) as f:
-    package = json.load(f)
+package = json.loads(read_file(_filepath))
 
 package_name = package["name"].replace(" ", "_").replace("-", "_")
 __version__ = package["version"]

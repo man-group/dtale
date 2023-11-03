@@ -9,7 +9,7 @@ interface JSAnchorProps {
 }
 
 /** Wrapper class for setting onClick on HTML anchor tags */
-export const JSAnchor: React.FC<JSAnchorProps> = ({ onClick, children, ...otherProps }) => {
+export const JSAnchor: React.FC<React.PropsWithChildren<JSAnchorProps>> = ({ onClick, children, ...otherProps }) => {
   /**
    * Click handler which executes any onClick function provided in component properties.
    *

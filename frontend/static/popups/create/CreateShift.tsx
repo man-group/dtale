@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { getDtype, isStringCol } from '../../dtale/gridUtils';
 import { BaseOption } from '../../redux/state/AppState';
@@ -11,7 +12,7 @@ import { LabeledInput } from './LabeledInput';
 
 export const validateShiftCfg = (t: TFunction, cfg: ShiftConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Please select a column!');
+    return t('Please select a column!') ?? undefined;
   }
   return undefined;
 };

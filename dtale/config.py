@@ -1,6 +1,7 @@
 import json
 import os
 
+from six import string_types
 from six.moves.configparser import ConfigParser
 
 import dtale.global_state as global_state
@@ -53,18 +54,10 @@ def load_app_settings(config):
     )
     language = get_config_val(config, curr_app_settings, "language", section="app")
     github_fork = get_config_val(
-        config,
-        curr_app_settings,
-        "github_fork",
-        section="app",
-        getter="getboolean",
+        config, curr_app_settings, "github_fork", section="app", getter="getboolean"
     )
     hide_shutdown = get_config_val(
-        config,
-        curr_app_settings,
-        "hide_shutdown",
-        section="app",
-        getter="getboolean",
+        config, curr_app_settings, "hide_shutdown", section="app", getter="getboolean"
     )
     max_column_width = get_config_val(
         config, curr_app_settings, "max_column_width", section="app", getter="getint"
@@ -78,6 +71,48 @@ def load_app_settings(config):
     )
     query_engine = get_config_val(
         config, curr_app_settings, "query_engine", section="app"
+    )
+    hide_header_editor = get_config_val(
+        config,
+        curr_app_settings,
+        "hide_header_editor",
+        section="app",
+        getter="getboolean",
+    )
+    hide_header_menu = get_config_val(
+        config,
+        curr_app_settings,
+        "hide_header_menu",
+        section="app",
+        getter="getboolean",
+    )
+    hide_main_menu = get_config_val(
+        config,
+        curr_app_settings,
+        "hide_main_menu",
+        section="app",
+        getter="getboolean",
+    )
+    hide_column_menus = get_config_val(
+        config,
+        curr_app_settings,
+        "hide_column_menus",
+        section="app",
+        getter="getboolean",
+    )
+    lock_header_menu = get_config_val(
+        config,
+        curr_app_settings,
+        "lock_header_menu",
+        section="app",
+        getter="getboolean",
+    )
+    enable_custom_filters = get_config_val(
+        config,
+        curr_app_settings,
+        "enable_custom_filters",
+        section="app",
+        getter="getboolean",
     )
     open_custom_filter_on_startup = get_config_val(
         config,
@@ -94,11 +129,7 @@ def load_app_settings(config):
         getter="getboolean",
     )
     hide_drop_rows = get_config_val(
-        config,
-        curr_app_settings,
-        "hide_drop_rows",
-        section="app",
-        getter="getboolean",
+        config, curr_app_settings, "hide_drop_rows", section="app", getter="getboolean"
     )
 
     global_state.set_app_settings(
@@ -116,6 +147,12 @@ def load_app_settings(config):
             open_custom_filter_on_startup=open_custom_filter_on_startup,
             open_predefined_filters_on_startup=open_predefined_filters_on_startup,
             hide_drop_rows=hide_drop_rows,
+            hide_header_editor=hide_header_editor,
+            lock_header_menu=lock_header_menu,
+            hide_header_menu=hide_header_menu,
+            hide_main_menu=hide_main_menu,
+            hide_column_menus=hide_column_menus,
+            enable_custom_filters=enable_custom_filters,
         )
     )
 
@@ -147,16 +184,11 @@ def load_auth_settings(config):
     password = get_config_val(config, curr_auth_settings, "password", section="auth")
 
     global_state.set_auth_settings(
-        dict(
-            active=active,
-            username=username,
-            password=password,
-        )
+        dict(active=active, username=username, password=password)
     )
 
 
 def build_show_options(options=None):
-
     defaults = dict(
         host=None,
         port=None,
@@ -181,6 +213,16 @@ def build_show_options(options=None):
         background_mode=None,
         range_highlights=None,
         vertical_headers=False,
+        hide_shutdown=None,
+        column_edit_options=None,
+        auto_hide_empty_columns=False,
+        highlight_filter=False,
+        hide_header_editor=None,
+        lock_header_menu=None,
+        hide_header_menu=None,
+        hide_main_menu=None,
+        hide_column_menus=None,
+        enable_custom_filters=None,
     )
     config_options = {}
     config = get_config()
@@ -210,8 +252,18 @@ def build_show_options(options=None):
         )
         config_options["app_root"] = get_config_val(config, defaults, "app_root")
         config_options["allow_cell_edits"] = get_config_val(
-            config, defaults, "allow_cell_edits", "getboolean"
+            config, defaults, "allow_cell_edits"
         )
+        if isinstance(config_options["allow_cell_edits"], string_types):
+            if config_options["allow_cell_edits"] == "True":
+                config_options["allow_cell_edits"] = True
+            elif config_options["allow_cell_edits"] == "False":
+                config_options["allow_cell_edits"] = False
+            else:
+                config_options["allow_cell_edits"] = config_options[
+                    "allow_cell_edits"
+                ].split(",")
+
         config_options["inplace"] = get_config_val(
             config, defaults, "inplace", "getboolean"
         )
@@ -259,6 +311,19 @@ def build_show_options(options=None):
             )
         config_options["vertical_headers"] = get_config_val(
             config, defaults, "vertical_headers", "getboolean"
+        )
+        config_options["column_edit_options"] = get_config_val(
+            config, defaults, "column_edit_options"
+        )
+        if config_options["column_edit_options"]:
+            config_options["column_edit_options"] = json.loads(
+                config_options["column_edit_options"]
+            )
+        config_options["auto_hide_empty_columns"] = get_config_val(
+            config, defaults, "auto_hide_empty_columns", "getboolean"
+        )
+        config_options["highlight_filter"] = get_config_val(
+            config, defaults, "highlight_filter", "getboolean"
         )
 
     return dict_merge(defaults, config_options, options)

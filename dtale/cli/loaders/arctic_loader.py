@@ -14,9 +14,9 @@ logger = getLogger(__name__)
 NOW = pd.Timestamp("now").strftime("%Y%m%d")
 LOADER_KEY = "arctic"
 LOADER_PROPS = [
-    dict(name="host", help="arctic hostname"),
+    dict(name=["host", "uri"], help="arctic URI"),
     dict(name="library", help="library within --arctic-host"),
-    dict(name="node", help="node within --arctic-library"),
+    dict(name=["symbol", "node"], help="symbol within --arctic-library"),
     dict(
         name="start",
         help="start-date of range to load if reading from ChunkStore (EX: {})".format(
@@ -43,13 +43,13 @@ def loader_func(**kwargs):
         from arctic.store.versioned_item import VersionedItem
     except ImportError:
         raise ImportError("In order to use the arctic loader you must install arctic!")
-    host = Arctic(kwargs.get("host"))
+    host = Arctic(kwargs.get("arctic_host") or kwargs.get("host"))
     lib = host.get_library(kwargs.get("library"))
     read_kwargs = {}
     start, end = (kwargs.get(p) for p in ["start", "end"])
     if start and end:
         read_kwargs["chunk_range"] = pd.date_range(start, end)
-    data = lib.read(kwargs.get("node"), **read_kwargs)
+    data = lib.read(kwargs.get("symbol"), **read_kwargs)
     if isinstance(data, VersionedItem):
         data = data.data
     return data

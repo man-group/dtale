@@ -11,18 +11,19 @@ interface DtaleSelectProps {
   value?: BaseOption<any> | Array<BaseOption<any>>;
   onChange?: (state: BaseOption<any> | Array<BaseOption<any>> | undefined) => void;
   noOptionsMessage?: string;
-  placeholder?: string;
+  placeholder?: string | null;
+  menuPortalTarget?: boolean;
 }
 
 export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
-  ({ options, value, onChange, noOptionsMessage, isMulti, isClearable, placeholder }, ref) => (
+  ({ options, value, onChange, noOptionsMessage, isMulti, isClearable, placeholder, menuPortalTarget }, ref) => (
     <Select
       ref={ref as any}
       className="Select is-clearable is-searchable Select--single"
       classNamePrefix="Select"
       options={options}
-      getOptionLabel={(option) => option?.label ?? option.value}
-      getOptionValue={(option) => option.value}
+      getOptionLabel={(option: BaseOption<any>) => option?.label ?? option.value}
+      getOptionValue={(option: BaseOption<any>) => option.value}
       {...(onChange
         ? {
             value,
@@ -35,6 +36,8 @@ export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
       isMulti={isMulti}
       isClearable={isClearable}
       placeholder={placeholder}
+      {...(menuPortalTarget ? { menuPortalTarget: document.body } : {})}
+      menuPlacement="auto"
     />
   ),
 );
@@ -47,7 +50,7 @@ interface LabeledSelectProps extends DtaleSelectProps {
   labelWidth?: number;
 }
 
-export const LabeledSelect: React.FC<LabeledSelectProps> = ({
+export const LabeledSelect: React.FC<React.PropsWithChildren<LabeledSelectProps>> = ({
   label,
   subLabel,
   children,

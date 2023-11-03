@@ -37,15 +37,15 @@ const AxisEditor: React.FC<AxisEditorProps & WithTranslation> = ({ data, y, upda
 
     y.forEach(({ value }) => {
       const currMin = state[`${value}-min`];
-      if (currMin && !isNaN(parseFloat(currMin))) {
+      if (currMin !== undefined && !isNaN(parseFloat(currMin))) {
         settings.min = { ...settings.min, [value]: parseFloat(currMin) };
-      } else {
+      } else if (currMin !== undefined) {
         errors = true;
       }
       const currMax = state[`${value}-max`];
-      if (currMax && !isNaN(parseFloat(currMax))) {
+      if (currMax !== undefined && !isNaN(parseFloat(currMax))) {
         settings.max = { ...settings.max, [value]: parseFloat(currMax) };
-      } else {
+      } else if (currMax !== undefined) {
         errors = true;
       }
     });
@@ -77,6 +77,7 @@ const AxisEditor: React.FC<AxisEditorProps & WithTranslation> = ({ data, y, upda
             type="text"
             value={state[minProp] ?? ''}
             onChange={(e) => setState({ ...state, [minProp]: e.target.value })}
+            data-testid={minProp}
           />
         </span>
         <span className="mb-auto mt-auto">{t('Max')}:</span>
@@ -86,6 +87,7 @@ const AxisEditor: React.FC<AxisEditorProps & WithTranslation> = ({ data, y, upda
             type="text"
             value={state[maxProp] ?? ''}
             onChange={(e) => setState({ ...state, [maxProp]: e.target.value })}
+            data-testid={maxProp}
           />
         </span>
       </li>

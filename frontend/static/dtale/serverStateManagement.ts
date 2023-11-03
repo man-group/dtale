@@ -106,7 +106,6 @@ export function lockCols(selectedCols: string[], props: ColumnOperationProps): (
     propagateState(
       {
         columns: [...locked, ...columns.filter(({ name }) => !locked.find((column) => column.name === name))],
-        fixedColumnCount: locked.length,
         triggerResize: true,
       },
       async () => await executeAction('update-locked', dataId, { col: selectedCols[0], action: 'lock' }),
@@ -132,7 +131,6 @@ export function unlockCols(selectedCols: string[], props: ColumnOperationProps):
     propagateState(
       {
         columns: [...locked, ...unlocked, ...columns.filter((c) => !c.locked)],
-        fixedColumnCount: locked.length,
         triggerResize: true,
       },
       async () => await executeAction('update-locked', dataId, { col: selectedCols[0], action: 'unlock' }),
@@ -164,6 +162,14 @@ export const moveFiltersToCustom = async (dataId: string): BaseReturn<SettingRes
 
 export const renameColumn = async (dataId: string, col: string, rename: string): BaseReturn =>
   await baseGetter(buildURLString(`rename-col/${dataId}`, { col, rename }));
+
+/** Response contents for settings update requests */
+interface DuplicateResponse extends BaseResponse {
+  col: string;
+}
+
+export const duplicateColumn = async (dataId: string, col: string): BaseReturn<DuplicateResponse> =>
+  await baseGetter(buildURLString(`duplicate-col/${dataId}`, { col }));
 
 export const updateFormats = async (
   dataId: string,
@@ -199,8 +205,8 @@ export const updateLanguage = async (language: string): BaseReturn =>
 export const updateMaxColumnWidth = async (width?: number): BaseReturn =>
   await baseGetter(buildURLString('update-maximum-column-width', { width: width ? `${width}` : '' }));
 
-export const updateMaxRowHeight = async (height: number): BaseReturn =>
-  await baseGetter(buildURLString('update-maximum-row-height', { height: `${height}` }));
+export const updateMaxRowHeight = async (height?: number): BaseReturn =>
+  await baseGetter(buildURLString('update-maximum-row-height', { height: height ? `${height}` : '' }));
 
 /** Response contents for range highlight requests */
 interface RangeResponse extends BaseResponse {

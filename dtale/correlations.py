@@ -3,7 +3,7 @@ import pandas as pd
 
 import dtale.global_state as global_state
 from dtale.code_export import build_code_export
-from dtale.utils import classify_type
+from dtale.utils import classify_type, dict_merge
 
 
 def get_col_groups(data_id, data):
@@ -28,7 +28,7 @@ def get_col_groups(data_id, data):
     return valid_corr_cols, valid_str_corr_cols, valid_date_cols
 
 
-def build_matrix(data_id, data, cols):
+def build_matrix(data_id, data, cols, code_formatting_vars=None):
     if data[cols].isnull().values.any():
         data = data.corr(method="pearson")
         code = build_code_export(data_id)
@@ -40,12 +40,16 @@ def build_matrix(data_id, data, cols):
                 "corr_data = df[corr_cols]\n"
                 "{str_encodings}"
                 "corr_data = corr_data.corr(method='pearson')"
+            ).format(
+                **dict_merge(
+                    {"corr_cols": "", "str_encodings": ""}, code_formatting_vars
+                )
             )
         )
     else:
         # using pandas.corr proved to be quite slow on large datasets so I moved to numpy:
         # https://stackoverflow.com/questions/48270953/pandas-corr-and-corrwith-very-slow
-        data = np.corrcoef(data[cols].values, rowvar=False)
+        data = np.corrcoef(data[cols].astype("float").values, rowvar=False)
         data = pd.DataFrame(data, columns=cols, index=cols)
         code = build_code_export(
             data_id, imports="import numpy as np\nimport pandas as pd\n\n"
@@ -59,6 +63,10 @@ def build_matrix(data_id, data, cols):
                 "{str_encodings}"
                 "corr_data = np.corrcoef(corr_data.values, rowvar=False)\n"
                 "corr_data = pd.DataFrame(corr_data, columns=[corr_cols], index=[corr_cols])"
+            ).format(
+                **dict_merge(
+                    {"corr_cols": "", "str_encodings": ""}, code_formatting_vars
+                )
             )
         )
 
@@ -69,7 +77,9 @@ def build_matrix(data_id, data, cols):
 def get_analysis(data_id):
     df = global_state.get_data(data_id)
     valid_corr_cols, _, _ = get_col_groups(data_id, df)
-    corr_matrix, _ = build_matrix(data_id, df, valid_corr_cols)
+    corr_matrix, _ = build_matrix(
+        data_id, df, valid_corr_cols, {"corr_cols": "", "str_encodings": ""}
+    )
     corr_matrix = corr_matrix.abs()
 
     # Select upper triangle of correlation matrix

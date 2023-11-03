@@ -2,7 +2,6 @@ import getSymbolFromCurrency from 'currency-symbol-map';
 import currencyToSymbolMap from 'currency-symbol-map/map';
 import numeral from 'numeral';
 import * as React from 'react';
-import { default as Modal } from 'react-bootstrap/Modal';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
@@ -132,7 +131,7 @@ const NumericFormatting: React.FC<BaseFormattingComponentProps & WithTranslation
   };
 
   return (
-    <Modal.Body>
+    <React.Fragment>
       <div className="form-group row">
         <label className="col-md-4 col-form-label text-right">{t('Precision')}</label>
         <div className="col-md-6">
@@ -196,7 +195,7 @@ const NumericFormatting: React.FC<BaseFormattingComponentProps & WithTranslation
           </span>
         </small>
       </div>
-    </Modal.Body>
+    </React.Fragment>
   );
 };
 

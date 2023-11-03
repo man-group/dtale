@@ -1,76 +1,50 @@
-import { Chart, ChartDataset, ChartMeta, DatasetController, Element, Scale, TooltipItem } from 'chart.js';
+import { Chart, ChartDataset, ChartMeta, DatasetController, Element, TooltipItem } from 'chart.js';
 
 import * as chartUtils from '../chartUtils';
 import * as correlationsUtils from '../popups/correlations/correlationsUtils';
 
 import { mockColumnDef } from './mocks/MockColumnDef';
-import { mockChartJS } from './test-utils';
+import { buildChartContext, mockChartJS, SCALE } from './test-utils';
 
-export const CTX: Partial<CanvasRenderingContext2D> = {
-  createLinearGradient: (_px1: number, _px2: number, _px3: number, _px4: number): CanvasGradient => ({
-    addColorStop: (_px5: number, _color: string): void => undefined,
-  }),
-  save: () => undefined,
-  beginPath: () => undefined,
-  moveTo: () => undefined,
-  lineTo: () => undefined,
-  lineWidth: 0,
-  strokeStyle: undefined,
-  stroke: () => undefined,
-  restore: () => undefined,
-};
-
-export const SCALE: Partial<Scale> = { getPixelForValue: (px: number): number => px };
-
-const LINE_POINT: chartUtils.LinePoint = {
+const LINE_POINT = {
   element: { x: 0 } as any as Element,
   datasetIndex: 0,
   dataIndex: 0,
-};
+  dataset: { yAxisID: 'y-corr' } as any as ChartDataset<'line', number[]>,
+  parsed: { x: 0, y: 0 },
+} as any as TooltipItem<'line'>;
 
 describe('chartUtils tests', () => {
   beforeAll(mockChartJS);
 
-  const validateGradientFunctions = (dataset: ChartDataset<'line'>): void => {
-    expect((dataset.borderColor as CanvasGradient).addColorStop).toBeInstanceOf(Function);
-    expect((dataset.pointHoverBackgroundColor as CanvasGradient).addColorStop).toBeInstanceOf(Function);
-    expect((dataset.pointBorderColor as CanvasGradient).addColorStop).toBeInstanceOf(Function);
-    expect((dataset.pointBackgroundColor as CanvasGradient).addColorStop).toBeInstanceOf(Function);
-    expect((dataset.pointHoverBorderColor as CanvasGradient).addColorStop).toBeInstanceOf(Function);
-  };
-
   it('chartUtils: testing gradientLinePlugin with min & max', () => {
-    const plugin = chartUtils.gradientLinePlugin(correlationsUtils.colorScale, 'y-corr', 1, -1);
-    const dataset: ChartDataset<'line'> = { data: [{ x: 0, y: 0 }] };
+    const lineGradient = chartUtils.getLineGradient(correlationsUtils.colorScale, 'y-corr', 1, -1);
+    const dataset: ChartDataset<'line', number[]> = { data: [0] };
     const chartInstance = {
       data: { datasets: [dataset] },
       scales: {
         'y-corr': { ...SCALE },
       },
-      ctx: { ...CTX },
+      ctx: buildChartContext(),
     } as any as Chart<'line'>;
-    plugin.afterLayout?.(chartInstance, {}, {});
-    validateGradientFunctions(dataset);
+    const gradient = lineGradient(chartInstance, dataset.data);
+    expect(gradient.addColorStop).toBeInstanceOf(Function);
   });
 
   it('chartUtils: testing gradientLinePlugin without min & max', () => {
-    const plugin = chartUtils.gradientLinePlugin(correlationsUtils.colorScale);
-    const dataset: ChartDataset<'line'> = {
-      data: [
-        { x: 0, y: 1.1 },
-        { x: 1, y: 1.2 },
-        { x: 2, y: 1.3 },
-      ],
+    const lineGradient = chartUtils.getLineGradient(correlationsUtils.colorScale);
+    const dataset: ChartDataset<'line', number[]> = {
+      data: [1.1, 1.2, 1.3],
     };
     const chartInstance = {
       data: { datasets: [dataset] },
       scales: {
         'y-axis-0': { ...SCALE },
       },
-      ctx: { ...CTX },
+      ctx: buildChartContext(),
     } as any as Chart<'line'>;
-    plugin.afterLayout?.(chartInstance, {}, {});
-    validateGradientFunctions(dataset);
+    const gradient = lineGradient(chartInstance, dataset.data);
+    expect(gradient.addColorStop).toBeInstanceOf(Function);
   });
 
   it('chartUtils: testing lineHoverPlugin', () => {
@@ -90,12 +64,12 @@ describe('chartUtils tests', () => {
         ({
           controller: { _config: { selectedPoint: 0 } } as any as DatasetController,
           data: [LINE_POINT.element],
-        } as ChartMeta),
-      ctx: { ...CTX },
+        }) as ChartMeta,
+      ctx: buildChartContext(),
     } as any as Chart<'line'>;
     plugin.afterDraw?.(chartInstance, {}, {});
     expect(chartInstance.ctx.lineWidth).toBe(2);
-    expect(chartInstance.ctx.strokeStyle).toBe('rgba(204,204,204,1)');
+    expect(chartInstance.ctx.strokeStyle).toBe('#ffff00');
   });
 
   it('chartUtils: testing lineHoverPlugin for default', () => {
@@ -114,17 +88,18 @@ describe('chartUtils tests', () => {
           bottom: 10,
         },
       },
-      tooltip: { dataPoints: [{ element: { x: 5 }, datasetIndex: 0 }] },
+      tooltip: { dataPoints: [] },
       getDatasetMeta: (_idx: number): ChartMeta =>
         ({
           controller: { _config: { selectedPoint: 0 } } as any as DatasetController,
           data: [LINE_POINT.element],
-        } as ChartMeta),
-      ctx: { ...CTX },
+        }) as ChartMeta,
+      ctx: buildChartContext(),
     } as any as Chart<'line'>;
     plugin.afterDraw?.(chartInstance, {}, {});
-    expect(chartInstance.ctx.lineWidth).toBe(2);
-    expect(chartInstance.ctx.strokeStyle).toBe('rgba(204,204,204,1)');
+    expect(chartInstance.ctx.lineWidth).toBe(0);
+    expect(chartInstance.ctx.beginPath).not.toHaveBeenCalled();
+    expect(chartInstance.ctx.strokeStyle).toBeUndefined();
   });
 
   it('chartUtils: testing buildTicks', () => {

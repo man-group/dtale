@@ -1,5 +1,7 @@
+import { AnyAction } from 'redux';
+
 import { buildClickHandler } from '../../menuUtils';
-import { AppActions, ToggleMenuAction } from '../../redux/actions/AppActions';
+import { OpenChartAction, ToggleMenuAction } from '../../redux/actions/AppActions';
 import { cleanupEndpoint } from '../../redux/actions/url-utils';
 import { InstanceSettings, Popups, PopupType, SortDef, SortDir } from '../../redux/state/AppState';
 import { ColumnDef, ColumnFormatStyle } from '../DataViewerState';
@@ -12,7 +14,7 @@ export const updateSort = (
   selectedCols: string[],
   dir: SortDir | undefined,
   sortInfo: SortDef[],
-  updateSettings: (updatedSettings: Partial<InstanceSettings>) => AppActions<void>,
+  updateSettings: (updatedSettings: Partial<InstanceSettings>) => AnyAction,
 ): void => {
   let updatedSortInfo = sortInfo.filter(([col, _dir]) => !selectedCols.includes(col));
   switch (dir) {
@@ -27,7 +29,7 @@ export const updateSort = (
 };
 
 export const buildStyling = (
-  val: string | number | undefined,
+  val: string | number | boolean | undefined,
   colType: ColumnType,
   styleProps: ColumnFormatStyle,
 ): React.CSSProperties => {
@@ -37,7 +39,7 @@ export const buildStyling = (
       switch (colType) {
         case ColumnType.FLOAT:
         case ColumnType.INT:
-          style.color = val < 0 ? 'red' : '';
+          style.color = (val as any) < 0 ? 'red' : '';
           break;
         default:
           break;
@@ -76,7 +78,7 @@ export const openPopup =
   (
     popup: Popups,
     dataId: string,
-    openChart: (chartData: Popups) => AppActions<void>,
+    openChart: (chartData: Popups) => OpenChartAction,
     height = 450,
     width = 500,
     isVSCode = false,
@@ -94,7 +96,7 @@ interface HotkeyProps {
   columns: ColumnDef[];
   openMenu: () => ToggleMenuAction;
   closeMenu: () => ToggleMenuAction;
-  openChart: (chartData: Popups) => AppActions<void>;
+  openChart: (chartData: Popups) => OpenChartAction;
   dataId: string;
   isVSCode: boolean;
 }
@@ -112,7 +114,7 @@ interface HotKeyOutput {
   DUPLICATES: VoidFunc;
   CHARTS: VoidFunc;
   CODE: VoidFunc;
-  ABOUT: () => AppActions<void>;
+  ABOUT: () => OpenChartAction;
   LOGOUT: VoidFunc;
   SHUTDOWN: VoidFunc;
 }

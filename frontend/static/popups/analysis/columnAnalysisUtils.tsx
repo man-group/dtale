@@ -8,6 +8,7 @@ import { calcInfoMsg, kurtMsgText, skewMsgText } from '../../dtale/column/Column
 import { RemovableError } from '../../RemovableError';
 import * as ColumnAnalysisRepository from '../../repository/ColumnAnalysisRepository';
 import { capitalize } from '../../stringUtils';
+import FrequencyGrid from '../describe/FrequencyGrid';
 
 import { ColumnAnalysisChart } from './ColumnAnalysisChart';
 import {
@@ -33,7 +34,7 @@ const buildValueCountsAxes = (
   fetchedData: ValueCountChartData | WordValueCountChartData,
   chartOpts: AnalysisParams,
 ): void => {
-  const { data, ordinal } = fetchedData;
+  const { data, ordinal, percent } = fetchedData;
   baseCfg.data.datasets = [
     { label: 'Frequency', type: 'bar', data, backgroundColor: 'rgb(42, 145, 209)', yAxisID: 'y' },
   ];
@@ -61,11 +62,25 @@ const buildValueCountsAxes = (
       tension: 0.4,
       pointRadius: 0,
     });
-    baseCfg.options = {
-      ...baseCfg.options,
-      plugins: { ...baseCfg?.options?.plugins, tooltip: { mode: 'index', intersect: true } },
-    };
   }
+  baseCfg.options = {
+    ...baseCfg.options,
+    plugins: {
+      ...baseCfg?.options?.plugins,
+      tooltip: {
+        mode: 'index',
+        intersect: true,
+        callbacks: {
+          footer: (tooltipItems: Array<TooltipItem<'bar' | 'line'>>): string | void => {
+            const percentage = (percent ?? [])[tooltipItems[0].dataIndex];
+            if (percentage !== undefined) {
+              return `${percentage}%`;
+            }
+          },
+        },
+      },
+    },
+  };
 };
 
 const buildCategoryAxes = (
@@ -318,6 +333,8 @@ export async function dataLoader(
   } else if (params.type === AnalysisType.CATEGORIES) {
     params.categoryCol = finalParams.categoryCol?.value ?? '';
     params.categoryAgg = finalParams.categoryAgg?.value ?? '';
+  } else if (params.type === AnalysisType.FREQUENCY) {
+    params.splits = finalParams.splits?.map((cleaner) => cleaner.value).join(',');
   }
   if (finalParams?.cleaners && finalParams?.cleaners?.length) {
     params.cleaners = finalParams.cleaners?.map((cleaner) => cleaner.value).join(',');
@@ -345,14 +362,20 @@ export async function dataLoader(
         count: response.data[index],
       }));
     }
-    newState.chart = (
-      <ColumnAnalysisChart
-        chartRef={chartUpdater}
-        finalParams={{ ...finalParams, selectedCol, type: newState.type }}
-        fetchedChartData={response}
-        height={height}
-      />
-    );
+    if (response?.chart_type === AnalysisType.FREQUENCY) {
+      newState.chart = (
+        <FrequencyGrid finalParams={{ ...finalParams, selectedCol, type: newState.type }} fetchedChartData={response} />
+      );
+    } else {
+      newState.chart = (
+        <ColumnAnalysisChart
+          chartRef={chartUpdater}
+          finalParams={{ ...finalParams, selectedCol, type: newState.type }}
+          fetchedChartData={response}
+          height={height}
+        />
+      );
+    }
     propagateState({ ...newState, wordValues });
   }
 }

@@ -10,9 +10,9 @@ import * as React from 'react';
 export function createMockComponent<P = Record<string, unknown>>(
   displayName?: string,
   renderFn?: (props: P) => React.ReactNode,
-): React.ComponentClass<P> {
+): React.ComponentClass<React.PropsWithChildren<P>> {
   /** @class */
-  return class CustomMockComponent extends React.Component<P> {
+  return class CustomMockComponent extends React.Component<React.PropsWithChildren<P>, Record<string, unknown>> {
     public static displayName = displayName ?? 'CustomMockComponent';
 
     /** @override */

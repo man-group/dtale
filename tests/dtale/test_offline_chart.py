@@ -93,7 +93,15 @@ def test_build_notebook(test_data):
         stack.enter_context(
             mock.patch("dtale.views.in_ipython_frontend", mock.Mock(return_value=True))
         )
+        init_notebook_mode_mock = stack.enter_context(
+            mock.patch("plotly.offline.init_notebook_mode", mock.Mock())
+        )
+        iplot_mock = stack.enter_context(
+            mock.patch("plotly.offline.iplot", mock.Mock())
+        )
         output = offline_chart(
             test_data, chart_type="bar", x="date", y="foo", agg="sum"
         )
         assert output is None
+        init_notebook_mode_mock.assert_called_once()
+        iplot_mock.assert_called_once()

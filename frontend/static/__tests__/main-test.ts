@@ -14,6 +14,13 @@ jest.mock('../popups/analysis/ColumnAnalysis', () => {
     default: createMockComponent('ColumnAnalysis'),
   };
 });
+jest.mock('../popups/arcticdb/LibrarySymbolSelector', () => {
+  const { createMockComponent } = require('./mocks/createMockComponent');
+  return {
+    __esModule: true,
+    default: createMockComponent('LibrarySymbolSelector'),
+  };
+});
 jest.mock('../popups/CodeExport', () => {
   const { createMockComponent } = require('./mocks/createMockComponent');
   return { CodeExport: createMockComponent('CodeExport') };
@@ -93,8 +100,7 @@ describe('main tests', () => {
 
   beforeEach(() => {
     jest.resetModules();
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
 
     jest.mock('@blueprintjs/datetime', () => {
       const { createMockComponent } = require('./mocks/createMockComponent');
@@ -129,9 +135,9 @@ describe('main tests', () => {
     (window as any).location = { pathname: `/dtale/${mainName}/1`, search };
     buildInnerHTML();
 
-    const ReactDOM = require('react-dom');
-    const renderSpy = jest.spyOn(ReactDOM, 'render');
-    renderSpy.mockImplementation(() => undefined);
+    const ReactDOMClient = require('react-dom/client');
+    const renderSpy = jest.spyOn(ReactDOMClient, 'createRoot');
+    renderSpy.mockImplementation(() => ({ render: () => undefined }));
     require(`../${fname}`);
     expect(renderSpy).toHaveBeenCalledTimes(1);
   };
@@ -158,17 +164,9 @@ describe('main tests', () => {
   });
 
   const popupCodes = [
-    ...[
-      'correlations',
-      'charts',
-      'describe',
-      'column-analysis',
-      'instances',
-      'code-export',
-      'filter',
-      'type-conversion',
-    ],
-    ...['cleaners', 'upload', 'merge', 'pps', 'variance', 'build', 'duplicates', 'replacement', 'reshape'],
+    ...['correlations', 'charts', 'describe', 'column-analysis', 'instances', 'code-export', 'filter'],
+    ...['type-conversion', 'cleaners', 'upload', 'merge', 'pps', 'variance', 'build', 'duplicates', 'replacement'],
+    ...['reshape', 'arcticdb'],
   ];
 
   popupCodes.forEach((popup) => {

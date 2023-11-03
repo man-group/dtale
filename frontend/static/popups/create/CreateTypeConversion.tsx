@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
@@ -31,7 +32,7 @@ const TYPE_MAP: Record<string, string[]> = {
 const getColType = (col: BaseOption<string> | undefined, columns: ColumnDef[]): string | undefined => {
   const dtype = getDtype(col?.value, columns);
   const colType = findColType(dtype);
-  if (colType === ColumnType.UNKNOWN) {
+  if ([ColumnType.CATEGORY, ColumnType.UNKNOWN].includes(colType)) {
     return dtype;
   }
   return colType;
@@ -47,18 +48,18 @@ const getConversions = (col: BaseOption<string> | undefined, columns: ColumnDef[
 export const validateTypeConversionCfg = (t: TFunction, cfg: TypeConversionConfig): string | undefined => {
   const { col, to, from, unit } = cfg;
   if (!col) {
-    return t('Missing a column selection!');
+    return t('Missing a column selection!') ?? undefined;
   }
   if (!to) {
-    return t('Missing a conversion selection!');
+    return t('Missing a conversion selection!') ?? undefined;
   }
   const colType = findColType(from);
   if ((colType === ColumnType.INT && to === 'date') || (colType === ColumnType.DATE && to === 'int')) {
     if (!unit) {
-      return t('Missing a unit selection!');
+      return t('Missing a unit selection!') ?? undefined;
     }
     if (colType === ColumnType.DATE && to === 'int' && ['D', 's', 'us', 'ns'].includes(unit)) {
-      return t("Invalid unit selection, valid options are 'YYYYMMDD' or 'ms'");
+      return t("Invalid unit selection, valid options are 'YYYYMMDD' or 'ms'") ?? undefined;
     }
   }
   return undefined;

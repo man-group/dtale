@@ -107,7 +107,7 @@ const BKFilter: React.FC<BaseComponentProps<BKConfig> & WithTranslation> = ({ cf
       </div>
       <div className="col-md-4">
         <LabeledInput
-          label={t('Low', { ns: 'timeseries' })}
+          label={t('K', { ns: 'timeseries' })}
           value={K}
           setter={(value) => setK(Number(value))}
           inputOptions={{ onKeyDown }}

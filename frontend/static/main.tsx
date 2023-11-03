@@ -1,11 +1,12 @@
 import * as React from 'react';
-import ReactDOM from 'react-dom';
+import * as ReactDOMClient from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from './dtale/DataViewer';
 import './i18n';
 import ColumnAnalysis from './popups/analysis/ColumnAnalysis';
+import LibrarySymbolSelector from './popups/arcticdb/LibrarySymbolSelector';
 import { CodeExport } from './popups/CodeExport';
 import CodePopup from './popups/CodePopup';
 import { Correlations } from './popups/correlations/Correlations';
@@ -40,6 +41,14 @@ let storeBuilder: () => Store = () => {
   const store = createAppStore<AppState>(appReducers);
   store.dispatch(actions.init());
   actions.loadBackgroundMode(store);
+  actions.loadHideShutdown(store);
+  actions.loadAllowCellEdits(store);
+  actions.loadHideHeaderEditor(store);
+  actions.loadLockHeaderMenu(store);
+  actions.loadHideHeaderMenu(store);
+  actions.loadHideMainMenu(store);
+  actions.loadHideColumnMenus(store);
+  actions.loadEnableCustomFilters(store);
   return store;
 };
 if (pathname.indexOf('/dtale/popup') === 0) {
@@ -116,6 +125,9 @@ if (pathname.indexOf('/dtale/popup') === 0) {
     case 'code-export':
       rootNode = <CodeExport />;
       break;
+    case 'arcticdb':
+      rootNode = <LibrarySymbolSelector />;
+      break;
     case 'upload':
     default:
       rootNode = <Upload />;
@@ -123,7 +135,8 @@ if (pathname.indexOf('/dtale/popup') === 0) {
   }
   const store = storeBuilder();
   store.getState().chartData = chartData;
-  ReactDOM.render(<Provider store={store}>{rootNode}</Provider>, document.getElementById('popup-content'));
+  const root = ReactDOMClient.createRoot(document.getElementById('popup-content')!);
+  root.render(<Provider store={store}>{rootNode}</Provider>);
 } else if (pathname.startsWith('/dtale/code-popup')) {
   require('./dtale/DataViewer.css');
   let title: string;
@@ -139,19 +152,19 @@ if (pathname.indexOf('/dtale/popup') === 0) {
   if (titleElement) {
     titleElement.innerHTML = title;
   }
-  ReactDOM.render(body, document.getElementById('popup-content'));
+  const root = ReactDOMClient.createRoot(document.getElementById('popup-content')!);
+  root.render(body);
 } else {
   const store = storeBuilder();
-  store.dispatch(actions.init());
   if (store.getState().openPredefinedFiltersOnStartup) {
     store.dispatch(actions.openPredefinedFilters());
   } else if (store.getState().openCustomFilterOnStartup) {
     store.dispatch(actions.openCustomFilter());
   }
-  ReactDOM.render(
+  const root = ReactDOMClient.createRoot(document.getElementById('content')!);
+  root.render(
     <Provider store={store}>
       <DataViewer />
     </Provider>,
-    document.getElementById('content'),
   );
 }

@@ -1,19 +1,10 @@
-import { ReactWrapper } from 'enzyme';
-import { Modal } from 'react-bootstrap';
-import { act } from 'react-dom/test-utils';
-import Dropzone, { DropEvent } from 'react-dropzone';
-
-import CSVOptions from '../../../popups/upload/CSVOptions';
-import SheetSelector from '../../../popups/upload/SheetSelector';
-import Upload from '../../../popups/upload/Upload';
-import { RemovableError } from '../../../RemovableError';
+import { act, fireEvent, queryByText, screen } from '@testing-library/react';
 
 import * as TestSupport from './Upload.test.support';
 
 describe('Upload', () => {
   const { close, location, open, opener } = window;
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
 
   beforeEach(async () => {
     delete (window as any).location;
@@ -30,7 +21,7 @@ describe('Upload', () => {
     window.open = jest.fn();
     window.opener = { location: { assign: jest.fn(), pathname: '/dtale/column/1' } };
     spies.setupMockImplementations();
-    result = await spies.setupWrapper();
+    await spies.setupWrapper();
   });
 
   afterEach(() => spies.afterEach());
@@ -43,30 +34,27 @@ describe('Upload', () => {
     window.opener = opener;
   });
 
-  const upload = (): ReactWrapper => result.find(Upload).first();
+  const upload = (): HTMLElement => screen.getByTestId('upload');
 
-  const fireUpload = async (filename = 'test.csv'): Promise<ReactWrapper> => {
+  const fireUpload = async (filename = 'test.csv'): Promise<void> => {
     const mFile = new File(['test'], filename);
     await act(async () => {
-      upload()
-        .find(Dropzone)
-        .props()
-        .onDrop?.([mFile], [], {} as DropEvent);
+      const inputEl = screen.getByTestId('drop-input');
+      Object.defineProperty(inputEl, 'files', { value: [mFile] });
+      await fireEvent.drop(inputEl);
     });
-    return result.update();
   };
 
   it('renders successfully', async () => {
-    expect(upload()).toHaveLength(1);
+    expect(upload()).toBeDefined();
   });
 
   it('handles upload', async () => {
-    result = await fireUpload();
-    expect(result.find(CSVOptions).props().show).toBe(true);
+    await fireUpload();
+    expect(screen.getByTestId('csv-options')).toBeDefined();
     await act(async () => {
-      result.find(CSVOptions).find('button').last().simulate('click');
+      await fireEvent.click(screen.getByTestId('csv-options-load'));
     });
-    result = result.update();
     expect(spies.uploadSpy).toHaveBeenCalledTimes(1);
     const [firstData] = spies.uploadSpy.mock.calls[0];
     const read = new FileReader();
@@ -83,32 +71,25 @@ describe('Upload', () => {
       success: false,
       error: 'error test',
     });
-    result = await fireUpload('test.parquet');
-    expect(result.find(RemovableError).props().error).toBe('error test');
+    await fireUpload('test.parquet');
+    expect(screen.getByRole('alert').getElementsByTagName('span')[0].textContent).toBe('error test');
   });
 
   it('DataViewer: upload window', async () => {
     window.location.pathname = '/dtale/popup/upload';
-    result = await fireUpload();
+    await fireUpload();
     await act(async () => {
-      result.find(CSVOptions).find('i.ico-check-box').simulate('click');
+      fireEvent.click(screen.getByTestId('csv-options').getElementsByClassName('ico-check-box')[0]);
     });
-    result = result.update();
     await act(async () => {
-      result.find(CSVOptions).find('button').at(4).simulate('click');
+      fireEvent.click(screen.getByTestId('csv-options').getElementsByTagName('button')[4]);
     });
-    result = result.update();
     await act(async () => {
-      result
-        .find(CSVOptions)
-        .find('input')
-        .simulate('change', { target: { value: '=' } });
+      fireEvent.change(screen.getByTestId('csv-options').getElementsByTagName('input')[0], { target: { value: '=' } });
     });
-    result = result.update();
     await act(async () => {
-      result.find(CSVOptions).find('button').last().simulate('click');
+      fireEvent.click(screen.getByTestId('csv-options-load'));
     });
-    result = result.update();
 
     expect(spies.uploadSpy).toHaveBeenCalledTimes(1);
     const [firstData] = spies.uploadSpy.mock.calls[0];
@@ -121,49 +102,39 @@ describe('Upload', () => {
 
   it('DataViewer: cancel CSV upload', async () => {
     window.location.pathname = '/dtale/popup/upload';
-    result = await fireUpload();
+    await fireUpload();
     await act(async () => {
-      result.find(CSVOptions).find('button').at(5).simulate('click');
+      await fireEvent.click(screen.getByTestId('csv-options-cancel'));
     });
-    result = result.update();
-
     expect(spies.uploadSpy).not.toHaveBeenCalled();
-    expect(result.find(CSVOptions).props().show).toBe(false);
+    expect(queryByText(document.body, 'Separator')).toBe(null);
   });
 
   it('DataViewer: upload from web', async () => {
     await act(async () => {
-      upload().find('div.form-group').first().find('button').first().simulate('click');
+      fireEvent.click(upload().getElementsByClassName('form-group')[0].getElementsByTagName('button')[0]);
     });
-    result = result.update();
     await act(async () => {
-      upload()
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: 'http://test' } });
+      fireEvent.change(upload().getElementsByClassName('form-group')[1].getElementsByTagName('input')[0], {
+        target: { value: 'http://test' },
+      });
     });
-    result = result.update();
     await act(async () => {
-      upload()
-        .find('div.form-group')
-        .at(2)
-        .find('input')
-        .simulate('change', { target: { value: 'http://test' } });
+      fireEvent.change(upload().getElementsByClassName('form-group')[2].getElementsByTagName('input')[0], {
+        target: { value: 'http://test' },
+      });
     });
-    result = result.update();
     await act(async () => {
-      upload().find('div.row').at(1).find('button').first().simulate('click');
+      fireEvent.click(upload().getElementsByClassName('row')[1].getElementsByTagName('button')[0]);
     });
-    result = result.update();
     expect(window.location.assign).toBeCalledWith('/2');
   });
 
   it('DataViewer: upload dataset', async () => {
     await act(async () => {
-      upload().find('div.form-group').last().find('button').first().simulate('click');
+      const formGroups = upload().getElementsByClassName('form-group');
+      fireEvent.click(formGroups[formGroups.length - 1].getElementsByTagName('button')[0]);
     });
-    result = result.update();
     expect(window.location.assign).toBeCalledWith('/2');
   });
 
@@ -180,32 +151,24 @@ describe('Upload', () => {
 
     it('DataViewer: upload from excel web', async () => {
       await act(async () => {
-        upload().find('div.form-group').first().find('button').last().simulate('click');
+        const buttons = upload().getElementsByClassName('form-group')[0].getElementsByTagName('button');
+        fireEvent.click(buttons[buttons.length - 1]);
       });
-      result = result.update();
       await act(async () => {
-        upload()
-          .find('div.form-group')
-          .at(1)
-          .find('input')
-          .simulate('change', { target: { value: 'http://test' } });
+        fireEvent.change(upload().getElementsByClassName('form-group')[1].getElementsByTagName('input')[0], {
+          target: { value: 'http://test' },
+        });
       });
-      result = result.update();
       await act(async () => {
-        upload()
-          .find('div.form-group')
-          .at(2)
-          .find('input')
-          .simulate('change', { target: { value: 'http://test' } });
+        fireEvent.change(upload().getElementsByClassName('form-group')[2].getElementsByTagName('input')[0], {
+          target: { value: 'http://test' },
+        });
       });
-      result = result.update();
       await act(async () => {
-        upload().find('div.row').at(1).find('button').first().simulate('click');
+        fireEvent.click(upload().getElementsByClassName('row')[1].getElementsByTagName('button')[0]);
       });
-      result = result.update();
-      const sheetSelector = result.find(SheetSelector).find(Modal).first();
-      expect(sheetSelector.props().show).toBe(true);
-      expect(sheetSelector.find('Resizable').find(Modal.Body).text()).toEqual('Sheet 1Sheet 2');
+      expect(screen.getByTestId('sheet-selector')).toBeDefined();
+      expect(screen.getByTestId('sheet-selector').textContent).toEqual('Sheet 1Sheet 2');
     });
   });
 });

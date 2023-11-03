@@ -4,6 +4,7 @@ from dtale.dash_application import dcc, html
 from dtale.translations import text
 from dtale.utils import dict_merge, classify_type, flatten_lists, make_list
 from dtale.charts.utils import INDEX_COL
+from dtale.constants import CHART_JOINER_CHAR
 
 
 def show_style(show, display_style="block"):
@@ -74,7 +75,7 @@ def build_cols(cols, dtypes):
         if classify_type(dtypes[c]) == "D":
             for freq in FREQS:
                 if freq in FREQ_LABELS:
-                    yield "{}|{}".format(c, freq), "{} ({})".format(
+                    yield "{}{}{}".format(c, CHART_JOINER_CHAR, freq), "{} ({})".format(
                         c, FREQ_LABELS[freq]
                     )
                 else:

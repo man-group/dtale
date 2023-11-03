@@ -5,7 +5,8 @@ import pandas as pd
 from six import string_types
 
 import dtale.global_state as global_state
-from dtale.utils import classify_type, find_dtype
+from dtale.column_builders import ReplaceColumnBuilder
+from dtale.utils import classify_type, find_dtype, dict_merge
 
 
 class ColumnReplacement(object):
@@ -19,6 +20,8 @@ class ColumnReplacement(object):
             self.builder = ValueReplacement(col, cfg, name)
         elif replacement_type == "imputer":  # iterative, knn, simple
             self.builder = ImputerReplacement(col, cfg, name)
+        elif replacement_type == "partial":
+            self.builder = PartialReplacement(col, cfg, name)
         else:
             raise NotImplementedError(
                 "'{}' replacement not implemented yet!".format(replacement_type)
@@ -52,6 +55,19 @@ def get_inner_replacement_value_as_str(val, series):
 def get_replacement_value_as_str(cfg, prop, series):
     value = (cfg or {}).get(prop) or "nan"
     return get_inner_replacement_value_as_str(value, series)
+
+
+class PartialReplacement(ReplaceColumnBuilder):
+    def __init__(self, col, cfg, name):
+        self.col = col
+        self.name = name
+        super(PartialReplacement, self).__init__(name, dict_merge(cfg, dict(col=col)))
+
+    def build_code(self, data):
+        base_code = super(PartialReplacement, self).build_code()
+        return "df.loc[: '{name}'] = {base_code}".format(
+            name=self.name or self.col, base_code=base_code
+        )
 
 
 class SpaceReplacement(object):
@@ -88,7 +104,7 @@ class StringReplacement(object):
         value = re.escape(value)
         if is_char:
             value = "[{value}]+".format(value=value)
-        regex_pat = re.compile(r"^ *{value} *$".format(value=value), flags=flags)
+        regex_pat = re.compile(r"^.*{value}.*$".format(value=value), flags=flags)
         replace_with = get_replacement_value(self.cfg, "replace")
         return data[self.col].replace(regex_pat, replace_with, regex=True)
 
@@ -100,7 +116,7 @@ class StringReplacement(object):
 
         regex_exp = "r'^ *{value} *$'.format(value=re.escape({value}))"
         if is_char:
-            regex_exp = "r'^ *[{value}]+ *$'.format(value=re.escape({value}))"
+            regex_exp = "r'^.*[{value}].*$'.format(value=re.escape({value}))"
         regex_exp = regex_exp.format(value=value)
 
         replace_with = get_replacement_value_as_str(self.cfg, "replace", data[self.col])

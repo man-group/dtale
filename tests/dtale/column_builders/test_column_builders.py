@@ -1,8 +1,12 @@
 import numpy as np
 import pandas as pd
 import pytest
+import sklearn as skl
 from numpy.random import randn
+from pkg_resources import parse_version
 from six import PY3
+
+import dtale.pandas_util as pandas_util
 
 from dtale.column_builders import ColumnBuilder, ZERO_STD_ERROR
 from tests.dtale import build_data_inst
@@ -54,9 +58,10 @@ def test_transform():
         "max",
         "std",
         "var",
-        "mad",
         "prod",
     ]
+    if not pandas_util.is_pandas2():
+        aggs.append("mad")
     data_id, column_type = "1", "transform"
     i = 0
     build_data_inst({data_id: df})
@@ -140,7 +145,6 @@ def test_cumsum():
 @pytest.mark.unit
 @pytest.mark.parametrize("custom_data", [dict(rows=1000, cols=3)], indirect=True)
 def test_cumsum_groupby(custom_data):
-
     data_id, column_type = "1", "cumsum"
     build_data_inst({data_id: custom_data})
 
@@ -261,25 +265,26 @@ def test_standardize():
     data_id, column_type = "1", "standardize"
     build_data_inst({data_id: df})
 
-    cfg = {"col": "a", "algo": "power"}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.20.0"):
+        cfg = {"col": "a", "algo": "power"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-    cfg = {"col": "a", "algo": "quantile"}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.19.0"):
+        cfg = {"col": "a", "algo": "quantile"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-    cfg = {"col": "a", "algo": "robust"}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.17.0"):
+        cfg = {"col": "a", "algo": "robust"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
 
 @pytest.mark.unit
 def test_encoder():
     df = pd.DataFrame(
-        {
-            "car": ["Honda", "Benze", "Ford", "Honda", "Benze", "Ford", np.nan],
-        }
+        {"car": ["Honda", "Benze", "Ford", "Honda", "Benze", "Ford", np.nan]}
     )
     data_id, column_type = "1", "encoder"
     build_data_inst({data_id: df})
@@ -293,17 +298,20 @@ def test_encoder():
         ),
     )
 
-    cfg = {"col": "car", "algo": "ordinal"}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.20.0"):
+        cfg = {"col": "car", "algo": "ordinal"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-    cfg = {"col": "car", "algo": "label"}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col.isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.12.0"):
+        cfg = {"col": "car", "algo": "label"}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
-    cfg = {"col": "car", "algo": "feature_hasher", "n": 1}
-    builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
-    verify_builder(builder, lambda col: col["car_0"].isnull().sum() == 0)
+    if parse_version(skl.__version__) >= parse_version("0.13.0"):
+        cfg = {"col": "car", "algo": "feature_hasher", "n": 1}
+        builder = ColumnBuilder(data_id, column_type, "Col1", cfg)
+        verify_builder(builder, lambda col: col["car_0"].isnull().sum() == 0)
 
 
 @pytest.mark.unit
@@ -314,10 +322,7 @@ def test_diff():
 
     cfg = {"col": "A", "periods": "1"}
     builder = ColumnBuilder(data_id, column_type, "dA", cfg)
-    verify_builder(
-        builder,
-        lambda col: col.isnull().sum() == 1 and col.sum() == -8,
-    )
+    verify_builder(builder, lambda col: col.isnull().sum() == 1 and col.sum() == -8)
 
 
 @pytest.mark.unit
@@ -328,10 +333,7 @@ def test_data_slope():
 
     cfg = {"col": "entity"}
     builder = ColumnBuilder(data_id, column_type, "entity_data_slope", cfg)
-    verify_builder(
-        builder,
-        lambda col: col.sum() == 35,
-    )
+    verify_builder(builder, lambda col: col.sum() == 35)
 
 
 @pytest.mark.unit
@@ -344,10 +346,7 @@ def test_rolling(rolling_data):
 
     cfg = {"col": "0", "comp": "mean", "window": "5", "min_periods": 1}
     builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
-    verify_builder(
-        builder,
-        lambda col: col.isnull().sum() == 0,
-    )
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
     cfg = {
         "col": "0",
@@ -358,10 +357,7 @@ def test_rolling(rolling_data):
         "center": True,
     }
     builder = ColumnBuilder(data_id, column_type, "0_rolling_mean", cfg)
-    verify_builder(
-        builder,
-        lambda col: col.isnull().sum() == 0,
-    )
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
 
 @pytest.mark.unit
@@ -374,13 +370,13 @@ def test_exponential_smoothing(rolling_data):
 
     cfg = {"col": "0", "alpha": 0.3}
     builder = ColumnBuilder(data_id, column_type, "0_exp_smooth", cfg)
-    verify_builder(
-        builder,
-        lambda col: col.isnull().sum() == 0,
-    )
+    verify_builder(builder, lambda col: col.isnull().sum() == 0)
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(
+    not pandas_util.check_pandas_version("0.24.0"),
+    reason="requires pandas 0.24.0 or higher",
+)
 def test_shift(rolling_data):
     import dtale.views as views
 

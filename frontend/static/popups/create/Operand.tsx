@@ -77,7 +77,7 @@ const Operand: React.FC<OperandProps & WithTranslation> = ({
   }, [cfg.type, columns]);
 
   return (
-    <div className="form-group row">
+    <div className="form-group row" data-testid={`${name}-inputs`}>
       <div className="col-md-3 text-right">
         <ButtonToggle
           options={Object.values(OperandDataType).map((value) => ({ value, label: capitalize(value) }))}

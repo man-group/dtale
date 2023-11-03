@@ -1,16 +1,19 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { usePrevious } from '../../customHooks';
 import ColumnFilter from '../../filters/ColumnFilter';
-import { ActionType, AppActions, OpenFormattingAction, SidePanelAction } from '../../redux/actions/AppActions';
+import { ActionType, OpenChartAction, OpenFormattingAction, SidePanelAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as actions from '../../redux/actions/dtale';
 import { buildURLString } from '../../redux/actions/url-utils';
-import { AppState, Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
-import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
+import * as selectors from '../../redux/selectors';
+import { Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
+import { ColumnDef, DataViewerData, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 import * as menuFuncs from '../menu/dataViewerMenuUtils';
 import * as serverState from '../serverStateManagement';
@@ -24,28 +27,72 @@ import SortOptions from './SortOptions';
 /** Component properties of ColumnMenu */
 export interface ColumnMenuProps {
   columns: ColumnDef[];
+  data: DataViewerData;
   propagateState: DataViewerPropagateState;
   backgroundMode?: string;
 }
 
-const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMode, columns, propagateState, t }) => {
-  const reduxState = useSelector((state: AppState) => ({
-    dataId: state.dataId,
-    columnMenuOpen: state.columnMenuOpen,
-    selectedCol: state.selectedCol,
-    selectedColRef: state.selectedColRef,
-    isPreview: state.isPreview,
-    ribbonMenuOpen: state.ribbonMenuOpen,
-    filteredRanges: state.filteredRanges,
-    columnFilters: state.settings.columnFilters,
-    outlierFilters: state.settings.outlierFilters,
-    sortInfo: state.settings.sortInfo,
-  }));
+const selectResult = createSelector(
+  [
+    selectors.selectDataId,
+    selectors.selectColumnMenuOpen,
+    selectors.selectSelectedCol,
+    selectors.selectSelectedColRef,
+    selectors.selectIsPreview,
+    selectors.selectRibbonMenuOpen,
+    selectors.selectFilteredRanges,
+    selectors.selectColumnFilters,
+    selectors.selectOutlierFilters,
+    selectors.selectSortInfo,
+    selectors.selectIsArcticDB,
+    selectors.selectColumnCount,
+  ],
+  (
+    dataId,
+    columnMenuOpen,
+    selectedCol,
+    selectedColRef,
+    isPreview,
+    ribbonMenuOpen,
+    filteredRanges,
+    columnFilters,
+    outlierFilters,
+    sortInfo,
+    isArcticDB,
+    columnCount,
+  ) => ({
+    dataId,
+    columnMenuOpen,
+    selectedCol,
+    selectedColRef,
+    isPreview,
+    ribbonMenuOpen,
+    filteredRanges,
+    columnFilters,
+    outlierFilters,
+    sortInfo,
+    isArcticDB,
+    columnCount,
+  }),
+);
+
+const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
+  backgroundMode,
+  columns,
+  data,
+  propagateState,
+  t,
+}) => {
+  const reduxState = useSelector(selectResult);
+  const largeArcticDB = React.useMemo(
+    () => !!reduxState.isArcticDB && (reduxState.isArcticDB >= 1_000_000 || reduxState.columnCount > 100),
+    [reduxState.isArcticDB, reduxState.columnCount],
+  );
   const prevRibbonOpen = usePrevious(reduxState.ribbonMenuOpen);
 
   const dispatch = useDispatch();
-  const openChart = (chartData: Popups): AppActions<void> => dispatch(chartActions.openChart(chartData));
-  const hideColumnMenu = (colName: string): AppActions<void> => dispatch(actions.hideColumnMenu(colName));
+  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
+  const hideColumnMenu = (colName: string): AnyAction => dispatch(actions.hideColumnMenu(colName) as any as AnyAction);
   const showSidePanel = (column: string, view: SidePanelType): SidePanelAction =>
     dispatch({ type: ActionType.SHOW_SIDE_PANEL, view, column });
 
@@ -107,10 +154,31 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
     const title = `Delete column - ${selectedCol}`;
     openChart({ type: PopupType.CONFIRM, title, msg, yesAction, size: 'sm', visible: true });
   };
-  const renameCol = (): AppActions<void> =>
+  const renameCol = (): OpenChartAction =>
     openChart({ type: PopupType.RENAME, selectedCol, columns, size: 'sm', visible: true });
+  const duplicateCol = async (): Promise<void> => {
+    const resp = await serverState.duplicateColumn(dataId, selectedCol);
+    if (resp?.success) {
+      const updatedColumns = [] as ColumnDef[];
+      let cIdx = 0;
+      columns.forEach((c) => {
+        if (c.name === gu.IDX) {
+          updatedColumns.push(c);
+          return;
+        }
+        updatedColumns.push({ ...c, index: cIdx++ });
+        if (c.name === selectedCol) {
+          updatedColumns.push({ ...c, name: resp.col, index: cIdx++ });
+        }
+      });
+      const updatedData: DataViewerData = { ...data };
+      Object.values(updatedData).forEach((record) => (record[resp.col] = record[selectedCol]));
+      propagateState({ columns: updatedColumns, data: updatedData, triggerResize: true });
+      hideColumnMenu(selectedCol);
+    }
+  };
   const openAction = (popup: Popups): (() => void) => openPopup(popup, 400, 770);
-  const closeMenu = (): AppActions<void> => hideColumnMenu(selectedCol);
+  const closeMenu = (): AnyAction => hideColumnMenu(selectedCol);
 
   const renderMoveBtn = (
     icon: string,
@@ -122,7 +190,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
       style={{ color: '#565b68', width: '2em', ...icnStyle }}
       className={`btn btn-primary font-weight-bold`}
       onClick={func(selectedCol, { columns, propagateState, dataId })}
-      title={t(hint, { ns: 'column_menu' })}
+      title={t(hint, { ns: 'column_menu' }) ?? ''}
     >
       <i className={`fas fa-${icon}`} />
     </button>
@@ -133,7 +201,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
       {columnMenuOpen && <GlobalHotKeys keyMap={{ CLOSE_MENU: 'esc' }} handlers={{ CLOSE_MENU: closeMenu }} />}
       <ColumnMenuHeader col={selectedCol} colCfg={colCfg} />
       <ul>
-        <SortOptions sortInfo={reduxState.sortInfo} selectedCol={selectedCol} />
+        {!reduxState.isArcticDB && <SortOptions sortInfo={reduxState.sortInfo} selectedCol={selectedCol} />}
         <li>
           <span className="toggler-action">
             <i className="ico-swap-horiz" />
@@ -168,30 +236,45 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
           />
         )}
         <ColumnMenuOption open={hideCol} label={t('column_menu:Hide')} iconClass="ico-visibility-off" />
-        <ColumnMenuOption open={deleteCol} label={t('column_menu:Delete')} iconClass="ico-delete" />
-        <ColumnMenuOption open={renameCol} label={t('column_menu:Rename')} iconClass="ico-edit" />
-        <ColumnMenuOption
-          open={openAction({
-            type: PopupType.REPLACEMENT,
-            selectedCol,
-            propagateState,
-            title: 'Replacement',
-            visible: true,
-          })}
-          label={t('column_menu:Replacements')}
-          iconClass="fas fa-backspace mr-3"
-        />
-        <ColumnMenuOption
-          open={openAction({
-            type: PopupType.TYPE_CONVERSION,
-            selectedCol,
-            title: 'Type Conversion',
-            visible: true,
-          })}
-          label={t('Type Conversion', { ns: 'builders' })}
-          iconClass="ico-swap-horiz"
-        />
-        {gu.findColType(colCfg.dtype) === gu.ColumnType.STRING && (
+        {!reduxState.isArcticDB && (
+          <ColumnMenuOption open={deleteCol} label={t('column_menu:Delete')} iconClass="ico-delete" />
+        )}
+        {!reduxState.isArcticDB && (
+          <ColumnMenuOption open={renameCol} label={t('column_menu:Rename')} iconClass="ico-edit" />
+        )}
+        {!reduxState.isArcticDB && (
+          <ColumnMenuOption
+            open={duplicateCol}
+            label={t('column_menu:Duplicate')}
+            iconClass="fa-regular fa-copy ml-2 mr-3"
+          />
+        )}
+        {!reduxState.isArcticDB && (
+          <ColumnMenuOption
+            open={openAction({
+              type: PopupType.REPLACEMENT,
+              selectedCol,
+              propagateState,
+              title: 'Replacement',
+              visible: true,
+            })}
+            label={t('column_menu:Replacements')}
+            iconClass="fas fa-backspace ml-1 mr-3"
+          />
+        )}
+        {!reduxState.isArcticDB && (
+          <ColumnMenuOption
+            open={openAction({
+              type: PopupType.TYPE_CONVERSION,
+              selectedCol,
+              title: 'Type Conversion',
+              visible: true,
+            })}
+            label={t('Type Conversion', { ns: 'builders' })}
+            iconClass="ico-swap-horiz"
+          />
+        )}
+        {gu.findColType(colCfg.dtype) === gu.ColumnType.STRING && !reduxState.isArcticDB && (
           <ColumnMenuOption
             open={openAction({
               type: PopupType.CLEANERS,
@@ -218,7 +301,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
           }
           iconClass="ico-view-column"
         />
-        {colCfg.lowVariance && (
+        {colCfg.lowVariance && !largeArcticDB && (
           <ColumnMenuOption
             open={openPopup({ type: PopupType.VARIANCE, selectedCol, title: 'Variance', visible: true })}
             label={t('Variance Report', { ns: 'column_menu' })}
@@ -226,7 +309,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({ backgroundMod
           />
         )}
         <ColumnMenuOption open={openFormatting} label={t('column_menu:Formats')} iconClass="ico-palette" />
-        <HeatMapOption {...{ propagateState, backgroundMode, selectedCol, colCfg }} />
+        {!largeArcticDB && <HeatMapOption {...{ propagateState, backgroundMode, selectedCol, colCfg }} />}
         <ColumnFilter
           columns={columns}
           columnFilters={reduxState.columnFilters}

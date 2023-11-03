@@ -1,17 +1,23 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { createFilter, default as Select } from 'react-select';
-import { GridCellProps } from 'react-virtualized';
-import AutoSizer from 'react-virtualized/dist/commonjs/AutoSizer';
-import MultiGrid from 'react-virtualized/dist/commonjs/MultiGrid';
+import {
+  AutoSizer as _AutoSizer,
+  MultiGrid as _MultiGrid,
+  AutoSizerProps,
+  GridCellProps,
+  MultiGridProps,
+} from 'react-virtualized';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import * as gu from '../../dtale/gridUtils';
 import SidePanelButtons from '../../dtale/side/SidePanelButtons';
-import { AppState, BaseOption, SortDef, SortDir } from '../../redux/state/AppState';
-import { CorrelationGridRow } from '../../repository/CorrelationsRepository';
+import { selectDataId, selectSidePanel, selectTheme } from '../../redux/selectors';
+import { BaseOption, SortDef, SortDir } from '../../redux/state/AppState';
+import { buildCorrelationsUrl, CorrelationGridRow } from '../../repository/CorrelationsRepository';
 import { sortOptions } from '../analysis/filters/Constants';
 import { renderCodePopupAnchor } from '../CodePopup';
 
@@ -19,6 +25,9 @@ import { CorrelationsCell } from './CorrelationsCell';
 import * as corrUtils from './correlationsUtils';
 
 require('./CorrelationsGrid.css');
+
+const AutoSizer = _AutoSizer as unknown as React.FC<AutoSizerProps>;
+const MultiGrid = _MultiGrid as unknown as React.FC<MultiGridProps>;
 
 export const buildSort = (col: string, currSort?: SortDef): SortDef | undefined => {
   if (currSort && currSort[0] === col) {
@@ -66,7 +75,7 @@ const filterData = (
   }
   if (col2) {
     updatedData = updatedData.map(
-      (row) => ({ column: row.column, [col2.value]: row[col2.value] } as CorrelationGridRow),
+      (row) => ({ column: row.column, [col2.value]: row[col2.value] }) as CorrelationGridRow,
     );
   }
   return updatedData;
@@ -96,11 +105,17 @@ interface CorrelationsGridProps {
   toggleStrings: () => Promise<void>;
 }
 
+const selectResult = createSelector([selectDataId, selectSidePanel, selectTheme], (dataId, sidePanel, theme) => ({
+  dataId,
+  sidePanel,
+  theme,
+}));
+
 const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ columns, t, ...props }) => {
-  const theme = useSelector((state: AppState) => state.theme);
+  const { dataId, sidePanel, theme } = useSelector(selectResult);
   const columnOptions: Array<BaseOption<string>> = React.useMemo(
     () => columns.map((column) => ({ value: column })),
-    columns,
+    [columns],
   );
   const [col1, setCol1] = React.useState<BaseOption<string> | undefined>(
     props.col1 ? { value: props.col1 } : undefined,
@@ -152,6 +167,8 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
           className="Select is-clearable is-searchable Select--single"
           classNamePrefix="Select"
           options={finalOptions.sort(sortOptions)}
+          getOptionLabel={(option) => option.value}
+          getOptionValue={(option) => option.value}
           value={value ?? null}
           onChange={(selected: BaseOption<string> | null): void => setter(selected ?? undefined)}
           noOptionsMessage={() => t('No columns found', { ns: 'correlations' })}
@@ -161,6 +178,18 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
       </div>
     );
   };
+
+  const exportImage = (
+    <div className="col-auto pr-0 mb-auto mt-auto">
+      <button
+        className="btn btn-plain"
+        onClick={() => window.open(buildCorrelationsUrl(dataId, props.encodeStrings, props.isPPS, true), '_blank')}
+      >
+        <i className="fas fa-file-code pr-3" />
+        <span className="align-middle">{t('Export Image', { ns: 'correlations' })}</span>
+      </button>
+    </div>
+  );
 
   return (
     <BouncerWrapper showBouncer={!!props.correlations?.length === false}>
@@ -179,7 +208,8 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
           </small>
         </div>
         <div className="col" />
-        <SidePanelButtons />
+        <SidePanelButtons buttons={exportImage} />
+        {!sidePanel.visible && exportImage}
       </div>
       <AutoSizer className="correlations-grid" disableHeight={true}>
         {({ width }) => (

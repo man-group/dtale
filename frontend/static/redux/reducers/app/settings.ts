@@ -1,13 +1,93 @@
 import { ActionType, AppActionTypes } from '../../actions/AppActions';
 import { QueryEngine, ThemeType, Version } from '../../state/AppState';
-import { getHiddenValue, toBool, toFloat } from '../utils';
+import { getHiddenValue, toBool, toFloat, toJson } from '../utils';
 
 export const hideShutdown = (state = false, action: AppActionTypes): boolean => {
   switch (action.type) {
     case ActionType.INIT_PARAMS:
       return toBool(getHiddenValue('hide_shutdown'));
+    case ActionType.UPDATE_HIDE_SHUTDOWN:
+      return action.value;
     case ActionType.LOAD_PREVIEW:
       return true;
+    default:
+      return state;
+  }
+};
+
+export const hideHeaderEditor = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('hide_header_editor'));
+    case ActionType.UPDATE_HIDE_HEADER_EDITOR:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return true;
+    default:
+      return state;
+  }
+};
+
+export const lockHeaderMenu = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('lock_header_menu'));
+    case ActionType.UPDATE_LOCK_HEADER_MENU:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return true;
+    default:
+      return state;
+  }
+};
+
+export const hideHeaderMenu = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('hide_header_menu'));
+    case ActionType.UPDATE_HIDE_HEADER_MENU:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return true;
+    default:
+      return state;
+  }
+};
+
+export const hideMainMenu = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('hide_main_menu'));
+    case ActionType.UPDATE_HIDE_MAIN_MENU:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return true;
+    default:
+      return state;
+  }
+};
+
+export const hideColumnMenus = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('hide_column_menus'));
+    case ActionType.UPDATE_HIDE_COLUMN_MENUS:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return true;
+    default:
+      return state;
+  }
+};
+
+export const enableCustomFilters = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('enable_custom_filters'));
+    case ActionType.UPDATE_ENABLE_CUSTOM_FILTERS:
+      return action.value;
+    case ActionType.LOAD_PREVIEW:
+      return false;
     default:
       return state;
   }
@@ -47,10 +127,13 @@ export const hideDropRows = (state = false, action: AppActionTypes): boolean => 
   }
 };
 
-export const allowCellEdits = (state = true, action: AppActionTypes): boolean => {
+export const allowCellEdits = (state: boolean | string[] = true, action: AppActionTypes): boolean | string[] => {
   switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('allow_cell_edits'));
+    case ActionType.INIT_PARAMS: {
+      return toJson(getHiddenValue('allow_cell_edits'));
+    }
+    case ActionType.UPDATE_ALLOW_CELL_EDITS:
+      return action.value;
     case ActionType.LOAD_PREVIEW:
       return false;
     default:
@@ -108,6 +191,39 @@ export const isVSCode = (state = false, action: AppActionTypes): boolean => {
       return toBool(getHiddenValue('is_vscode')) && global.top !== global.self;
     case ActionType.LOAD_PREVIEW:
       return false;
+    default:
+      return state;
+  }
+};
+
+export const isArcticDB = (state = 0, action: AppActionTypes): number => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toFloat(getHiddenValue('is_arcticdb')) as number;
+    case ActionType.LOAD_PREVIEW:
+      return 0;
+    default:
+      return state;
+  }
+};
+
+export const arcticConn = (state = '', action: AppActionTypes): string => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return getHiddenValue('arctic_conn') ?? '';
+    case ActionType.LOAD_PREVIEW:
+      return '';
+    default:
+      return state;
+  }
+};
+
+export const columnCount = (state = 0, action: AppActionTypes): number => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toFloat(getHiddenValue('column_count')) as number;
+    case ActionType.LOAD_PREVIEW:
+      return 0;
     default:
       return state;
   }

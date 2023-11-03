@@ -1,21 +1,19 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
 import { CreateColumnType } from '../../../popups/create/CreateColumnState';
-import { default as CreateDiff, validateDiffCfg } from '../../../popups/create/CreateDiff';
-import { mockT as t } from '../../test-utils';
+import { validateDiffCfg } from '../../../popups/create/CreateDiff';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateDiff', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Row Difference');
+    await spies.clickBuilder('Row Difference');
   });
 
   afterEach(() => spies.afterEach());
@@ -23,26 +21,13 @@ describe('CreateDiff', () => {
   afterAll(() => spies.afterAll());
 
   it('builds row difference column', async () => {
-    expect(result.find(CreateDiff)).toHaveLength(1);
+    expect(screen.getByText('Row Difference')).toHaveClass('active');
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
     await act(async () => {
-      result
-        .find(CreateDiff)
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      const inputs = [...result.getElementsByTagName('input')];
+      await fireEvent.change(inputs[inputs.length - 1], { target: { value: '4' } });
     });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(CreateDiff)
-        .find('div.form-group')
-        .at(1)
-        .find('input')
-        .simulate('change', { target: { value: '4' } });
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col1',
         periods: '4',

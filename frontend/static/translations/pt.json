@@ -56,7 +56,10 @@
     "Feature Analysis": "Análise de Recursos",
     "Time Series Analysis": "Time Series Analysis",
     "gage_rnr": "Gage R & R",
-    "Vertical Column Headers": "Vertical Column Headers"
+    "Vertical Column Headers": "Vertical Column Headers",
+    "Hide Header Editor": "Hide Header Editor",
+    "Load ArcticDB Data": "Load ArcticDB Data",
+    "Jump To Column": "Jump To Column"
   },
   "menu_description": {
     "describe": "Descreve valores das colunas (Valores únicos, Min, Max, Soma, STD, Var,...)",
@@ -78,6 +81,7 @@
     "shutdown": "Fecha D-Tale e todos os outros conjuntos de dados abertos sem salvar.Você quer exportar o DataFrame?",
     "logout": "Autenticação está ativada em D-Tale. Você encerrará sua sessão atual e será redirecionado para a tela de login.",
     "editing": "Atualiza células para qualquer coisa que você gostaria. Pressione \"Enter\" para confirmar ou \"Esc\" para sair. Tipos inválidos vão lançar erros. Valores protegidos são \"nan\" & \"inf\".",
+    "bool_editing": "Atualiza células para qualquer coisa que você gostaria. Pressione \"Enter\" para confirmar ou \"Esc\" para sair. Press \"n\" to set value to \"nan\".",
     "xarray_conversion": "Converte seu pandas.Dataframe para um xarray.Dataset selecionando colunas como um índice. Uma vez concluído, você poderá visualizar diferentes fatias de seus dados, escolhendo valores de índice. ",
     "upload": "Carrega arquivos CSV/TSV, CSV/TSV/JSON da wev ou datasets de exemplo para D-Tale usando pandas.read_csv(), pandas.read_json() ou carregadores customizados.",
     "duplicates": "Remove colunas/valores duplicados de seus dados, bem como extrair duplicatas em instâncias separadas.",
@@ -103,7 +107,10 @@
     "corr_analysis": "Remover colunas (recursos) com base em suas correlações com outras colunas no seu conjunto de dados. Se houver uma forte correlação entre algumas colunas (características), então talvez eles não sejam relevantes para manter por aí?",
     "gage_rnr": "A Gage R&R is a scientific study that falls under the larger topic of Measurement System Analysis (MSA). When you observe any measurement, it will typically vary from time to time. That variation in the observed measurement will be the result of the variation in the object that you are measuring plus the variation of the measuring device.",
     "vertical_headers": "Rotate column headers vertically",
-    "timeseries_analysis": "Analyze time series data using different \"statsmodels.tsa\" functions"
+    "timeseries_analysis": "Analyze time series data using different \"statsmodels.tsa\" functions",
+    "hide_header_editor": "If checked, hides the header editor when editing cells in the grid",
+    "arcticdb": "Load data from a specific library & symbol in ArcticDB",
+    "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown."
   },
   "column_menu": {
     "Asc": "Asc",
@@ -121,7 +128,8 @@
     "Replacements": "Substituições",
     "Column Analysis": "Análise de Coluna.",
     "Variance Report": "Relatório de Variância",
-    "Formats": "Formatos"
+    "Formats": "Formatos",
+    "Duplicate": "Duplicar"
   },
   "builders": {
     "Type Conversion": "Conversão de Tipo",
@@ -189,6 +197,7 @@
     "Time": "Tempo",
     "Date": "Data",
     "Weekday": "Dia da semana",
+    "Weekday Name": "Weekday Name",
     "Month": "Mês",
     "Quarter": "Trimestre",
     "Year": "Ano",
@@ -459,7 +468,8 @@
     "context_variables_des3": "Eles podem ser referenciados em filtros prefixando o nome da variável com '@', ",
     "context_variables_des4": "para mostrar apenas linhas onde 'col' está na lista 'foo'",
     "No context variables are defined.": "Nenhuma variável de contexto definida",
-    "Context Variables": "Variáveis de Contexto."
+    "Context Variables": "Variáveis de Contexto.",
+    "Query Engine": "Query Engine"
   },
   "popup": {
     "Yes/No": "Sim/Não",
@@ -503,7 +513,8 @@
     "Correlations Timeseries": "Correlações de Séries Temporais",
     "Predictive Power Score for ": "Power Score Preditivo para ",
     "Encode Strings": "Encode Strings",
-    "encode_strings_tt": "Marcando esta caixa usará OneHotEncode (pd.get_dummies) em qualquer coluna de string com até 50 valores únicos para incluí-los na matriz de correlação. Essas colunas são:"
+    "encode_strings_tt": "Marcando esta caixa usará OneHotEncode (pd.get_dummies) em qualquer coluna de string com até 50 valores únicos para incluí-los na matriz de correlação. Essas colunas são:",
+    "Export Image": "Export Image"
   },
   "xarray": {
     "count": "contas",
@@ -565,7 +576,8 @@
     "Missing a value(s) selection!": "Falta selecionar valor(es)!",
     "Col": "Col",
     "Offset": "Deslocamento",
-    "Examples of pandas offset aliases found ": "Examples of pandas offset aliases found "
+    "Examples of pandas offset aliases found ": "Examples of pandas offset aliases found ",
+    "dropna": "Drop NaN values"
   },
   "replacement": {
     "Inplace": "No lugar",
@@ -575,10 +587,12 @@
     "Spaces Only": "Somente espaços",
     "Contains Char/Substring": "Contém Char/Substring",
     "Scikit-Learn Imputer": "Imputer de Scikit-Learn",
+    "Replace Substring": "Replace Substring",
     "value": "Substituir valores específicos em uma coluna",
     "spaces": "Substituir as strings que consistem apenas em espaços",
     "strings": "Substitua os valores da string que contêm um caractere ou substring específicos",
     "imputer": "Use Scikit-Learn imputers (iterativo, KNN ou simples) para preencher os valores numéricos NaN",
+    "partial": "Replace substring that occurs within string column value",
     "Replace": "Substituir",
     "Replacement Type": "Tipo de substituição",
     "Please enter a name!": "Por favor, insira um nome!",
@@ -782,7 +796,10 @@
     "Desc": "Desc",
     "None": "Nenhum",
     "navigate": "Usar botões ↑ ↓ para mudar colunas",
-    "Most Frequent": "Mais frequentes"
+    "Most Frequent": "Mais frequentes",
+    "Frequency":"Frequency",
+    "Percent": "Percent",
+    "TOTAL": "TOTAL"
   },
   "constants": {
     "Histogram": "Histograma",
@@ -817,7 +834,11 @@
     "Target": "Alvo",
     "Choose Col": "Escolha a Col",
     "Geometric Mean": "Geometric Mean",
-    "OHLC": "OHLC"
+    "OHLC": "OHLC",
+    "String Joiner": "String Joiner",
+    "Counts & Percentages": "Counts & Percentages",
+    "Frequency Table": "Frequency Table",
+    "Splits": "Splits"
   },
   "charts": {
     "Window": "Janela",
@@ -924,7 +945,10 @@
     "Clear Filters": "Remover Filtros",
     "Drop Filtered Rows": "Eliminar Linhas Filtradas",
     "Invert Filter": "Inverter Filtro",
-    "Move Filters To Custom": "Move Filters To Custom"
+    "Move Filters To Custom": "Move Filters To Custom",
+    "Hide Filtered Rows": "Hide Filtered Rows",
+    "Highlight Filtered Rows": "Highlight Filtered Rows",
+    "ArcticDB": "ArcticDB"
   },
   "side": {
     "Close": "Fechar",
@@ -979,7 +1003,8 @@
   "corr_analysis": {
     "Keep": "Manter",
     "Column": "Coluna",
-    "Max Correlation w/ Other Columns": "Correlação máxima com outras colunas",
+    "Max Correlation": "Correlação máxima",
+    "w/ Other Columns": "com outras colunas",
     "Correlations": "Correlações",
     "Above Threshold": "Acima do Limiar",
     "Missing Rows": "Linhas em Falta",
@@ -1029,5 +1054,10 @@
     "html": "HTML",
     "html_js": "HTML w/ JS",
     "rows_desc": "Your dataset contains more than 10,000 rows. I would advise selecting a subset of rows (or editing your filters further).  Setting a value above will take the top N rows from your dataset."
+  },
+  "arcticdb": {
+    "Library": "Library",
+    "Symbol": "Symbol",
+    "Load": "Carregar"
   }
 }

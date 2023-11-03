@@ -1,25 +1,19 @@
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
 import { Provider } from 'react-redux';
-import { Table } from 'react-virtualized';
+import selectEvent from 'react-select-event';
 
-import { ColumnAnalysisChart } from '../../popups/analysis/ColumnAnalysisChart';
-import CategoryInputs from '../../popups/analysis/filters/CategoryInputs';
-import DescribeFilters from '../../popups/analysis/filters/DescribeFilters';
 import Describe from '../../popups/describe/Describe';
-import Details, { DetailsProps } from '../../popups/describe/Details';
-import { DetailsCharts } from '../../popups/describe/DetailsCharts';
-import DtypesGrid, { DtypesGridProps } from '../../popups/describe/DtypesGrid';
-import { DescribePopupData } from '../../redux/state/AppState';
+import { ASC_PATH, DESC_PATH } from '../../popups/describe/DtypesGrid';
+import { ActionType } from '../../redux/actions/AppActions';
 import * as GenericRepository from '../../repository/GenericRepository';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, tickUpdate } from '../test-utils';
+import { buildInnerHTML, selectOption } from '../test-utils';
 
 describe('DataViewer tests', () => {
-  let result: ReactWrapper;
+  let container: Element;
   let postSpy: jest.SpyInstance<Promise<unknown>, [string, unknown]>;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
@@ -39,24 +33,23 @@ describe('DataViewer tests', () => {
   });
 
   beforeEach(async () => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
 
     postSpy = jest.spyOn(GenericRepository, 'postDataToService');
     postSpy.mockResolvedValue(Promise.resolve({ data: {} }));
 
     const store = reduxUtils.createDtaleStore();
-    store.getState().dataId = '1';
-    store.getState().chartData = { visible: true } as DescribePopupData;
+    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { visible: true } });
     buildInnerHTML({ settings: '' }, store);
-    result = mount(
-      <Provider store={store}>
-        <Describe />
-      </Provider>,
-      { attachTo: document.getElementById('content') ?? undefined },
-    );
-    await act(async () => await tickUpdate(result));
-    result = result.update();
+    await act(async () => {
+      const result = render(
+        <Provider store={store}>
+          <Describe />
+        </Provider>,
+        { container: document.getElementById('content') ?? undefined },
+      );
+      container = result.container;
+    });
   });
 
   afterEach(jest.restoreAllMocks);
@@ -67,124 +60,91 @@ describe('DataViewer tests', () => {
     window.close = close;
   });
 
-  const dtypesGrid = (): ReactWrapper<DtypesGridProps, Record<string, any>> => result.find(DtypesGrid).first();
-  const details = (): ReactWrapper<DetailsProps, Record<string, any>> => result.find(Details).first();
-  const clickHeaderSort = async (colIndex: number): Promise<ReactWrapper> => {
+  const dtypesGrid = (): Element => container.getElementsByClassName('dtypes')[0];
+  const details = (): Element => screen.getByTestId('details');
+  const clickHeaderSort = async (colIndex: number): Promise<void> => {
     await act(async () => {
-      dtypesGrid().find("div[role='columnheader']").at(colIndex).simulate('click');
+      fireEvent.click(dtypesGrid().querySelectorAll("div[role='columnheader']")[colIndex]);
     });
-    return result.update();
   };
 
   it('DataViewer: describe base grid operations', async () => {
     await act(async () => {
-      details()
-        .find('button')
-        .findWhere((btn) => btn.text() === 'Diffs')
-        .first()
-        .simulate('click');
+      const buttons = [...details().getElementsByTagName('button')];
+      fireEvent.click(buttons.find((btn) => btn.textContent === 'Diffs')!);
     });
-    result = result.update();
     expect(
-      details()
-        .find('span.font-weight-bold')
-        .findWhere((span) => span.text() === 'Sequential Difference Values (top 100 most common):'),
-    ).not.toHaveLength(0);
+      [...details().querySelectorAll('span.font-weight-bold')].find(
+        (span) => span.textContent === 'Sequential Difference Values (top 100 most common):',
+      ),
+    ).toBeDefined();
     await act(async () => {
-      details()
-        .find('button')
-        .findWhere((btn) => btn.text() === 'Outliers')
-        .first()
-        .simulate('click');
+      const buttons = [...details().getElementsByTagName('button')];
+      fireEvent.click(buttons.find((btn) => btn.textContent === 'Outliers')!);
     });
-    result = result.update();
-    expect(result.find(DetailsCharts)).toHaveLength(1);
+    expect(screen.queryAllByTestId('details-charts')).toHaveLength(1);
     expect(
-      details()
-        .find('span.font-weight-bold')
-        .findWhere((span) => span.text() === '3 Outliers Found (top 100):'),
-    ).not.toHaveLength(0);
+      [...details().querySelectorAll('span.font-weight-bold')].find(
+        (span) => span.textContent === '3 Outliers Found (top 100):',
+      ),
+    ).toBeDefined();
     await act(async () => {
-      details().find('a').last().simulate('click');
+      const anchors = details().getElementsByTagName('a');
+      fireEvent.click(anchors[anchors.length - 1]);
     });
-    result = result.update();
-    expect(dtypesGrid().find("div[role='row']").length).toBe(5);
-    expect(dtypesGrid().find(Table).props()).toEqual(
-      expect.objectContaining({ sortBy: 'index', sortDirection: 'ASC' }),
-    );
-    result = await clickHeaderSort(1);
-    expect(dtypesGrid().find(Table).props()).toEqual(
-      expect.objectContaining({ sortBy: 'visible', sortDirection: 'ASC' }),
-    );
-    result = await clickHeaderSort(1);
-    expect(dtypesGrid().find(Table).props()).toEqual(
-      expect.objectContaining({ sortBy: 'visible', sortDirection: 'DESC' }),
-    );
-    result = await clickHeaderSort(1);
-    expect(dtypesGrid().find(Table).props()).toEqual(
-      expect.objectContaining({ sortBy: 'index', sortDirection: 'ASC' }),
-    );
-    result = await clickHeaderSort(2);
-    expect(dtypesGrid().find(Table).props()).toEqual(expect.objectContaining({ sortBy: 'name', sortDirection: 'ASC' }));
+    expect(dtypesGrid().querySelectorAll("div[role='row']").length).toBe(5);
+    const headers = (): HTMLCollectionOf<Element> => document.body.getElementsByClassName('headerCell');
+    const header = (name: string): Element => [...headers()].find((h) => h.textContent === name)!;
+    expect(header('#').getElementsByTagName('path')[0]?.getAttribute('d')).toBe(ASC_PATH);
+    await clickHeaderSort(2);
+    expect(header('Column Name').getElementsByTagName('path')[0]?.getAttribute('d')).toBe(ASC_PATH);
+    await clickHeaderSort(2);
+    expect(header('Column Name').getElementsByTagName('path')[0]?.getAttribute('d')).toBe(DESC_PATH);
+    await clickHeaderSort(2);
+    expect(header('Column Name').getElementsByTagName('path')[0]?.getAttribute('d')).toBeUndefined();
     await act(async () => {
-      result
-        .find(DescribeFilters)
-        .find('button')
-        .findWhere((btn) => btn.text() === 'Histogram')
-        .first()
-        .simulate('click');
+      const buttons = [...screen.getByTestId('describe-filters').getElementsByTagName('button')];
+      await fireEvent.click(buttons.find((btn) => btn.textContent === 'Histogram')!);
     });
-    result = result.update();
-    expect(result.find(ColumnAnalysisChart)).toHaveLength(1);
+    expect(container.getElementsByTagName('canvas')).toHaveLength(1);
     await act(async () => {
-      result
-        .find(DescribeFilters)
-        .find('button')
-        .findWhere((btn) => btn.text() === 'Categories')
-        .first()
-        .simulate('click');
+      const buttons = [...screen.getByTestId('describe-filters').getElementsByTagName('button')];
+      await fireEvent.click(buttons.find((btn) => btn.textContent === 'Categories')!);
     });
-    result = result.update();
-    expect(result.find('div.missing-category')).toHaveLength(1);
+    const categorySelect = (): HTMLElement =>
+      screen.getByTestId('category-col').getElementsByClassName('Select')[0] as HTMLElement;
+    await selectOption(categorySelect(), 'col3');
+    expect(container.getElementsByTagName('canvas')).toHaveLength(1);
     await act(async () => {
-      result.find(CategoryInputs).first().props().setCategoryCol({ value: 'foo', label: 'foo' });
+      await selectEvent.clearFirst(categorySelect());
     });
-    result = result.update();
-    expect(result.find(ColumnAnalysisChart)).toHaveLength(1);
+    expect(container.querySelectorAll('div.missing-category')).toHaveLength(1);
   });
 
   it('DataViewer: showing/hiding columns from Describe popup & jumping sessions', async () => {
+    const headers = (): HTMLCollectionOf<Element> => document.body.getElementsByClassName('headerCell');
     await act(async () => {
-      dtypesGrid()
-        .find('div.headerCell')
-        .at(2)
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: '1' } });
+      const input = headers()[2].getElementsByTagName('input')[0];
+      fireEvent.change(input, { target: { value: '1' } });
     });
-    result = result.update();
-    expect(dtypesGrid().find("div[role='row']")).toHaveLength(2);
+    expect(dtypesGrid().querySelectorAll("div[role='row']")).toHaveLength(2);
     await act(async () => {
-      dtypesGrid().find("div[title='col1']").first().simulate('click');
+      fireEvent.click(dtypesGrid().querySelector("div[title='col1']")!);
     });
-    result = result.update();
-    expect(result.find(Details).find('div.row').first().find('span').first().text()).toBe('col1');
+    expect(details().getElementsByClassName('row')[0].getElementsByTagName('span')[0].textContent).toBe('col1');
     await act(async () => {
-      dtypesGrid().find('div.headerCell').at(1).find('i.ico-check-box').simulate('click');
+      fireEvent.click(headers()[1].getElementsByClassName('ico-check-box')[0]);
     });
-    result = result.update();
     await act(async () => {
-      dtypesGrid().find('div.headerCell').at(1).find('i.ico-check-box-outline-blank').simulate('click');
+      fireEvent.click(headers()[1].getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
     await act(async () => {
-      dtypesGrid().find('i.ico-check-box').last().simulate('click');
+      const checkBoxes = dtypesGrid().getElementsByClassName('ico-check-box');
+      fireEvent.click(checkBoxes[checkBoxes.length - 1]);
     });
-    result = result.update();
     await act(async () => {
-      result.find('div.modal-footer').first().find('button').first().simulate('click');
+      fireEvent.click(document.body.getElementsByClassName('modal-footer')[0].getElementsByTagName('button')[0]);
     });
-    result = result.update();
     expect(postSpy).toBeCalledTimes(1);
     const firstPostCall = postSpy.mock.calls[0];
     expect(firstPostCall[0]).toBe('/dtale/update-visibility/1');

@@ -1,16 +1,19 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
 import { Bouncer } from '../../Bouncer';
+import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { ColumnType, findColType, noFilters } from '../../dtale/gridUtils';
 import { JSAnchor } from '../../JSAnchor';
-import { AppActions } from '../../redux/actions/AppActions';
 import * as actions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, InstanceSettings } from '../../redux/state/AppState';
+import { selectColumnCount, selectDataId, selectIsArcticDB, selectSettings } from '../../redux/selectors';
+import { InstanceSettings } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
 import * as DescribeRepository from '../../repository/DescribeRepository';
@@ -34,20 +37,20 @@ export interface DetailsProps {
   close?: JSX.Element;
 }
 
-const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, close, t }) => {
-  const { dataId, settings } = useSelector((state: AppState) => ({ dataId: state.dataId, settings: state.settings }));
-  const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+const selectResult = createSelector(
+  [selectColumnCount, selectDataId, selectIsArcticDB, selectSettings],
+  (columnCount, dataId, isArcticDB, settings) => ({ columnCount, dataId, isArcticDB, settings }),
+);
 
-  const deepDataOptions = React.useMemo(
-    () => [
-      { value: DeepDataView.UNIQUES, label: t('Uniques') },
-      { value: DeepDataView.OUTLIERS, label: t('Outliers') },
-      { value: DeepDataView.DIFFS, label: t('Diffs') },
-    ],
-    [t],
+const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, close, t }) => {
+  const { dataId, settings, isArcticDB, columnCount } = useSelector(selectResult);
+  const largeArcticDB = React.useMemo(
+    () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
+    [isArcticDB, columnCount],
   );
+  const dispatch = useDispatch();
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
 
   const preExistingFilters = React.useMemo(() => {
     const { query, columnFilters, outlierFilters, predefinedFilters } = settings;
@@ -55,6 +58,7 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
   }, [settings]);
   const [error, setError] = React.useState<JSX.Element>();
   const [details, setDetails] = React.useState<DetailData>();
+  const [loadingDetails, setLoadingDetails] = React.useState(false);
   const [code, setCode] = React.useState<string>();
   const [deepData, setDeepData] = React.useState<DeepDataView>(DeepDataView.UNIQUES);
   const [viewWordValues, setViewWordValues] = React.useState(false);
@@ -63,11 +67,23 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
   const [loadingOutliers, setLoadingOutliers] = React.useState(false);
   const [filtered, setFiltered] = React.useState(preExistingFilters);
 
+  const deepDataOptions = React.useMemo(
+    () => [
+      ...(details?.uniques ? [{ value: DeepDataView.UNIQUES, label: t('Uniques') }] : []),
+      ...(!largeArcticDB ? [{ value: DeepDataView.OUTLIERS, label: t('Outliers') }] : []),
+      ...(details?.sequential_diffs ? [{ value: DeepDataView.DIFFS, label: t('Diffs') }] : []),
+    ],
+    [t, details],
+  );
+
   const loadDetails = async (): Promise<void> => {
     if (!selected) {
       return undefined;
     }
+    setError(undefined);
+    setLoadingDetails(true);
     const response = await DescribeRepository.load(dataId, selected.name, filtered);
+    setLoadingDetails(false);
     if (response?.error) {
       setError(<RemovableError {...response} />);
       return;
@@ -75,7 +91,7 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
     if (response) {
       setError(undefined);
       setOutliers(undefined);
-      setDeepData(DeepDataView.UNIQUES);
+      setDeepData(response?.uniques ? DeepDataView.UNIQUES : DeepDataView.DIFFS);
       setViewWordValues(false);
       setWordValues(undefined);
       setDetails(response);
@@ -87,7 +103,7 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
     if (selected) {
       loadDetails();
     }
-  }, [selected, filtered]);
+  }, [selected?.name, filtered]);
 
   const loadOutliers = (): void => {
     setLoadingOutliers(true);
@@ -103,6 +119,9 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
 
   const renderDeepDataToggle = (): React.ReactNode => {
     const colType = findColType(selected.dtype);
+    if (!deepDataOptions.length) {
+      return null;
+    }
     if ([ColumnType.FLOAT, ColumnType.INT].includes(colType)) {
       return (
         <div className="row pb-5">
@@ -214,57 +233,54 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
     );
   };
 
-  if (error) {
-    return (
-      <div className="row">
-        <div className="col-sm-12">{error}</div>
-      </div>
-    );
-  }
-  if (!Object.keys(details ?? {}).length) {
-    return null;
-  }
   return (
     <React.Fragment>
-      {details && (
-        <React.Fragment>
-          <div className="row">
-            <div className="col">
-              <span className="mb-0 font-weight-bold" style={{ fontSize: '2em' }}>
-                {selected.name}
-              </span>
-              <span className="pl-3">({selected.dtype})</span>
-              <small className="d-block pl-2 pb-3" style={{ marginTop: '-8px' }}>
-                ({t('navigate')})
-              </small>
-            </div>
-            <FilterableToggle
-              hasFilters={preExistingFilters}
-              filtered={filtered}
-              propagateState={(state) => setFiltered(state.filtered)}
-              className="pr-0"
-            />
-            {close}
+      <div data-testid="details">
+        <div className="row">
+          <div className="col">
+            <span className="mb-0 font-weight-bold" style={{ fontSize: '2em' }}>
+              {selected.name}
+            </span>
+            <span className="pl-3">({selected.dtype})</span>
+            <small className="d-block pl-2 pb-3" style={{ marginTop: '-8px' }}>
+              ({t('navigate')})
+            </small>
           </div>
-          <DetailsCharts
-            details={details}
-            detailCode={code}
-            dtype={selected.dtype}
-            cols={dtypes}
-            col={selected.name}
-            propagateState={(state) => {
-              setViewWordValues(state.viewWordValues);
-              setWordValues(state.wordValues);
-            }}
+          <FilterableToggle
+            hasFilters={preExistingFilters}
             filtered={filtered}
+            propagateState={(state) => setFiltered(state.filtered)}
+            className="pr-0"
           />
+          {close}
+        </div>
+        <BouncerWrapper showBouncer={loadingDetails}>
+          {details && (
+            <DetailsCharts
+              details={details}
+              detailCode={code}
+              dtype={selected.dtype}
+              cols={dtypes}
+              col={selected.name}
+              propagateState={(state) => {
+                setViewWordValues(state.viewWordValues);
+                setWordValues(state.wordValues);
+              }}
+              filtered={filtered}
+            />
+          )}
           {renderDeepDataToggle()}
           {deepData === DeepDataView.UNIQUES && renderUniques()}
-          {deepData === DeepDataView.DIFFS && details?.sequential_diffs.diffs && (
+          {deepData === DeepDataView.DIFFS && !!details?.sequential_diffs?.diffs && (
             <Uniques uniques={details.sequential_diffs.diffs} baseTitle="Sequential Difference" />
           )}
           {deepData === DeepDataView.OUTLIERS && renderOutliers()}
-        </React.Fragment>
+        </BouncerWrapper>
+      </div>
+      {error && (
+        <div className="row">
+          <div className="col-sm-12">{error}</div>
+        </div>
       )}
     </React.Fragment>
   );

@@ -1,86 +1,55 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
-import {
-  BaseCreateComponentProps,
-  CreateColumnType,
-  RollingClosedType,
-  RollingWindowType,
-} from '../../../popups/create/CreateColumnState';
-import { default as CreateRolling, validateRollingCfg } from '../../../popups/create/CreateRolling';
-import { mockT as t } from '../../test-utils';
+import { CreateColumnType, RollingClosedType, RollingWindowType } from '../../../popups/create/CreateColumnState';
+import { validateRollingCfg } from '../../../popups/create/CreateRolling';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateRolling', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Rolling');
+    await spies.clickBuilder('Rolling');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const findRolling = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> => result.find(CreateRolling);
-
   it('DataViewer: build rolling column', async () => {
-    expect(findRolling()).toHaveLength(1);
+    expect(screen.getByText('Rolling')).toHaveClass('active');
+    await selectOption(
+      screen.getByText('Column*').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col1',
+    );
+    await selectOption(
+      screen.getByText('Computation').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'Mean',
+    );
     await act(async () => {
-      findRolling()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col1' }, {} as ActionMeta<unknown>);
+      await fireEvent.change(screen.getByText('Min Periods').parentElement!.getElementsByTagName('input')[1], {
+        target: { value: '1' },
+      });
     });
-    result = result.update();
     await act(async () => {
-      findRolling()
-        .find(Select)
-        .at(1)
-        .props()
-        .onChange?.({ value: 'mean' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    result = result.update();
+    await selectOption(
+      screen.getByText('On').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'col2',
+    );
+    await selectOption(
+      screen.getByText('Window Type').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
+      'Triangular',
+    );
     await act(async () => {
-      findRolling()
-        .find('div.form-group')
-        .at(2)
-        .find('input')
-        .last()
-        .simulate('change', { target: { value: '1' } });
+      await fireEvent.click(screen.getByText('Neither'));
     });
-    result = result.update();
-    await act(async () => {
-      findRolling().find('i.ico-check-box-outline-blank').simulate('click');
-    });
-    result = result.update();
-    await act(async () => {
-      findRolling()
-        .find(Select)
-        .at(2)
-        .props()
-        .onChange?.({ value: 'col2' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      findRolling()
-        .find(Select)
-        .at(3)
-        .props()
-        .onChange?.({ value: 'triang' }, {} as ActionMeta<unknown>);
-    });
-    result = result.update();
-    await act(async () => {
-      findRolling().find('div.form-group').last().find('button').last().simulate('click');
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col1',
         center: true,

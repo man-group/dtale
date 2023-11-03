@@ -1,10 +1,12 @@
+import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import { AnyAction } from 'redux';
 
-import { AppActions } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
-import { AppState, InstanceSettings } from '../../redux/state/AppState';
+import * as selectors from '../../redux/selectors';
+import { InstanceSettings } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
 import * as gu from '../gridUtils';
 import { buildMenuHandler, InfoMenuType } from '../info/infoUtils';
@@ -20,19 +22,32 @@ export interface DataViewerInfoProps {
   propagateState: DataViewerPropagateState;
 }
 
+const selectResult = createSelector(
+  [
+    selectors.selectPredefinedFilterConfigs,
+    selectors.selectInvertFilter,
+    selectors.selectQuery,
+    selectors.selectColumnFilters,
+    selectors.selectPredefinedFilters,
+    selectors.selectOutlierFilters,
+    selectors.selectSortInfo,
+  ],
+  (predefinedFilterConfigs, invertFilter, query, columnFilters, predefinedFilters, outlierFilters, sortInfo) => ({
+    predefinedFilterConfigs,
+    invertFilter: invertFilter ?? false,
+    query,
+    columnFilters: columnFilters ?? {},
+    predefinedFilters: predefinedFilters ?? {},
+    outlierFilters: outlierFilters ?? {},
+    sortInfo,
+  }),
+);
+
 const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ columns, error, propagateState, t }) => {
-  const reduxState = useSelector((state: AppState) => ({
-    predefinedFilterConfigs: state.predefinedFilters,
-    invertFilter: state.settings.invertFilter ?? false,
-    query: state.settings.query,
-    columnFilters: state.settings.columnFilters,
-    predefinedFilters: state.settings.predefinedFilters,
-    outlierFilters: state.settings.outlierFilters,
-    sortInfo: state.settings.sortInfo,
-  }));
+  const reduxState = useSelector(selectResult);
   const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AppActions<void> =>
-    dispatch(settingsActions.updateSettings(updatedSettings));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
+    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
 
   const [menuOpen, setMenuOpen] = React.useState<InfoMenuType>();
   const sortRef = React.useRef<HTMLDivElement>(null);
@@ -65,8 +80,8 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ colum
     }
     const clickHandler = buildMenuHandler(InfoMenuType.SORT, setMenuOpen, sortRef);
     const dropSort =
-      (dropCol: string): (() => AppActions<void>) =>
-      (): AppActions<void> =>
+      (dropCol: string): (() => AnyAction) =>
+      (): AnyAction =>
         updateSettings({ sortInfo: reduxState.sortInfo?.filter((s) => s[0] !== dropCol) ?? [] });
     return (
       <React.Fragment>

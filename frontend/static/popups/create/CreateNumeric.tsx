@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, WithTranslation } from 'react-i18next';
 
 import ButtonToggle from '../../ButtonToggle';
 import { capitalize } from '../../stringUtils';
@@ -16,17 +17,17 @@ import { default as Operand, OperandState } from './Operand';
 
 export const validateNumericCfg = (t: TFunction, cfg: NumericConfig): string | undefined => {
   if (!cfg.operation) {
-    return t('Please select an operation!');
+    return t('Please select an operation!') ?? undefined;
   }
   if (cfg.left.type === OperandDataType.COL && !cfg.left.col) {
-    return t('Left side is missing a column selection!');
+    return t('Left side is missing a column selection!') ?? undefined;
   } else if (cfg.left.type === OperandDataType.VAL && !cfg.left.val) {
-    return t('Left side is missing a static value!');
+    return t('Left side is missing a static value!') ?? undefined;
   }
   if (cfg.right.type === OperandDataType.COL && !cfg.right.col) {
-    return t('Right side is missing a column selection!');
+    return t('Right side is missing a column selection!') ?? undefined;
   } else if (cfg.right.type === OperandDataType.VAL && !cfg.right.val) {
-    return t('Right side is missing a static value!');
+    return t('Right side is missing a static value!') ?? undefined;
   }
   return undefined;
 };

@@ -64,10 +64,18 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
         label: translatedTitles.value_counts,
         value: AnalysisType.VALUE_COUNTS,
       });
+      options.push({
+        label: translatedTitles.frequency,
+        value: AnalysisType.FREQUENCY,
+      });
     } else {
       options.push({
         label: translatedTitles.value_counts,
         value: AnalysisType.VALUE_COUNTS,
+      });
+      options.push({
+        label: translatedTitles.frequency,
+        value: AnalysisType.FREQUENCY,
       });
     }
     if (hasCoords(selectedCol, cols)) {
@@ -81,6 +89,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     }
     return options;
   }, [dtype, cols, selectedCol, t]);
+
   const colOptions: Array<BaseOption<string>> = React.useMemo(
     () =>
       cols
@@ -106,6 +115,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
   const [lonCol, setLonCol] = React.useState<BaseOption<string> | undefined>(coordVals.lonCol);
   const [density, setDensity] = React.useState<boolean>(false);
   const [target, setTarget] = React.useState<BaseOption<string>>();
+  const [splits, setSplits] = React.useState<Array<BaseOption<string>>>([]);
 
   const buildChart = async (): Promise<void> => {
     await props.buildChart({
@@ -121,6 +131,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
       lonCol,
       density,
       target,
+      splits,
     });
   };
 
@@ -143,7 +154,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
 
   React.useEffect(() => {
     buildChart();
-  }, [type, top, bins, ordinalCol, ordinalAgg, categoryCol, categoryAgg, latCol, lonCol, density, target]);
+  }, [type, top, bins, ordinalCol, ordinalAgg, categoryCol, categoryAgg, latCol, lonCol, density, target, splits]);
 
   React.useEffect(() => {
     const keyPress = (e: KeyboardEvent): void => {
@@ -176,11 +187,16 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     );
   };
 
-  const buildFilter = (setter: (value: string) => void, defaultValue?: string, disabled = false): JSX.Element => {
+  const buildFilter = (
+    setter: (value: string) => void,
+    prop: string,
+    defaultValue?: string,
+    disabled = false,
+  ): JSX.Element => {
     return (
       <TextEnterFilter
         {...{
-          prop: 'value',
+          prop,
           buildChart,
           dtype,
           propagateState: (state: { value: string }) => setter(state.value),
@@ -208,7 +224,32 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
           onChange={(value?: BaseOption<string> | Array<BaseOption<string>>) =>
             setTarget((value as BaseOption<string>) ?? undefined)
           }
-          noOptionsText={() => t('No columns found')}
+          noOptionsMessage={() => t('No columns found')}
+          isClearable={true}
+        />
+      </div>
+    </React.Fragment>
+  );
+
+  const splitsSelect = (): JSX.Element => (
+    <React.Fragment key="target">
+      <div className="col-auto text-center pr-4">
+        <div>
+          <b>{t('Splits')}</b>
+        </div>
+        <div style={{ marginTop: '-.5em' }}>
+          <small>{`(${t('Choose Col')})`}</small>
+        </div>
+      </div>
+      <div className="col-auto pl-0 mr-3 ordinal-dd" data-testid="splits-select">
+        <FilterSelect
+          isMulti={true}
+          value={splits}
+          options={colOptions}
+          onChange={(value?: BaseOption<string> | Array<BaseOption<string>>) =>
+            setSplits((value as Array<BaseOption<string>>) ?? undefined)
+          }
+          noOptionsMessage={() => t('No columns found')}
           isClearable={true}
         />
       </div>
@@ -231,6 +272,13 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     const colType = gu.findColType(dtype);
     if (type === AnalysisType.BOXPLOT || type === AnalysisType.QQ) {
       return null;
+    } else if (type === AnalysisType.FREQUENCY) {
+      return wrapFilterMarkup(
+        <React.Fragment>
+          {buildFilter(setTop, 'top', top)}
+          {splitsSelect()}
+        </React.Fragment>,
+      );
     } else if (type === AnalysisType.GEOLOCATION) {
       return wrapFilterMarkup(
         <GeoFilters col={selectedCol} columns={cols ?? []} {...{ latCol, lonCol, setLatCol, setLonCol }} />,
@@ -241,14 +289,14 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
         return wrapFilterMarkup(
           <React.Fragment>
             {densityToggle()}
-            {!density && buildFilter(setBins, bins)}
+            {!density && buildFilter(setBins, 'bins', bins)}
             {targetSelect()}
           </React.Fragment>,
         );
       } else {
         return wrapFilterMarkup(
           <React.Fragment>
-            {buildFilter(setTop, top)}
+            {buildFilter(setTop, 'top', top)}
             <OrdinalInputs
               {...{ colType, selectedCol, cols: cols ?? [], type, setOrdinalCol, setOrdinalAgg, setCleaners }}
             />
@@ -261,14 +309,14 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
         return wrapFilterMarkup(
           <React.Fragment>
             {densityToggle()}
-            {!density && buildFilter(setBins, bins)}
+            {!density && buildFilter(setBins, 'bins', bins)}
             {targetSelect()}
           </React.Fragment>,
         );
       } else {
         return wrapFilterMarkup(
           <React.Fragment>
-            {buildFilter(setTop, top)}
+            {buildFilter(setTop, 'top', top)}
             <CategoryInputs {...{ selectedCol, cols: cols ?? [], setCategoryCol, setCategoryAgg }} />
           </React.Fragment>,
         );
@@ -277,13 +325,20 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
       // date, string, bool -> Value Counts
       return wrapFilterMarkup(
         <React.Fragment>
-          {buildFilter(setTop, top)}
           {type !== AnalysisType.HISTOGRAM && (
-            <OrdinalInputs
-              {...{ colType, selectedCol, cols: cols ?? [], type, setOrdinalCol, setOrdinalAgg, setCleaners }}
-            />
+            <>
+              {buildFilter(setTop, 'top', top)}
+              <OrdinalInputs
+                {...{ colType, selectedCol, cols: cols ?? [], type, setOrdinalCol, setOrdinalAgg, setCleaners }}
+              />
+            </>
           )}
-          {type === AnalysisType.HISTOGRAM && densityToggle()}
+          {type === AnalysisType.HISTOGRAM && (
+            <>
+              {densityToggle()}
+              {!density && buildFilter(setBins, 'bins', bins)}
+            </>
+          )}
         </React.Fragment>,
       );
     }

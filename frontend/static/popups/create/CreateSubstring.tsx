@@ -1,5 +1,6 @@
+import { TFunction } from 'i18next';
 import * as React from 'react';
-import { TFunction, WithTranslation, withTranslation } from 'react-i18next';
+import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BaseOption } from '../../redux/state/AppState';
 
@@ -20,11 +21,11 @@ const parseRange = (cfg: SubstringConfig): { start: number; end: number } => ({
 
 export const validateSubstringCfg = (t: TFunction, cfg: SubstringConfig): string | undefined => {
   if (!cfg.col) {
-    return t('Missing a column selection!');
+    return t('Missing a column selection!') ?? undefined;
   }
   const { start, end } = parseRange(cfg);
   if (isNaN(start) || isNaN(end) || start === end || start > end) {
-    return t('Invalid range specification, start must be less than end!');
+    return t('Invalid range specification, start must be less than end!') ?? undefined;
   }
   return undefined;
 };

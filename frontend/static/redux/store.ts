@@ -1,10 +1,5 @@
-import { applyMiddleware, createStore, Reducer, Store } from 'redux';
-import { composeWithDevTools } from 'redux-devtools-extension/developmentOnly';
-import thunk from 'redux-thunk';
-
-const composeEnhancers = composeWithDevTools({
-  serialize: false,
-});
+import { configureStore } from '@reduxjs/toolkit';
+import { Reducer, Store } from 'redux';
 
 /**
  * Create a redux store.
@@ -12,13 +7,22 @@ const composeEnhancers = composeWithDevTools({
  * @param extendedReducers the reducers to be used by this redux store.
  * @return redux store.
  */
-export function createAppStore<T>(extendedReducers: Reducer<T>): Store<T> {
-  const middlewares = [thunk];
-  let middleware: any = applyMiddleware(...middlewares);
-
-  if (process.env.NODE_ENV !== 'production' && (window as any).devToolsExtension) {
-    middleware = composeEnhancers(middleware, (window as any).devToolsExtension());
-  }
-
-  return createStore(extendedReducers, middleware);
-}
+export const createAppStore = <T>(extendedReducers: Reducer<T>): Store<T> =>
+  configureStore({
+    reducer: extendedReducers,
+    devTools: process.env.NODE_ENV !== 'production' && (window as any).devToolsExtension,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: false,
+        immutableCheck: {
+          ignoredPaths: [
+            'selectedColRef',
+            'instances',
+            'menuTooltip.element',
+            'menuTooltip.content',
+            'ribbonDropdown.element',
+            'chartData',
+          ],
+        },
+      }),
+  });

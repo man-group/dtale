@@ -1,16 +1,21 @@
+import { act, fireEvent, render, RenderResult, screen } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 
-import ButtonToggle from '../../../ButtonToggle';
 import { SaveAs } from '../../../popups/create/CreateColumnState';
 import CreateReplacement from '../../../popups/replacement/CreateReplacement';
 import { CreateReplacementSaveParams, ReplacementType } from '../../../popups/replacement/CreateReplacementState';
+import { ActionType } from '../../../redux/actions/AppActions';
+import { PopupType } from '../../../redux/state/AppState';
 import * as CreateReplacementRepository from '../../../repository/CreateReplacementRepository';
 import reduxUtils from '../../redux-test-utils';
-import { tickUpdate } from '../../test-utils';
+import { buildInnerHTML } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
 
 /** Bundles alot of jest setup for CreateColumn component tests */
 export class Spies {
@@ -18,29 +23,22 @@ export class Spies {
     Promise<CreateReplacementRepository.SaveResponse | undefined>,
     [dataId: string, params: CreateReplacementSaveParams]
   >;
-  public axiosGetSpy: jest.SpyInstance;
-  public useSelectorSpy: jest.SpyInstance;
-  public useDispatchSpy: jest.SpyInstance;
   public propagateStateSpy: jest.Mock;
+  public mockDispatch = jest.fn();
+  private useDispatchMock = useDispatch as jest.Mock;
+  private result?: RenderResult;
 
   /** Initializes all spy instances */
   constructor() {
     this.saveSpy = jest.spyOn(CreateReplacementRepository, 'save');
-    this.axiosGetSpy = jest.spyOn(axios, 'get');
-    this.useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    this.useDispatchSpy = jest.spyOn(redux, 'useDispatch');
     this.propagateStateSpy = jest.fn();
   }
 
   /** Sets the mockImplementation/mockReturnValue for spy instances */
   public setupMockImplementations(): void {
-    this.axiosGetSpy.mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    this.useDispatchMock.mockImplementation(() => this.mockDispatch);
+    (axios.get as any).mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
     this.saveSpy.mockResolvedValue({ success: true });
-    this.useSelectorSpy.mockReturnValue({
-      dataId: '1',
-      chartData: { visible: true, propagateState: this.propagateStateSpy, selectedCol: 'col1' },
-    });
-    this.useDispatchSpy.mockReturnValue(jest.fn());
   }
 
   /** Cleanup after each jest tests */
@@ -54,93 +52,82 @@ export class Spies {
   }
 
   /**
-   * Build the initial enzyme wrapper.
+   * Build the initial wrapper.
    *
-   * @return the enzyme wrapper for testing.
+   * @param overrides overrides for chart popup
+   * @return the wrapper for testing.
    */
-  public async setupWrapper(): Promise<ReactWrapper> {
-    const result = mount(<CreateReplacement />);
-    await act(async () => await tickUpdate(result));
-    return result.update();
+  public async setupWrapper(overrides?: Record<string, any>): Promise<RenderResult> {
+    const store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '' }, store);
+    store.dispatch({
+      type: ActionType.OPEN_CHART,
+      chartData: {
+        type: PopupType.REPLACEMENT,
+        propagateState: this.propagateStateSpy,
+        selectedCol: 'col1',
+        ...overrides,
+      },
+    });
+    return await act(async () => {
+      this.result = render(
+        <Provider store={store}>
+          <CreateReplacement />
+        </Provider>,
+        { container: document.getElementById('content') ?? undefined },
+      );
+      return this.result;
+    });
   }
 
   /**
    * Execute the "Save" button on CreateColumn.
-   *
-   * @param result the current enzyme wrapper.
-   * @return the udpated enzyme wrapper.
    */
-  public async executeSave(result: ReactWrapper): Promise<ReactWrapper> {
+  public async executeSave(): Promise<void> {
     await act(async () => {
-      result.find('div.modal-footer').first().find('button').first().simulate('click');
+      await fireEvent.click(screen.getByText('Replace'));
     });
-    return result.update();
   }
 
   /**
    * Find button with specific text within CreateColumn and simulate a click.
    *
-   * @param result the current enzyme wrapper
    * @param name the name of the button to click
-   * @return the updated enzyme wrapper
    */
-  public async clickBuilder(result: ReactWrapper, name: string): Promise<ReactWrapper> {
+  public async clickBuilder(name: string): Promise<void> {
+    const buttons = [...this.result!.container.getElementsByTagName('button')];
+    const button = buttons.find((b) => b.textContent === name);
     await act(async () => {
-      result
-        .find(CreateReplacement)
-        .find(ButtonToggle)
-        .at(1)
-        .find('button')
-        .filterWhere((btn: ReactWrapper) => btn.text() === name)
-        .first()
-        .simulate('click');
+      await fireEvent.click(button!);
     });
-    return result.update();
   }
 
   /**
    * Execute a save on the current column replacement configuration and validate the configuration used.
    *
-   * @param result current enzyme wrapper
    * @param overrides column replacement parameter overrides
    * @param dataId the identifier of the data instance we want to create a column for
-   * @return the updated enzyme wrapper
    */
-  public async validateCfg(
-    result: ReactWrapper,
-    overrides: Partial<CreateReplacementSaveParams>,
-    dataId = '1',
-  ): Promise<ReactWrapper> {
-    result = await this.executeSave(result);
+  public async validateCfg(overrides: Partial<CreateReplacementSaveParams>, dataId = '1'): Promise<void> {
+    await this.executeSave();
     expect(this.saveSpy).toHaveBeenLastCalledWith(dataId, {
       cfg: {},
       saveAs: SaveAs.NEW,
       type: ReplacementType.IMPUTER,
       ...overrides,
     });
-    return result;
   }
 
   /**
    * Update the name of the replacement being created
-   * @param result current enzyme wrapper
    * @param name the name to apply
-   * @return the updated enzyme wrapper
    */
-  public async setName(result: ReactWrapper, name: string): Promise<ReactWrapper> {
+  public async setName(name: string): Promise<void> {
     await act(async () => {
-      result.find(CreateReplacement).find(ButtonToggle).first().find('button').last().simulate('click');
+      fireEvent.click(screen.getByText('New Column'));
     });
-    const updatedResult = result.update();
     await act(async () => {
-      updatedResult
-        .find(CreateReplacement)
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: name } });
+      fireEvent.change(screen.getByTestId('new-column-name'), { target: { value: name } });
     });
-    return updatedResult.update();
   }
 }

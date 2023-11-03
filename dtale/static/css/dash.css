@@ -457,7 +457,8 @@ div.tab {
 #colorscale-dropdown .Select-menu-outer,
 #animate-by-dropdown .Select-menu-outer,
 #trendline-dropdown .Select-menu-outer,
-.drilldown-x-dropdown .Select-menu-outer {
+.drilldown-x-dropdown .Select-menu-outer,
+#stratified-group-dropdown .Select-menu-outer {
     z-index: 7;
 }
 #colorscale-picker {
@@ -545,6 +546,19 @@ div.tab {
 .toggle-wrapper {
     border: 1px solid #a7b3b7;
     border-radius: 0 .25rem .25rem 0;
+}
+.checkbox-wrapper {
+    border: 1px solid #a7b3b7;
+    border-radius: 0 .25rem .25rem 0;
+}
+.checkbox-wrapper .form-check-input {
+    position: absolute;
+    right: 0;
+    margin-right: 0.35em;
+    margin-top: 0.6em;
+}
+#collapse-cleaners-btn, #collapse-data-btn {
+  border-width: 0;
 }
 div.modebar > div.modebar-group:last-child, /* hide plotly logo */
 div.modebar > div.modebar-group:first-child /* hide plotly "export to png" */
@@ -734,6 +748,10 @@ div#bins-val-input input {
 #load-type-dropdown .Select-control,
 #load-type-dropdown .Select-menu-outer {
   width: 7.5em;
+}
+
+#stratified-group-dropdown {
+  padding-left: 25px;
 }
 
 body.dark-mode .tab-container .tab {

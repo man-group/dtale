@@ -1,69 +1,41 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
 import { CreateColumnType, EncoderAlgoType } from '../../../popups/create/CreateColumnState';
-import { default as CreateEncoder, validateEncoderCfg } from '../../../popups/create/CreateEncoder';
-import { BaseOption } from '../../../redux/state/AppState';
-import { mockT as t } from '../../test-utils';
+import { validateEncoderCfg } from '../../../popups/create/CreateEncoder';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateEncoder', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Encoder');
+    await spies.clickBuilder('Encoder');
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const selects = (): ReactWrapper => result.find(CreateEncoder).find(Select);
-
   it('builds encoder column', async () => {
-    expect(result.find(CreateEncoder)).toHaveLength(1);
-    await act(async () => {
-      (selects().at(1).prop('onChange') as (option: BaseOption<string>) => void)?.({ value: 'col1' });
-    });
-    result = result.update();
-    await act(async () => {
-      (selects().first().prop('onChange') as (option: BaseOption<string>) => void)?.({
-        value: EncoderAlgoType.ONE_HOT,
-      });
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    expect(screen.queryAllByText('Encoder')[0]).toHaveClass('active');
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'OneHotEncoder');
+    await selectOption(result.getElementsByClassName('Select')[1] as HTMLElement, 'col1');
+    await spies.validateCfg({
       cfg: { algo: EncoderAlgoType.ONE_HOT, col: 'col1', n: undefined },
       name: 'col1_one_hot',
       type: CreateColumnType.ENCODER,
     });
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'OrdinalEncoder');
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'FeatureHasher');
     await act(async () => {
-      (selects().first().prop('onChange') as (option: BaseOption<string>) => void)?.({
-        value: EncoderAlgoType.ORDINAL,
-      });
+      const inputs = [...result.getElementsByTagName('input')];
+      await fireEvent.change(inputs[inputs.length - 1], { target: { value: '4' } });
     });
-    result = result.update();
-    await act(async () => {
-      (selects().first().prop('onChange') as (option: BaseOption<string>) => void)?.({
-        value: EncoderAlgoType.FEATURE_HASHER,
-      });
-    });
-    result = result.update();
-    await act(async () => {
-      result
-        .find(CreateEncoder)
-        .find('div.form-group')
-        .last()
-        .find('input')
-        .simulate('change', { target: { value: '4' } });
-    });
-    result = result.update();
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col1',
         algo: EncoderAlgoType.FEATURE_HASHER,

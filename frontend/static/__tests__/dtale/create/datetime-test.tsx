@@ -1,61 +1,43 @@
-import { ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { ActionMeta, default as Select } from 'react-select';
+import { act, fireEvent, screen } from '@testing-library/react';
 
 import {
-  BaseCreateComponentProps,
   CreateColumnType,
   DatetimeConversionType,
   DatetimeOperation,
   DatetimePropertyType,
 } from '../../../popups/create/CreateColumnState';
-import { default as CreateDatetime, validateDatetimeCfg } from '../../../popups/create/CreateDatetime';
-import { mockT as t } from '../../test-utils';
+import { validateDatetimeCfg } from '../../../popups/create/CreateDatetime';
+import { selectOption, mockT as t } from '../../test-utils';
 
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateDatetime', () => {
   const spies = new TestSupport.Spies();
-  let result: ReactWrapper;
+  let result: Element;
 
   beforeEach(async () => {
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
-    result = await spies.clickBuilder(result, 'Datetime');
+    await spies.clickBuilder('Datetime');
     await act(async () => {
-      result
-        .find('div.form-group')
-        .first()
-        .find('input')
-        .first()
-        .simulate('change', { target: { value: 'datetime_col' } });
+      await fireEvent.change(result.getElementsByTagName('input')[0], { target: { value: 'datetime_col' } });
     });
-    result = result.update();
   });
 
   afterEach(() => spies.afterEach());
 
   afterAll(() => spies.afterAll());
 
-  const dateInputs = (): ReactWrapper<BaseCreateComponentProps, Record<string, any>> =>
-    result.find(CreateDatetime).first();
-
   it('builds datetime property column', async () => {
-    expect(result.find(CreateDatetime)).toHaveLength(1);
+    expect(screen.getByText('Datetime')).toHaveClass('active');
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col4');
     await act(async () => {
-      dateInputs()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Property'));
     });
-    result = result.update();
     await act(async () => {
-      dateInputs().find('div.form-group').at(2).find('button').first().simulate('click');
+      await fireEvent.click(screen.getByText('Minute'));
     });
-    result = result.update();
-
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col4',
         operation: DatetimeOperation.PROPERTY,
@@ -68,24 +50,14 @@ describe('CreateDatetime', () => {
   });
 
   it('build datetime conversion column', async () => {
+    await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 'col4');
     await act(async () => {
-      dateInputs()
-        .find(Select)
-        .first()
-        .props()
-        .onChange?.({ value: 'col4' }, {} as ActionMeta<unknown>);
+      await fireEvent.click(screen.getByText('Conversion'));
     });
-    result = result.update();
     await act(async () => {
-      dateInputs().find('div.form-group').at(1).find('button').last().simulate('click');
+      await fireEvent.click(screen.getByText('Month Start'));
     });
-    result = result.update();
-    await act(async () => {
-      dateInputs().find('div.form-group').at(2).find('button').first().simulate('click');
-    });
-    result = result.update();
-
-    await spies.validateCfg(result, {
+    await spies.validateCfg({
       cfg: {
         col: 'col4',
         operation: DatetimeOperation.CONVERSION,

@@ -11,6 +11,7 @@ export enum AnalysisType {
   WORD_VALUE_COUNTS = 'word_value_counts',
   QQ = 'qq',
   BOXPLOT = 'boxplot',
+  FREQUENCY = 'frequency',
 }
 
 /** Base properties of data fetched for column analysis */
@@ -45,11 +46,13 @@ export interface CategoryChartData extends FetchedChartData<AnalysisType.CATEGOR
 /** Properties for fetched Value Count data */
 export interface ValueCountChartData extends FetchedChartData<AnalysisType.VALUE_COUNTS>, BaseChartData {
   ordinal?: number[];
+  percent?: number[];
 }
 
 /** Properties for fetched Word Value Count data */
 export interface WordValueCountChartData extends FetchedChartData<AnalysisType.WORD_VALUE_COUNTS>, BaseChartData {
   ordinal?: number[];
+  percent?: number[];
 }
 
 /** Properties for fetched Geolocation data */
@@ -66,6 +69,11 @@ export interface QQChartData extends FetchedChartData<AnalysisType.QQ> {
   y2: number[];
 }
 
+/** Properties for fetched Frequency Grid data */
+export interface FrequencyGridData extends FetchedChartData<AnalysisType.FREQUENCY> {
+  data: { Frequency: number[]; Percent: number[] } & Record<string, any[]>;
+}
+
 /** Properties for column analysis charts using chart.js */
 export type ChartJSAnalysisCharts =
   | HistogramChartData
@@ -77,7 +85,7 @@ export type ChartJSAnalysisCharts =
 export type PlotlyAnalysisCharts = GeolocationChartData | QQChartData;
 
 /** Different charts available for column analysis */
-export type AnalysisCharts = ChartJSAnalysisCharts | PlotlyAnalysisCharts;
+export type AnalysisCharts = ChartJSAnalysisCharts | PlotlyAnalysisCharts | FrequencyGridData;
 
 /** Parameters for building a column analysis */
 export interface AnalysisParams {
@@ -97,6 +105,7 @@ export interface AnalysisParams {
   latCol?: BaseOption<string>;
   lonCol?: BaseOption<string>;
   query?: string;
+  splits?: Array<BaseOption<string>>;
 }
 
 /** State properties of ColumnAnalysis */

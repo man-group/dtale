@@ -2,12 +2,7 @@ import pandas as pd
 
 import dtale.global_state as global_state
 from dtale.query import run_query
-from dtale.utils import (
-    dict_merge,
-    grid_columns,
-    grid_formatter,
-    triple_quote,
-)
+from dtale.utils import dict_merge, grid_columns, grid_formatter, triple_quote
 from dtale.charts.utils import build_group_inputs_filter
 
 
@@ -52,8 +47,7 @@ class DuplicateCheck(object):
             instance = startup(data=df, **self.checker.startup_kwargs)
             curr_settings = global_state.get_settings(instance._data_id)
             global_state.set_settings(
-                instance._data_id,
-                dict_merge(curr_settings, dict(startup_code=code)),
+                instance._data_id, dict_merge(curr_settings, dict(startup_code=code))
             )
             return instance._data_id
         except NoDuplicatesException:

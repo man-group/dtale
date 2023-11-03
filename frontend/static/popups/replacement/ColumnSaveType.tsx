@@ -46,6 +46,7 @@ const ColumnSaveType: React.FC<ColumnSaveAsProps & WithTranslation> = ({ t, ...p
             {saveAs === SaveAs.NEW && (
               <input
                 type="text"
+                data-testid="new-column-name"
                 className="form-control"
                 value={name || ''}
                 onChange={(e) => {

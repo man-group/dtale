@@ -52,9 +52,7 @@ def get_store_contents():
         {int(k): v.context_variables for k, v in global_state.items()},
         {int(k): v.history for k, v in global_state.items()},
     ]
-    _lengths = [
-        global_state.size(),
-    ]
+    _lengths = [global_state.size()]
     return (_get_one, _get_all, _lengths)
 
 
@@ -101,7 +99,10 @@ def test_load_flag(unittest, test_data):
 @pytest.mark.unit
 def test_as_dict(unittest):
     """Should only work if object is an instance of MutableMapping or it implements to_dict"""
-    mutable_mapping_instance = dict(a=1, b=2)
+
+    from dtale.global_state import DtaleBaseStore
+
+    mutable_mapping_instance = DtaleBaseStore(a=1, b=2)
     unittest.assertEqual(
         mutable_mapping_instance, global_state._as_dict(mutable_mapping_instance)
     )
@@ -260,10 +261,10 @@ def test_build_data_id():
     import dtale.global_state as global_state
 
     global_state.cleanup()
-    assert global_state.build_data_id() == 1
+    assert global_state.build_data_id() == "1"
 
     df = pd.DataFrame([1, 2, 3, 4, 5])
     data = {str(idx + 1): df for idx in range(10)}
     for k, v in data.items():
         global_state.set_data(k, v)
-    assert global_state.build_data_id() == 11
+    assert global_state.build_data_id() == "11"

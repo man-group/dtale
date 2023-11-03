@@ -1,5 +1,5 @@
+import { render } from '@testing-library/react';
 import axios from 'axios';
-import { mount, ReactWrapper } from 'enzyme';
 import * as React from 'react';
 
 import WordcloudBody, { WordcloudBodyProps } from '../../../popups/charts/WordcloudBody';
@@ -13,8 +13,7 @@ describe('WordcloudBody tests', () => {
   });
 
   beforeEach(() => {
-    const axiosGetSpy = jest.spyOn(axios, 'get');
-    axiosGetSpy.mockImplementation((url: string) => {
+    (axios.get as any).mockImplementation((url: string) => {
       if (url.startsWith('chart-data-error-test1')) {
         return Promise.resolve({ data: { data: {} } });
       }
@@ -25,14 +24,13 @@ describe('WordcloudBody tests', () => {
     });
   });
 
-  const buildMock = (props?: Partial<WordcloudBodyProps>): ReactWrapper => {
-    const result = mount(
+  const buildMock = (props?: Partial<WordcloudBodyProps>): Element => {
+    return render(
       <WordcloudBody {...{ chartType: { value: 'wordcloud' }, data: { min: {}, max: {} }, height: 400, ...props }} />,
       {
-        attachTo: document.getElementById('content') ?? undefined,
+        container: document.getElementById('content') ?? undefined,
       },
-    );
-    return result.update();
+    ).container;
   };
 
   afterEach(jest.resetAllMocks);
@@ -41,16 +39,16 @@ describe('WordcloudBody tests', () => {
 
   it('WordcloudBody missing data', () => {
     const result = buildMock();
-    expect(result.html()).toBe('<div class="row"></div>');
+    expect(result.innerHTML).toBe('<div class="row"></div>');
   });
 
   it('WordcloudBody invalid chartType type', () => {
     const result = buildMock({ chartType: { value: 'bar' } });
-    expect(result.html()).toBeNull();
+    expect(result.innerHTML).toBe('');
   });
 
   it('WordcloudBody missing yProp data', () => {
     const result = buildMock({ y: [{ value: 'foo' }], data: { min: {}, max: {}, data: { bar: { foo2: [1, 2, 3] } } } });
-    expect(result.html()).toBe('<div class="row"></div>');
+    expect(result.innerHTML).toBe('<div class="row"></div>');
   });
 });

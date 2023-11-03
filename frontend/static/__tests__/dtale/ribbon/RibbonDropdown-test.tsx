@@ -1,7 +1,7 @@
-import { mount, ReactWrapper } from 'enzyme';
+import { act, createEvent, fireEvent, render, RenderResult, screen } from '@testing-library/react';
 import * as React from 'react';
-import { act } from 'react-dom/test-utils';
-import * as redux from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
+import { Store } from 'redux';
 
 jest.mock('../../../dtale/menu/MaxDimensionOption', () => {
   const { createMockComponent } = require('../../mocks/createMockComponent');
@@ -11,31 +11,31 @@ jest.mock('../../../dtale/menu/MaxDimensionOption', () => {
   };
 });
 
-import CorrelationsOption from '../../../dtale/menu/CorrelationsOption';
 import * as menuFuncs from '../../../dtale/menu/dataViewerMenuUtils';
-import FilterOption from '../../../dtale/menu/FilterOption';
-import { MenuItem } from '../../../dtale/menu/MenuItem';
-import MergeOption from '../../../dtale/menu/MergeOption';
-import MissingOption from '../../../dtale/menu/MissingOption';
-import PPSOption from '../../../dtale/menu/PPSOption';
-import PredefinedFiltersOption from '../../../dtale/menu/PredefinedFiltersOption';
-import ShowHideColumnsOption from '../../../dtale/menu/ShowHideColumnsOption';
-import DataMenuItem from '../../../dtale/ribbon/DataMenuItem';
 import RibbonDropdown, { RibbonDropdownProps } from '../../../dtale/ribbon/RibbonDropdown';
 import { ActionType } from '../../../redux/actions/AppActions';
 import { RibbonDropdownType, SidePanelType } from '../../../redux/state/AppState';
 import * as InstanceRepository from '../../../repository/InstanceRepository';
 import DimensionsHelper from '../../DimensionsHelper';
-import { tickUpdate } from '../../test-utils';
+import reduxUtils from '../../redux-test-utils';
+import { buildInnerHTML, PREDEFINED_FILTERS } from '../../test-utils';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: jest.fn(),
+}));
+
+const useDispatchMock = useDispatch as jest.Mock;
 
 describe('RibbonDropdown', () => {
-  let wrapper: ReactWrapper;
+  let wrapper: RenderResult;
+  let store: Store;
+  let element: HTMLElement;
+  const mockDispatch = jest.fn();
   let props: RibbonDropdownProps;
-  let useSelectorSpy: jest.SpyInstance;
   let cleanupSpy: jest.SpyInstance;
   const processes = [{ id: '2', name: 'foo' }, { id: '3' }];
   const { location, open } = window;
-  const dispatchSpy = jest.fn();
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -43,32 +43,37 @@ describe('RibbonDropdown', () => {
     innerHeight: 500,
   });
 
-  const setupElementAndDropdown = async (name: RibbonDropdownType, dims?: Partial<DOMRect>): Promise<void> => {
+  const setupElementAndDropdown = async (
+    name: RibbonDropdownType,
+    dims?: Partial<DOMRect>,
+    hiddenProps?: Record<string, string>,
+  ): Promise<void> => {
     const rectSpy = jest.spyOn(HTMLDivElement.prototype, 'getBoundingClientRect');
-    rectSpy.mockImplementation(() => ({ left: 5, top: 5, width: 10, ...dims } as DOMRect));
-    useSelectorSpy.mockReturnValue({
-      dataId: '1',
-      visible: true,
-      name,
-      settings: {},
-      isVSCode: false,
-      element: { getBoundingClientRect: () => ({ left: 5, top: 5, width: 10, ...dims } as DOMRect) },
+    rectSpy.mockImplementation(() => ({ left: 5, top: 5, width: 10, ...dims }) as DOMRect);
+    store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ settings: '', predefinedFilters: PREDEFINED_FILTERS, ...hiddenProps }, store);
+    element = { getBoundingClientRect: () => ({ left: 5, top: 5, width: 10, ...dims }) as DOMRect } as HTMLElement;
+    store.dispatch({ type: ActionType.OPEN_RIBBON_DROPDOWN, name, element });
+    wrapper = await act(async (): Promise<RenderResult> => {
+      const result = render(
+        <Provider store={store}>
+          <RibbonDropdown {...props} />
+        </Provider>,
+        {
+          container: document.getElementById('content') as HTMLElement,
+        },
+      );
+      return result;
     });
-    wrapper = mount(<RibbonDropdown {...props} />);
-    await act(async () => await tickUpdate(wrapper));
-    wrapper = wrapper.update();
   };
 
   beforeEach(() => {
+    useDispatchMock.mockImplementation(() => mockDispatch);
     dimensions.beforeAll();
     delete (window as any).location;
     delete (window as any).open;
     window.open = jest.fn();
     (window as any).location = { reload: jest.fn() };
-    useSelectorSpy = jest.spyOn(redux, 'useSelector');
-    useSelectorSpy.mockReturnValue({ dataId: '1', visisble: false });
-    const useDispatchSpy = jest.spyOn(redux, 'useDispatch');
-    useDispatchSpy.mockReturnValue(dispatchSpy);
     cleanupSpy = jest.spyOn(InstanceRepository, 'cleanupInstance');
     cleanupSpy.mockResolvedValue({ success: true });
     const loadProcessKeysSpy = jest.spyOn(InstanceRepository, 'loadProcessKeys');
@@ -90,42 +95,38 @@ describe('RibbonDropdown', () => {
   });
 
   it('renders successfully', async () => {
-    wrapper = mount(<RibbonDropdown {...props} />);
-    await act(async () => await tickUpdate(wrapper));
-    wrapper = wrapper.update();
-    expect(wrapper.find('div')).toHaveLength(1);
+    await setupElementAndDropdown(RibbonDropdownType.MAIN);
+    expect(wrapper.container.getElementsByTagName('div')).toHaveLength(1);
   });
 
-  it('stops propagation on clicks', () => {
-    const event = {
-      stopPropagation: jest.fn(),
-      preventDefault: jest.fn(),
-    } as any as React.MouseEvent;
-    wrapper.find('div').props().onClick?.(event);
-    expect(event.stopPropagation).toHaveBeenCalledTimes(1);
-    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+  it('stops propagation on clicks', async () => {
+    await setupElementAndDropdown(RibbonDropdownType.MAIN);
+    const event = createEvent.click(wrapper.container.getElementsByTagName('div')[0]);
+    await act(() => {
+      fireEvent(wrapper.container.getElementsByTagName('div')[0], event);
+    });
+    expect(event.defaultPrevented).toBe(true);
   });
 
   it('renders main successfully', async () => {
     await setupElementAndDropdown(RibbonDropdownType.MAIN);
-    expect(wrapper.find(DataMenuItem)).toHaveLength(processes.length);
-    expect(wrapper.find('div').first().props().style).toEqual({ left: 5, top: 30 });
-    useSelectorSpy.mockReturnValue({ dataId: '1', name: undefined, element: undefined });
-    wrapper.setProps({ visible: false });
-    await act(async () => await tickUpdate(wrapper));
-    wrapper = wrapper.update();
-    expect(wrapper.find('div').props().style).toEqual({});
+    expect(screen.queryAllByTestId('data-menu-item')).toHaveLength(processes.length);
+    expect(wrapper.container.getElementsByTagName('div')[0]).toHaveStyle({ left: '5px', top: '30px' });
+    await act(() => {
+      store.dispatch({ type: ActionType.OPEN_RIBBON_DROPDOWN, name: undefined, element: undefined });
+    });
+    expect(wrapper.container.getElementsByTagName('div')[0].getAttribute('style')).toBe('');
   });
 
   it('handles screen edge successfully', async () => {
     await setupElementAndDropdown(RibbonDropdownType.MAIN, { left: 450, width: 100 });
-    expect(wrapper.find('div').first().props().style).toEqual({ left: 380, top: 30 });
+    expect(wrapper.container.getElementsByTagName('div')[0]).toHaveStyle({ left: '380px', top: '30px' });
   });
 
   it('can clear current data', async () => {
     await setupElementAndDropdown(RibbonDropdownType.MAIN);
     await act(async () => {
-      wrapper.find(MenuItem).at(5).props().onClick?.();
+      fireEvent.click(screen.queryAllByTestId('menu-item')[5]);
     });
     expect(cleanupSpy).toBeCalledWith('1');
     expect(window.location.reload).toHaveBeenCalledTimes(1);
@@ -134,30 +135,29 @@ describe('RibbonDropdown', () => {
   it('can clear other data', async () => {
     await setupElementAndDropdown(RibbonDropdownType.MAIN);
     await act(async () => {
-      wrapper.find(DataMenuItem).first().props().cleanup('2');
+      fireEvent.click(screen.queryAllByTestId('data-menu-item-cleanup')[0]);
     });
-    wrapper = wrapper.update();
     expect(cleanupSpy).toBeCalledWith('2');
-    expect(wrapper.find(DataMenuItem)).toHaveLength(0);
+    expect(screen.queryAllByTestId('data-menu-item')).toHaveLength(0);
   });
 
   it('renders actions successfully', async () => {
     await setupElementAndDropdown(RibbonDropdownType.ACTIONS);
-    expect(wrapper.find('ul')).toHaveLength(1);
+    expect(wrapper.container.getElementsByTagName('ul')).toHaveLength(1);
     await act(async () => {
-      wrapper.find(ShowHideColumnsOption).props().open();
+      fireEvent.click(screen.getByText('show_hide'));
     });
-    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.SHOW_HIDE });
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    expect(mockDispatch).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.SHOW_HIDE });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
     await act(async () => {
-      wrapper.find(FilterOption).props().open();
+      fireEvent.click(screen.getByText('Custom Filter'));
     });
-    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.FILTER });
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    expect(mockDispatch).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.FILTER });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
     await act(async () => {
-      wrapper.find(PredefinedFiltersOption).props().open();
+      fireEvent.click(screen.getByText('Predefined Filters'));
     });
-    expect(dispatchSpy).toHaveBeenCalledWith({
+    expect(mockDispatch).toHaveBeenCalledWith({
       type: ActionType.SHOW_SIDE_PANEL,
       view: SidePanelType.PREDEFINED_FILTERS,
     });
@@ -165,31 +165,31 @@ describe('RibbonDropdown', () => {
 
   it('renders visualize successfully', async () => {
     await setupElementAndDropdown(RibbonDropdownType.VISUALIZE);
-    expect(wrapper.find('ul')).toHaveLength(1);
+    expect(wrapper.container.getElementsByTagName('ul')).toHaveLength(1);
     await act(async () => {
-      wrapper.find(MissingOption).props().open();
+      fireEvent.click(screen.getByText('Missing Analysis'));
     });
-    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.MISSINGNO });
+    expect(mockDispatch).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.MISSINGNO });
     await act(async () => {
-      wrapper.find(CorrelationsOption).props().open();
+      fireEvent.click(screen.getByText('Correlations'));
     });
-    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.CORRELATIONS });
-    expect(dispatchSpy).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    expect(mockDispatch).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.CORRELATIONS });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
     await act(async () => {
-      wrapper.find(PPSOption).props().open();
+      fireEvent.click(screen.getByText('Predictive Power Score'));
     });
-    expect(dispatchSpy).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.PPS });
-    expect(dispatchSpy.mock.calls.filter((call) => call[0].type === ActionType.HIDE_RIBBON_MENU)).toHaveLength(3);
+    expect(mockDispatch).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.PPS });
+    expect(mockDispatch.mock.calls.filter((call) => call[0].type === ActionType.HIDE_RIBBON_MENU)).toHaveLength(3);
   });
 
   it('renders highlight successfully', async () => {
     await setupElementAndDropdown(RibbonDropdownType.HIGHLIGHT);
-    expect(wrapper.find('ul')).toHaveLength(1);
+    expect(wrapper.container.getElementsByTagName('ul')).toHaveLength(1);
   });
 
   it('renders settings successfully', async () => {
     await setupElementAndDropdown(RibbonDropdownType.SETTINGS);
-    expect(wrapper.find('ul')).toHaveLength(1);
+    expect(wrapper.container.getElementsByTagName('ul')).toHaveLength(1);
   });
 
   it('hides menu on click', async () => {
@@ -213,11 +213,127 @@ describe('RibbonDropdown', () => {
       LOGOUT: jest.fn(),
     }));
     await setupElementAndDropdown(RibbonDropdownType.MAIN);
-    await setupElementAndDropdown(RibbonDropdownType.ACTIONS);
     await act(async () => {
-      wrapper.find(MergeOption).props().open();
+      store.dispatch({ type: ActionType.OPEN_RIBBON_DROPDOWN, name: RibbonDropdownType.ACTIONS, element });
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText('Merge & Stack'));
     });
     expect(window.open).toHaveBeenCalledWith('/dtale/popup/merge', '_blank');
-    expect(dispatchSpy.mock.calls.filter((call) => call[0].type === ActionType.HIDE_RIBBON_MENU)).toHaveLength(1);
+    expect(mockDispatch.mock.calls.filter((call) => call[0].type === ActionType.HIDE_RIBBON_MENU)).toHaveLength(1);
+  });
+
+  describe('ArcticDB active', () => {
+    beforeEach(() => {
+      const funcsSpy = jest.spyOn(menuFuncs, 'buildHotkeyHandlers');
+      funcsSpy.mockImplementation(() => ({
+        openTab: jest.fn(),
+        openPopup: jest.fn(),
+        toggleBackground: jest.fn(),
+        toggleOutlierBackground: jest.fn(),
+        CODE: jest.fn(),
+        SHUTDOWN: jest.fn(),
+        BUILD: jest.fn(),
+        FILTER: jest.fn(),
+        DESCRIBE: jest.fn(),
+        DUPLICATES: jest.fn(),
+        CHARTS: jest.fn(),
+        NETWORK: jest.fn(),
+        MENU: jest.fn(),
+        CLEAN: jest.fn(),
+        ABOUT: jest.fn(),
+        LOGOUT: jest.fn(),
+      }));
+    });
+
+    it('renders main successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.MAIN, undefined, { isArcticDB: '100' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['Load ArcticDB Data', 'Code Export', 'Export', 'Reload Data', 'About', 'Shutdown']);
+    });
+
+    it('renders actions successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.ACTIONS, undefined, { isArcticDB: '100' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['show_hide', 'Feature Analysis']);
+    });
+
+    it('renders visualize successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.VISUALIZE, undefined, { isArcticDB: '100' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual([
+        ...['Describe', 'Duplicates', 'Missing Analysis', 'Correlations', 'Predictive Power Score'],
+        ...['Time Series Analysis', 'Charts', 'Network Viewer', 'gage_rnr'],
+      ]);
+    });
+  });
+
+  describe('Large ArcticDB active', () => {
+    beforeEach(() => {
+      const funcsSpy = jest.spyOn(menuFuncs, 'buildHotkeyHandlers');
+      funcsSpy.mockImplementation(() => ({
+        openTab: jest.fn(),
+        openPopup: jest.fn(),
+        toggleBackground: jest.fn(),
+        toggleOutlierBackground: jest.fn(),
+        CODE: jest.fn(),
+        SHUTDOWN: jest.fn(),
+        BUILD: jest.fn(),
+        FILTER: jest.fn(),
+        DESCRIBE: jest.fn(),
+        DUPLICATES: jest.fn(),
+        CHARTS: jest.fn(),
+        NETWORK: jest.fn(),
+        MENU: jest.fn(),
+        CLEAN: jest.fn(),
+        ABOUT: jest.fn(),
+        LOGOUT: jest.fn(),
+      }));
+    });
+
+    it('renders main successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.MAIN, undefined, { isArcticDB: '3000000' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['Load ArcticDB Data', 'Code Export', 'Export', 'Reload Data', 'About', 'Shutdown']);
+    });
+
+    it('renders actions successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.ACTIONS, undefined, { isArcticDB: '3000000' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['show_hide']);
+    });
+
+    it('renders visualize successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.VISUALIZE, undefined, { isArcticDB: '3000000' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['Describe', 'Charts', 'Network Viewer']);
+    });
+
+    it('renders highlight successfully', async () => {
+      await setupElementAndDropdown(RibbonDropdownType.HIGHLIGHT, undefined, { isArcticDB: '3000000' });
+      expect(
+        [...screen.getByTestId('ribbon-dropdown').querySelectorAll('ul li span.font-weight-bold')].map(
+          (s) => s.textContent,
+        ),
+      ).toEqual(['Highlight Dtypes', 'Highlight Missing', 'Highlight Range']);
+    });
   });
 });
