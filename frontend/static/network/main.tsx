@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import * as React from 'react';
 import * as ReactDOMClient from 'react-dom/client';
 import { Provider } from 'react-redux';
@@ -15,7 +16,9 @@ const store = createAppStore(app);
 store.dispatch(actions.init());
 const root = ReactDOMClient.createRoot(document.getElementById('content')!);
 root.render(
-  <Provider store={store}>
-    <NetworkDisplay {...actions.getParams()} />
-  </Provider>,
+  (
+    <Provider store={store}>
+      <NetworkDisplay {...actions.getParams()} />
+    </Provider>
+  ) as any,
 );
