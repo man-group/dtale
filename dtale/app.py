@@ -852,7 +852,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
                         app.run(threaded=True, **run_kwargs)
                     else:
                         app.run(
-                            host="0.0.0.0",
+                            host=ACTIVE_HOST,
                             port=ACTIVE_PORT,
                             debug=final_options["debug"],
                             threaded=True,
