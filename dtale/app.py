@@ -753,7 +753,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
         logfile, log_level, verbose = map(
             final_options.get, ["logfile", "log_level", "verbose"]
         )
-        setup_logging(logfile, log_level or "info", verbose)
+        setup_logging(logfile, log_level or "info", verbose, dedicated_logger=True)
 
         if USE_NGROK:
             if not PY3:
