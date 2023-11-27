@@ -1544,7 +1544,7 @@ def charts_layout(df, settings, **inputs):
         return {} if show else {"display": "none"}
 
     body_items = [
-        dcc.Store(id="query-data", data=inputs.get("query")),
+        dcc.Store(id="query-data", data=query_value),
         dcc.Store(
             id="input-data",
             data={
