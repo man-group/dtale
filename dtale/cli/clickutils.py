@@ -22,7 +22,7 @@ LOG_LEVELS = dict(
 )
 
 
-def setup_logging(logfile, log_level, verbose=False):
+def setup_logging(logfile, log_level, verbose=False, dedicated_logger=False):
     """
     Utility method for setting up logging configuration
 
@@ -32,6 +32,8 @@ def setup_logging(logfile, log_level, verbose=False):
     :type log_level: str, options are debug, info, warning, error or, critical
     :param verbose: turns on verbose logging, defaults to False
     :type verbose: bool, optional
+    :param dedicated_logger: creates a dedicated dtale logger, defaults to False
+    :type dedicated_logger: bool, optional
     :return:
     """
 
@@ -42,7 +44,8 @@ def setup_logging(logfile, log_level, verbose=False):
     else:
         log_level = LOG_LEVELS["info"]
 
-    logging.getLogger().handlers = []
+    logger_name = "dtale" if dedicated_logger else None
+    logging.getLogger(logger_name).handlers = []
 
     fmt = "%(asctime)s - %(levelname)-8s - %(message)s"
     try:
@@ -50,14 +53,14 @@ def setup_logging(logfile, log_level, verbose=False):
     except BaseException:
         # #202: when using Pyzo IDE the basicConfig has already been set and if you try to set it again
         # then it will cause a maximum recursion exception
-        logging.getLogger().setLevel(log_level)
+        logging.getLogger(logger_name).setLevel(log_level)
 
     if logfile:
         fh = logging.FileHandler(logfile, mode="w")
         fh.setFormatter(logging.Formatter(fmt))
-        logging.getLogger().addHandler(fh)
+        logging.getLogger(logger_name).addHandler(fh)
 
-    for handler in logging.getLogger().handlers:
+    for handler in logging.getLogger(logger_name).handlers:
         handler.setLevel(log_level)
         handler.setFormatter(logging.Formatter(fmt))
 
