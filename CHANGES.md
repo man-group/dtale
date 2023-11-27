@@ -1,5 +1,16 @@
 ## Changelog
 
+### 3.8.0 (2023-11-27)
+* [#823](https://github.com/man-group/dtale/issues/823): only run skew/kurtosis calculations when series has those functions
+* [#825](https://github.com/man-group/dtale/issues/825): unpin werkzeug dependency
+* front-end package upgrades (axios 1.6.0)
+* [#827](https://github.com/man-group/dtale/issues/827): allowing user's to override the host used by `Flask.run`
+* [#724](https://github.com/man-group/dtale/issues/724): updated logging to use a dedicated dtale logger when not invoking from CLI
+* [#822](https://github.com/man-group/dtale/issues/822): fixed bug with dataframe filters not being persisted to chart builder initially
+* [#816](https://github.com/man-group/dtale/issues/816): frequencies grid filtering
+* * front-end package upgrades (styled_components)
+* * adjusted Pillow dependency
+
 ### 3.7.0 (2023-10-2)
 * Turn off "Custom Filter" functionality by default
 * [#811](https://github.com/man-group/dtale/issues/811): weekday name function
