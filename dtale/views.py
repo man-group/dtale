@@ -743,10 +743,12 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             if not any((np.isnan(v) or np.isinf(v) for v in [o_s, o_e])):
                 dtype_data["hasOutliers"] += int(((s < o_s) | (s > o_e)).sum())
                 dtype_data["outlierRange"] = dict(lower=o_s, upper=o_e)
-            if hasattr(s, "skew"):
-                dtype_data["skew"] = json_float(s.skew())
-            if hasattr(s, "kurt"):
-                dtype_data["kurt"] = json_float(s.kurt())
+            skew_val = pandas_util.run_function(s, "skew")
+            if skew_val is not None:
+                dtype_data["skew"] = json_float(skew_val)
+            kurt_val = pandas_util.run_function(s, "kurt")
+            if kurt_val is not None:
+                dtype_data["kurt"] = json_float(kurt_val)
 
         if classification in ["F", "I"] and not s.isnull().all():
             # build variance flag
@@ -761,10 +763,12 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
 
         if classification in ["D"] and not s.isnull().all():
             timestamps = apply(s, lambda x: json_timestamp(x, np.nan))
-            if hasattr(timestamps, "skew"):
-                dtype_data["skew"] = json_float(timestamps.skew())
-            if hasattr(timestamps, "kurt"):
-                dtype_data["kurt"] = json_float(timestamps.kurt())
+            skew_val = pandas_util.run_function(timestamps, "skew")
+            if skew_val is not None:
+                dtype_data["skew"] = json_float(skew_val)
+            kurt_val = pandas_util.run_function(timestamps, "kurt")
+            if kurt_val is not None:
+                dtype_data["kurt"] = json_float(kurt_val)
 
         if classification == "S" and not dtype_data["hasMissing"]:
             if (
