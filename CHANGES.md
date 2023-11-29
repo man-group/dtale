@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.8.1 (2023-11-29)
+* [#823](https://github.com/man-group/dtale/issues/823): wrap skew/kurtosis calculations in try/except for pyarrow
+
 ### 3.8.0 (2023-11-27)
 * [#823](https://github.com/man-group/dtale/issues/823): only run skew/kurtosis calculations when series has those functions
 * [#825](https://github.com/man-group/dtale/issues/825): unpin werkzeug dependency
