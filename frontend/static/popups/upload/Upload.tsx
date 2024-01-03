@@ -1,10 +1,12 @@
 import * as React from 'react';
 import Dropzone from 'react-dropzone';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { useSelector } from 'react-redux';
 
 import { Bouncer } from '../../Bouncer';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
+import { selectEnableWebUploads } from '../../redux/selectors';
 import { RemovableError } from '../../RemovableError';
 import * as UploadRepository from '../../repository/UploadRepository';
 import { LabeledInput } from '../create/LabeledInput';
@@ -25,12 +27,18 @@ const DATASET_LABELS: { [key in Dataset]: string } = {
   [Dataset.TIME_DATAFRAME]: 'makeTimeDataFrame',
 };
 
+export const DISABLED_URL_UPLOADS_MSG = [
+  'Web uploads are currently disabled.  This feature is only for trusted environments, in order to unlock this ',
+  'feature you must do one of the following:',
+].join('');
+
 /** Component properties for Upload */
 interface UploadProps {
   mergeRefresher?: () => Promise<void>;
 }
 
 const Upload: React.FC<UploadProps & WithTranslation> = ({ mergeRefresher, t }) => {
+  const enableWebUploads = useSelector(selectEnableWebUploads);
   const [dataType, setDataType] = React.useState<DataType>();
   const [url, setUrl] = React.useState<string>();
   const [proxy, setProxy] = React.useState<string>();
@@ -156,27 +164,62 @@ const Upload: React.FC<UploadProps & WithTranslation> = ({ mergeRefresher, t }) 
           )}
         </div>
       </div>
-      <div className="form-group row">
-        <label className="col-md-3 col-form-label text-right">{t('Data Type')}</label>
-        <div className="col-md-8 p-0">
-          <ButtonToggle
-            options={Object.values(DataType).map((value) => ({ value, label: value.toUpperCase() }))}
-            defaultValue={dataType}
-            update={setDataType}
-          />
+      {!enableWebUploads && (
+        <div className="form-group row">
+          <div className="col-md-2 p-0" />
+          <div className="col-md-8 col-form-label text-left">
+            <label>{DISABLED_URL_UPLOADS_MSG}</label>
+            <ul>
+              <li>
+                {`add `}
+                <code>enable_web_uploads=True</code>
+                {` to your `}
+                <code className="font-weight-bold">dtale.show</code>
+                {` call`}
+              </li>
+              <li>
+                {`run this code before calling `}
+                <code className="font-weight-bold">dtale.show</code>
+                <pre>
+                  {`import dtale.global_state as global_state\n`}
+                  {`global_state.set_app_settings(dict(enable_web_uploads=True))`}
+                </pre>
+              </li>
+              <li>
+                {`add `}
+                <code>enable_web_uploads = True</code>
+                {` to the [app] section of your dtale.ini config file`}
+              </li>
+            </ul>
+          </div>
+          <div className="col-md-2 p-0" />
         </div>
-      </div>
-      <LabeledInput label="URL" value={url} setter={setUrl} />
-      <LabeledInput
-        label={
-          <React.Fragment>
-            {t('Proxy')}
-            <small className="pl-3">{t('(Optional)')}</small>
-          </React.Fragment>
-        }
-        value={proxy}
-        setter={setProxy}
-      />
+      )}
+      {enableWebUploads && (
+        <>
+          <div className="form-group row">
+            <label className="col-md-3 col-form-label text-right">{t('Data Type')}</label>
+            <div className="col-md-8 p-0">
+              <ButtonToggle
+                options={Object.values(DataType).map((value) => ({ value, label: value.toUpperCase() }))}
+                defaultValue={dataType}
+                update={setDataType}
+              />
+            </div>
+          </div>
+          <LabeledInput label="URL" value={url} setter={setUrl} />
+          <LabeledInput
+            label={
+              <React.Fragment>
+                {t('Proxy')}
+                <small className="pl-3">{t('(Optional)')}</small>
+              </React.Fragment>
+            }
+            value={proxy}
+            setter={setProxy}
+          />
+        </>
+      )}
       <div className="pb-5">
         <h3 className="d-inline">{t('Sample Datasets')}</h3>
         <small className="pl-3 d-inline">{t('(Requires access to web)')}</small>

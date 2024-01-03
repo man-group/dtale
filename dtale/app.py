@@ -721,6 +721,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :type highlight_filter: boolean, optional
     :param enable_custom_filters: If true, this will enable users to make custom filters from the UI
     :type enable_custom_filters: bool, optional
+    :param enable_web_uploads: If true, this will enable users to upload files using URLs from the UI
+    :type enable_web_uploads: bool, optional
 
     :Example:
 
@@ -807,6 +809,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             hide_main_menu=final_options.get("hide_main_menu"),
             hide_column_menus=final_options.get("hide_column_menus"),
             enable_custom_filters=final_options.get("enable_custom_filters"),
+            enable_web_uploads=final_options.get("enable_web_uploads"),
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)

@@ -33,6 +33,7 @@ APP_SETTINGS = {
     "hide_main_menu": False,
     "hide_column_menus": False,
     "enable_custom_filters": False,
+    "enable_web_uploads": False,
 }
 
 AUTH_SETTINGS = {"active": False, "username": None, "password": None}
@@ -614,6 +615,15 @@ def set_app_settings(settings):
                 (
                     "Turning on custom filtering. Custom filters are vulnerable to code injection attacks, please only "
                     "use in trusted environments."
+                )
+            )
+    if settings.get("enable_web_uploads") is not None:
+        instance_updates["enable_web_uploads"] = settings.get("enable_web_uploads")
+        if instance_updates["enable_web_uploads"]:
+            logger.warning(
+                (
+                    "Turning on Web uploads. Web uploads are vulnerable to blind server side request forgery, please "
+                    "only use in trusted environments."
                 )
             )
 

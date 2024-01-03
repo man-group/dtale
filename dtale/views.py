@@ -352,6 +352,7 @@ class DtaleData(object):
         * hide_main_menu - if true, this will hide the main menu from the screen
         * hide_column_menus - if true, this will hide the column menus from the screen
         * enable_custom_filters - if True, allow users to specify custom filters from the UI using pandas.query strings
+        * enable_web_uploads - if True, allow users to upload files using URLs from the UI
 
         After applying please refresh any open browsers!
         """
@@ -916,6 +917,7 @@ def startup(
     hide_main_menu=None,
     hide_column_menus=None,
     enable_custom_filters=None,
+    enable_web_uploads=None,
     force_save=True,
 ):
     """
@@ -1044,6 +1046,7 @@ def startup(
             hide_main_menu=hide_main_menu,
             hide_column_menus=hide_column_menus,
             enable_custom_filters=enable_custom_filters,
+            enable_web_uploads=enable_web_uploads,
         )
         startup_code = (
             "from arcticdb import Arctic\n"
@@ -1116,6 +1119,7 @@ def startup(
                 hide_main_menu=hide_main_menu,
                 hide_column_menus=hide_column_menus,
                 enable_custom_filters=enable_custom_filters,
+                enable_web_uploads=enable_web_uploads,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1185,6 +1189,8 @@ def startup(
             base_settings["hide_column_menus"] = hide_column_menus
         if enable_custom_filters is not None:
             base_settings["enable_custom_filters"] = enable_custom_filters
+        if enable_web_uploads is not None:
+            base_settings["enable_web_uploads"] = enable_web_uploads
         if column_edit_options is not None:
             base_settings["column_edit_options"] = column_edit_options
         global_state.set_settings(data_id, base_settings)
@@ -1239,6 +1245,13 @@ def startup(
                     "use in trusted environments."
                 )
             )
+        if global_state.load_flag(data_id, "enable_web_uploads", False):
+            logger.warning(
+                (
+                    "Web uploads enabled. Web uploads are vulnerable to blind server side request forgery, please "
+                    "only use in trusted environments."
+                )
+            )
         return DtaleData(data_id, url, is_proxy=is_proxy, app_root=app_root)
     else:
         raise NoDataLoadedException("No data has been loaded into this D-Tale session!")
@@ -1275,6 +1288,7 @@ def base_render_template(template, data_id, **kwargs):
     enable_custom_filters = global_state.load_flag(
         data_id, "enable_custom_filters", False
     )
+    enable_web_uploads = global_state.load_flag(data_id, "enable_web_uploads", False)
     app_overrides = dict(
         allow_cell_edits=json.dumps(allow_cell_edits),
         hide_shutdown=hide_shutdown,
@@ -1284,6 +1298,7 @@ def base_render_template(template, data_id, **kwargs):
         hide_main_menu=hide_main_menu,
         hide_column_menus=hide_column_menus,
         enable_custom_filters=enable_custom_filters,
+        enable_web_uploads=enable_web_uploads,
         github_fork=github_fork,
     )
     is_arcticdb = 0
@@ -3925,6 +3940,17 @@ def web_upload():
     from dtale.cli.loaders.json_loader import loader_func as load_json
     from dtale.cli.loaders.excel_loader import load_file as load_excel
     from dtale.cli.loaders.parquet_loader import loader_func as load_parquet
+
+    if not global_state.get_app_settings().get("enable_web_uploads", False):
+        return jsonify(
+            dict(
+                success=False,
+                error=(
+                    "Web uploads not enabled! Web uploads are vulnerable to blind server side request forgery, please "
+                    "only use in trusted environments."
+                ),
+            )
+        )
 
     data_type = get_str_arg(request, "type")
     url = get_str_arg(request, "url")
