@@ -440,6 +440,7 @@ export interface AppSettings {
   hideMainMenu: boolean;
   hideColumnMenus: boolean;
   enableCustomFilters: boolean;
+  enableWebUploads: boolean;
 }
 
 /** Properties for specifying filtered ranges */

@@ -155,6 +155,7 @@ python: &python
             . ci/bin/activate
             # xlrd & xarray do not load correctly from "python setup.py develop"
             # possibly switch this script to use "pip install -r requirements.txt"
+            pip install pillow
             pip install xlrd
             pip install xarray
             if [ "${CIRCLE_JOB}" == "build_3_10" ]; then
@@ -191,6 +192,9 @@ python: &python
           command: |
             set -e
             . ci/bin/activate
+            if [ "${CIRCLE_JOB}" == "build_2_7" ]; then
+              pip install backports.functools-lru-cache==1.6.6
+            fi
             if [ "${CIRCLE_JOB}" != "build_2_7" ]; then
               pip install -e ".[arcticdb]"
             fi

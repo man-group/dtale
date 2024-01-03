@@ -59,6 +59,7 @@ export const selectBaseHideHeaderMenu = (state: AppState): boolean => state.hide
 export const selectBaseHideMainMenu = (state: AppState): boolean => state.hideMainMenu;
 export const selectBaseHideColumnMenus = (state: AppState): boolean => state.hideColumnMenus;
 export const selectBaseEnableCustomFilters = (state: AppState): boolean => state.enableCustomFilters;
+export const selectEnableWebUploads = (state: AppState): boolean => state.enableWebUploads;
 export const selectFilteredRanges = (state: AppState): FilteredRanges => state.filteredRanges;
 export const selectShowAllHeatmapColumns = (state: AppState): boolean => state.showAllHeatmapColumns;
 export const selectChartData = (state: AppState): Popups => state.chartData;

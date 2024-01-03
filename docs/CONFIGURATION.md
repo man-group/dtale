@@ -26,6 +26,7 @@ hide_header_menu = False
 hide_main_menu = False
 hide_column_menus = False
 enable_custom_filters = False
+enable_web_uploads = False
 
 [charts] # this controls how many points can be contained within scatter & 3D charts
 scatter_points = 15000

@@ -114,6 +114,13 @@ def load_app_settings(config):
         section="app",
         getter="getboolean",
     )
+    enable_web_uploads = get_config_val(
+        config,
+        curr_app_settings,
+        "enable_web_uploads",
+        section="app",
+        getter="getboolean",
+    )
     open_custom_filter_on_startup = get_config_val(
         config,
         curr_app_settings,
@@ -153,6 +160,7 @@ def load_app_settings(config):
             hide_main_menu=hide_main_menu,
             hide_column_menus=hide_column_menus,
             enable_custom_filters=enable_custom_filters,
+            enable_web_uploads=enable_web_uploads,
         )
     )
 
@@ -223,6 +231,7 @@ def build_show_options(options=None):
         hide_main_menu=None,
         hide_column_menus=None,
         enable_custom_filters=None,
+        enable_web_uploads=None,
     )
     config_options = {}
     config = get_config()

@@ -23,6 +23,7 @@ with warnings.catch_warnings():
     HIDE_MAIN_MENU = False
     HIDE_COLUMN_MENUS = False
     ENABLE_CUSTOM_FILTERS = False
+    ENABLE_WEB_UPLOADS = False
 
     # flake8: NOQA
     from dtale.app import show, get_instance, instances, offline_chart  # isort:skip

@@ -93,6 +93,17 @@ export const enableCustomFilters = (state = false, action: AppActionTypes): bool
   }
 };
 
+export const enableWebUploads = (state = false, action: AppActionTypes): boolean => {
+  switch (action.type) {
+    case ActionType.INIT_PARAMS:
+      return toBool(getHiddenValue('enable_web_uploads'));
+    case ActionType.LOAD_PREVIEW:
+      return false;
+    default:
+      return state;
+  }
+};
+
 export const openCustomFilterOnStartup = (state = false, action: AppActionTypes): boolean => {
   switch (action.type) {
     case ActionType.INIT_PARAMS:

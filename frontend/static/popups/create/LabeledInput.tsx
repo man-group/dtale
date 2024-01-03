@@ -5,7 +5,7 @@ interface DtaleInputProps {
   type?: React.HTMLInputTypeAttribute;
   value?: any;
   setter: (value: string) => void;
-  inputOptions?: Partial<React.HTMLAttributes<HTMLInputElement>>;
+  inputOptions?: Partial<React.AllHTMLAttributes<HTMLInputElement>>;
 }
 
 const DtaleInput: React.FC<DtaleInputProps> = ({ type = 'text', value, setter, inputOptions }) => (

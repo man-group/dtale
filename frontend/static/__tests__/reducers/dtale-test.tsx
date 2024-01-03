@@ -29,6 +29,7 @@ describe('reducer tests', () => {
       hideMainMenu: false,
       hideColumnMenus: false,
       enableCustomFilters: false,
+      enableWebUploads: false,
       hideDropRows: false,
       iframe: false,
       columnMenuOpen: false,

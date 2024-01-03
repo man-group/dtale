@@ -96,6 +96,7 @@ export const buildInnerHTML = (props: Record<string, string | undefined> = {}, s
     buildHidden('hide_main_menu', props.hideMainMenu ?? HIDE_SHUTDOWN),
     buildHidden('hide_column_menus', props.hideColumnMenus ?? HIDE_SHUTDOWN),
     buildHidden('enable_custom_filters', props.enableCustomFilters ?? HIDE_SHUTDOWN),
+    buildHidden('enable_web_uploads', props.enableWebUploads ?? HIDE_SHUTDOWN),
     BASE_HTML,
   ].join('');
   store?.dispatch(actions.init());

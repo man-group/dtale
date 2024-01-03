@@ -1,6 +1,9 @@
+import numpy as np
 import pandas as pd
 import requests
+import string
 import zipfile
+from datetime import datetime
 
 from six import BytesIO
 
@@ -89,11 +92,19 @@ def movies():
 
 
 def time_dataframe():
-    try:
-        from pandas._testing import makeTimeDataFrame
+    def series_data():
+        if hasattr(np.random, "default_rng"):
+            return np.random.default_rng(2).standard_normal(30)
+        return np.random.randn(30)
 
-        return makeTimeDataFrame(), None
-    except ImportError:
-        from pandas.util.testing import makeTimeDataFrame
-
-        return makeTimeDataFrame(), None
+    cols = string.ascii_uppercase[:4]
+    data = {
+        c: pd.Series(
+            series_data(),
+            index=pd.DatetimeIndex(
+                pd.date_range(datetime(2000, 1, 1), periods=30, freq="B")
+            ),
+        )
+        for c in cols
+    }
+    return pd.DataFrame(data), None

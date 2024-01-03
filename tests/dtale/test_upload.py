@@ -128,6 +128,7 @@ def test_web_upload(unittest):
     import dtale.global_state as global_state
 
     global_state.clear_store()
+    global_state.set_app_settings(dict(enable_web_uploads=True))
     with build_app(url=URL).test_client() as c:
         with ExitStack() as stack:
             load_csv = stack.enter_context(
@@ -200,6 +201,16 @@ def test_web_upload(unittest):
             unittest.assertEqual(
                 sorted([s["name"] for s in sheets]), ["Sheet 1", "Sheet 2"]
             )
+
+            global_state.set_app_settings(dict(enable_web_uploads=False))
+            resp = c.get("/dtale/web-upload", query_string=params)
+            response_data = resp.get_json()
+            assert not response_data["success"]
+            assert response_data["error"] == (
+                "Web uploads not enabled! Web uploads are vulnerable to blind server side request forgery, please "
+                "only use in trusted environments."
+            )
+            global_state.set_app_settings(dict(enable_web_uploads=True))
 
 
 @pytest.mark.unit

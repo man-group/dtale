@@ -1352,6 +1352,19 @@ Here's the options at you disposal:
   * pandas.util.testing.makeTimeDataFrame
 
 
+**Starting with version 3.8.1 web uploads will be turned off by default.
+Web uploads are vulnerable to blind server side request forgery, please only use in trusted environments.**
+
+**You can turn this feature on by doing one of the following:**
+ - **add `enable_web_uploads=True` to your `dtale.show` call**
+ - **add `enable_web_uploads = False` to the [app] section of your dtale.ini config file ([more info](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md))**
+ - **run this code before calling dtale.show:**
+```python
+import dtale.global_state as global_state
+global_state.set_app_settings(dict(enable_web_uploads=True))
+```
+
+
 #### Instances
 This will give you information about other D-Tale instances are running under your current Python process.
 

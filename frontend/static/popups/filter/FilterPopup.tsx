@@ -28,7 +28,7 @@ export const DISABLED_CUSTOM_FILTERS_MSG = [
   '- add "enable_custom_filters=True" to your dtale.show call\n',
   '- run this code before calling dtale.show\n',
   '\timport dtale.global_state as global_state\n\tglobal_state.set_app_settings(dict(enable_custom_filters=True))\n',
-  '- add "enable_custom_filters = False" to the [app] section of your dtale.ini config file',
+  '- add "enable_custom_filters = True" to the [app] section of your dtale.ini config file',
 ].join('');
 
 export const selectResult = createSelector(
