@@ -1352,7 +1352,7 @@ Here's the options at you disposal:
   * pandas.util.testing.makeTimeDataFrame
 
 
-**Starting with version 3.8.1 web uploads will be turned off by default.
+**Starting with version 3.9.0 web uploads will be turned off by default.
 Web uploads are vulnerable to blind server side request forgery, please only use in trusted environments.**
 
 **You can turn this feature on by doing one of the following:**
