@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.9.0 (2023-11)
+* Updated web data uploads to be turned off by default
+* [#835](https://github.com/man-group/dtale/issues/835): fixed bug with `dtale.show(open_browser=True)`
+* [#834](https://github.com/man-group/dtale/issues/834): fix for plotly tooltips in charts
+* [#831](https://github.com/man-group/dtale/issues/831): time difference functionality
+
 ### 3.8.1 (2023-11-29)
 * [#823](https://github.com/man-group/dtale/issues/823): wrap skew/kurtosis calculations in try/except for pyarrow
 
