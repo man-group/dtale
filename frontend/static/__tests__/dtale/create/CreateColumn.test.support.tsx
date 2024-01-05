@@ -36,7 +36,26 @@ export class Spies {
   /** Sets the mockImplementation/mockReturnValue for spy instances */
   public setupMockImplementations(): void {
     this.useDispatchMock.mockImplementation(() => this.mockDispatch);
-    (axios.get as any).mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
+    (axios.get as any).mockImplementation(async (url: string) => {
+      if (url.startsWith('/dtale/dtypes')) {
+        return Promise.resolve({
+          data: {
+            ...reduxUtils.DTYPES,
+            dtypes: [
+              ...reduxUtils.DTYPES.dtypes,
+              {
+                name: 'col5',
+                index: 4,
+                dtype: 'datetime64[ns]',
+                visible: true,
+                unique_ct: 1,
+              },
+            ],
+          },
+        });
+      }
+      return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
+    });
     this.saveSpy.mockResolvedValue({ success: true });
   }
 

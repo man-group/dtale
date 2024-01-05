@@ -918,7 +918,9 @@ def test_update_visibility(unittest):
 def test_build_column():
     from dtale.views import build_dtypes_state
 
-    df = pd.DataFrame([dict(a=1, b=2, c=3, d=pd.Timestamp("20200101"))])
+    df = pd.DataFrame(
+        [dict(a=1, b=2, c=3, d=pd.Timestamp("20200101"), e=pd.Timestamp("20200102"))]
+    )
     with app.test_client() as c:
         data = {c.port: df}
         dtypes = {c.port: build_dtypes_state(df)}
@@ -1055,6 +1057,34 @@ def test_build_column():
                     cfg=json.dumps(dict(col="d", conversion=conv)),
                 ),
             )
+
+        response = c.get("/dtale/code-export/{}".format(c.port))
+        response_data = response.get_json()
+        assert response_data["success"]
+
+        c.get(
+            "/dtale/build-column/{}".format(c.port),
+            query_string=dict(
+                type="datetime",
+                name="ts_diff",
+                cfg=json.dumps(dict(col="d", timeDifference="now")),
+            ),
+        )
+
+        response = c.get("/dtale/code-export/{}".format(c.port))
+        response_data = response.get_json()
+        assert response_data["success"]
+
+        c.get(
+            "/dtale/build-column/{}".format(c.port),
+            query_string=dict(
+                type="datetime",
+                name="ts_diff_col",
+                cfg=json.dumps(
+                    dict(col="d", timeDifference="col", timeDifferenceCol="e")
+                ),
+            ),
+        )
 
         response = c.get("/dtale/code-export/{}".format(c.port))
         response_data = response.get_json()

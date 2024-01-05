@@ -209,6 +209,7 @@ export interface DataSlopeConfig {
 export enum DatetimeOperation {
   PROPERTY = 'property',
   CONVERSION = 'conversion',
+  TIME_DIFFERENCE = 'time_difference',
 }
 
 /** Different datetime properties to choose from */
@@ -222,6 +223,12 @@ export enum DatetimePropertyType {
   MONTH = 'month',
   QUARTER = 'quarter',
   YEAR = 'year',
+}
+
+/** Different datetime time differences */
+export enum DatetimeTimeDifferenceType {
+  NOW = 'now',
+  COL = 'col',
 }
 
 /** Different datetime conversions */
@@ -240,6 +247,8 @@ export interface DatetimeConfig {
   operation: DatetimeOperation;
   property?: DatetimePropertyType;
   conversion?: DatetimeConversionType;
+  timeDifference?: DatetimeTimeDifferenceType;
+  timeDifferenceCol?: string;
 }
 
 /** Difference column creation configuration */

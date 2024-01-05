@@ -15,6 +15,7 @@ import {
   DatetimeConversionType,
   DatetimeOperation,
   DatetimePropertyType,
+  DatetimeTimeDifferenceType,
 } from './CreateColumnState';
 
 export const validateDatetimeCfg = (t: TFunction, cfg: DatetimeConfig): string | undefined => {
@@ -28,7 +29,7 @@ export const validateDatetimeCfg = (t: TFunction, cfg: DatetimeConfig): string |
 const FREQ_MAPPING: Record<string, string> = { month: "'M'", quarter: "'Q'", year: "'Y'" };
 
 export const buildCode = (cfg: DatetimeConfig): CreateColumnCodeSnippet => {
-  const { col, operation, property, conversion } = cfg;
+  const { col, operation, property, conversion, timeDifference } = cfg;
   if (!col) {
     return undefined;
   }
@@ -41,6 +42,15 @@ export const buildCode = (cfg: DatetimeConfig): CreateColumnCodeSnippet => {
       return `df['${col}'].dt.day_name()`;
     }
     code = `df['${col}'].dt.${property}`;
+  } else if (operation === DatetimeOperation.TIME_DIFFERENCE) {
+    if (timeDifference === DatetimeTimeDifferenceType.NOW) {
+      return `pd.Timestamp('now') - df['${col}']`;
+    } else {
+      if (!cfg.timeDifferenceCol) {
+        return undefined;
+      }
+      return `df['${col}'] - df['${cfg.timeDifferenceCol}']`;
+    }
   } else {
     if (!conversion) {
       return undefined;
@@ -59,17 +69,22 @@ const CreateDatetime: React.FC<BaseCreateComponentProps & WithTranslation> = ({
   updateState,
   t,
 }) => {
-  const [operationOptions, propertyOptions, conversionOptions] = React.useMemo(() => {
+  const [operationOptions, propertyOptions, conversionOptions, differenceOptions] = React.useMemo(() => {
     return [
-      Object.values(DatetimeOperation).map((value) => ({ value, label: capitalize(value) })),
+      Object.values(DatetimeOperation).map((value) => ({ value, label: operationLabelBuilder(t, value) })),
       Object.values(DatetimePropertyType).map((value) => ({ value, label: operationLabelBuilder(t, value) })),
       Object.values(DatetimeConversionType).map((value) => ({ value, label: operationLabelBuilder(t, value) })),
+      Object.values(DatetimeTimeDifferenceType).map((value) => ({ value, label: operationLabelBuilder(t, value) })),
     ];
   }, [t]);
   const [col, setCol] = React.useState<BaseOption<string>>();
   const [operation, setOperation] = React.useState(DatetimeOperation.PROPERTY);
   const [property, setProperty] = React.useState<DatetimePropertyType>();
   const [conversion, setConversion] = React.useState<DatetimeConversionType>();
+  const [timeDifference, setTimeDifference] = React.useState<DatetimeTimeDifferenceType>(
+    DatetimeTimeDifferenceType.NOW,
+  );
+  const [timeDifferenceCol, setTimeDifferenceCol] = React.useState<BaseOption<string>>();
 
   React.useEffect(() => {
     const cfg: DatetimeConfig = {
@@ -77,9 +92,14 @@ const CreateDatetime: React.FC<BaseCreateComponentProps & WithTranslation> = ({
       operation,
       property: operation === DatetimeOperation.PROPERTY ? property : undefined,
       conversion: operation === DatetimeOperation.CONVERSION ? conversion : undefined,
+      timeDifference: operation === DatetimeOperation.TIME_DIFFERENCE ? timeDifference : undefined,
+      timeDifferenceCol:
+        operation === DatetimeOperation.TIME_DIFFERENCE && timeDifference === DatetimeTimeDifferenceType.COL
+          ? timeDifferenceCol?.value
+          : undefined,
     };
     updateState({ cfg: { type: CreateColumnType.DATETIME, cfg }, code: buildCode(cfg) });
-  }, [col, operation, property, conversion]);
+  }, [col, operation, property, conversion, timeDifference, timeDifferenceCol]);
 
   return (
     <React.Fragment>
@@ -94,14 +114,26 @@ const CreateDatetime: React.FC<BaseCreateComponentProps & WithTranslation> = ({
       <div className="form-group row">
         <label className="col-md-3 col-form-label text-right">{t('Operation')}</label>
         <div className="col-md-8">
-          <ButtonToggle options={operationOptions} update={setOperation} defaultValue={operation} compact={false} />
+          <ButtonToggle
+            options={operationOptions}
+            update={setOperation}
+            defaultValue={operation}
+            compact={false}
+            className="col-auto p-0"
+          />
         </div>
       </div>
       {operation === DatetimeOperation.PROPERTY && (
         <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">{t('Properties')}</label>
           <div className="col-md-8">
-            <ButtonToggle options={propertyOptions} update={setProperty} defaultValue={property} compact={false} />
+            <ButtonToggle
+              options={propertyOptions}
+              update={setProperty}
+              defaultValue={property}
+              compact={false}
+              className="col-auto p-0"
+            />
           </div>
         </div>
       )}
@@ -114,9 +146,37 @@ const CreateDatetime: React.FC<BaseCreateComponentProps & WithTranslation> = ({
               update={setConversion}
               defaultValue={conversion}
               compact={false}
+              className="col-auto p-0"
             />
           </div>
         </div>
+      )}
+      {operation === DatetimeOperation.TIME_DIFFERENCE && (
+        <div className="form-group row">
+          <label className="col-md-3 col-form-label text-right">{t('Differences')}</label>
+          <div className="col-md-8">
+            <ButtonToggle
+              options={differenceOptions}
+              update={setTimeDifference}
+              defaultValue={timeDifference}
+              compact={false}
+              className="col-auto p-0"
+            />
+          </div>
+        </div>
+      )}
+      {operation === DatetimeOperation.TIME_DIFFERENCE && timeDifference === DatetimeTimeDifferenceType.COL && (
+        <ColumnSelect
+          label={t('Column')}
+          prop="timeDifferenceCol"
+          parent={{ col, timeDifferenceCol }}
+          updateState={(updatedState: { timeDifferenceCol?: BaseOption<string> }) =>
+            setTimeDifferenceCol(updatedState.timeDifferenceCol)
+          }
+          columns={columns}
+          otherProps={['col']}
+          dtypes={['date']}
+        />
       )}
     </React.Fragment>
   );
