@@ -248,7 +248,8 @@ class DtaleData(object):
         self.app_root = app_root
 
     def build_main_url(self, name=None):
-        if name or self._data_id:
+        data_keys = global_state.keys()
+        if (name or self._data_id) and len(data_keys):
             quoted_data_id = get_url_quote()(
                 get_url_quote()(name or self._data_id, safe="")
             )
@@ -261,6 +262,9 @@ class DtaleData(object):
 
     @property
     def _main_url(self):
+        data_keys = global_state.keys()
+        if not len(data_keys):
+            return self.build_main_url()
         suffix = self._data_id
         name = global_state.get_name(suffix)
         if name:
