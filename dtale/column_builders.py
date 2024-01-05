@@ -211,6 +211,16 @@ class DatetimeColumnBuilder(object):
 
     def build_column(self, data):
         col = self.cfg["col"]
+        if "timeDifference" in self.cfg:
+            if self.cfg["timeDifference"] == "now":
+                return pd.Series(
+                    pd.Timestamp("now") - data[col], index=data.index, name=self.name
+                )
+            return pd.Series(
+                data[col] - data[self.cfg["timeDifferenceCol"]],
+                index=data.index,
+                name=self.name,
+            )
         if "property" in self.cfg:
             if self.cfg["property"] == "weekday_name":
                 return data[col].dt.day_name()
@@ -228,6 +238,16 @@ class DatetimeColumnBuilder(object):
         return pd.Series(conversion_data, index=data.index, name=self.name)
 
     def build_code(self):
+        if "timeDifference" in self.cfg:
+            if self.cfg["timeDifference"] == "now":
+                return "df.loc[:, '{name}'] = pd.Timestamp('now') - df['{col}']".format(
+                    name=self.name, **self.cfg
+                )
+            return (
+                "df.loc[:, '{name}'] = df['{col}'] - df['{timeDifferenceCol}']".format(
+                    name=self.name, **self.cfg
+                )
+            )
         if "property" in self.cfg:
             if self.cfg["property"] == "weekday_name":
                 return "df.loc[:, '{name}'] = df['{col}'].dt.day_name()".format(
