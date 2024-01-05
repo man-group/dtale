@@ -51,7 +51,11 @@ from dtale.dash_application.layout.layout import (
     test_plotly_version,
     update_label_for_freq_and_agg,
 )
-from dtale.dash_application.layout.utils import graph_wrapper, reset_charts
+from dtale.dash_application.layout.utils import (
+    build_hoverable,
+    graph_wrapper,
+    reset_charts,
+)
 from dtale.dash_application.topojson_injections import INJECTIONS
 from dtale.query import handle_predefined, run_query
 from dtale.code_export import build_code_export
@@ -522,20 +526,6 @@ def chart_wrapper(data_id, data, url_params=None):
         def build_url(path, query):
             return fix_url_path("{}/{}/{}?{}".format(app_root, path, data_id, query))
 
-        def build_hoverable(link, msg):
-            return html.Div(
-                [
-                    link,
-                    html.Div(
-                        msg,
-                        className="hoverable__content",
-                        style={"width": "max-content", "font-size": "80%"},
-                    ),
-                ],
-                className="hoverable",
-                style={"border-bottom": "none"},
-            )
-
         popup_link = build_hoverable(
             html.A(
                 html.I(className="far fa-window-restore mr-4"),
@@ -544,6 +534,13 @@ def chart_wrapper(data_id, data, url_params=None):
                 className="mr-5",
             ),
             "Popup Chart",
+            hover_class="saved-chart-config",
+            hover_style={
+                "width": "max-content",
+                "font-size": "80%",
+                "min-width": "unset",
+                "top": "unset",
+            },
         )
         copy_link = html.Div(
             [
@@ -573,6 +570,8 @@ def chart_wrapper(data_id, data, url_params=None):
                 className="code-snippet-btn mr-5",
             ),
             "Code Export",
+            hover_style={"width": "max-content", "font-size": "80%", "top": "unset"},
+            hover_class="",
         )
         export_html_link = build_hoverable(
             html.A(
@@ -581,6 +580,8 @@ def chart_wrapper(data_id, data, url_params=None):
                 className="export-chart-btn mr-5",
             ),
             "Export Chart",
+            hover_style={"width": "max-content", "font-size": "80%", "top": "unset"},
+            hover_class="",
         )
         export_png_link = build_hoverable(
             html.A(
@@ -589,6 +590,8 @@ def chart_wrapper(data_id, data, url_params=None):
                 className="export-png-btn mr-5",
             ),
             "Export PNG",
+            hover_style={"width": "max-content", "font-size": "80%", "top": "unset"},
+            hover_class="",
         )
         export_csv_link = build_hoverable(
             html.A(
@@ -597,6 +600,8 @@ def chart_wrapper(data_id, data, url_params=None):
                 className="export-chart-btn",
             ),
             "Export CSV",
+            hover_style={"width": "max-content", "font-size": "80%", "top": "unset"},
+            hover_class="",
         )
         links = html.Div(
             [
@@ -612,7 +617,6 @@ def chart_wrapper(data_id, data, url_params=None):
                 "zIndex": 5,
                 "left": 5,
                 "top": 2,
-                "height": "100%",
             },
         )
         return html.Div(
