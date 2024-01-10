@@ -4358,8 +4358,8 @@ flow-bin@0.222.0:
   resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.222.0.tgz#b4ca588c77fbd79db1edf38615cd04d114c1e933"
 
 follow-redirects@^1.15.0:
-  version "1.15.2"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
+  version "1.15.4"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.4.tgz#cdc7d308bf6493126b17ea2191ea0ccf3e535adf"
 
 for-each@^0.3.3:
   version "0.3.3"
