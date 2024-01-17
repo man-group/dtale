@@ -1,10 +1,10 @@
 import { TFunction } from 'i18next';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../BouncerWrapper';
 import Collapsible from '../Collapsible';
+import { useAppSelector } from '../redux/hooks';
 import { selectDataId } from '../redux/selectors';
 import { RemovableError } from '../RemovableError';
 import * as NetworkRespository from '../repository/NetworkRespository';
@@ -66,7 +66,7 @@ const buildParams = (
 });
 
 const NetworkAnalysis: React.FC<NetworkAnalysisProps & WithTranslation> = ({ to, from, weight, t }) => {
-  const dataId = useSelector(selectDataId);
+  const dataId = useAppSelector(selectDataId);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [analysis, setAnalysis] = React.useState<FullAnalysis>();
   const [error, setError] = React.useState<JSX.Element>();

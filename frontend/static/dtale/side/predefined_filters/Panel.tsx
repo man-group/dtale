@@ -1,12 +1,11 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
 import { ColumnDef } from '../../../dtale/DataViewerState';
-import { ActionType, HideSidePanelAction } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import * as settingsActions from '../../../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../../../redux/hooks';
 import { selectDataId, selectPredefinedFilterConfigs, selectPredefinedFilters } from '../../../redux/selectors';
 import { InstanceSettings, PredefinedFilter } from '../../../redux/state/AppState';
 import { RemovableError } from '../../../RemovableError';
@@ -26,11 +25,11 @@ const selectResult = createSelector(
 );
 
 const Panel: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, predefinedFilters, filterValues } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
+  const { dataId, predefinedFilters, filterValues } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const hideSidePanel = (): PayloadAction<void> => dispatch(AppActions.HideSidePanelAction());
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
 
   const [filters, setFilters] = React.useState<PredefinedFilter[]>([]);
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);

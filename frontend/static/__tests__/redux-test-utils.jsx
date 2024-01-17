@@ -1,6 +1,6 @@
 /* eslint max-lines: "off" */
-import dtaleApp from '../redux/reducers/app';
-import mergeApp from '../redux/reducers/merge';
+import { reducers as dtaleApp } from '../redux/reducers/app';
+import { reducers as mergeApp } from '../redux/reducers/merge';
 import { createAppStore } from '../redux/store';
 import chartsData from './data/charts.json';
 import groupedChartsData from './data/charts-grouped.json';

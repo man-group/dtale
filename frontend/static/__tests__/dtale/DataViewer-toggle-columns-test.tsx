@@ -5,7 +5,7 @@ import { Provider, useDispatch } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
-import { ActionType } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import { DataViewerUpdateType } from '../../redux/state/AppState';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
@@ -16,7 +16,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('DataViewer tests', () => {
   const mockDispatch = jest.fn();
@@ -63,10 +63,9 @@ describe('DataViewer tests', () => {
       'col4⋮',
     ]);
     await act(() => {
-      store.dispatch({
-        type: ActionType.DATA_VIEWER_UPDATE,
-        update: { type: DataViewerUpdateType.TOGGLE_COLUMNS, columns: { col1: false } },
-      });
+      store.dispatch(
+        AppActions.DataViewerUpdateAction({ type: DataViewerUpdateType.TOGGLE_COLUMNS, columns: { col1: false } }),
+      );
     });
     expect([...screen.queryAllByTestId('header-cell')].map((h) => h.textContent?.trim())).toEqual([
       'col2⋮',

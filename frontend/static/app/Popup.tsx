@@ -1,3 +1,4 @@
+import { Store } from '@reduxjs/toolkit';
 import React from 'react';
 import { Provider } from 'react-redux';
 
@@ -20,7 +21,7 @@ import Variance from '../popups/variance/Variance';
 import * as actions from '../redux/actions/dtale';
 import { getHiddenValue, toJson } from '../redux/reducers/utils';
 import { InstanceSettings } from '../redux/state/AppState';
-import { buildApp, buildMergeApp } from '../redux/store';
+import { appStore, mergeStore } from '../redux/store';
 
 require('../dtale/DataViewer.css');
 
@@ -104,8 +105,8 @@ export const Popup: React.FC<PopupProps> = ({ pathname }) => {
         rootNode = <Upload />;
         break;
     }
-    return [popupType === 'merge' ? buildMergeApp() : buildApp(), rootNode];
+    return [popupType === 'merge' ? mergeStore : appStore, rootNode];
   }, [pathname]);
 
-  return <Provider store={store}>{content}</Provider>;
+  return <Provider store={store as Store}>{content}</Provider>;
 };

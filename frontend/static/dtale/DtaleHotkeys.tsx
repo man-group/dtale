@@ -1,10 +1,10 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
-import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, OpenChartAction, ToggleMenuAction } from '../redux/actions/AppActions';
+import { AppActions } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { selectCtrlCols, selectCtrlRows, selectDataId, selectEditedCell, selectIsVSCode } from '../redux/selectors';
 import { Popups, PopupType } from '../redux/state/AppState';
 
@@ -23,16 +23,16 @@ const selectResult = createSelector(
 );
 
 export const DtaleHotkeys: React.FC<DtaleHotkeysProps> = ({ columns }) => {
-  const { dataId, editedCell, isVSCode, ctrlRows, ctrlCols } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
-  const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
-  const closeMenu = (): ToggleMenuAction => dispatch({ type: ActionType.CLOSE_MENU });
+  const { dataId, editedCell, isVSCode, ctrlRows, ctrlCols } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
+  const openMenu = (): PayloadAction<void> => dispatch(AppActions.OpenMenuAction());
+  const closeMenu = (): PayloadAction<void> => dispatch(AppActions.CloseMenuAction());
 
   const copyData = (): void => {
     if (ctrlRows) {
       const title = 'Copy Rows to Clipboard?';
-      const callback = (copyText: CopyText): OpenChartAction =>
+      const callback = (copyText: CopyText): PayloadAction<Popups> =>
         openChart({
           ...copyText,
           type: PopupType.COPY_ROW_RANGE,
@@ -44,7 +44,7 @@ export const DtaleHotkeys: React.FC<DtaleHotkeysProps> = ({ columns }) => {
       buildRowCopyText(dataId, columns, params, callback);
     } else if (ctrlCols) {
       const title = 'Copy Columns to Clipboard?';
-      const callback = (copyText: CopyText): OpenChartAction =>
+      const callback = (copyText: CopyText): PayloadAction<Popups> =>
         openChart({
           ...copyText,
           type: PopupType.COPY_COLUMN_RANGE,

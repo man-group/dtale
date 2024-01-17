@@ -24,10 +24,8 @@ describe('Charts tests', () => {
 
   it('Charts: rendering', async () => {
     await selectOption(screen.getByText('X').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col4');
-    await selectOption(screen.getByText('Y').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, [
-      'col1',
-      'col3',
-    ]);
+    await selectOption(screen.getByText('Y').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col1');
+    await selectOption(screen.getByText('Y').parentElement!.getElementsByClassName('Select')[0] as HTMLElement, 'col3');
     const groupSelect = screen.getByText('Group').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;
     await selectOption(groupSelect, 'col2');
     const aggSelect = screen.getByText('Aggregation').parentElement!.getElementsByClassName('Select')[0] as HTMLElement;

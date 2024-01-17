@@ -102,9 +102,9 @@ def base_layout(app_root, **kwargs):
             ).format(
                 id=id,
                 label=label,
-                target="_self"
-                if os.environ.get("VSCODE_PID") is not None
-                else "_blank",
+                target=(
+                    "_self" if os.environ.get("VSCODE_PID") is not None else "_blank"
+                ),
             )
         )
     language = global_state.get_app_settings()["language"]
@@ -488,9 +488,9 @@ def build_proj_hover(proj):
             html.Div(
                 build_proj_hover_children(proj),
                 className="ml-3 hoverable",
-                style=dict(display="none")
-                if proj is None
-                else dict(borderBottom="none"),
+                style=(
+                    dict(display="none") if proj is None else dict(borderBottom="none")
+                ),
                 id="proj-hover",
             ),
         ],
@@ -611,9 +611,11 @@ def build_loc_mode_hover(loc_mode):
             html.Div(
                 build_loc_mode_hover_children(loc_mode),
                 className="ml-3 hoverable",
-                style=dict(display="none")
-                if loc_mode is None
-                else dict(borderBottom="none"),
+                style=(
+                    dict(display="none")
+                    if loc_mode is None
+                    else dict(borderBottom="none")
+                ),
                 id="loc-mode-hover",
             ),
         ],
@@ -927,9 +929,11 @@ def bootstrap_checkbox_prop():
 def build_dropna(dropna, prop=None):
     if PY3:
         checkbox_kwargs = dict(
-            id="{}-dropna-checkbox".format(prop)
-            if prop is not None
-            else "dropna-checkbox",
+            id=(
+                "{}-dropna-checkbox".format(prop)
+                if prop is not None
+                else "dropna-checkbox"
+            ),
             style=dict(width="inherit"),
         )
         checkbox_kwargs[bootstrap_checkbox_prop()] = True if dropna is None else dropna
@@ -942,9 +946,11 @@ def build_dropna(dropna, prop=None):
     return build_input(
         text("Dropna"),
         dcc.Input(
-            id="{}-dropna-checkbox".format(prop)
-            if prop is not None
-            else "dropna-checkbox",
+            id=(
+                "{}-dropna-checkbox".format(prop)
+                if prop is not None
+                else "dropna-checkbox"
+            ),
             type="hidden",
             value=True if dropna is None else dropna,
         ),
@@ -1252,10 +1258,12 @@ def bar_input_style(**inputs):
 
 def colorscale_input_style(**inputs):
     return dict(
-        display="block"
-        if inputs.get("chart_type")
-        in ["heatmap", "maps", "3d_scatter", "surface", "clustergram"]
-        else "none"
+        display=(
+            "block"
+            if inputs.get("chart_type")
+            in ["heatmap", "maps", "3d_scatter", "surface", "clustergram"]
+            else "none"
+        )
     )
 
 
@@ -1746,9 +1754,11 @@ def charts_layout(df, settings, **inputs):
                                 options=stratified_groups,
                                 value=stratified_group,
                                 clearable=False,
-                                style={}
-                                if load_type == "stratified"
-                                else {"display": "none"},
+                                style=(
+                                    {}
+                                    if load_type == "stratified"
+                                    else {"display": "none"}
+                                ),
                             ),
                             dcc.Slider(
                                 id="load-input",
@@ -1859,9 +1869,9 @@ def charts_layout(df, settings, **inputs):
                                         options=y_single_options,
                                         placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
-                                        value=y[0]
-                                        if show_input("y") and len(y)
-                                        else None,
+                                        value=(
+                                            y[0] if show_input("y") and len(y) else None
+                                        ),
                                     ),
                                     className="col",
                                     label_class="input-group-addon d-block pt-1 pb-0",
@@ -1898,11 +1908,14 @@ def charts_layout(df, settings, **inputs):
                                 build_dropna(dropna),
                             ],
                             id="standard-inputs",
-                            style={}
-                            if not show_map
-                            and not show_candlestick
-                            and chart_type not in ["treemap", "funnel", "clustergram"]
-                            else {"display": "none"},
+                            style=(
+                                {}
+                                if not show_map
+                                and not show_candlestick
+                                and chart_type
+                                not in ["treemap", "funnel", "clustergram"]
+                                else {"display": "none"}
+                            ),
                             className="row p-0 charts-filters",
                         ),
                         html.Div(
@@ -2297,9 +2310,9 @@ def charts_layout(df, settings, **inputs):
                             ],
                             className="row pt-3 pb-3 charts-filters",
                             id="charts-filters-div",
-                            style={"display": "none"}
-                            if chart_type == "histogram"
-                            else {},
+                            style=(
+                                {"display": "none"} if chart_type == "histogram" else {}
+                            ),
                         ),
                     ],
                     id="main-inputs",

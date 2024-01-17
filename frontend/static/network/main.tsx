@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 
 import '../i18n';
 import * as actions from '../redux/actions/dtale';
-import app from '../redux/reducers/app';
+import { reducers as app } from '../redux/reducers/app';
 import { createAppStore } from '../redux/store';
 
 import { NetworkDisplay } from './NetworkDisplay';

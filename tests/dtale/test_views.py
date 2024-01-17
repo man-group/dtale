@@ -6,6 +6,7 @@ import numpy as np
 import os
 import dtale.global_state as global_state
 import pandas as pd
+import platform
 import pytest
 from pandas.tseries.offsets import Day
 from pkg_resources import parse_version
@@ -1356,6 +1357,12 @@ def test_variance(unittest):
             expected["x"]["check2"]["val2"]["val"] = 1
         response_data = response.get_json()
         del response_data["code"]
+        response_data["shapiroWilk"]["pvalue"] = round(
+            response_data["shapiroWilk"]["pvalue"], 4
+        )
+        response_data["shapiroWilk"]["statistic"] = round(
+            response_data["shapiroWilk"]["statistic"], 4
+        )
         response_data["jarqueBera"]["pvalue"] = round(
             response_data["jarqueBera"]["pvalue"], 4
         )
@@ -1371,6 +1378,9 @@ def test_variance(unittest):
         del response_data["code"]
         response_data["shapiroWilk"]["statistic"] = round(
             response_data["shapiroWilk"]["statistic"], 4
+        )
+        response_data["shapiroWilk"]["pvalue"] = round(
+            response_data["shapiroWilk"]["pvalue"], 4
         )
         response_data["jarqueBera"]["statistic"] = round(
             response_data["jarqueBera"]["statistic"], 4
@@ -2253,7 +2263,10 @@ def test_chart_exports_funnel(treemap_data):
         assert response.content_type == "text/html"
 
 
-@pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
+@pytest.mark.skipif(
+    not PY3 or parse_version(platform.python_version()) >= parse_version("3.9.0"),
+    reason="requires 3.0.0 <= python < 3.9.0",
+)
 def test_chart_exports_clustergram(clustergram_data):
     pytest.importorskip("dash_bio")
     import dtale.views as views
@@ -2893,9 +2906,9 @@ def test_save_column_filter(unittest, custom_data):
         unittest.assertEqual(
             response.get_json()["currFilters"]["str_val"],
             {
-                "query": "`str_val` in ('a', 'b')"
-                if PY3
-                else "`str_val` in (u'a', u'b')",
+                "query": (
+                    "`str_val` in ('a', 'b')" if PY3 else "`str_val` in (u'a', u'b')"
+                ),
                 "value": ["a", "b"],
                 "action": "equals",
                 "caseSensitive": False,

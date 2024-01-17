@@ -1,13 +1,13 @@
 import { createSelector } from '@reduxjs/toolkit';
 import { ActiveElement, Chart, ChartConfiguration, ChartEvent, Point, ScriptableContext } from 'chart.js';
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 
 import { Bouncer } from '../../Bouncer';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import * as chartUtils from '../../chartUtils';
 import * as actions from '../../redux/actions/dtale';
 import { buildURL } from '../../redux/actions/url-utils';
+import { useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId } from '../../redux/selectors';
 import { CorrelationsPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -68,7 +68,7 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 }));
 
 export const Correlations: React.FC = () => {
-  const { dataId, chartData } = useSelector(selectResult);
+  const { dataId, chartData } = useAppSelector(selectResult);
   const scatterBouncer = React.useRef<HTMLDivElement>(null);
   const scatterCanvas = React.useRef<HTMLCanvasElement>(null);
   const chartRef = React.useRef<chartUtils.ChartObj>();

@@ -1,13 +1,12 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import { TFunction } from 'i18next';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
-import { OpenChartAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectXArray, selectXArrayDim } from '../../redux/selectors';
-import { PopupType } from '../../redux/state/AppState';
+import { Popups, PopupType } from '../../redux/state/AppState';
 import { ColumnDef } from '../DataViewerState';
 
 import { MenuItem } from './MenuItem';
@@ -29,9 +28,9 @@ interface XArrayOptionProps {
 const selectResult = createSelector([selectXArray, selectXArrayDim], (xarray, xarrayDim) => ({ xarray, xarrayDim }));
 
 const XArrayOption: React.FC<XArrayOptionProps & WithTranslation> = ({ columns, t }) => {
-  const { xarray, xarrayDim } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const openXArrayPopup = (type: PopupType.XARRAY_DIMENSIONS | PopupType.XARRAY_INDEXES): OpenChartAction =>
+  const { xarray, xarrayDim } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const openXArrayPopup = (type: PopupType.XARRAY_DIMENSIONS | PopupType.XARRAY_INDEXES): PayloadAction<Popups> =>
     dispatch(chartActions.openChart({ type, columns, visible: true }));
 
   if (xarray) {

@@ -9,7 +9,7 @@ jest.mock('../../../dtale/side/SidePanelButtons', () => {
 });
 
 import { Correlations } from '../../../popups/correlations/Correlations';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import { CorrelationsPopupData, PopupType } from '../../../redux/state/AppState';
 import * as CorrelationsRepository from '../../../repository/CorrelationsRepository';
 import correlationsData from '../../data/correlations.json';
@@ -55,7 +55,7 @@ describe('Correlations tests', () => {
   const buildResult = async (overrides?: Partial<CorrelationsPopupData>): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { ...chartData, ...overrides } });
+    store.dispatch(AppActions.OpenChartAction({ ...chartData, ...overrides }));
     result = await act(
       async () =>
         render(

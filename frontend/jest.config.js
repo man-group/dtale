@@ -36,7 +36,7 @@ module.exports = {
   testTimeout: 30000,
   transform: {
     '^.+\\.(ts|tsx)$': [require.resolve('ts-jest'), testTsConfig],
-    '^.+\\.(js|jsx)$': require.resolve('babel-jest'),
+    '^.+\\.(js|jsx|cjs)$': require.resolve('babel-jest'),
     '^.+\\.css$': require.resolve('./config/file-transforms/cssTransform.js'),
     '^(?!.*\\.(css|json)$)': require.resolve('./config/file-transforms/fileTransform.js'),
   },

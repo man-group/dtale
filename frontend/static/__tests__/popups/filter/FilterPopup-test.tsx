@@ -5,9 +5,9 @@ import { Store } from 'redux';
 
 import * as serverState from '../../../dtale/serverStateManagement';
 import FilterPopup from '../../../popups/filter/FilterPopup';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import * as chartActions from '../../../redux/actions/charts';
-import { InstanceSettings, QueryEngine } from '../../../redux/state/AppState';
+import { InstanceSettings, PopupType, QueryEngine } from '../../../redux/state/AppState';
 import * as CustomFilterRepository from '../../../repository/CustomFilterRepository';
 import * as GenericRepository from '../../../repository/GenericRepository';
 import reduxUtils from '../../redux-test-utils';
@@ -41,7 +41,7 @@ describe('FilterPopup', () => {
     updateQueryEngineSpy.mockResolvedValue(Promise.resolve({ success: true }));
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', dataId: '1', queryEngine: 'python', enableCustomFilters: 'True' }, store);
-    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { visible: true } });
+    store.dispatch(AppActions.OpenChartAction({ type: PopupType.FILTER, visible: true }));
     wrapper = await act(
       async () =>
         await render(

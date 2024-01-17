@@ -1,17 +1,16 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import { Resizable } from 're-resizable';
 import React from 'react';
 import { default as Modal } from 'react-bootstrap/Modal';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
 import { ColumnDef, ColumnFormat, DataViewerData, DataViewerPropagateState } from '../../dtale/DataViewerState';
 import { buildDataProps, calcColWidth, ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
 import * as serverState from '../../dtale/serverStateManagement';
-import { ActionType, CloseFormattingAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectDataId, selectFormattingOpen, selectMaxColumnWidth, selectSettings } from '../../redux/selectors';
 import { BaseOption, InstanceSettings } from '../../redux/state/AppState';
 import { LabeledCheckbox } from '../create/LabeledCheckbox';
@@ -36,13 +35,13 @@ const selectResult = createSelector(
 );
 
 const Formatting: React.FC<FormattingProps & WithTranslation> = ({ data, columns, rowCount, propagateState, t }) => {
-  const { dataId, settings, maxColumnWidth, formattingOpen } = useSelector(selectResult);
+  const { dataId, settings, maxColumnWidth, formattingOpen } = useAppSelector(selectResult);
   const visible = formattingOpen !== null;
   const columnFormats = settings.columnFormats ?? {};
-  const dispatch = useDispatch();
-  const hide = (): CloseFormattingAction => dispatch({ type: ActionType.CLOSE_FORMATTING });
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback: () => void): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings, callback) as any as AnyAction);
+  const dispatch = useAppDispatch();
+  const hide = (): PayloadAction<void> => dispatch(AppActions.CloseFormattingAction());
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback: () => void): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings, callback));
 
   const [colDtype, colType] = React.useMemo(() => {
     const dtype = getDtype(formattingOpen ?? undefined, columns);

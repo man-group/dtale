@@ -45,6 +45,16 @@ describe('Upload', () => {
     });
   };
 
+  it('DataViewer: cancel CSV upload', async () => {
+    window.location.pathname = '/dtale/popup/upload';
+    await fireUpload();
+    await act(async () => {
+      await fireEvent.click(screen.getByTestId('csv-options-cancel'));
+    });
+    expect(spies.uploadSpy).not.toHaveBeenCalled();
+    expect(queryByText(document.body, 'Separator')).toBe(null);
+  });
+
   it('renders successfully', async () => {
     expect(upload()).toBeDefined();
   });
@@ -98,16 +108,6 @@ describe('Upload', () => {
     expect(firstData.get('separator')).toBe('=');
     expect(window.close).toBeCalledTimes(1);
     expect(window.opener.location.assign).toBeCalledWith('/2');
-  });
-
-  it('DataViewer: cancel CSV upload', async () => {
-    window.location.pathname = '/dtale/popup/upload';
-    await fireUpload();
-    await act(async () => {
-      await fireEvent.click(screen.getByTestId('csv-options-cancel'));
-    });
-    expect(spies.uploadSpy).not.toHaveBeenCalled();
-    expect(queryByText(document.body, 'Separator')).toBe(null);
   });
 
   it('DataViewer: upload from web', async () => {

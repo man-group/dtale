@@ -6,7 +6,7 @@ import { Provider, useDispatch } from 'react-redux';
 import { OutputType } from '../../../popups/create/CreateColumnState';
 import Reshape from '../../../popups/reshape/Reshape';
 import { ReshapeSaveParams, ReshapeType } from '../../../popups/reshape/ReshapeState';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import { PopupType } from '../../../redux/state/AppState';
 import * as ReshapeRepository from '../../../repository/ReshapeRepository';
 import reduxUtils from '../../redux-test-utils';
@@ -24,7 +24,7 @@ export class Spies {
     [dataId: string, params: ReshapeSaveParams]
   >;
   public mockDispatch = jest.fn();
-  private useDispatchMock = useDispatch as jest.Mock;
+  private useDispatchMock = useDispatch as any as jest.Mock;
   private result?: RenderResult;
 
   /** Initializes all spy instances */
@@ -57,7 +57,7 @@ export class Spies {
   public async setupWrapper(): Promise<RenderResult> {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { type: PopupType.RESHAPE } });
+    store.dispatch(AppActions.OpenChartAction({ type: PopupType.RESHAPE, visible: true }));
     return await act(async () => {
       this.result = render(
         <Provider store={store}>

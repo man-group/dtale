@@ -1,8 +1,6 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
 import { Bouncer } from '../../Bouncer';
 import { BouncerWrapper } from '../../BouncerWrapper';
@@ -12,6 +10,7 @@ import { ColumnType, findColType, noFilters } from '../../dtale/gridUtils';
 import { JSAnchor } from '../../JSAnchor';
 import * as actions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectColumnCount, selectDataId, selectIsArcticDB, selectSettings } from '../../redux/selectors';
 import { InstanceSettings } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -43,14 +42,14 @@ const selectResult = createSelector(
 );
 
 const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, close, t }) => {
-  const { dataId, settings, isArcticDB, columnCount } = useSelector(selectResult);
+  const { dataId, settings, isArcticDB, columnCount } = useAppSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],
   );
-  const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
+  const dispatch = useAppDispatch();
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
 
   const preExistingFilters = React.useMemo(() => {
     const { query, columnFilters, outlierFilters, predefinedFilters } = settings;

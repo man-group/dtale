@@ -6,7 +6,7 @@ import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
 import * as serverState from '../../dtale/serverStateManagement';
-import { ActionType } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, mockChartJS } from '../test-utils';
@@ -16,7 +16,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('DataViewer tests', () => {
   const mockDispatch = jest.fn();
@@ -73,16 +73,10 @@ describe('DataViewer tests', () => {
   it('DataViewer: reloading data w/ large ArcticDB', async () => {
     await buildContainer({ isArcticDB: '3000000' });
     await act(() => {
-      store.dispatch({
-        type: ActionType.UPDATE_SETTINGS,
-        settings: { ...store.getState().settings, idx: 1 },
-      });
+      store.dispatch(AppActions.UpdateSettingsAction({ ...store.getState().settings, idx: 1 }));
     });
     await act(() => {
-      store.dispatch({
-        type: ActionType.UPDATE_SETTINGS,
-        settings: { ...store.getState().settings, idx: 2 },
-      });
+      store.dispatch(AppActions.UpdateSettingsAction({ ...store.getState().settings, idx: 2 }));
     });
 
     // last call to dispatch should be for updateFilteredRanges

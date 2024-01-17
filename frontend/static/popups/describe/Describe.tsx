@@ -1,11 +1,11 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
+import { useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId } from '../../redux/selectors';
 import { DescribePopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -22,7 +22,7 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 }));
 
 const Describe: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, chartData } = useSelector(selectResult);
+  const { dataId, chartData } = useAppSelector(selectResult);
   const [loadingDtypes, setLoadingDtypes] = React.useState(true);
   const [error, setError] = React.useState<JSX.Element>();
   const [dtypes, setDtypes] = React.useState<ColumnDef[]>();

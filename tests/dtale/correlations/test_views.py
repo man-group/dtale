@@ -247,19 +247,21 @@ def test_get_correlations_ts(unittest, rolling_data):
             },
             "max": {"corr": 1.0, "x": "2000-01-05"},
             "min": {"corr": 1.0, "x": "2000-01-01"},
-            "pps": None
-            if no_pps
-            else {
-                "baseline_score": 12.5,
-                "case": "regression",
-                "is_valid_score": True,
-                "metric": "mean absolute error",
-                "model": "DecisionTreeRegressor()",
-                "model_score": 0.0,
-                "ppscore": 1.0,
-                "x": "foo",
-                "y": "bar",
-            },
+            "pps": (
+                None
+                if no_pps
+                else {
+                    "baseline_score": 12.5,
+                    "case": "regression",
+                    "is_valid_score": True,
+                    "metric": "mean absolute error",
+                    "model": "DecisionTreeRegressor()",
+                    "model_score": 0.0,
+                    "ppscore": 1.0,
+                    "x": "foo",
+                    "y": "bar",
+                }
+            ),
             "success": True,
         }
         unittest.assertEqual(
@@ -371,19 +373,21 @@ def test_get_scatter(unittest, rolling_data):
                 "only_in_s0": 0,
                 "only_in_s1": 0,
                 "spearman": 0.9999999999999999,
-                "pps": None
-                if no_pps
-                else {
-                    "baseline_score": 1.2,
-                    "case": "regression",
-                    "is_valid_score": True,
-                    "metric": "mean absolute error",
-                    "model": "DecisionTreeRegressor()",
-                    "model_score": 1.0,
-                    "ppscore": 0.16666666666666663,
-                    "x": "foo",
-                    "y": "bar",
-                },
+                "pps": (
+                    None
+                    if no_pps
+                    else {
+                        "baseline_score": 1.2,
+                        "case": "regression",
+                        "is_valid_score": True,
+                        "metric": "mean absolute error",
+                        "model": "DecisionTreeRegressor()",
+                        "model_score": 1.0,
+                        "ppscore": 0.16666666666666663,
+                        "x": "foo",
+                        "y": "bar",
+                    }
+                ),
             },
             data={
                 "all": {
@@ -450,19 +454,21 @@ def test_get_scatter(unittest, rolling_data):
                 "only_in_s0": 0,
                 "only_in_s1": 0,
                 "pearson": 1.0,
-                "pps": None
-                if no_pps
-                else {
-                    "baseline_score": 3736.0678,
-                    "case": "regression",
-                    "is_valid_score": True,
-                    "metric": "mean absolute error",
-                    "model": "DecisionTreeRegressor()",
-                    "model_score": 2.2682,
-                    "ppscore": 0.9993928911033145,
-                    "x": "foo",
-                    "y": "bar",
-                },
+                "pps": (
+                    None
+                    if no_pps
+                    else {
+                        "baseline_score": 3736.0678,
+                        "case": "regression",
+                        "is_valid_score": True,
+                        "metric": "mean absolute error",
+                        "model": "DecisionTreeRegressor()",
+                        "model_score": 2.2682,
+                        "ppscore": 0.9993928911033145,
+                        "x": "foo",
+                        "y": "bar",
+                    }
+                ),
                 "spearman": 1.0,
             },
             error="Dataset exceeds 15,000 records, cannot render scatter. Please apply filter...",

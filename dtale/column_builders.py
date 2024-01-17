@@ -155,12 +155,16 @@ class ConcatenateColumnBuilder(object):
         left, right = (self.cfg.get(p) for p in ["left", "right"])
         return "df.loc[:, '{name}'] = {left} + {right}".format(
             name=self.name,
-            left="df['{}'].astype('str')".format(left["col"])
-            if "col" in left
-            else left["val"],
-            right="df['{}'].astype('str')".format(right["col"])
-            if "col" in right
-            else right["val"],
+            left=(
+                "df['{}'].astype('str')".format(left["col"])
+                if "col" in left
+                else left["val"]
+            ),
+            right=(
+                "df['{}'].astype('str')".format(right["col"])
+                if "col" in right
+                else right["val"]
+            ),
         )
 
 
@@ -1427,9 +1431,11 @@ class RollingBuilder(object):
                 "rolling_vals = df['{col}'].rolling({window}{kwargs}).{comp}()".format(
                     col=col,
                     window=window,
-                    kwargs=""
-                    if not rolling_kwargs_str
-                    else ", {}".format(rolling_kwargs_str),
+                    kwargs=(
+                        ""
+                        if not rolling_kwargs_str
+                        else ", {}".format(rolling_kwargs_str)
+                    ),
                     comp=comp,
                 )
             ]

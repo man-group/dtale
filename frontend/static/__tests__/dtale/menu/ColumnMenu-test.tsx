@@ -6,9 +6,10 @@ import { Store } from 'redux';
 import ColumnMenu from '../../../dtale/column/ColumnMenu';
 import * as columnMenuUtils from '../../../dtale/column/columnMenuUtils';
 import * as serverState from '../../../dtale/serverStateManagement';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { ActionType, AppActions } from '../../../redux/actions/AppActions';
 import * as actions from '../../../redux/actions/dtale';
-import { AppState, SidePanelType } from '../../../redux/state/AppState';
+import { AppStoreState } from '../../../redux/reducers/app';
+import { SidePanelType } from '../../../redux/state/AppState';
 import * as ColumnFilterRepository from '../../../repository/ColumnFilterRepository';
 import DimensionsHelper from '../../DimensionsHelper';
 import reduxUtils from '../../redux-test-utils';
@@ -19,7 +20,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('ColumnMenu', () => {
   let wrapper: RenderResult;
@@ -36,7 +37,7 @@ describe('ColumnMenu', () => {
     innerHeight: 1000,
   });
 
-  const props: Partial<AppState> = {
+  const props: Partial<AppStoreState> = {
     dataId: '1',
     columnMenuOpen: true,
     selectedCol: 'col1',
@@ -69,7 +70,7 @@ describe('ColumnMenu', () => {
   const buildWrapper = async (colName = 'col1', hiddenProps?: Record<string, string>): Promise<void> => {
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', ...hiddenProps }, store);
-    store.dispatch({ type: ActionType.TOGGLE_COLUMN_MENU, colName });
+    store.dispatch(AppActions.ToggleColumnMenuAction({ colName }));
     wrapper = await act(
       async () =>
         await render(
@@ -115,8 +116,10 @@ describe('ColumnMenu', () => {
     });
     expect(mockDispatch).toHaveBeenCalledWith({
       type: ActionType.SHOW_SIDE_PANEL,
-      view: SidePanelType.DESCRIBE,
-      column: props.selectedCol,
+      payload: {
+        view: SidePanelType.DESCRIBE,
+        column: props.selectedCol,
+      },
     });
   });
 

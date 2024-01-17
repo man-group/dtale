@@ -877,11 +877,14 @@ def scatter_builder(
 
         return wrapper(
             graph_wrapper(figure=figure_cfg, modal=modal),
-            group_filter=dict_merge(
-                dict(y=y_val), {} if group_filter is None else dict(group=group_filter)
-            )
-            if group_filter is not None
-            else None,
+            group_filter=(
+                dict_merge(
+                    dict(y=y_val),
+                    {} if group_filter is None else dict(group=group_filter),
+                )
+                if group_filter is not None
+                else None
+            ),
         )
 
     return [_build_final_scatter(final_cols)]
@@ -1277,9 +1280,11 @@ def bar_builder(
                                             "type": "bar",
                                         },
                                         name_builder(y2, series_key),
-                                        {}
-                                        if i == 1 or not allow_multiaxis
-                                        else {"yaxis": "y{}".format(i)},
+                                        (
+                                            {}
+                                            if i == 1 or not allow_multiaxis
+                                            else {"yaxis": "y{}".format(i)}
+                                        ),
                                         hover_text.get(series_key) or {},
                                     )
                                     for i, y2 in enumerate(y_value, 1)
@@ -1313,9 +1318,11 @@ def bar_builder(
                                                     "type": "bar",
                                                 },
                                                 name_builder(y2, series_key),
-                                                {}
-                                                if i == 1 or not allow_multiaxis
-                                                else {"yaxis": "y{}".format(i)},
+                                                (
+                                                    {}
+                                                    if i == 1 or not allow_multiaxis
+                                                    else {"yaxis": "y{}".format(i)}
+                                                ),
                                                 hover_text.get(series_key) or {},
                                             )
                                             for i, y2 in enumerate(y_value, 1)
@@ -1399,9 +1406,11 @@ def bar_builder(
                                 "customdata": [frame["name"]] * len(series["x"]),
                             },
                             name_builder(y2, series_key),
-                            {}
-                            if i == 1 or not allow_multiaxis
-                            else {"yaxis": "y{}".format(i)},
+                            (
+                                {}
+                                if i == 1 or not allow_multiaxis
+                                else {"yaxis": "y{}".format(i)}
+                            ),
                         )
                     )
                 if barmode == "group" and allow_multiaxis:
@@ -1567,9 +1576,11 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                                                 "y": series[sub_y_value],
                                             },
                                             name_builder(sub_y_value, series_key),
-                                            {}
-                                            if i == 1 or not multi_yaxis
-                                            else {"yaxis": "y{}".format(i)},
+                                            (
+                                                {}
+                                                if i == 1 or not multi_yaxis
+                                                else {"yaxis": "y{}".format(i)}
+                                            ),
                                         )
                                     )
                                     for i, sub_y_value in enumerate(y_value, 1)
@@ -1605,9 +1616,11 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                                                     name_builder(
                                                         sub_y_value, series_key
                                                     ),
-                                                    {}
-                                                    if i == 1 or not multi_yaxis
-                                                    else {"yaxis": "y{}".format(i)},
+                                                    (
+                                                        {}
+                                                        if i == 1 or not multi_yaxis
+                                                        else {"yaxis": "y{}".format(i)}
+                                                    ),
                                                 )
                                             )
                                             for i, sub_y_value in enumerate(y_value, 1)
@@ -1668,9 +1681,11 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                                 "marker": {"size": marker_size},
                             },
                             name_builder(y2, series_key),
-                            {}
-                            if j == 1 or not multi_yaxis
-                            else {"yaxis": "y{}".format(j)},
+                            (
+                                {}
+                                if j == 1 or not multi_yaxis
+                                else {"yaxis": "y{}".format(j)}
+                            ),
                         )
                     )
 
@@ -1824,9 +1839,11 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                     ),
                     group_filter=dict_merge(
                         dict(y=y2),
-                        {}
-                        if series_key == "all"
-                        else dict(group=series.get("_filter_")),
+                        (
+                            {}
+                            if series_key == "all"
+                            else dict(group=series.get("_filter_"))
+                        ),
                     ),
                 )
                 if len(negative_values):
@@ -2575,9 +2592,11 @@ def funnel_builder(data_id, export=False, **inputs):
                         chart,
                         group_filter=dict_merge(
                             dict(y=y2),
-                            {}
-                            if series_key == "all"
-                            else dict(group=series.get("_filter_")),
+                            (
+                                {}
+                                if series_key == "all"
+                                else dict(group=series.get("_filter_"))
+                            ),
                         ),
                     )
                 if len(negative_values):
@@ -2759,9 +2778,9 @@ def clustergram_builder(data_id, export=False, **inputs):
 
             chart = chart_builder(
                 graph,
-                group_filter={}
-                if series_key == "all"
-                else dict(group=series.get("_filter_")),
+                group_filter=(
+                    {} if series_key == "all" else dict(group=series.get("_filter_"))
+                ),
             )
 
             # clean up filters when passing to graph
@@ -2894,9 +2913,9 @@ def pareto_builder(data_id, export=False, **inputs):
 
             chart = chart_builder(
                 graph,
-                group_filter={}
-                if series_key == "all"
-                else dict(group=series.get("_filter_")),
+                group_filter=(
+                    {} if series_key == "all" else dict(group=series.get("_filter_"))
+                ),
             )
 
             # clean up filters when passing to graph
@@ -3021,9 +3040,9 @@ def histogram_builder(data_id, export=False, **inputs):
 
             chart = chart_builder(
                 graph,
-                group_filter={}
-                if series_key == "all"
-                else dict(group=series.get("_filter_")),
+                group_filter=(
+                    {} if series_key == "all" else dict(group=series.get("_filter_"))
+                ),
             )
 
             # clean up filters when passing to graph

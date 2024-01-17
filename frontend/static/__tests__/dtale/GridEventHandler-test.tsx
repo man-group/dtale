@@ -23,7 +23,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('RibbonDropdown', () => {
   let container: HTMLElement;
@@ -91,7 +91,7 @@ describe('RibbonDropdown', () => {
     expect(clearTimeoutSpy).not.toHaveBeenCalled();
     expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
     setTimeoutSpy.mock.calls[setTimeoutSpy.mock.calls.length - 1][0]();
-    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.SHOW_RIBBON_MENU });
+    expect(mockDispatch).toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.SHOW_RIBBON_MENU }));
     setTimeoutSpy.mockRestore();
   });
 
@@ -104,7 +104,7 @@ describe('RibbonDropdown', () => {
     fireEvent(mainPanel, myEvent);
     expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
     setTimeoutSpy.mock.calls[setTimeoutSpy.mock.calls.length - 1][0]();
-    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
+    expect(mockDispatch).toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.HIDE_RIBBON_MENU }));
     setTimeoutSpy.mockRestore();
   });
 
@@ -130,7 +130,7 @@ describe('RibbonDropdown', () => {
     const target: any = { querySelector: () => ({ clientWidth: 100, scrollWidth: 100 }) };
     const myEvent = createEvent.mouseOver(cell, { clientY: 100, target } as any as Event);
     await fireEvent(cell, myEvent);
-    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_MENU_TOOLTIP });
+    expect(mockDispatch).toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.HIDE_MENU_TOOLTIP }));
   });
 
   it('shows tooltip when cellIdx is populated', async () => {
@@ -154,8 +154,10 @@ describe('RibbonDropdown', () => {
     fireEvent(cell, myEvent);
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: ActionType.SHOW_MENU_TOOLTIP,
-      element: childDiv,
-      content: 'Hello World',
+      payload: {
+        element: childDiv,
+        content: 'Hello World',
+      },
     });
   });
 
@@ -164,8 +166,18 @@ describe('RibbonDropdown', () => {
     const cell = container.getElementsByClassName('cell')[0];
     const myEvent = createEvent.click(cell);
     fireEvent(cell, myEvent);
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ type: ActionType.SET_RANGE_STATE, selectedRow: 1 }),
+    expect(mockDispatch).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        type: ActionType.SET_RANGE_STATE,
+        payload: {
+          selectedRow: 1,
+          columnRange: null,
+          ctrlCols: null,
+          ctrlRows: null,
+          rangeSelect: null,
+          rowRange: null,
+        },
+      }),
     );
   });
 
@@ -175,9 +187,7 @@ describe('RibbonDropdown', () => {
     const myEvent = createEvent.click(cell);
     fireEvent(cell, myEvent);
     fireEvent(cell, myEvent);
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ type: ActionType.EDIT_CELL, editedCell: '1|2' }),
-    );
+    expect(mockDispatch).toHaveBeenCalledWith(expect.objectContaining({ type: ActionType.EDIT_CELL, payload: '1|2' }));
   });
 
   it('does not edit cell when ArcitcDB is active', async () => {

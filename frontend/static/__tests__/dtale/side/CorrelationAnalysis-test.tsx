@@ -18,7 +18,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 const ANALYSIS = {
   ranks: [
@@ -139,7 +139,7 @@ describe('CorrelationAnalysis', () => {
     expect(serverStateSpy).toHaveBeenCalledWith('1', ['foo']);
     expect(mockDispatch).toHaveBeenCalledWith({
       type: ActionType.DATA_VIEWER_UPDATE,
-      update: { type: DataViewerUpdateType.DROP_COLUMNS, columns: ['foo'] },
+      payload: { type: DataViewerUpdateType.DROP_COLUMNS, columns: ['foo'] },
     });
     expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_SIDE_PANEL });
   });

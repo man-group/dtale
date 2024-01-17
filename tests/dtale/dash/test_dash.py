@@ -3,8 +3,10 @@ import json
 import mock
 import numpy as np
 import pandas as pd
+import platform
 import pytest
 import dtale.global_state as global_state
+from pkg_resources import parse_version
 from six import PY3
 
 
@@ -2530,7 +2532,10 @@ def test_chart_building_funnel(treemap_data):
         assert "found no data" in exception
 
 
-@pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
+@pytest.mark.skipif(
+    not PY3 or parse_version(platform.python_version()) >= parse_version("3.9.0"),
+    reason="requires 3.0.0 <= python < 3.9.0",
+)
 def test_chart_building_clustergram(clustergram_data):
     pytest.importorskip("dash_bio")
 

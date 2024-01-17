@@ -1,18 +1,17 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { default as python } from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
 import { default as docco } from 'react-syntax-highlighter/dist/esm/styles/hljs/docco';
-import { AnyAction } from 'redux';
 
 SyntaxHighlighter.registerLanguage('python', python);
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import * as mergeActions from '../../redux/actions/merge';
-import { MergeActionType, ToggleShowCodeAction } from '../../redux/actions/MergeActions';
+import { MergeActions } from '../../redux/actions/MergeActions';
+import { useMergeDispatch, useMergeSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/mergeSelectors';
 import { Dataset, MergeConfig, MergeConfigType, StackConfig } from '../../redux/state/MergeState';
 import { capitalize } from '../../stringUtils';
@@ -95,11 +94,12 @@ const selectResult = createSelector(
 );
 
 const MergeOutput: React.FC<WithTranslation> = ({ t }) => {
-  const { action, datasets, loadingMerge, mergeConfig, stackConfig, mergeDataId, showCode } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const buildMerge = (name: string): AnyAction => dispatch(mergeActions.buildMerge(name) as any as AnyAction);
-  const clearMerge = (): AnyAction => dispatch(mergeActions.clearMerge() as any as AnyAction);
-  const toggleShowCode = (): ToggleShowCodeAction => dispatch({ type: MergeActionType.TOGGLE_SHOW_CODE });
+  const { action, datasets, loadingMerge, mergeConfig, stackConfig, mergeDataId, showCode } =
+    useMergeSelector(selectResult);
+  const dispatch = useMergeDispatch();
+  const buildMerge = (name: string): void => dispatch(mergeActions.buildMerge(name));
+  const clearMerge = (): void => dispatch(mergeActions.clearMerge());
+  const toggleShowCode = (): PayloadAction<void> => dispatch(MergeActions.ToggleShowCodeAction());
   const [name, setName] = React.useState('');
   const code = React.useMemo(
     () => buildCode(action, datasets, mergeConfig, stackConfig, name).join('\n'),

@@ -1,16 +1,16 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import { ChartConfiguration } from 'chart.js';
 import React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import * as chartUtils from '../../chartUtils';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { isDateCol } from '../../dtale/gridUtils';
-import { ActionType, HideSidePanelAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import { buildURLString } from '../../redux/actions/url-utils';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectDataId, selectPythonVersion } from '../../redux/selectors';
 import { ButtonOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -43,9 +43,9 @@ const selectResult = createSelector([selectDataId, selectPythonVersion], (dataId
 }));
 
 const Reports: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, pythonVersion } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
+  const { dataId, pythonVersion } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const hideSidePanel = (): PayloadAction<void> => dispatch(AppActions.HideSidePanelAction());
   const typeOpts = React.useMemo(() => {
     const options: Array<ButtonOption<TimeseriesAnalysisType>> = [];
     Object.values(TimeseriesAnalysisType).forEach((value) => {

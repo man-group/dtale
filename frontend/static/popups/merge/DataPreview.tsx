@@ -4,7 +4,8 @@ import { Store } from 'redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { DataViewer } from '../../dtale/DataViewer';
-import app from '../../redux/reducers/app';
+import { MergeActions } from '../../redux/actions/MergeActions';
+import { reducers as appReducers, AppStoreState } from '../../redux/reducers/app';
 import { createAppStore } from '../../redux/store';
 
 /** Component properties for DataPreview */
@@ -14,10 +15,10 @@ interface DataPreviewProps {
 
 export const DataPreview: React.FC<DataPreviewProps> = ({ dataId }) => {
   const [loading, setLoading] = React.useState(true);
-  const store = React.useRef<Store>(createAppStore(app));
+  const store = React.useRef<Store>(createAppStore<AppStoreState>(appReducers));
 
   React.useEffect(() => {
-    store.current.dispatch({ type: 'load-preview', dataId });
+    store.current.dispatch(MergeActions.LoadPreviewAction(dataId));
     setLoading(true);
   }, [dataId]);
 

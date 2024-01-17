@@ -1,10 +1,10 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import * as chartUtils from '../../chartUtils';
 import * as actions from '../../redux/actions/dtale';
+import { useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId } from '../../redux/selectors';
 import { ColumnAnalysisPopupData } from '../../redux/state/AppState';
 
@@ -26,7 +26,7 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 }));
 
 const ColumnAnalysis: React.FC<ColumnAnalysisProps & WithTranslation> = ({ height, t }) => {
-  const { chartData, dataId } = useSelector(selectResult);
+  const { chartData, dataId } = useAppSelector(selectResult);
   const chartRef = React.useRef<chartUtils.ChartObj | undefined>();
   const [defaultCategoryAgg, defaultOrdinalAgg] = React.useMemo(() => {
     const aggs = analysisAggs(t);

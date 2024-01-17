@@ -1,46 +1,46 @@
-import { Dispatch } from 'redux';
-
 import * as InstanceRepository from '../../repository/InstanceRepository';
 import * as MergeRepository from '../../repository/MergeRepository';
+import { MergeDispatch } from '../helpers';
+import { MergeThunk } from '../reducers/merge';
 import { MergeState } from '../state/MergeState';
 
-import { MergeActionType, MergeAppActions, MergeAppActionTypes } from './MergeActions';
+import { MergeActions } from './MergeActions';
 
-const loadInstances = async (dispatch: Dispatch<MergeAppActionTypes>): Promise<void> => {
+const loadInstances = async (dispatch: MergeDispatch): Promise<void> => {
   const instances = await MergeRepository.loadInstances();
   if (instances && !instances?.error) {
-    dispatch({ type: MergeActionType.LOAD_INSTANCES, instances });
+    dispatch(MergeActions.LoadInstancesAction(instances));
   }
 };
 
-export const init = async (dispatch: Dispatch<MergeAppActionTypes>): Promise<void> => {
-  dispatch({ type: MergeActionType.INIT_PARAMS });
+export const init = async (dispatch: MergeDispatch): Promise<void> => {
+  dispatch(MergeActions.InitAction());
   await loadInstances(dispatch);
 };
 
-export const loadDatasets = async (dispatch: Dispatch<MergeAppActionTypes>): Promise<void> => {
-  dispatch({ type: MergeActionType.LOADING_DATASETS });
+export const loadDatasets = async (dispatch: MergeDispatch): Promise<void> => {
+  dispatch(MergeActions.LoadingDatasetsAction());
   await loadInstances(dispatch);
 };
 
 export const buildMerge =
-  (name: string): MergeAppActions<Promise<void>> =>
-  async (dispatch: Dispatch<MergeAppActionTypes>, getState: () => MergeState): Promise<void> => {
-    dispatch({ type: MergeActionType.LOAD_MERGE });
+  (name: string): MergeThunk =>
+  async (dispatch: MergeDispatch, getState: () => MergeState): Promise<void> => {
+    dispatch(MergeActions.LoadMergeAction());
     const { action, mergeConfig, stackConfig, datasets } = getState();
     const config = action === 'merge' ? mergeConfig : stackConfig;
     const response = await MergeRepository.saveMerge(action, config, datasets, name);
     if (response?.success) {
-      dispatch({ type: MergeActionType.LOAD_MERGE_DATA, dataId: response.data_id });
+      dispatch(MergeActions.LoadMergeDataAction(response.data_id));
     } else {
-      dispatch({ type: MergeActionType.LOAD_MERGE_ERROR, error: response });
+      dispatch(MergeActions.LoadMergeErrorAction(response));
     }
   };
 
 export const clearMerge =
-  (): MergeAppActions<Promise<void>> =>
-  async (dispatch: Dispatch<MergeAppActionTypes>, getState: () => MergeState): Promise<void> => {
+  (): MergeThunk =>
+  async (dispatch: MergeDispatch, getState: () => MergeState): Promise<void> => {
     const { mergeDataId } = getState();
     await InstanceRepository.cleanupInstance(mergeDataId ?? '');
-    dispatch({ type: MergeActionType.CLEAR_MERGE_DATA });
+    dispatch(MergeActions.ClearMergeDataAction());
   };

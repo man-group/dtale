@@ -3,8 +3,9 @@ import * as React from 'react';
 import { Provider, useDispatch } from 'react-redux';
 
 import Popup from '../../popups/Popup';
-import { ActionType } from '../../redux/actions/AppActions';
-import { AppState, PopupType } from '../../redux/state/AppState';
+import { AppActions } from '../../redux/actions/AppActions';
+import { AppStoreState } from '../../redux/reducers/app';
+import { PopupType } from '../../redux/state/AppState';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, FakeMouseEvent } from '../test-utils';
@@ -14,7 +15,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('ExportOption', () => {
   const openSpy = jest.fn();
@@ -30,14 +31,13 @@ describe('ExportOption', () => {
     dimensions.beforeAll();
   });
 
-  const setupMock = async (overrides?: Partial<AppState>): Promise<void> => {
+  const setupMock = async (overrides?: Partial<AppStoreState>): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ dataId: '0', settings: '' }, store);
-    store.dispatch({ type: ActionType.UPDATE_SETTINGS, settings: { sortInfo: [], ...overrides?.settings } });
-    store.dispatch({
-      type: ActionType.OPEN_CHART,
-      chartData: { visible: true, type: PopupType.EXPORT, rows: 50, ...overrides?.chartData },
-    });
+    store.dispatch(AppActions.UpdateSettingsAction({ sortInfo: [], ...overrides?.settings }));
+    store.dispatch(
+      AppActions.OpenChartAction({ visible: true, rows: 50, ...overrides?.chartData, type: PopupType.EXPORT }),
+    );
     await act(
       () =>
         render(

@@ -1,8 +1,9 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, SetLanguageAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectLanguage } from '../../redux/selectors';
 import * as serverState from '../serverStateManagement';
 
@@ -10,10 +11,10 @@ import { MenuItem } from './MenuItem';
 import { RibbonOptionProps } from './MenuState';
 
 const LanguageOption: React.FC<RibbonOptionProps & WithTranslation> = ({ ribbonWrapper = (func) => func, t, i18n }) => {
-  const language = useSelector(selectLanguage);
-  const dispatch = useDispatch();
-  const setLanguage = (updatedLanguage: string): SetLanguageAction =>
-    dispatch({ type: ActionType.SET_LANGUAGE, language: updatedLanguage });
+  const language = useAppSelector(selectLanguage);
+  const dispatch = useAppDispatch();
+  const setLanguage = (updatedLanguage: string): PayloadAction<string> =>
+    dispatch(AppActions.SetLanguageAction(updatedLanguage));
 
   const updateLanguage =
     (newLanguage: string): (() => Promise<void>) =>

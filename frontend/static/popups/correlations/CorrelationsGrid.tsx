@@ -2,7 +2,6 @@ import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { createFilter, default as Select } from 'react-select';
 import {
   AutoSizer as _AutoSizer,
@@ -15,6 +14,7 @@ import {
 import { BouncerWrapper } from '../../BouncerWrapper';
 import * as gu from '../../dtale/gridUtils';
 import SidePanelButtons from '../../dtale/side/SidePanelButtons';
+import { useAppSelector } from '../../redux/hooks';
 import { selectDataId, selectSidePanel, selectTheme } from '../../redux/selectors';
 import { BaseOption, SortDef, SortDir } from '../../redux/state/AppState';
 import { buildCorrelationsUrl, CorrelationGridRow } from '../../repository/CorrelationsRepository';
@@ -112,7 +112,7 @@ const selectResult = createSelector([selectDataId, selectSidePanel, selectTheme]
 }));
 
 const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ columns, t, ...props }) => {
-  const { dataId, sidePanel, theme } = useSelector(selectResult);
+  const { dataId, sidePanel, theme } = useAppSelector(selectResult);
   const columnOptions: Array<BaseOption<string>> = React.useMemo(
     () => columns.map((column) => ({ value: column })),
     [columns],

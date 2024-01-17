@@ -1,12 +1,12 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
 import { RemovableError } from '../../RemovableError';
 import * as DtypesRepository from '../../repository/DtypesRepository';
@@ -19,19 +19,14 @@ import { default as Pivot, validatePivotCfg } from './Pivot';
 import { default as Resample, validateResampleCfg } from './Resample';
 import { ReshapeConfigTypes, ReshapeSaveParams, ReshapeType, ReshapeUpdateState } from './ReshapeState';
 import { default as Transpose, validateTransposeCfg } from './Transpose';
+import { buildForwardURL } from './utils';
 
 require('./Reshape.css');
 
-export const buildForwardURL = (href: string, dataId: string): string => {
-  const hrefSegs = (href || '').split('/');
-  hrefSegs.pop();
-  return `${hrefSegs.join('/')}/${dataId}`;
-};
-
 const Reshape: React.FC<WithTranslation> = ({ t }) => {
-  const dataId = useSelector(selectDataId);
-  const dispatch = useDispatch();
-  const onClose = (): CloseChartAction => dispatch(closeChart());
+  const dataId = useAppSelector(selectDataId);
+  const dispatch = useAppDispatch();
+  const onClose = (): PayloadAction<void> => dispatch(closeChart());
 
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
   const [error, setError] = React.useState<JSX.Element>();

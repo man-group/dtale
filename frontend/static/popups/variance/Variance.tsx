@@ -1,10 +1,10 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import * as gu from '../../dtale/gridUtils';
+import { useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId, selectSettings } from '../../redux/selectors';
 import { VariancePopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -23,7 +23,7 @@ const selectResult = createSelector([selectDataId, selectChartData, selectSettin
 }));
 
 const Variance: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, chartData, settings } = useSelector(selectResult);
+  const { dataId, chartData, settings } = useAppSelector(selectResult);
   const preExistingFilters = React.useMemo(() => {
     const { query, columnFilters, outlierFilters, predefinedFilters } = settings;
     return !gu.noFilters({ query, columnFilters, outlierFilters, predefinedFilters });

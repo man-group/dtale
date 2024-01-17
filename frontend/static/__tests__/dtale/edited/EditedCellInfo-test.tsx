@@ -7,7 +7,7 @@ import { Store } from 'redux';
 import { DataViewerData } from '../../../dtale/DataViewerState';
 import EditedCellInfo from '../../../dtale/edited/EditedCellInfo';
 import * as serverState from '../../../dtale/serverStateManagement';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { ActionType, AppActions } from '../../../redux/actions/AppActions';
 import * as chartActions from '../../../redux/actions/charts';
 import { InstanceSettings, PopupType } from '../../../redux/state/AppState';
 import * as ColumnFilterRepository from '../../../repository/ColumnFilterRepository';
@@ -20,7 +20,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('DataViewerInfo tests', () => {
   let result: Element;
@@ -67,10 +67,10 @@ describe('DataViewerInfo tests', () => {
       },
     };
     if (editedCell) {
-      store.dispatch({ type: ActionType.EDIT_CELL, editedCell });
+      store.dispatch(AppActions.EditedCellAction(editedCell));
     }
     if (settings) {
-      store.dispatch({ type: ActionType.UPDATE_SETTINGS, settings });
+      store.dispatch(AppActions.UpdateSettingsAction(settings));
     }
     result = await act(
       async () =>

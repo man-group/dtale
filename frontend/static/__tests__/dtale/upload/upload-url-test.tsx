@@ -43,6 +43,14 @@ describe('Upload', () => {
   });
 
   it('DataViewer: disabled web uploads', async () => {
-    expect(upload().getElementsByClassName('form-group')[0].textContent).toBe(DISABLED_URL_UPLOADS_MSG);
+    expect(upload().getElementsByClassName('form-group')[0].textContent).toBe(
+      [
+        DISABLED_URL_UPLOADS_MSG,
+        'add enable_web_uploads=True to your dtale.show callrun this code before calling dtale.showimport ',
+        'dtale.global_state as global_state\n',
+        'global_state.set_app_settings(dict(enable_web_uploads=True))add enable_web_uploads = True to the [app] ',
+        'section of your dtale.ini config file',
+      ].join(''),
+    );
   });
 });

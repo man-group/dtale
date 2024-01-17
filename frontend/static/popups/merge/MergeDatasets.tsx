@@ -1,21 +1,13 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
-import { ActionType, OpenChartAction } from '../../redux/actions/AppActions';
-import {
-  AddDatasetAction,
-  ClearErrorsAction,
-  MergeActionType,
-  RemoveDatasetAction,
-  ToggleDatasetAction,
-  UpdateDatasetAction,
-} from '../../redux/actions/MergeActions';
+import { MergeActions, UpdateDatasetActionProps } from '../../redux/actions/MergeActions';
+import { useMergeDispatch, useMergeSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/mergeSelectors';
-import { BaseOption, PopupType } from '../../redux/state/AppState';
+import { BaseOption, Popups, PopupType } from '../../redux/state/AppState';
 import { Dataset, MergeInstance } from '../../redux/state/MergeState';
 import { RemovableError } from '../../RemovableError';
 import { LabeledInput } from '../create/LabeledInput';
@@ -56,18 +48,17 @@ const selectResult = createSelector(
 );
 
 const MergeDatasets: React.FC<WithTranslation> = ({ t }) => {
-  const { instances, loading, loadingDatasets, action, datasets, loadingError, mergeError } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const addDataset = (dataId: string): AddDatasetAction => dispatch({ type: MergeActionType.ADD_DATASET, dataId });
-  const removeDataset = (index: number): RemoveDatasetAction =>
-    dispatch({ type: MergeActionType.REMOVE_DATASET, index });
-  const toggleDataset = (index: number): ToggleDatasetAction =>
-    dispatch({ type: MergeActionType.TOGGLE_DATASET, index });
-  const updateDataset = <T,>(index: number, prop: keyof Dataset, value: T): UpdateDatasetAction<T> =>
-    dispatch({ type: MergeActionType.UPDATE_DATASET, index, prop, value });
-  const clearErrors = (): ClearErrorsAction => dispatch({ type: MergeActionType.CLEAR_ERRORS });
-  const openUpload = (): OpenChartAction =>
-    dispatch({ type: ActionType.OPEN_CHART, chartData: { type: PopupType.UPLOAD, title: 'Upload', visible: true } });
+  const { instances, loading, loadingDatasets, action, datasets, loadingError, mergeError } =
+    useMergeSelector(selectResult);
+  const dispatch = useMergeDispatch();
+  const addDataset = (dataId: string): PayloadAction<string> => dispatch(MergeActions.AddDatasetAction(dataId));
+  const removeDataset = (index: number): PayloadAction<number> => dispatch(MergeActions.RemoveDatasetAction(index));
+  const toggleDataset = (index: number): PayloadAction<number> => dispatch(MergeActions.ToggleDatasetAction(index));
+  const updateDataset = <T,>(index: number, prop: keyof Dataset, value: T): PayloadAction<UpdateDatasetActionProps> =>
+    dispatch(MergeActions.UpdateDatasetAction({ index, prop, value }));
+  const clearErrors = (): PayloadAction<void> => dispatch(MergeActions.ClearErrorsAction());
+  const openUpload = (): PayloadAction<Popups> =>
+    dispatch(MergeActions.OpenChartAction({ type: PopupType.UPLOAD, title: 'Upload', visible: true }));
 
   const renderDatasetInputs = (dataset: Dataset, datasetIndex: number): React.ReactNode => {
     const { dataId, isDataOpen } = dataset;
@@ -76,7 +67,7 @@ const MergeDatasets: React.FC<WithTranslation> = ({ t }) => {
       return null;
     }
     const { name, rows, columns } = instance;
-    const columnOptions = instance.names
+    const columnOptions = [...instance.names]
       .sort((a: ColumnDef, b: ColumnDef): number => a.name.toLowerCase().localeCompare(b.name.toLowerCase()))
       .map((col) => ({ value: col, label: colName(col) }));
     return (

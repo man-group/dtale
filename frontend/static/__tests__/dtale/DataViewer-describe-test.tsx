@@ -6,7 +6,8 @@ import selectEvent from 'react-select-event';
 
 import Describe from '../../popups/describe/Describe';
 import { ASC_PATH, DESC_PATH } from '../../popups/describe/DtypesGrid';
-import { ActionType } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
+import { PopupType } from '../../redux/state/AppState';
 import * as GenericRepository from '../../repository/GenericRepository';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
@@ -39,7 +40,7 @@ describe('DataViewer tests', () => {
     postSpy.mockResolvedValue(Promise.resolve({ data: {} }));
 
     const store = reduxUtils.createDtaleStore();
-    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { visible: true } });
+    store.dispatch(AppActions.OpenChartAction({ visible: true, type: PopupType.DESCRIBE }));
     buildInnerHTML({ settings: '' }, store);
     await act(async () => {
       const result = render(

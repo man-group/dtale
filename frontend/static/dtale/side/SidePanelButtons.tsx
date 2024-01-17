@@ -1,10 +1,10 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, HideSidePanelAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import { buildURLString } from '../../redux/actions/url-utils';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/selectors';
 import { SidePanelType } from '../../redux/state/AppState';
 import * as menuFuncs from '../menu/dataViewerMenuUtils';
@@ -25,9 +25,9 @@ const selectResult = createSelector(
 );
 
 const SidePanelButtons: React.FC<SidePanelButtonsProps & WithTranslation> = ({ buttons, t }) => {
-  const { dataId, column, visible, view } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
+  const { dataId, column, visible, view } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const hideSidePanel = (): PayloadAction<void> => dispatch(AppActions.HideSidePanelAction());
 
   if (!visible) {
     return null;

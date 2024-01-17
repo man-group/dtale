@@ -3,9 +3,10 @@ import axios from 'axios';
 import * as React from 'react';
 import { Provider, useDispatch } from 'react-redux';
 
+import { DataViewerPropagateState } from '../../../dtale/DataViewerState';
 import CreateColumn from '../../../popups/create/CreateColumn';
 import { CreateColumnSaveParams, CreateColumnType, SaveAs } from '../../../popups/create/CreateColumnState';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import { PopupType } from '../../../redux/state/AppState';
 import * as CreateColumnRepository from '../../../repository/CreateColumnRepository';
 import reduxUtils from '../../redux-test-utils';
@@ -24,7 +25,7 @@ export class Spies {
   >;
   public propagateStateSpy: jest.Mock;
   public mockDispatch = jest.fn();
-  private useDispatchMock = useDispatch as jest.Mock;
+  private useDispatchMock = useDispatch as any as jest.Mock;
   private result?: Element;
 
   /** Initializes all spy instances */
@@ -77,10 +78,14 @@ export class Spies {
   public async setupWrapper(): Promise<Element> {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({
-      type: ActionType.OPEN_CHART,
-      chartData: { type: PopupType.BUILD, propagateState: this.propagateStateSpy, selectedCol: 'col1' },
-    });
+    store.dispatch(
+      AppActions.OpenChartAction({
+        type: PopupType.REPLACEMENT,
+        propagateState: this.propagateStateSpy as DataViewerPropagateState,
+        selectedCol: 'col1',
+        visible: true,
+      }),
+    );
     return await act(async () => {
       this.result = render(
         <Provider store={store}>
