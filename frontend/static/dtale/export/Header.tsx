@@ -1,10 +1,11 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import { TFunction } from 'i18next';
 import * as React from 'react';
 import Draggable, { DraggableEvent } from 'react-draggable';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, DragResizeAction, StopResizeAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectSettings } from '../../redux/selectors';
 import * as bu from '../backgroundUtils';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
@@ -72,10 +73,10 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   maxRowHeight,
   t,
 }) => {
-  const settings = useSelector(selectSettings);
-  const dispatch = useDispatch();
-  const updateDragResize = (x: number): DragResizeAction => dispatch({ type: ActionType.DRAG_RESIZE, x });
-  const stopDragResize = (): StopResizeAction => dispatch({ type: ActionType.STOP_RESIZE });
+  const settings = useAppSelector(selectSettings);
+  const dispatch = useAppDispatch();
+  const updateDragResize = (x: number): PayloadAction<number> => dispatch(AppActions.DragResizeAction(x));
+  const stopDragResize = (): PayloadAction<void> => dispatch(AppActions.StopResizeAction());
 
   const [drag, setDrag] = React.useState(false);
   const [colWidth, setColWidth] = React.useState<number>();

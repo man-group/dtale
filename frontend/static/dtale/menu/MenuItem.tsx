@@ -1,7 +1,8 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
-import { useDispatch } from 'react-redux';
 
-import { ActionType, HideMenuTooltipAction, ShowMenuTooltipAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
+import { useAppDispatch } from '../../redux/hooks';
 
 /** Component properties for MenuItem */
 interface MenuItemProps {
@@ -18,10 +19,15 @@ export const MenuItem: React.FC<React.PropsWithChildren<MenuItemProps>> = ({
   description,
   children,
 }) => {
-  const dispatch = useDispatch();
-  const showTooltip = (element: HTMLLIElement, content: React.ReactNode): ShowMenuTooltipAction =>
-    dispatch({ type: ActionType.SHOW_MENU_TOOLTIP, element, content });
-  const hideTooltip = (): HideMenuTooltipAction => dispatch({ type: ActionType.HIDE_MENU_TOOLTIP });
+  const dispatch = useAppDispatch();
+  const showTooltip = (
+    element: HTMLElement,
+    content: React.ReactNode,
+  ): PayloadAction<{
+    element: HTMLElement;
+    content: React.ReactNode;
+  }> => dispatch(AppActions.ShowMenuTooltipAction({ element, content }));
+  const hideTooltip = (): PayloadAction<void> => dispatch(AppActions.HideMenuTooltipAction());
   const ref = React.useRef<HTMLLIElement>(null);
 
   const props: React.HTMLAttributes<HTMLLIElement> = { className, style };

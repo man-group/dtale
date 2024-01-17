@@ -1,17 +1,17 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
+import { useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId } from '../../redux/selectors';
 import { DuplicatesPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as DtypesRepository from '../../repository/DtypesRepository';
 import * as DuplicatesRepository from '../../repository/DuplicatesRepository';
-import { buildForwardURL } from '../reshape/Reshape';
+import { buildForwardURL } from '../reshape/utils';
 
 import ColumnNames from './ColumnNames';
 import Columns from './Columns';
@@ -34,7 +34,7 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 }));
 
 const Duplicates: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, chartData } = useSelector(selectResult);
+  const { dataId, chartData } = useAppSelector(selectResult);
   const [error, setError] = React.useState<JSX.Element>();
   const [loadingColumns, setLoadingColumns] = React.useState(true);
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);

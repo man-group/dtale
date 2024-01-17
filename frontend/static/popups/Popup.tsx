@@ -1,16 +1,16 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import { Resizable } from 're-resizable';
 import * as React from 'react';
 import { default as Modal } from 'react-bootstrap/Modal';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { DataViewerPropagateState } from '../dtale/DataViewerState';
 import { buildRangeState } from '../dtale/rangeSelectUtils';
-import { ActionType, SetRangeStateAction } from '../redux/actions/AppActions';
+import { AppActions } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
 import { loadDatasets } from '../redux/actions/merge';
+import { useAppDispatch, useAppSelector, useMergeDispatch } from '../redux/hooks';
 import { selectChartData, selectDataId } from '../redux/selectors';
 import { RangeState } from '../redux/state/AppState';
 
@@ -28,11 +28,12 @@ interface PopupProps {
 const selectResult = createSelector([selectDataId, selectChartData], (dataId, chartData) => ({ chartData, dataId }));
 
 const Popup: React.FC<PopupProps & WithTranslation> = ({ t, ...props }) => {
-  const { chartData, dataId } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const mergeRefresher = async (): Promise<void> => await loadDatasets(dispatch);
-  const updateRangeState = (state: RangeState): SetRangeStateAction =>
-    dispatch({ type: ActionType.SET_RANGE_STATE, ...state });
+  const { chartData, dataId } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const mergeDispatch = useMergeDispatch();
+  const mergeRefresher = async (): Promise<void> => await loadDatasets(mergeDispatch);
+  const updateRangeState = (state: RangeState): PayloadAction<RangeState> =>
+    dispatch(AppActions.SetRangeStateAction({ ...state }));
 
   const [minHeight, setMinHeight] = React.useState<number>();
   const [minWidth, setMinWidth] = React.useState<number>();

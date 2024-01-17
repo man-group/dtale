@@ -24,7 +24,7 @@ export class Spies {
   >;
   public fetchJsonSpy: jest.SpyInstance;
   public mockDispatch = jest.fn();
-  private useDispatchMock = useDispatch as jest.Mock;
+  private useDispatchMock = useDispatch as any as jest.Mock;
   private result?: Element;
 
   /** Initializes all spy instances */

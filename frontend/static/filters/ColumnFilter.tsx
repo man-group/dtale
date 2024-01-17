@@ -1,15 +1,14 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 import { components, GetStyles, GroupBase, LoadingIndicatorProps } from 'react-select';
-import { AnyAction } from 'redux';
 
 import { ColumnDef, ColumnFilter as ColumnFilterObj, OutlierFilter } from '../dtale/DataViewerState';
 import * as gu from '../dtale/gridUtils';
 import * as menuFuncs from '../dtale/menu/dataViewerMenuUtils';
-import { OpenChartAction } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import * as settingsActions from '../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { selectDataId } from '../redux/selectors';
 import { InstanceSettings, Popups, PopupType } from '../redux/state/AppState';
 import * as ColumnFilterRepository from '../repository/ColumnFilterRepository';
@@ -52,11 +51,11 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   t,
   ...props
 }) => {
-  const dataId = useSelector(selectDataId);
-  const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
+  const dataId = useAppSelector(selectDataId);
+  const dispatch = useAppDispatch();
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
 
   const colCfg: ColumnDef | undefined = columns.find((column) => column.name === selectedCol);
   const dtype = colCfg?.dtype ?? '';

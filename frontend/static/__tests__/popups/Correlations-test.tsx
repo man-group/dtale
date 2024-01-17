@@ -15,16 +15,16 @@ jest.mock('../../dtale/side/SidePanelButtons', () => {
 import * as chartUtils from '../../chartUtils';
 import { Correlations } from '../../popups/correlations/Correlations';
 import { percent } from '../../popups/correlations/correlationsUtils';
-import { ActionType } from '../../redux/actions/AppActions';
-import { CorrelationsPopupData } from '../../redux/state/AppState';
+import { AppActions } from '../../redux/actions/AppActions';
+import { CorrelationsPopupData, PopupType } from '../../redux/state/AppState';
 import correlationsData from '../data/correlations.json';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, CreateChartSpy, getLastChart, MockChart, mockChartJS } from '../test-utils';
 
-const chartData = {
+const chartData: CorrelationsPopupData = {
   visible: true,
-  type: 'correlations',
+  type: PopupType.CORRELATIONS,
   title: 'Correlations Test',
   query: 'col == 3',
 };
@@ -77,7 +77,7 @@ describe('Correlations tests', () => {
   const buildResult = async (overrides?: Partial<CorrelationsPopupData>): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { ...chartData, ...overrides } });
+    store.dispatch(AppActions.OpenChartAction({ ...chartData, ...overrides }));
     result = await act(
       () =>
         render(

@@ -6,7 +6,7 @@ import selectEvent from 'react-select-event';
 
 import LibrarySymbolSelector from '../../../popups/arcticdb/LibrarySymbolSelector';
 import * as uploadUtils from '../../../popups/upload/uploadUtils';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import { ArcticDBPopupData, PopupType } from '../../../redux/state/AppState';
 import * as ArcticDBRepository from '../../../repository/ArcticDBRepository';
 import reduxUtils from '../../redux-test-utils';
@@ -31,9 +31,9 @@ describe('LibrarySymbolSelector tests', () => {
   const updateProps = async (chartData?: Partial<ArcticDBPopupData>): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { ...props, ...chartData } });
+    store.dispatch(AppActions.OpenChartAction({ ...props, ...chartData }));
     if (chartData?.visible === false) {
-      store.dispatch({ type: ActionType.CLOSE_CHART });
+      store.dispatch(AppActions.CloseChartAction());
     }
     result = await act(
       async () =>

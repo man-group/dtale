@@ -2,8 +2,7 @@ import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 import selectEvent from 'react-select-event';
 
 import { OutputType } from '../../../popups/create/CreateColumnState';
-import { validateAggregateCfg } from '../../../popups/reshape/Aggregate';
-import { AggregationOperationType, ReshapeAggregateConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
+import { AggregationOperationType, ReshapeType } from '../../../popups/reshape/ReshapeState';
 import { ActionType } from '../../../redux/actions/AppActions';
 import { selectOption } from '../../test-utils';
 
@@ -81,7 +80,7 @@ describe('Aggregate', () => {
       output: OutputType.NEW,
     });
     expect(window.open).toHaveBeenCalledWith('/dtale/main/2', '_blank');
-    expect(spies.mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.CLOSE_CHART });
+    expect(spies.mockDispatch).toHaveBeenLastCalledWith(expect.objectContaining({ type: ActionType.CLOSE_CHART }));
   });
 
   it("reshapes data using aggregate 'By Column' w/ gmean", async () => {
@@ -180,20 +179,6 @@ describe('Aggregate', () => {
       fireEvent.click(screen.getByText('By Function'));
     });
     await spies.validateError('Missing an aggregation selection! Please click "+" button next to Agg input.');
-  });
-
-  it('validates configuration', () => {
-    const cfg: ReshapeAggregateConfig = { agg: { type: AggregationOperationType.FUNC }, dropna: true };
-    expect(validateAggregateCfg(cfg)).toBe(
-      'Missing an aggregation selection! Please click "+" button next to Agg input.',
-    );
-    cfg.index = ['x'];
-    cfg.agg = { type: AggregationOperationType.COL, cols: {} };
-    expect(validateAggregateCfg(cfg)).toBe(
-      'Missing an aggregation selection! Please click "+" button next to Agg input.',
-    );
-    cfg.agg.cols = { col1: ['count'] };
-    expect(validateAggregateCfg(cfg)).toBeUndefined();
   });
 
   it('changes aggregation options based on unselected column', async () => {

@@ -6,7 +6,7 @@ import { Store } from 'redux';
 import DataViewerInfo, { DataViewerInfoProps } from '../../../dtale/info/DataViewerInfo';
 import * as menuFuncs from '../../../dtale/menu/dataViewerMenuUtils';
 import * as serverState from '../../../dtale/serverStateManagement';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import { InstanceSettings, PopupType, SortDir } from '../../../redux/state/AppState';
 import { RemovableError } from '../../../RemovableError';
 import * as GenericRepository from '../../../repository/GenericRepository';
@@ -40,7 +40,7 @@ describe('DataViewerInfo tests', () => {
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', ...hiddenProps }, store);
     if (settings) {
-      store.dispatch({ type: ActionType.UPDATE_SETTINGS, settings });
+      store.dispatch(AppActions.UpdateSettingsAction(settings));
     }
     return await act(() => {
       return render(

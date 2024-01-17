@@ -16,7 +16,7 @@ jest.mock('../../dtale/side/SidePanelButtons', () => {
 import * as chartUtils from '../../chartUtils';
 import { SORT_CHARS } from '../../dtale/Header';
 import { Correlations } from '../../popups/correlations/Correlations';
-import { AppState } from '../../redux/state/AppState';
+import { AppStoreState } from '../../redux/reducers/app';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
 import {
@@ -72,7 +72,7 @@ describe('DataViewer tests', () => {
 
   const corrGrid = (): Element => container.getElementsByClassName('correlations-grid')[0];
 
-  const buildResult = async (overrides?: Partial<AppState>): Promise<void> => {
+  const buildResult = async (overrides?: Partial<AppStoreState>): Promise<void> => {
     const store = mockStore({
       dataId: '0',
       sidePanel: { visible: false },

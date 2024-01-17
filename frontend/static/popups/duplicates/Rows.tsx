@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
+import { useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
 import { BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -33,7 +33,7 @@ export interface RowsProps extends BaseDuplicatesComponentProps {
 type TestType = DuplicatesRepository.DuplicatesResponse<RowsResult>;
 
 const Rows: React.FC<RowsProps & WithTranslation> = ({ columns, selectedCol, setCfg, t }) => {
-  const dataId = useSelector(selectDataId);
+  const dataId = useAppSelector(selectDataId);
   const [keep, setKeep] = React.useState(KeepType.FIRST);
   const [subset, setSubset] = React.useState<Array<BaseOption<string>> | undefined>(
     selectedCol ? [{ value: selectedCol }] : undefined,

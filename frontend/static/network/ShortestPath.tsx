@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
+import { useAppSelector } from '../redux/hooks';
 import { selectDataId } from '../redux/selectors';
 import { RemovableError } from '../RemovableError';
 import * as NetworkRepository from '../repository/NetworkRespository';
@@ -27,7 +27,7 @@ const ShortestPath: React.FC<ShortestPathProps & WithTranslation> = ({
   clearPath,
   t,
 }) => {
-  const dataId = useSelector(selectDataId);
+  const dataId = useAppSelector(selectDataId);
   const [shortestPath, setShortestPath] = React.useState<string[]>();
   const [error, setError] = React.useState<JSX.Element>();
   const [start, setStart] = React.useState<string>();

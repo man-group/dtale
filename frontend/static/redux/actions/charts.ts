@@ -1,7 +1,9 @@
+import { PayloadAction } from '@reduxjs/toolkit';
+
 import { Popups } from '../state/AppState';
 
-import { ActionType, CloseChartAction, OpenChartAction } from './AppActions';
+import { AppActions } from './AppActions';
 
-export const openChart = (chartData: Popups): OpenChartAction => ({ type: ActionType.OPEN_CHART, chartData });
+export const openChart = (chartData: Popups): PayloadAction<Popups> => AppActions.OpenChartAction(chartData);
 
-export const closeChart = (): CloseChartAction => ({ type: ActionType.CLOSE_CHART });
+export const closeChart = (): PayloadAction<void> => AppActions.CloseChartAction();

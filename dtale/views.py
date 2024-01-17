@@ -1313,9 +1313,11 @@ def base_render_template(template, data_id, **kwargs):
         arctic_conn = global_state.store.uri
     return render_template(
         template,
-        data_id=get_url_quote()(get_url_quote()(data_id, safe=""))
-        if data_id is not None
-        else "",
+        data_id=(
+            get_url_quote()(get_url_quote()(data_id, safe=""))
+            if data_id is not None
+            else ""
+        ),
         xarray=global_state.get_data_inst(data_id).is_xarray_dataset,
         xarray_dim=json.dumps(global_state.get_dataset_dim(data_id)),
         settings=json.dumps(curr_settings),
@@ -1886,9 +1888,11 @@ def build_column(data_id):
         curr_dtypes = global_state.get_dtypes(data_id)
         if next((cdt for cdt in curr_dtypes if cdt["name"] in new_cols), None):
             curr_dtypes = [
-                dtype_f(len(curr_dtypes), cdt["name"])
-                if cdt["name"] in new_cols
-                else cdt
+                (
+                    dtype_f(len(curr_dtypes), cdt["name"])
+                    if cdt["name"] in new_cols
+                    else cdt
+                )
                 for cdt in curr_dtypes
             ]
         else:
@@ -4137,15 +4141,19 @@ def network_analysis(data_id):
         "most_connected_node": "{} (Connections: {})".format(*most_connected_node),
         "leaf_ct": sum((1 for edge, degree in dict(G.degree()).items() if degree == 1)),
         "edge_ct": sum(dict(G.degree()).values()),
-        "max_edge": None
-        if max_edge is None
-        else "{} (source: {}, target: {})".format(
-            max_edge[-1]["weight"], max_edge[0], max_edge[1]
+        "max_edge": (
+            None
+            if max_edge is None
+            else "{} (source: {}, target: {})".format(
+                max_edge[-1]["weight"], max_edge[0], max_edge[1]
+            )
         ),
-        "min_edge": None
-        if min_edge is None
-        else "{} (source: {}, target: {})".format(
-            min_edge[-1]["weight"], min_edge[0], min_edge[1]
+        "min_edge": (
+            None
+            if min_edge is None
+            else "{} (source: {}, target: {})".format(
+                min_edge[-1]["weight"], min_edge[0], min_edge[1]
+            )
         ),
         "avg_weight": json_float(avg_weight),
     }

@@ -51,7 +51,7 @@ export enum RibbonDropdownType {
 
 /** Properties of a ribbon menu dropdown */
 export interface RibbonDropdownProps extends HasVisibility {
-  element?: HTMLDivElement;
+  element?: HTMLElement;
   name?: RibbonDropdownType;
 }
 
@@ -97,7 +97,7 @@ export interface ToggleColumnsDataViewerUpdate extends BaseDataViewerUpdateProps
 /** Update maximum width DataViewer update */
 export interface UpdateMaxWidthDataViewerUpdate
   extends BaseDataViewerUpdateProps<DataViewerUpdateType.UPDATE_MAX_WIDTH> {
-  width: number;
+  width?: number;
 }
 
 /** Update maximum row height DataViewer update */
@@ -493,33 +493,4 @@ export interface RangeState {
   ctrlRows: number[] | null;
   ctrlCols: number[] | null;
   selectedRow: number | null;
-}
-
-/** Properties of application state */
-export interface AppState extends AppSettings, RangeState {
-  chartData: Popups;
-  dataId: string;
-  editedCell: string | null;
-  editedTextAreaHeight: number;
-  iframe: boolean;
-  columnMenuOpen: boolean;
-  selectedCol: string | null;
-  selectedColRef: HTMLDivElement | null;
-  xarray: boolean;
-  xarrayDim: Record<string, any>;
-  filteredRanges: FilteredRanges;
-  settings: InstanceSettings;
-  isPreview: boolean;
-  menuPinned: boolean;
-  menuTooltip: MenuTooltipProps;
-  ribbonMenuOpen: boolean;
-  ribbonDropdown: RibbonDropdownProps;
-  sidePanel: SidePanelProps;
-  dataViewerUpdate: DataViewerUpdate | null;
-  predefinedFilters: PredefinedFilter[];
-  dragResize: number | null;
-  auth: boolean;
-  username: string | null;
-  menuOpen: boolean;
-  formattingOpen: string | null;
 }

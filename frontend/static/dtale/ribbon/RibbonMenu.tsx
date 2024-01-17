@@ -1,9 +1,9 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, OpenRibbonDropdownAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import {
   selectHideHeaderMenu,
   selectMainTitle,
@@ -11,7 +11,7 @@ import {
   selectRibbonDropdownName,
   selectRibbonMenuOpen,
 } from '../../redux/selectors';
-import { RibbonDropdownType } from '../../redux/state/AppState';
+import { RibbonDropdownProps, RibbonDropdownType } from '../../redux/state/AppState';
 
 require('./RibbonMenu.scss');
 
@@ -57,14 +57,14 @@ const selectResult = createSelector(
 );
 
 const RibbonMenu: React.FC<WithTranslation> = ({ t }) => {
-  const { visible, ribbonDropdown, mainTitle, mainTitleFont, hideHeaderMenu } = useSelector(selectResult);
+  const { visible, ribbonDropdown, mainTitle, mainTitleFont, hideHeaderMenu } = useAppSelector(selectResult);
   const titleStyle: React.CSSProperties = React.useMemo(
     () => ({ fontSize: '16px', cursor: 'default', ...(mainTitleFont ? { fontFamily: mainTitleFont } : {}) }),
     [mainTitleFont],
   );
-  const dispatch = useDispatch();
-  const openRibbonDropdown = (name: RibbonDropdownType, element: HTMLDivElement): OpenRibbonDropdownAction =>
-    dispatch({ type: ActionType.OPEN_RIBBON_DROPDOWN, name, element });
+  const dispatch = useAppDispatch();
+  const openRibbonDropdown = (name: RibbonDropdownType, element: HTMLElement): PayloadAction<RibbonDropdownProps> =>
+    dispatch(AppActions.OpenRibbonDropdownAction({ name, element, visible: true }));
 
   const [hoverActive, setHoverActive] = React.useState(false);
 

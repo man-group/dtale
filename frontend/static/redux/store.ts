@@ -1,11 +1,9 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { Reducer, Store } from 'redux';
+import { configureStore, Reducer, Store } from '@reduxjs/toolkit';
 
 import * as actions from './actions/dtale';
 import * as mergeActions from './actions/merge';
-import appReducers from './reducers/app';
-import mergeReducers from './reducers/merge';
-import { AppState } from './state/AppState';
+import { reducers as appReducers, AppStoreState } from './reducers/app';
+import { reducers as mergeReducers, MergeStoreState } from './reducers/merge';
 import { MergeState } from './state/MergeState';
 
 /**
@@ -17,7 +15,6 @@ import { MergeState } from './state/MergeState';
 export const createAppStore = <T>(extendedReducers: Reducer<T>): Store<T> =>
   configureStore({
     reducer: extendedReducers,
-    devTools: process.env.NODE_ENV !== 'production' && (window as any).devToolsExtension,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: false,
@@ -40,10 +37,11 @@ export const createAppStore = <T>(extendedReducers: Reducer<T>): Store<T> =>
           ],
         },
       }),
+    devTools: process.env.NODE_ENV !== 'production' && (window as any).devToolsExtension,
   });
 
-export const buildApp = (): Store => {
-  const store = createAppStore<AppState>(appReducers);
+export const buildApp = (): Store<AppStoreState> => {
+  const store = createAppStore<AppStoreState>(appReducers);
   store.dispatch(actions.init());
   actions.loadBackgroundMode(store);
   actions.loadHideShutdown(store);
@@ -57,8 +55,12 @@ export const buildApp = (): Store => {
   return store;
 };
 
-export const buildMergeApp = (): Store => {
+export const appStore = buildApp();
+
+export const buildMergeApp = (): Store<MergeStoreState> => {
   const store = createAppStore<MergeState>(mergeReducers);
   mergeActions.init(store.dispatch);
   return store;
 };
+
+export const mergeStore = buildMergeApp();

@@ -23,8 +23,8 @@
         "missingCt": 0,
         "outlierCt": 0,
         "shapiroWilk": {
-            "pvalue": 2.823088116093456e-39,
-            "statistic": 0.8878896236419678
+            "pvalue": 0.0,
+            "statistic": 0.8879
         },
         "size": 2500
     },

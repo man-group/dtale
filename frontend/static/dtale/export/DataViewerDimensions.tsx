@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 
+import { useAppSelector } from '../../redux/hooks';
 import { selectSettings } from '../../redux/selectors';
 import { ColumnDef } from '../DataViewerState';
 import * as gu from '../gridUtils';
@@ -13,7 +13,7 @@ interface DataViewerDimensionsProps {
 }
 
 export const DataViewerDimensions: React.FC<DataViewerDimensionsProps> = ({ style, columns, rowCount }) => {
-  const settings = useSelector(selectSettings);
+  const settings = useAppSelector(selectSettings);
 
   const colCount = React.useMemo(
     () => gu.getActiveCols(columns, settings.backgroundMode).length,

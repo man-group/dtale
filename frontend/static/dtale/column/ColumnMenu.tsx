@@ -1,16 +1,15 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
 import { usePrevious } from '../../customHooks';
 import ColumnFilter from '../../filters/ColumnFilter';
-import { ActionType, OpenChartAction, OpenFormattingAction, SidePanelAction } from '../../redux/actions/AppActions';
+import { AppActions, SidePanelActionProps } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as actions from '../../redux/actions/dtale';
 import { buildURLString } from '../../redux/actions/url-utils';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/selectors';
 import { Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerData, DataViewerPropagateState } from '../DataViewerState';
@@ -83,18 +82,18 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
   propagateState,
   t,
 }) => {
-  const reduxState = useSelector(selectResult);
+  const reduxState = useAppSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => !!reduxState.isArcticDB && (reduxState.isArcticDB >= 1_000_000 || reduxState.columnCount > 100),
     [reduxState.isArcticDB, reduxState.columnCount],
   );
   const prevRibbonOpen = usePrevious(reduxState.ribbonMenuOpen);
 
-  const dispatch = useDispatch();
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
-  const hideColumnMenu = (colName: string): AnyAction => dispatch(actions.hideColumnMenu(colName) as any as AnyAction);
-  const showSidePanel = (column: string, view: SidePanelType): SidePanelAction =>
-    dispatch({ type: ActionType.SHOW_SIDE_PANEL, view, column });
+  const dispatch = useAppDispatch();
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
+  const hideColumnMenu = (colName: string): void => dispatch(actions.hideColumnMenu(colName));
+  const showSidePanel = (column: string, view: SidePanelType): PayloadAction<SidePanelActionProps> =>
+    dispatch(AppActions.ShowSidePanelAction({ view, column }));
 
   const divRef = React.useRef<HTMLDivElement>(null);
   const [style, setStyle] = React.useState<React.CSSProperties>({ minWidth: '14em' });
@@ -138,7 +137,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
       showSidePanel(selectedCol, SidePanelType.DESCRIBE);
     }
   };
-  const openFormatting = (): OpenFormattingAction => dispatch({ type: ActionType.OPEN_FORMATTING, selectedCol });
+  const openFormatting = (): PayloadAction<string> => dispatch(AppActions.OpenFormattingAction(selectedCol));
   const hideCol = async (): Promise<void> => {
     await serverState.toggleVisibility(dataId, selectedCol);
     const updatedColumns = columns.map((c) => ({ ...c, ...(c.name === selectedCol ? { visible: !c.visible } : {}) }));
@@ -154,7 +153,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
     const title = `Delete column - ${selectedCol}`;
     openChart({ type: PopupType.CONFIRM, title, msg, yesAction, size: 'sm', visible: true });
   };
-  const renameCol = (): OpenChartAction =>
+  const renameCol = (): PayloadAction<Popups> =>
     openChart({ type: PopupType.RENAME, selectedCol, columns, size: 'sm', visible: true });
   const duplicateCol = async (): Promise<void> => {
     const resp = await serverState.duplicateColumn(dataId, selectedCol);
@@ -178,7 +177,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
     }
   };
   const openAction = (popup: Popups): (() => void) => openPopup(popup, 400, 770);
-  const closeMenu = (): AnyAction => hideColumnMenu(selectedCol);
+  const closeMenu = (): void => hideColumnMenu(selectedCol);
 
   const renderMoveBtn = (
     icon: string,

@@ -1,11 +1,10 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
-import { ActionType, SidePanelAction } from '../../redux/actions/AppActions';
+import { AppActions, SidePanelActionProps } from '../../redux/actions/AppActions';
 import * as settingsActions from '../../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/selectors';
 import { InstanceSettings, SidePanelType } from '../../redux/state/AppState';
 import { truncate } from '../../stringUtils';
@@ -21,10 +20,10 @@ export const Queries: React.FC<{ prop: string; filters: Record<string, OutlierFi
   filters,
   prop,
 }) => {
-  const dataId = useSelector(selectors.selectDataId);
-  const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
+  const dataId = useAppSelector(selectors.selectDataId);
+  const dispatch = useAppDispatch();
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
   const dropColFilter =
     (dropCol: string): (() => Promise<void>) =>
     async (): Promise<void> => {
@@ -100,11 +99,12 @@ const selectResult = createSelector(
 );
 
 const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpen, setMenuOpen, t }) => {
-  const reduxState = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
-  const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
+  const reduxState = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
+  const showSidePanel = (view: SidePanelType): PayloadAction<SidePanelActionProps> =>
+    dispatch(AppActions.ShowSidePanelAction({ view }));
   const filterRef = React.useRef<HTMLDivElement>(null);
 
   const dropFilter =

@@ -1,10 +1,10 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { Bouncer } from '../../Bouncer';
 import { openMenu } from '../../menuUtils';
-import { ActionType } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import {
   selectColumnCount,
   selectHideMainMenu,
@@ -35,15 +35,15 @@ const selectResult = createSelector(
 );
 
 export const DataViewerMenuHolder: React.FC<DatViewerMenuHolderProps> = ({ loading, style, columns, rowCount }) => {
-  const { theme, menuPinned, menuOpen, columnCount, hideMainMenu } = useSelector(selectResult);
-  const dispatch = useDispatch();
+  const { theme, menuPinned, menuOpen, columnCount, hideMainMenu } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
   const menuToggle = React.useRef<HTMLDivElement>(null);
 
   const menuHandler = hideMainMenu
     ? () => undefined
     : openMenu(
-        () => dispatch({ type: ActionType.OPEN_MENU }),
-        () => dispatch({ type: ActionType.CLOSE_MENU }),
+        () => dispatch(AppActions.OpenMenuAction()),
+        () => dispatch(AppActions.CloseMenuAction()),
         menuToggle,
       );
 

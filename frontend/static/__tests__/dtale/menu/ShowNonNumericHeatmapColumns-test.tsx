@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { default as ShowNonNumericHeatmapColumns } from '../../../dtale/menu/ShowNonNumericHeatmapColumns';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
@@ -15,8 +15,8 @@ describe('ShowNonNumericHeatmapColumns tests', () => {
   const setupOption = async (backgroundMode?: string, showAllHeatmapColumns = false): Promise<void> => {
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({ type: ActionType.UPDATE_SHOW_ALL_HEATMAP_COLUMNS, showAllHeatmapColumns });
-    store.dispatch({ type: ActionType.UPDATE_SETTINGS, settings: { backgroundMode } });
+    store.dispatch(AppActions.UpdateShowAllHeatmapColumnsAction(showAllHeatmapColumns));
+    store.dispatch(AppActions.UpdateSettingsAction({ backgroundMode }));
     result = await act(() => {
       return render(
         <Provider store={store}>

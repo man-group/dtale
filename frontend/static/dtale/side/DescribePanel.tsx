@@ -1,21 +1,21 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { usePrevious } from '../../customHooks';
 import { ColumnNavigation } from '../../popups/describe/ColumnNavigation';
 import Details from '../../popups/describe/Details';
 import DtypesGrid from '../../popups/describe/DtypesGrid';
-import { ActionType, DataViewerUpdateAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import {
   selectDataId,
   selectSidePanelColumn,
   selectSidePanelView,
   selectSidePanelVisible,
 } from '../../redux/selectors';
-import { DataViewerUpdateType, SidePanelType } from '../../redux/state/AppState';
+import { DataViewerUpdate, DataViewerUpdateType, SidePanelType } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as DtypesRepository from '../../repository/DtypesRepository';
 import { ColumnDef } from '../DataViewerState';
@@ -29,14 +29,11 @@ const selectResult = createSelector(
 );
 
 const DescribePanel: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, visible, view, column } = useSelector(selectResult);
+  const { dataId, visible, view, column } = useAppSelector(selectResult);
   const prevColumn = usePrevious(column);
-  const dispatch = useDispatch();
-  const toggleVisible = (columns: Record<string, boolean>): DataViewerUpdateAction =>
-    dispatch({
-      type: ActionType.DATA_VIEWER_UPDATE,
-      update: { type: DataViewerUpdateType.TOGGLE_COLUMNS, columns },
-    });
+  const dispatch = useAppDispatch();
+  const toggleVisible = (columns: Record<string, boolean>): PayloadAction<DataViewerUpdate> =>
+    dispatch(AppActions.DataViewerUpdateAction({ type: DataViewerUpdateType.TOGGLE_COLUMNS, columns }));
 
   const [loadingDtypes, setLoadingDtypes] = React.useState(true);
   const [error, setError] = React.useState<JSX.Element>();

@@ -1,9 +1,9 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
 
-import { OpenChartAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
+import { useAppDispatch } from '../../redux/hooks';
 import { Popups, PopupType } from '../../redux/state/AppState';
 
 import { MenuItem } from './MenuItem';
@@ -15,8 +15,8 @@ interface ExportOptionProps extends RibbonOptionProps {
 }
 
 const ExportOption: React.FC<ExportOptionProps & WithTranslation> = ({ ribbonWrapper = (func) => func, rows, t }) => {
-  const dispatch = useDispatch();
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
+  const dispatch = useAppDispatch();
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
 
   const openExport = ribbonWrapper(() => openChart({ type: PopupType.EXPORT, size: 'sm', visible: true, rows }));
 

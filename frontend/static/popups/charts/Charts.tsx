@@ -1,10 +1,10 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { createFilter, default as Select } from 'react-select';
 
 import { ColumnDef } from '../../dtale/DataViewerState';
+import { useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId } from '../../redux/selectors';
 import { BaseOption, ChartsPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -33,7 +33,7 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 }));
 
 const Charts: React.FC<WithTranslation> = ({ t }) => {
-  const { chartData, dataId } = useSelector(selectResult);
+  const { chartData, dataId } = useAppSelector(selectResult);
   const [columns, setColumns] = React.useState<ColumnDef[]>();
   const [state, setState] = React.useState<ChartsState>({
     x: chartData.x ? { value: chartData.x } : undefined,

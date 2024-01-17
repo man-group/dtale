@@ -1,13 +1,12 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
-import { ActionType, OpenChartAction, SidePanelAction, ToggleMenuAction } from '../../redux/actions/AppActions';
+import { AppActions, SidePanelActionProps } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/selectors';
 import { Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
@@ -86,21 +85,22 @@ const selectResult = createSelector(
 
 const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, columns, rows, propagateState }) => {
   const { dataId, menuPinned, mainTitle, mainTitleFont, isArcticDB, isVSCode, settings, menuOpen, columnCount } =
-    useSelector(selectResult);
+    useAppSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],
   );
-  const dispatch = useDispatch();
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
-  const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
-  const closeMenu = (): ToggleMenuAction => dispatch({ type: ActionType.CLOSE_MENU });
-  const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
-  const updateBg = (bgType: string): AnyAction =>
+  const dispatch = useAppDispatch();
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
+  const openMenu = (): PayloadAction<void> => dispatch(AppActions.OpenMenuAction());
+  const closeMenu = (): PayloadAction<void> => dispatch(AppActions.CloseMenuAction());
+  const showSidePanel = (view: SidePanelType): PayloadAction<SidePanelActionProps> =>
+    dispatch(AppActions.ShowSidePanelAction({ view }));
+  const updateBg = (bgType: string): void =>
     dispatch(
       settingsActions.updateSettings({
         backgroundMode: settings.backgroundMode === bgType ? undefined : bgType,
-      }) as any as AnyAction,
+      }),
     );
 
   const buttonHandlers = menuFuncs.buildHotkeyHandlers({ dataId, columns, openChart, openMenu, closeMenu, isVSCode });

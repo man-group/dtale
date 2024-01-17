@@ -4,7 +4,7 @@ import { Provider, useDispatch } from 'react-redux';
 import { Store } from 'redux';
 
 import ActionConfig from '../../../popups/merge/ActionConfig';
-import { MergeActionType } from '../../../redux/actions/MergeActions';
+import { ConfigUpdateProps, MergeActions, MergeActionType } from '../../../redux/actions/MergeActions';
 import { HowToMerge, MergeConfig, MergeConfigType, MergeState } from '../../../redux/state/MergeState';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
@@ -14,7 +14,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('ActionConfig', () => {
   let result: Element;
@@ -37,12 +37,16 @@ describe('ActionConfig', () => {
     store = reduxUtils.createMergeStore();
     buildInnerHTML({ settings: '' }, store);
     const finalState = { ...state, ...overrides };
-    store.dispatch({ type: MergeActionType.UPDATE_ACTION_TYPE, ...finalState });
+    store.dispatch(MergeActions.UpdateMergeActionTypeAction(finalState.action!));
     Object.entries(finalState.mergeConfig ?? {}).forEach(([prop, value]) => {
-      store.dispatch({ type: MergeActionType.UPDATE_ACTION_CONFIG, action: MergeConfigType.MERGE, prop, value });
+      store.dispatch(
+        MergeActions.ConfigUpdateAction({ action: MergeConfigType.MERGE, prop, value } as ConfigUpdateProps),
+      );
     });
     Object.entries(finalState.mergeConfig ?? {}).forEach(([prop, value]) => {
-      store.dispatch({ type: MergeActionType.UPDATE_ACTION_CONFIG, action: MergeConfigType.STACK, prop, value });
+      store.dispatch(
+        MergeActions.ConfigUpdateAction({ action: MergeConfigType.STACK, prop, value } as ConfigUpdateProps),
+      );
     });
     result = await act(
       () =>
@@ -70,7 +74,7 @@ describe('ActionConfig', () => {
     });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_ACTION_TYPE,
-      action: MergeConfigType.STACK,
+      payload: MergeConfigType.STACK,
     });
     await act(async () => {
       await fireEvent.click(screen.getByText('Merge'));
@@ -80,27 +84,33 @@ describe('ActionConfig', () => {
     });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_ACTION_CONFIG,
-      action: MergeConfigType.MERGE,
-      prop: 'how',
-      value: HowToMerge.LEFT,
+      payload: {
+        action: MergeConfigType.MERGE,
+        prop: 'how',
+        value: HowToMerge.LEFT,
+      },
     });
     await act(async () => {
       await fireEvent.click(result.querySelector('i.ico-check-box-outline-blank')!);
     });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_ACTION_CONFIG,
-      action: MergeConfigType.MERGE,
-      prop: 'sort',
-      value: true,
+      payload: {
+        action: MergeConfigType.MERGE,
+        prop: 'sort',
+        value: true,
+      },
     });
     await act(async () => {
       await fireEvent.click(result.querySelectorAll('i.ico-check-box-outline-blank')[1]);
     });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_ACTION_CONFIG,
-      action: MergeConfigType.MERGE,
-      prop: 'indicator',
-      value: true,
+      payload: {
+        action: MergeConfigType.MERGE,
+        prop: 'indicator',
+        value: true,
+      },
     });
     await showExample();
     expect(result.querySelector('.dataset.accordion-title.is-expanded')).toBeDefined();
@@ -116,9 +126,11 @@ describe('ActionConfig', () => {
     });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_ACTION_CONFIG,
-      action: MergeConfigType.STACK,
-      prop: 'ignoreIndex',
-      value: true,
+      payload: {
+        action: MergeConfigType.STACK,
+        prop: 'ignoreIndex',
+        value: true,
+      },
     });
     await showExample();
     expect(result.getElementsByTagName('img')[0].getAttribute('src')?.endsWith('merging_concat_basic.png')).toBe(true);

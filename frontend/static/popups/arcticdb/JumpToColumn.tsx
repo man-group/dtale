@@ -1,12 +1,11 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { DataViewerPropagateState } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
-import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId, selectIsArcticDB } from '../../redux/selectors';
 import { BaseOption, JumpToColumnPopupData } from '../../redux/state/AppState';
 import { LabeledSelect } from '../create/LabeledSelect';
@@ -23,9 +22,9 @@ const selectResult = createSelector(
 );
 
 const JumpToColumn: React.FC<JumpToColumnProps & WithTranslation> = ({ propagateState, t }) => {
-  const { dataId, chartData, isArcticDB } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const onClose = (): CloseChartAction => dispatch(closeChart());
+  const { dataId, chartData, isArcticDB } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const onClose = (): PayloadAction<void> => dispatch(closeChart());
 
   const save = async (column: string): Promise<void> => {
     const visibility = chartData.columns.reduce((res, colCfg) => {

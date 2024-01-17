@@ -1,15 +1,15 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnFilter, OutlierFilter } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
 import SidePanelButtons from '../../dtale/side/SidePanelButtons';
-import { ActionType, HideSidePanelAction, SetQueryEngineAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import * as dtaleActions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { InstanceSettings, QueryEngine } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as CustomFilterRepository from '../../repository/CustomFilterRepository';
@@ -22,12 +22,12 @@ import QueryExamples from './QueryExamples';
 import StructuredFilters from './StructuredFilters';
 
 const FilterPanel: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, enableCustomFilters, queryEngine, settings } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings, callback) as any as AnyAction);
-  const setEngine = (engine: QueryEngine): SetQueryEngineAction => dispatch(dtaleActions.setQueryEngine(engine));
+  const { dataId, enableCustomFilters, queryEngine, settings } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const hideSidePanel = (): PayloadAction<void> => dispatch(AppActions.HideSidePanelAction());
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings, callback));
+  const setEngine = (engine: QueryEngine): PayloadAction<QueryEngine> => dispatch(dtaleActions.setQueryEngine(engine));
 
   const [query, setQuery] = React.useState('');
   const [highlightFilter, setHighlightFilter] = React.useState(settings.highlightFilter ?? false);

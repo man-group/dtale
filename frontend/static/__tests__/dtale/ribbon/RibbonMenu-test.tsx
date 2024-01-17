@@ -4,7 +4,7 @@ import { Provider, useDispatch } from 'react-redux';
 import { Store } from 'redux';
 
 import RibbonMenu from '../../../dtale/ribbon/RibbonMenu';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { ActionType, AppActions } from '../../../redux/actions/AppActions';
 import { RibbonDropdownType } from '../../../redux/state/AppState';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
@@ -14,7 +14,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('RibbonMenu', () => {
   let wrapper: RenderResult;
@@ -28,7 +28,7 @@ describe('RibbonMenu', () => {
   const buildMock = async (overrides?: Record<string, string>): Promise<void> => {
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', ...overrides }, store);
-    store.dispatch({ type: ActionType.SHOW_RIBBON_MENU });
+    store.dispatch(AppActions.ShowRibbonMenuAction());
     wrapper = await act(async (): Promise<RenderResult> => {
       const result = render(
         <Provider store={store}>
@@ -51,7 +51,10 @@ describe('RibbonMenu', () => {
       fireEvent.click(screen.getByText('D-TALE'));
     });
     expect(mockDispatch).toHaveBeenLastCalledWith(
-      expect.objectContaining({ type: ActionType.OPEN_RIBBON_DROPDOWN, name: RibbonDropdownType.MAIN }),
+      expect.objectContaining({
+        type: ActionType.OPEN_RIBBON_DROPDOWN,
+        payload: expect.objectContaining({ name: RibbonDropdownType.MAIN }),
+      }),
     );
   });
 
@@ -64,7 +67,10 @@ describe('RibbonMenu', () => {
       fireEvent.mouseOver(screen.getByText('Settings'));
     });
     expect(mockDispatch).toHaveBeenLastCalledWith(
-      expect.objectContaining({ type: ActionType.OPEN_RIBBON_DROPDOWN, name: RibbonDropdownType.SETTINGS }),
+      expect.objectContaining({
+        type: ActionType.OPEN_RIBBON_DROPDOWN,
+        payload: expect.objectContaining({ name: RibbonDropdownType.SETTINGS }),
+      }),
     );
   });
 
@@ -74,7 +80,7 @@ describe('RibbonMenu', () => {
       fireEvent.click(screen.getByText('D-TALE'));
     });
     await act(() => {
-      store.dispatch({ type: ActionType.HIDE_RIBBON_MENU });
+      store.dispatch(AppActions.HideRibbonMenuAction());
     });
     mockDispatch.mockReset();
     await act(async () => {

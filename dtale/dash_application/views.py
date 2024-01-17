@@ -375,9 +375,11 @@ def init_callbacks(dash_app):
             drilldown_toggle_style,
             lock_zoom_style(chart_type),
             show_style(chart_type not in NON_EXT_AGGREGATION and len(y_val)),
-            "({} Selected)".format(len(inputs["cleaners"]))
-            if len(inputs["cleaners"])
-            else "",
+            (
+                "({} Selected)".format(len(inputs["cleaners"]))
+                if len(inputs["cleaners"])
+                else ""
+            ),
             {"display": "none"} if chart_type == "histogram" else {},
             {} if load_type == "stratified" else {"display": "none"},
         )
@@ -1026,9 +1028,11 @@ def init_callbacks(dash_app):
             clustergram_data,
             pareto_data,
             histogram_data,
-            dict(extended_aggregation=ext_aggs or [])
-            if inputs.get("chart_type") not in NON_EXT_AGGREGATION
-            else {},
+            (
+                dict(extended_aggregation=ext_aggs or [])
+                if inputs.get("chart_type") not in NON_EXT_AGGREGATION
+                else {}
+            ),
         )
         if not auto_load and load_clicks == prev_load_clicks:
             raise DtalePreventUpdate

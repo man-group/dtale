@@ -1,13 +1,14 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import FilterSelect from '../../popups/analysis/filters/FilterSelect';
 import ColumnSelect from '../../popups/create/ColumnSelect';
-import { ActionType, HideSidePanelAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import { buildURLString } from '../../redux/actions/url-utils';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
 import { BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -53,9 +54,9 @@ const FREQS = [
 ];
 
 const MissingNoCharts: React.FC<WithTranslation> = ({ t }) => {
-  const dataId = useSelector(selectDataId);
-  const dispatch = useDispatch();
-  const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
+  const dataId = useAppSelector(selectDataId);
+  const dispatch = useAppDispatch();
+  const hideSidePanel = (): PayloadAction<void> => dispatch(AppActions.HideSidePanelAction());
 
   const [chartOptions, freqOptions] = React.useMemo(
     () => [

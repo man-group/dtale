@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
 
+import { useAppSelector } from '../redux/hooks';
 import { selectDataId } from '../redux/selectors';
 import { RemovableError } from '../RemovableError';
 import * as CodeExportRepository from '../repository/CodeExportRepository';
@@ -8,7 +8,7 @@ import * as CodeExportRepository from '../repository/CodeExportRepository';
 import CodePopup from './CodePopup';
 
 export const CodeExport: React.FC = () => {
-  const dataId = useSelector(selectDataId);
+  const dataId = useAppSelector(selectDataId);
   const [error, setError] = React.useState<JSX.Element>();
   const [code, setCode] = React.useState<string>();
 

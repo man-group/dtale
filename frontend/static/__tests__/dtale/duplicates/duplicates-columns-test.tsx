@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 
 import Duplicates from '../../../popups/duplicates/Duplicates';
 import { DuplicatesActionType, DuplicatesConfigType, KeepType } from '../../../popups/duplicates/DuplicatesState';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import { PopupType } from '../../../redux/state/AppState';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, parseUrlParams, selectOption } from '../../test-utils';
@@ -77,10 +77,7 @@ describe('Duplicates', () => {
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({
-      type: ActionType.OPEN_CHART,
-      chartData: { type: PopupType.DUPLICATES, visible: true, selectedCol: 'foo' },
-    });
+    store.dispatch(AppActions.OpenChartAction({ type: PopupType.DUPLICATES, visible: true, selectedCol: 'foo' }));
     result = await act(
       () =>
         render(

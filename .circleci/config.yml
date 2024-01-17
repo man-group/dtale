@@ -276,7 +276,7 @@ jobs:
   build_JS:
     working_directory: /mnt/ramdisk
     docker:
-      - image: cimg/node:19.0.1
+      - image: cimg/node:20.10.0
     <<: *javascript
   check_python_formatting:
     working_directory: ~/man-group/dtale_python_formatting

@@ -10,14 +10,15 @@ import * as serverState from '../../../dtale/serverStateManagement';
 import * as menuUtils from '../../../menuUtils';
 import { ActionType } from '../../../redux/actions/AppActions';
 import * as settingsActions from '../../../redux/actions/settings';
-import { AppState, SidePanelType } from '../../../redux/state/AppState';
+import { AppStoreState } from '../../../redux/reducers/app';
+import { SidePanelType } from '../../../redux/state/AppState';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('FilterDisplay', () => {
   let wrapper: Element;
@@ -31,7 +32,7 @@ describe('FilterDisplay', () => {
   let updateSettingsActionSpy: jest.SpyInstance;
   const mockDispatch = jest.fn();
 
-  const buildMock = async (appState?: Partial<AppState>): Promise<void> => {
+  const buildMock = async (appState?: Partial<AppStoreState>): Promise<void> => {
     store = mockStore({
       dataId: '1',
       settings: {
@@ -159,7 +160,10 @@ describe('FilterDisplay', () => {
     });
     expect(moveFiltersToCustomSpy).toHaveBeenCalledTimes(1);
     expect(updateSettingsActionSpy).toHaveBeenCalledWith({});
-    expect(mockDispatch).toHaveBeenCalledWith({ type: ActionType.SHOW_SIDE_PANEL, view: SidePanelType.FILTER });
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: ActionType.SHOW_SIDE_PANEL,
+      payload: { view: SidePanelType.FILTER },
+    });
   });
 
   it('inverts filter', async () => {

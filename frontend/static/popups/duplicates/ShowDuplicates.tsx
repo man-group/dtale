@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
+import { useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
 import { BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -30,7 +30,7 @@ export interface ShowDuplicatesProps extends BaseDuplicatesComponentProps {
 type TestType = DuplicatesRepository.DuplicatesResponse<ShowDuplicatesResult>;
 
 const ShowDuplicates: React.FC<ShowDuplicatesProps & WithTranslation> = ({ columns, setCfg, t }) => {
-  const dataId = useSelector(selectDataId);
+  const dataId = useAppSelector(selectDataId);
   const [group, setGroup] = React.useState<Array<BaseOption<string>>>();
   const [filter, setFilter] = React.useState<string>();
   const [testOutput, setTestOutput] = React.useState<TestType>();

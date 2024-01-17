@@ -9,7 +9,8 @@ import { ColumnDef } from '../../dtale/DataViewerState';
 import { DtaleHotkeys } from '../../dtale/DtaleHotkeys';
 import * as menuUtils from '../../menuUtils';
 import { ActionType } from '../../redux/actions/AppActions';
-import { AppState, PopupType } from '../../redux/state/AppState';
+import { AppStoreState } from '../../redux/reducers/app';
+import { PopupType } from '../../redux/state/AppState';
 import { mockColumnDef } from '../mocks/MockColumnDef';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML } from '../test-utils';
@@ -19,7 +20,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('DtaleHotkeys tests', () => {
   const { open, innerWidth, innerHeight } = window;
@@ -38,7 +39,7 @@ describe('DtaleHotkeys tests', () => {
     window.innerWidth = 1400;
   });
 
-  const buildMock = async (columns: ColumnDef[] = [], appState?: Partial<AppState>): Promise<void> => {
+  const buildMock = async (columns: ColumnDef[] = [], appState?: Partial<AppStoreState>): Promise<void> => {
     store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
     store = mockStore({
@@ -132,7 +133,7 @@ describe('DtaleHotkeys tests', () => {
     fireEvent.keyUp(container, { keyCode: 16, shiftKey: false });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: ActionType.OPEN_CHART,
-      chartData: { type: PopupType.FILTER, title: 'Filter', visible: true },
+      payload: { type: PopupType.FILTER, title: 'Filter', visible: true },
     });
   });
 
@@ -145,7 +146,7 @@ describe('DtaleHotkeys tests', () => {
     expect(axios.post).toBeCalledWith('/dtale/build-column-copy/1', { columns: `["foo"]` });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: ActionType.OPEN_CHART,
-      chartData: expect.objectContaining({
+      payload: expect.objectContaining({
         text,
         headers: ['foo'],
         type: 'copy-column-range',
@@ -163,7 +164,7 @@ describe('DtaleHotkeys tests', () => {
     expect(axios.post).toBeCalledWith('/dtale/build-row-copy/1', { rows: '[0]', columns: `["foo"]` });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: ActionType.OPEN_CHART,
-      chartData: expect.objectContaining({
+      payload: expect.objectContaining({
         text,
         headers: ['foo'],
         type: 'copy-row-range',

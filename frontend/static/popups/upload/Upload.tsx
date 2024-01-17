@@ -1,11 +1,11 @@
 import * as React from 'react';
 import Dropzone from 'react-dropzone';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { Bouncer } from '../../Bouncer';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
+import { useAppSelector } from '../../redux/hooks';
 import { selectEnableWebUploads } from '../../redux/selectors';
 import { RemovableError } from '../../RemovableError';
 import * as UploadRepository from '../../repository/UploadRepository';
@@ -38,7 +38,7 @@ interface UploadProps {
 }
 
 const Upload: React.FC<UploadProps & WithTranslation> = ({ mergeRefresher, t }) => {
-  const enableWebUploads = useSelector(selectEnableWebUploads);
+  const enableWebUploads = useAppSelector(selectEnableWebUploads);
   const [dataType, setDataType] = React.useState<DataType>();
   const [url, setUrl] = React.useState<string>();
   const [proxy, setProxy] = React.useState<string>();

@@ -1,7 +1,6 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { default as python } from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
 import { default as docco } from 'react-syntax-highlighter/dist/esm/styles/hljs/docco';
@@ -9,12 +8,8 @@ import { default as docco } from 'react-syntax-highlighter/dist/esm/styles/hljs/
 SyntaxHighlighter.registerLanguage('python', python);
 
 import ButtonToggle from '../../ButtonToggle';
-import {
-  ConfigUpdateAction,
-  ConfigUpdateProps,
-  MergeActionType,
-  UpdateMergeActionTypeAction,
-} from '../../redux/actions/MergeActions';
+import { ConfigUpdateProps, MergeActions } from '../../redux/actions/MergeActions';
+import { useMergeDispatch, useMergeSelector } from '../../redux/hooks';
 import { selectAction, selectMergeConfig, selectStackConfig } from '../../redux/mergeSelectors';
 import { HowToMerge, MergeConfigType } from '../../redux/state/MergeState';
 import { capitalize } from '../../stringUtils';
@@ -70,12 +65,12 @@ const exampleImage = (name: string): string =>
 // Example image URL: https://pandas.pydata.org/pandas-docs/stable/_images/merging_join_multi_df.png
 
 const ActionConfig: React.FC<WithTranslation> = ({ t }) => {
-  const { action, mergeConfig, stackConfig } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const updateActionType = (updatedAction: MergeConfigType): UpdateMergeActionTypeAction =>
-    dispatch({ type: MergeActionType.UPDATE_ACTION_TYPE, action: updatedAction });
-  const updateActionConfig = <T,>(updatedConfig: ConfigUpdateProps<T>): ConfigUpdateAction<T> =>
-    dispatch({ type: MergeActionType.UPDATE_ACTION_CONFIG, ...updatedConfig });
+  const { action, mergeConfig, stackConfig } = useMergeSelector(selectResult);
+  const dispatch = useMergeDispatch();
+  const updateActionType = (updatedAction: MergeConfigType): PayloadAction<MergeConfigType> =>
+    dispatch(MergeActions.UpdateMergeActionTypeAction(updatedAction));
+  const updateActionConfig = <T,>(updatedConfig: ConfigUpdateProps<T>): PayloadAction<ConfigUpdateProps> =>
+    dispatch(MergeActions.ConfigUpdateAction({ ...updatedConfig }));
   const [howOpts, actionOpts] = React.useMemo(() => {
     return [
       Object.values(HowToMerge).map((h) => ({ value: h, label: t(capitalize(h)) })),
@@ -95,7 +90,7 @@ const ActionConfig: React.FC<WithTranslation> = ({ t }) => {
               <label className="col-auto col-form-label text-right pr-0">{t('How')}:</label>
               <ButtonToggle
                 options={howOpts}
-                update={(value) => updateActionConfig({ action, prop: 'how', value } as ConfigUpdateAction<HowToMerge>)}
+                update={(value) => updateActionConfig({ action, prop: 'how', value } as ConfigUpdateProps<HowToMerge>)}
                 defaultValue={how}
               />
             </div>
@@ -105,9 +100,7 @@ const ActionConfig: React.FC<WithTranslation> = ({ t }) => {
               <label className="col-auto col-form-label text-right pr-5">{t('Sort')}:</label>
               <i
                 className={`ico-check-box${sort ? '' : '-outline-blank'} pointer mb-auto mt-auto`}
-                onClick={() =>
-                  updateActionConfig({ action, prop: 'sort', value: !sort } as ConfigUpdateAction<boolean>)
-                }
+                onClick={() => updateActionConfig({ action, prop: 'sort', value: !sort } as ConfigUpdateProps<boolean>)}
               />
             </div>
           </div>
@@ -121,7 +114,7 @@ const ActionConfig: React.FC<WithTranslation> = ({ t }) => {
                     action,
                     prop: 'indicator',
                     value: !indicator,
-                  } as ConfigUpdateAction<boolean>)
+                  } as ConfigUpdateProps<boolean>)
                 }
               />
             </div>
@@ -152,7 +145,7 @@ const ActionConfig: React.FC<WithTranslation> = ({ t }) => {
                     action,
                     prop: 'ignoreIndex',
                     value: !ignoreIndex,
-                  } as ConfigUpdateAction<boolean>)
+                  } as ConfigUpdateProps<boolean>)
                 }
               />
             </div>

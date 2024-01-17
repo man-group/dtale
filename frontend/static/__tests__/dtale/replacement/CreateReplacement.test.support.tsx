@@ -6,7 +6,7 @@ import { Provider, useDispatch } from 'react-redux';
 import { SaveAs } from '../../../popups/create/CreateColumnState';
 import CreateReplacement from '../../../popups/replacement/CreateReplacement';
 import { CreateReplacementSaveParams, ReplacementType } from '../../../popups/replacement/CreateReplacementState';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import { PopupType } from '../../../redux/state/AppState';
 import * as CreateReplacementRepository from '../../../repository/CreateReplacementRepository';
 import reduxUtils from '../../redux-test-utils';
@@ -25,7 +25,7 @@ export class Spies {
   >;
   public propagateStateSpy: jest.Mock;
   public mockDispatch = jest.fn();
-  private useDispatchMock = useDispatch as jest.Mock;
+  private useDispatchMock = useDispatch as any as jest.Mock;
   private result?: RenderResult;
 
   /** Initializes all spy instances */
@@ -60,15 +60,15 @@ export class Spies {
   public async setupWrapper(overrides?: Record<string, any>): Promise<RenderResult> {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({
-      type: ActionType.OPEN_CHART,
-      chartData: {
+    store.dispatch(
+      AppActions.OpenChartAction({
         type: PopupType.REPLACEMENT,
         propagateState: this.propagateStateSpy,
         selectedCol: 'col1',
+        visible: true,
         ...overrides,
-      },
-    });
+      }),
+    );
     return await act(async () => {
       this.result = render(
         <Provider store={store}>

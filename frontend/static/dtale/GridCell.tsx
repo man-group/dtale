@@ -1,10 +1,10 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { Checkbox } from '../popups/create/LabeledCheckbox';
-import { ActionType, HideMenuTooltipAction, ShowMenuTooltipAction } from '../redux/actions/AppActions';
+import { AppActions } from '../redux/actions/AppActions';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import * as selectors from '../redux/selectors';
 
 import * as bu from './backgroundUtils';
@@ -79,11 +79,16 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
   propagateState,
   t,
 }) => {
-  const { editedCell, allowCellEdits, isArcticDB, settings, ...rangeState } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const showTooltip = (element: HTMLElement, content: React.ReactNode): ShowMenuTooltipAction =>
-    dispatch({ type: ActionType.SHOW_MENU_TOOLTIP, element, content });
-  const hideTooltip = (): HideMenuTooltipAction => dispatch({ type: ActionType.HIDE_MENU_TOOLTIP });
+  const { editedCell, allowCellEdits, isArcticDB, settings, ...rangeState } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const showTooltip = (
+    element: HTMLElement,
+    content: React.ReactNode,
+  ): PayloadAction<{
+    element: HTMLElement;
+    content: React.ReactNode;
+  }> => dispatch(AppActions.ShowMenuTooltipAction({ element, content }));
+  const hideTooltip = (): PayloadAction<void> => dispatch(AppActions.HideMenuTooltipAction());
 
   const ref = React.useRef<HTMLDivElement>(null);
 
