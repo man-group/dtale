@@ -111,9 +111,11 @@ const ShowDuplicates: React.FC<ShowDuplicatesProps & WithTranslation> = ({ colum
       <div className="form-group row">
         <div className="col-md-3" />
         <div className="col-md-8">
-          <button className="col-auto btn btn-secondary" onClick={test}>
-            {t('View Duplicates')}
-          </button>
+          {!!group?.length && (
+            <button className="col-auto btn btn-secondary" onClick={test} data-testid="view-duplicates">
+              {t('View Duplicates')}
+            </button>
+          )}
         </div>
       </div>
       <div className="form-group row">
