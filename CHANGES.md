@@ -1,6 +1,13 @@
 ## Changelog
 
-### 3.9.0 (2023-11)
+### 3.10.0 (2024-1-31)
+* Updated front-end packages (namely redux)
+* [#843](https://github.com/man-group/dtale/issues/843): Chart export background colors
+* [#787](https://github.com/man-group/dtale/issues/787): force colab host to 0.0.0.0
+* [#840](https://github.com/man-group/dtale/issues/840): hide 'View Duplicates' button until column is selected
+* [#837](https://github.com/man-group/dtale/issues/837): frequency table search bug
+
+### 3.9.0 (2024-1-5)
 * Updated web data uploads to be turned off by default
 * [#835](https://github.com/man-group/dtale/issues/835): fixed bug with `dtale.show(open_browser=True)`
 * [#834](https://github.com/man-group/dtale/issues/834): fix for plotly tooltips in charts
