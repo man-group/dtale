@@ -734,7 +734,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
 
         ..link displayed in logging can be copied and pasted into any browser
     """
-    global ACTIVE_HOST, ACTIVE_PORT, SSL_CONTEXT, USE_NGROK
+    global ACTIVE_HOST, ACTIVE_PORT, SSL_CONTEXT, USE_COLAB, USE_NGROK
 
     if name:
         if global_state.get_data_id_by_name(name):
@@ -768,6 +768,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             ACTIVE_HOST = _run_ngrok()
             ACTIVE_PORT = None
         else:
+            if USE_COLAB:
+                ACTIVE_HOST = "0.0.0.0"
             initialize_process_props(
                 final_options["host"], final_options["port"], final_options["force"]
             )
