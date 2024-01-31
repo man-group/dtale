@@ -37,7 +37,7 @@ describe('Duplicates', () => {
           if (urlParams.type === DuplicatesConfigType.SHOW) {
             if (cfg.group?.[0] === 'foo') {
               return Promise.resolve({ data: { results: {} } });
-            } else if (!cfg.group?.length) {
+            } else if (cfg.group?.[0] === 'biz') {
               return Promise.resolve({ data: { error: 'Failure' } });
             }
             return Promise.resolve({
@@ -70,6 +70,7 @@ describe('Duplicates', () => {
         dtypes.dtypes[0].name = 'foo';
         dtypes.dtypes[1].name = 'bar';
         dtypes.dtypes[2].name = 'baz';
+        dtypes.dtypes[3].name = 'biz';
         return Promise.resolve({ data: dtypes });
       }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
@@ -218,6 +219,8 @@ describe('Duplicates', () => {
     });
 
     it('handles duplicates', async () => {
+      expect(screen.queryAllByTestId('view-duplicates')).toHaveLength(0);
+      await selectOption(selects(), 'foo');
       expect(screen.getByText('View Duplicates')).toBeDefined();
       await selectOption(selects(), 'bar');
       await act(async () => {
@@ -238,10 +241,10 @@ describe('Duplicates', () => {
     });
 
     it('handles error', async () => {
+      await selectOption(selects(), 'biz');
       await act(async () => {
         await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      await selectOption(selects(), 'baz');
       expect(screen.getByRole('alert')).toBeDefined();
     });
   });
