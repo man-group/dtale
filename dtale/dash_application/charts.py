@@ -4014,6 +4014,21 @@ def build_raw_chart(data_id=None, **inputs):
             if inputs.get("title"):
                 output["layout"]["title"] = dict(text=inputs.get("title"))
             output["layout"]["colorway"] = px.colors.qualitative.D3
+            output["layout"]["plot_bgcolor"] = "white"
+            output["layout"]["xaxis"].update(
+                mirror=True,
+                ticks="outside",
+                showline=True,
+                linecolor="black",
+                gridcolor="lightgrey",
+            )
+            output["layout"]["yaxis"].update(
+                mirror=True,
+                ticks="outside",
+                showline=True,
+                linecolor="black",
+                gridcolor="lightgrey",
+            )
         return output
 
     def _raw_chart_builder():
