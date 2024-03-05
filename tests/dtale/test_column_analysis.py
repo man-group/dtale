@@ -24,6 +24,7 @@ def test_get_column_analysis(unittest, test_data):
             build_data_inst({c.port: test_data})
             build_dtypes({c.port: views.build_dtypes_state(test_data)})
             build_settings({c.port: {}})
+            global_state.set_app_settings(dict(enable_custom_filters=True))
             response = c.get(
                 "/dtale/column-analysis/{}".format(c.port),
                 query_string=dict(col="foo", filtered="true"),

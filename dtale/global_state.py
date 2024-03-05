@@ -443,6 +443,12 @@ class DefaultStore(object):
     def get_settings(self, data_id):
         return self.get_data_inst(data_id).settings
 
+    def get_query(self, data_id):
+        if load_flag(data_id, "enable_custom_filters", False):
+            curr_settings = self.get_settings(data_id) or {}
+            return curr_settings.get("query")
+        return None
+
     def get_metadata(self, data_id):
         return self.get_data_inst(data_id).metadata
 

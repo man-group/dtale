@@ -11,7 +11,7 @@ def build_col_key(col):
     return "`{}`".format(col)
 
 
-def build_query(data_id, query=None, as_query_builder=False):
+def build_query(data_id, query=None):
     curr_settings = global_state.get_settings(data_id) or {}
     return inner_build_query(curr_settings, query)
 
@@ -204,9 +204,8 @@ def load_filterable_data(data_id, req, query=None, columns=None):
             data = instance.load_data(columns=columns)
         data, _ = format_data(data)
         return data
-    curr_settings = global_state.get_settings(data_id) or {}
     if filtered:
-        final_query = query or build_query(data_id, curr_settings.get("query"))
+        final_query = query or build_query(data_id, global_state.get_query(data_id))
         return run_query(
             handle_predefined(data_id),
             final_query,

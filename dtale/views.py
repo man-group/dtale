@@ -1583,7 +1583,11 @@ def update_settings(data_id):
     :return: JSON
     """
 
-    global_state.update_settings(data_id, get_json_arg(request, "settings", {}))
+    updated_settings = get_json_arg(request, "settings", {})
+    if not global_state.load_flag(data_id, "enable_custom_filters", False):
+        updated_settings.pop("query", None)
+
+    global_state.update_settings(data_id, updated_settings)
     return jsonify(dict(success=True))
 
 
@@ -2590,12 +2594,11 @@ def edit_cell(data_id):
     row_index = get_int_arg(request, "rowIndex")
     updated = get_str_arg(request, "updated")
     updated_str = updated
-    curr_settings = global_state.get_settings(data_id)
 
     # make sure to load filtered data in order to get correct row index
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
@@ -2771,7 +2774,7 @@ def get_data(data_id):
 
     curr_settings = global_state.get_settings(data_id) or {}
     curr_locked = curr_settings.get("locked", [])
-    final_query = build_query(data_id, curr_settings.get("query"))
+    final_query = build_query(data_id, global_state.get_query(data_id))
     highlight_filter = curr_settings.get("highlightFilter") or False
 
     if global_state.is_arcticdb:
@@ -3040,7 +3043,7 @@ def export_html(data_id, return_data):
 @exception_decorator
 def load_filtered_ranges(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
-    final_query = build_query(data_id, curr_settings.get("query"))
+    final_query = build_query(data_id, global_state.get_query(data_id))
     if not final_query:
         return {}
     curr_filtered_ranges = curr_settings.get("filteredRanges", {})
@@ -3081,11 +3084,10 @@ def load_filtered_ranges(data_id):
 @dtale.route("/data-export/<data_id>")
 @exception_decorator
 def data_export(data_id):
-    curr_settings = global_state.get_settings(data_id) or {}
     curr_dtypes = global_state.get_dtypes(data_id) or []
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
@@ -3174,10 +3176,9 @@ def build_correlations_matrix_image(
 
 
 def build_correlations_matrix(data_id, is_pps=False, encode_strings=False, image=False):
-    curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
     )
     valid_corr_cols, valid_str_corr_cols, valid_date_cols = correlations.get_col_groups(
@@ -3445,10 +3446,9 @@ def get_correlations_ts(data_id):
         data: {:col1:col2: {data: [{corr: 0.99, date: 'YYYY-MM-DD'},...], max: 0.99, min: 0.99}
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
-    curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
     )
     cols = get_json_arg(request, "cols")
@@ -3565,10 +3565,9 @@ def get_scatter(data_id):
     date_col = get_str_arg(request, "dateCol")
     rolling = get_bool_arg(request, "rolling")
 
-    curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
     )
     idx_col = str("_corr_index")
@@ -4025,10 +4024,9 @@ def build_column_text(data_id):
     columns = request.json.get("columns")
     columns = json.loads(columns)
 
-    curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
@@ -4042,10 +4040,9 @@ def build_row_text(data_id):
         request.json.get(p) for p in ["start", "end", "rows", "columns"]
     )
     columns = json.loads(columns)
-    curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
@@ -4229,7 +4226,7 @@ def build_missingno_chart(chart_type, data_id):
 @exception_decorator
 def drop_filtered_rows(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
-    final_query = build_query(data_id, curr_settings.get("query"))
+    final_query = build_query(data_id, global_state.get_query(data_id))
     curr_history = global_state.get_history(data_id) or []
     curr_history += [
         (
@@ -4265,8 +4262,17 @@ def drop_filtered_rows(data_id):
 @dtale.route("/move-filters-to-custom/<data_id>")
 @exception_decorator
 def move_filters_to_custom(data_id):
-    curr_settings = global_state.get_settings(data_id) or {}
-    query = build_query(data_id, curr_settings.get("query"))
+    if not global_state.load_flag(data_id, "enable_custom_filters", False):
+        return jsonify(
+            dict(
+                success=False,
+                error=(
+                    "Custom Filters not enabled! Custom filters are vulnerable to code injection attacks, please only "
+                    "use in trusted environments."
+                ),
+            )
+        )
+    query = build_query(data_id, global_state.get_query(data_id))
     global_state.update_settings(
         data_id,
         {

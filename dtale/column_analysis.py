@@ -83,8 +83,7 @@ class ColumnAnalysis(object):
     def __init__(self, data_id, req):
         self.data_id = data_id
         self.analysis_type = get_str_arg(req, "type")
-        curr_settings = global_state.get_settings(data_id) or {}
-        self.query = build_query(data_id, curr_settings.get("query"))
+        self.query = build_query(data_id, global_state.get_query(data_id))
         self.data = load_filterable_data(data_id, req, query=self.query)
         self.selected_col = find_selected_column(
             self.data, get_str_arg(req, "col", "values")

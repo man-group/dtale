@@ -6,12 +6,22 @@ import pytest
 
 from pkg_resources import parse_version
 
+import dtale.global_state as global_state
 import dtale.pandas_util as pandas_util
 
 from dtale.charts.utils import CHART_POINTS_LIMIT
 
 from tests.dtale.test_views import app, build_ts_data
 from tests.dtale import build_data_inst, build_settings, build_dtypes
+
+
+def setup_function(function):
+    global_state.cleanup()
+
+
+def teardown_function(function):
+    global_state.cleanup()
+
 
 CORRELATIONS_CODE = """# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'
 
@@ -90,6 +100,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         settings = {c.port: {"query": "missing_col == 'blah'"}}
         build_settings(settings)
         response = c.get("/dtale/correlations/{}".format(c.port))
@@ -309,6 +320,7 @@ def test_get_correlations_ts(unittest, rolling_data):
 
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         settings = {c.port: {"query": "missing_col == 'blah'"}}
         build_settings(settings)
         response = c.get("/dtale/correlations-ts/{}".format(c.port))
@@ -483,6 +495,7 @@ def test_get_scatter(unittest, rolling_data):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         settings = {c.port: {"query": "missing_col == 'blah'"}}
         build_settings(settings)
         params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101")

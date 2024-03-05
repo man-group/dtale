@@ -95,7 +95,7 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
     final_history = [startup_str] + history
     final_query = query
     if final_query is None:
-        final_query = build_query(data_id, settings.get("query"))
+        final_query = build_query(data_id, global_state.get_query(data_id))
 
     if final_query is not None and final_query != "":
         if len(ctxt_vars or {}):
@@ -113,9 +113,9 @@ def build_code_export(data_id, imports="import pandas as pd\n\n", query=None):
             final_history.append(
                 "df = df.query({})\n".format(triple_quote(final_query))
             )
-    elif settings.get("query"):
+    elif global_state.get_query(data_id):
         final_history.append(
-            "df = df.query({})\n".format(triple_quote(settings["query"]))
+            "df = df.query({})\n".format(triple_quote(global_state.get_query(data_id)))
         )
     if "sortInfo" in settings:
         cols, dirs = [], []
