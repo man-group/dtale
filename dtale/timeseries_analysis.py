@@ -42,7 +42,7 @@ class TimeseriesAnalysis(object):
     def run(self):
         data = run_query(
             global_state.get_data(self.data_id),
-            (global_state.get_settings(self.data_id) or {}).get("query"),
+            global_state.get_query(self.data_id),
             global_state.get_context_variables(self.data_id),
         )
         return self.report.run(data)

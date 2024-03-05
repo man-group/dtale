@@ -1758,6 +1758,7 @@ def test_get_data(unittest, test_data):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         build_settings({c.port: dict(query="missing_col == 'blah'")})
         response = c.get(
             "/dtale/data/{}".format(c.port), query_string=dict(ids=json.dumps(["0"]))

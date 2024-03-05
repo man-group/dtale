@@ -269,6 +269,7 @@ def test_transpose(custom_data, unittest):
         build_data_inst(data)
         build_dtypes(dtypes)
         build_settings(settings)
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         reshape_cfg = dict(index=["security_id"], columns=["Col0"])
         resp = c.get(
             "/dtale/reshape/{}".format(c.port),
