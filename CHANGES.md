@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.11.0 (2024-3-6)
+* Added extra security around whether a custom query can be used to protected against server-side attacks
+
 ### 3.10.0 (2024-1-31)
 * Updated front-end packages (namely redux)
 * [#843](https://github.com/man-group/dtale/issues/843): Chart export background colors
