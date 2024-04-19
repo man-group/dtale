@@ -612,12 +612,7 @@ def chart_wrapper(data_id, data, url_params=None):
                 export_png_link,
                 export_csv_link,
             ],
-            style={
-                "position": "absolute",
-                "zIndex": 5,
-                "left": 5,
-                "top": 2,
-            },
+            style={"position": "absolute", "zIndex": 5, "left": 5, "top": 2},
         )
         return html.Div(
             [links] + make_list(chart), style={"position": "relative", "height": "100%"}
@@ -4010,25 +4005,26 @@ def build_raw_chart(data_id=None, **inputs):
             find_figures(output, formatted_output)
             output = formatted_output
         if isinstance(output, dcc.Graph):
-            output = output.figure
             if inputs.get("title"):
-                output["layout"]["title"] = dict(text=inputs.get("title"))
-            output["layout"]["colorway"] = px.colors.qualitative.D3
-            output["layout"]["plot_bgcolor"] = "white"
-            output["layout"]["xaxis"].update(
+                output.figure["layout"]["title"] = dict(text=inputs.get("title"))
+            output.figure["layout"]["colorway"] = px.colors.qualitative.D3
+            output.figure["layout"]["plot_bgcolor"] = "white"
+            output.figure["layout"]["xaxis"].update(
                 mirror=True,
                 ticks="outside",
                 showline=True,
                 linecolor="black",
                 gridcolor="lightgrey",
             )
-            output["layout"]["yaxis"].update(
+            output.figure["layout"]["yaxis"].update(
                 mirror=True,
                 ticks="outside",
                 showline=True,
                 linecolor="black",
                 gridcolor="lightgrey",
             )
+            if inputs.get("return_object") is not True:
+                output = output.figure
         return output
 
     def _raw_chart_builder():
