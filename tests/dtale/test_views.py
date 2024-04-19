@@ -752,8 +752,7 @@ def test_duplicate_cols(unittest):
         build_dtypes(dtypes)
 
         resp = c.get(
-            "/dtale/duplicate-col/{}".format(c.port),
-            query_string=dict(col="b"),
+            "/dtale/duplicate-col/{}".format(c.port), query_string=dict(col="b")
         )
         unittest.assertEquals(
             list(global_state.get_data(c.port).columns), ["a", "b", "b_2", "c"]

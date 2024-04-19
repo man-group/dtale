@@ -87,11 +87,7 @@ def load_app_settings(config):
         getter="getboolean",
     )
     hide_main_menu = get_config_val(
-        config,
-        curr_app_settings,
-        "hide_main_menu",
-        section="app",
-        getter="getboolean",
+        config, curr_app_settings, "hide_main_menu", section="app", getter="getboolean"
     )
     hide_column_menus = get_config_val(
         config,

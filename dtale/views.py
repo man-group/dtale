@@ -584,6 +584,7 @@ class DtaleData(object):
 
     def offline_chart(
         self,
+        return_object=False,
         chart_type=None,
         query=None,
         x=None,
@@ -605,6 +606,8 @@ class DtaleData(object):
         """
         Builds the HTML for a plotly chart figure to saved to a file or output to a jupyter notebook
 
+        :param return_object: if True, return the plotly graph object for this chart
+        :type return_object: bool
         :param chart_type: type of chart, possible options are line|bar|pie|scatter|3d_scatter|surface|heatmap
         :type chart_type: str
         :param query: pandas dataframe query string
@@ -645,6 +648,7 @@ class DtaleData(object):
                  - otherwise it will return the HTML output as a string
         """
         params = dict(
+            return_object=return_object,
             chart_type=chart_type,
             query=query,
             x=x,
@@ -671,6 +675,9 @@ class DtaleData(object):
             )  # for some reason iplot does not like when the 'id' property is populated
             iplot(chart)
             return
+
+        if return_object:
+            return build_raw_chart(self._data_id, export=True, **params)
 
         html_str = export_chart(self._data_id, params)
         if filepath is None:

@@ -955,6 +955,7 @@ def get_instance(data_id):
 
 def offline_chart(
     df,
+    return_object=False,
     chart_type=None,
     query=None,
     x=None,
@@ -976,6 +977,8 @@ def offline_chart(
 
     :param df: integer string identifier for a D-Tale process's data
     :type df: :class:`pandas:pandas.DataFrame`
+    :param return_object: if True, return the plotly graph object for this chart
+    :type return_object: bool
     :param chart_type: type of chart, possible options are line|bar|pie|scatter|3d_scatter|surface|heatmap
     :type chart_type: str
     :param query: pandas dataframe query string
@@ -1014,6 +1017,7 @@ def offline_chart(
     """
     instance = startup(url=None, data=df, data_id=999, is_proxy=JUPYTER_SERVER_PROXY)
     output = instance.offline_chart(
+        return_object=return_object,
         chart_type=chart_type,
         query=query,
         x=x,
