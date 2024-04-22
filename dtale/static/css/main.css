@@ -7893,9 +7893,16 @@ a.text-dark:focus, a.text-dark:hover {
   border-collapse: separate;
   height: calc(1.91562rem + 2px);
   outline: none;
-  overflow: hidden;
   position: relative;
   width: 100%;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+.input-group.select-all  .Select__control,
+.input-group.select-all  .Select-control {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .Select__control:hover,

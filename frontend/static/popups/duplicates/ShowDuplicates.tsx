@@ -27,7 +27,7 @@ export interface ShowDuplicatesProps extends BaseDuplicatesComponentProps {
 }
 
 /** Response type definition for testing ShowDuplicates config */
-type TestType = DuplicatesRepository.DuplicatesResponse<ShowDuplicatesResult>;
+type TestType = DuplicatesRepository.DuplicatesResponse<ShowDuplicatesResult> & { cfg: ShowDuplicatesConfig };
 
 const ShowDuplicates: React.FC<ShowDuplicatesProps & WithTranslation> = ({ columns, setCfg, t }) => {
   const dataId = useAppSelector(selectDataId);
@@ -47,13 +47,14 @@ const ShowDuplicates: React.FC<ShowDuplicatesProps & WithTranslation> = ({ colum
 
   const test = (): void => {
     setLoadingTest(true);
+    const cfg = buildCfg();
     DuplicatesRepository.run<TestType>(dataId, {
       type: DuplicatesConfigType.SHOW,
-      cfg: buildCfg(),
+      cfg,
       action: DuplicatesActionType.TEST,
     }).then((response) => {
       setLoadingTest(false);
-      setTestOutput(response);
+      setTestOutput({ ...response, cfg } as TestType);
       setFilter(undefined);
     });
   };
@@ -69,7 +70,7 @@ const ShowDuplicates: React.FC<ShowDuplicatesProps & WithTranslation> = ({ colum
     if (Object.keys(testOutput.results).length) {
       return (
         <React.Fragment>
-          <span>{`${t('Duplicates exist for the following')} (${cfg.group?.join(', ')}) ${t('groups')}:`}</span>
+          <span>{`${t('Duplicates exist for the following')} (${testOutput.cfg.group?.join(', ')}) ${t('groups')}:`}</span>
           <br />
           <b>Total Duplicates</b>
           {`: ${Object.values(testOutput.results).reduce((res, { count }) => res + count, 0)}`}
@@ -107,6 +108,7 @@ const ShowDuplicates: React.FC<ShowDuplicatesProps & WithTranslation> = ({ colum
         }}
         columns={columns}
         isMulti={true}
+        selectAll={true}
       />
       <div className="form-group row">
         <div className="col-md-3" />
