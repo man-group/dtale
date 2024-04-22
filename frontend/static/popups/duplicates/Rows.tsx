@@ -64,16 +64,19 @@ const Rows: React.FC<RowsProps & WithTranslation> = ({ columns, selectedCol, set
       let result: React.ReactNode = `${t('No duplicate rows exist for the column(s)')}: ${
         cfg.subset?.join(', ') ?? ''
       }`;
-      if (response?.results && Object.keys(response.results).length) {
+      if (!cfg.subset?.length) {
+        result = t('No duplicate rows exist');
+      }
+      if (response?.results && response.results.removed) {
         result = (
           <React.Fragment>
             <span className="pr-3">{t('From')}</span>
             <b>{response.results.total}</b>
-            <span className="pl-3">{` ${t('rows')}:`}</span>
+            <span className="pl-2">{` ${t('rows')}:`}</span>
             <ul>
               <li>
                 <b>{response.results.removed}</b>
-                {t(' duplicate rows will be removed')}
+                {t(` ${cfg.subset ? `(${cfg.subset?.join(', ')}) ` : ''}duplicate rows will be removed`)}
               </li>
               <li>
                 <b>{response.results.remaining}</b>
