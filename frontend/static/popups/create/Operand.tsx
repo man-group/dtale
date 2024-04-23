@@ -74,7 +74,7 @@ const Operand: React.FC<OperandProps & WithTranslation> = ({
         </div>
       );
     }
-  }, [cfg.type, columns]);
+  }, [cfg.type, cfg.val, cfg.col, columns]);
 
   return (
     <div className="form-group row" data-testid={`${name}-inputs`}>

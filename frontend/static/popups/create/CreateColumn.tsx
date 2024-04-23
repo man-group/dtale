@@ -81,7 +81,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
     const createParams: CreateColumnSaveParams = { saveAs, ...cfg };
     if (saveAs === SaveAs.NEW) {
       if (!name) {
-        setError(<RemovableError error="Name is required!" />);
+        setError(<RemovableError error={`${cfg.type === CreateColumnType.CUMSUM ? 'Suffix' : 'Name'} is required!`} />);
         return;
       }
       if (columns.find((column) => column.name === name)) {
@@ -138,7 +138,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
       <div key="body" className="modal-body">
         {nameInput === 'name' && (
           <LabeledInput
-            label={t('Name')}
+            label={t(type === CreateColumnType.CUMSUM ? 'Suffix' : 'Name')}
             value={name}
             setter={(value) => {
               setName(value);

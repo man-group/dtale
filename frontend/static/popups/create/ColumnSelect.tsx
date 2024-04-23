@@ -101,7 +101,7 @@ export const BaseColumnSelectInput: React.FC<ColumnSelectInputProps & WithTransl
       />
       {isMulti && selectAll && columnOptions.length > (parent[prop] ?? []).length && (
         <button
-          className="col-auto btn btn-secondary ml-5"
+          className="col-auto btn btn-secondary ml-3 select-all-btn"
           onClick={() => updateState({ [prop]: columnOptions })}
           data-testid="select-all-btn"
           title="Select All"
@@ -129,7 +129,7 @@ const ColumnSelect: React.FC<React.PropsWithChildren<ColumnSelectProps & WithTra
   <div className="form-group row">
     <label className="col-md-3 col-form-label text-right">{label || inputProps.prop}</label>
     <div className="col-md-8">
-      <div className={`input-group${inputProps.selectAll ? ' select-all' : ''}`}>
+      <div className={`input-group${inputProps.isMulti && inputProps.selectAll ? ' select-all' : ''}`}>
         <ColumnSelectInput {...inputProps} />
       </div>
       {children}

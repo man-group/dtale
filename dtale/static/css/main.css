@@ -11127,3 +11127,10 @@ div.container-fluid.cleaners > div#popup-content > div.modal-footer {
   flex-direction: column;
   position: absolute;
 }
+
+.select-all-btn {
+  padding: .25rem .2rem;
+  height: 24px;
+  margin-top: auto;
+  margin-bottom: auto;
+}

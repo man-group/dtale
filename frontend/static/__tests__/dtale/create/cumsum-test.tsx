@@ -26,11 +26,11 @@ describe('CreateCumsum', () => {
     await selectOption(result.getElementsByClassName('Select')[1] as HTMLElement, 'col2');
     await spies.validateCfg({
       cfg: {
-        col: 'col1',
+        cols: ['col1'],
         group: ['col2'],
       },
-      name: 'col1_cumsum',
       type: CreateColumnType.CUMSUM,
+      name: '_cumsum',
     });
   });
 
@@ -38,7 +38,7 @@ describe('CreateCumsum', () => {
     expect(validateCumsumCfg(t, {})).toBe('Please select a column!');
     expect(
       validateCumsumCfg(t, {
-        col: 'col1',
+        cols: ['col1'],
       }),
     ).toBeUndefined();
   });

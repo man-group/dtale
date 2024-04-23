@@ -1481,25 +1481,30 @@ class CumsumColumnBuilder(object):
         self.cfg = cfg
 
     def build_column(self, data):
-        col = self.cfg.get("col")
+        cols = self.cfg.get("cols")
         group = self.cfg.get("group")
         if group:
-            s = data.groupby(group)[col]
+            s = data.groupby(group)[cols]
         else:
-            s = data[col]
-        return pd.Series(s.cumsum(axis=0), index=data.index, name=self.name)
+            s = data[cols]
+        s = s.cumsum(axis=0)
+        s.columns = ["{}{}".format(col, self.name) for col in s.columns]
+        return pd.DataFrame(s, index=data.index)
 
     def build_code(self):
-        col = self.cfg.get("col")
+        cols = self.cfg.get("cols")
         group = self.cfg.get("group")
         group_code = ""
         if group:
             group_code = ".groupby(['{}'])".format("','".join(group))
         return (
-            "df.loc[:, '{name}'] = pd.Series(\n"
-            "\t(data{group}['{col}'].cumsum(axis=0), index=data.index, name='{name}'\n"
-            ")"
-        ).format(name=self.name, col=col, group=group_code)
+            "cumsum = pd.DataFrame(\n"
+            "\t(data{group}['{cols}'].cumsum(axis=0), index=data.index\n"
+            ")\n"
+            "for i in range(len(cumsum.columns)):\n"
+            "\tnew_col = cumsum.iloc[:, i]\n"
+            "\tdf.loc[:, str(new_col.name) + '{name}'] = new_col"
+        ).format(name=self.name, cols="','".join(cols), group=group_code)
 
 
 class ShiftBuilder(object):
