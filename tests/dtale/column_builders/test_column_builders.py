@@ -135,11 +135,10 @@ def test_cumsum():
     df = pd.DataFrame(list(_data()))
 
     data_id, column_type = "1", "cumsum"
-    i = 0
     build_data_inst({data_id: df})
 
-    builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), {"col": "i"})
-    verify_builder(builder, lambda col: col.max() == 4950)
+    builder = ColumnBuilder(data_id, column_type, "_cumsum", {"cols": ["i"]})
+    verify_builder(builder, lambda col: col["i_cumsum"].max() == 4950)
 
 
 @pytest.mark.unit
@@ -149,9 +148,9 @@ def test_cumsum_groupby(custom_data):
     build_data_inst({data_id: custom_data})
 
     builder = ColumnBuilder(
-        data_id, column_type, "Col0", {"col": "int_val", "group": ["security_id"]}
+        data_id, column_type, "_cumsum", {"cols": ["int_val"], "group": ["security_id"]}
     )
-    verify_builder(builder, lambda col: col.max() > 0)
+    verify_builder(builder, lambda col: col["int_val_cumsum"].max() > 0)
 
 
 @pytest.mark.unit

@@ -392,14 +392,48 @@ def init_callbacks(dash_app):
             Output("z-dropdown", "value"),
             Output("group-dropdown", "value"),
             Output("query-input", "value"),
+            Output("y-all-clicks", "data"),
         ],
-        [Input("data-tabs", "value")],
-        State("input-data", "data"),
+        [
+            Input("data-tabs", "value"),
+            Input("y-select-all-btn", "n_clicks"),
+        ],
+        [
+            State("input-data", "data"),
+            State("y-all-clicks", "data"),
+            State("x-dropdown", "value"),
+            State("y-single-dropdown", "value"),
+            State("z-dropdown", "value"),
+            State("group-dropdown", "value"),
+            State("query-input", "value"),
+            State("y-multi-dropdown", "options"),
+        ],
     )
-    def update_data_selection(data_id, input_data):
+    def update_data_selection(
+        data_id,
+        y_all_clicks,
+        input_data,
+        prev_y_all_clicks,
+        x,
+        y_single,
+        z,
+        group,
+        query,
+        y_multi_options,
+    ):
+        if y_all_clicks and y_all_clicks != prev_y_all_clicks:
+            return (
+                x,
+                [o["value"] for o in y_multi_options],
+                y_single,
+                z,
+                group,
+                query,
+                y_all_clicks,
+            )
         if data_id == input_data["data_id"]:
             raise DtalePreventUpdate
-        return None, None, None, None, None, None
+        return None, None, None, None, None, None, None
 
     @dash_app.callback(
         [

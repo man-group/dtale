@@ -72,7 +72,7 @@ def test_display_page(unittest):
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         component_defs = resp_data["popup-content"]["children"]["props"]["children"]
-        x_dd = component_defs[21]["props"]["children"][0]
+        x_dd = component_defs[23]["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
@@ -112,17 +112,31 @@ def test_query_changes():
 
 
 @pytest.mark.unit
-def test_update_data_selection():
+def test_update_data_selection(unittest):
     with app.test_client() as c:
         params = {
             "output": (
                 "..x-dropdown.value...y-multi-dropdown.value...y-single-dropdown.value."
-                "..z-dropdown.value...group-dropdown.value...query-input.value.."
+                "..z-dropdown.value...group-dropdown.value...query-input.value...y-all-clicks.data.."
             ),
             "changedPropIds": ["data-tabs.value"],
-            "inputs": [{"id": "chart-tabs", "property": "value", "value": "1"}],
+            "inputs": [
+                {"id": "chart-tabs", "property": "value", "value": "1"},
+                {"id": "y-select-all-btn", "property": "n_clicks", "value": 0},
+            ],
             "state": [
-                {"id": "input-data", "property": "data", "value": {"data_id": "1"}}
+                {"id": "input-data", "property": "data", "value": {"data_id": "1"}},
+                {"id": "y-all-clicks", "property": "data", "value": 0},
+                {"id": "x-dropdown", "property": "value", "value": []},
+                {"id": "y-single-dropdown", "property": "value", "value": None},
+                {"id": "z-dropdown", "property": "value", "value": None},
+                {"id": "group-dropdown", "property": "value", "value": None},
+                {"id": "query-input", "property": "value", "value": ""},
+                {
+                    "id": "y-multi-dropdown",
+                    "property": "options",
+                    "value": [{"value": "foo"}],
+                },
             ],
         }
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -130,7 +144,15 @@ def test_update_data_selection():
         params["state"][0]["value"]["data_id"] = "2"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.get_json()
-        assert all(v["value"] is None for v in response["response"].values())
+        assert all(
+            v.get("value", v.get("data")) is None for v in response["response"].values()
+        )
+
+        params["state"][0]["value"]["data_id"] = "1"
+        params["inputs"][1]["value"] = 1
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        response = response.get_json()
+        unittest.assertEqual(response["response"]["y-multi-dropdown"]["value"], ["foo"])
 
 
 @pytest.mark.unit

@@ -1633,6 +1633,8 @@ def charts_layout(df, settings, **inputs):
         dcc.Store(id="last-chart-input-data", data=inputs),
         dcc.Store(id="load-clicks", data=0),
         dcc.Store(id="save-clicks", data=0),
+        dcc.Store(id="y-all-clicks", data=0),
+        dcc.Store(id="z-all-clicks", data=0),
         dcc.Input(id="chart-code", type="hidden"),
         html.Div(
             [
@@ -1847,14 +1849,35 @@ def charts_layout(df, settings, **inputs):
                                 ),
                                 build_input(
                                     text("Y"),
-                                    dcc.Dropdown(
-                                        id="y-multi-dropdown",
-                                        options=y_multi_options,
-                                        multi=True,
-                                        placeholder=text("Select Column(s)"),
-                                        style=dict(width="inherit"),
-                                        value=y if show_input("y", "multi") else None,
-                                    ),
+                                    [
+                                        dcc.Dropdown(
+                                            id="y-multi-dropdown",
+                                            options=y_multi_options,
+                                            multi=True,
+                                            placeholder=text("Select Column(s)"),
+                                            style=dict(width="inherit"),
+                                            value=(
+                                                y if show_input("y", "multi") else None
+                                            ),
+                                        ),
+                                        dbc.Button(
+                                            html.I(
+                                                className="fa-solid fa-check-double"
+                                            ),
+                                            id="y-select-all-btn",
+                                            className="ml-3",
+                                            color="secondary",
+                                            style=dict(
+                                                height="24px",
+                                                padding=".25rem .2rem",
+                                                marginTop="auto",
+                                                marginBottom="auto",
+                                            ),
+                                        ),
+                                        dbc.Tooltip(
+                                            "Select All Y", target="y-select-all-btn"
+                                        ),
+                                    ],
                                     className="col",
                                     id="y-multi-input",
                                     style=show_style(show_input("y", "multi")),

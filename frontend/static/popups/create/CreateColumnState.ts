@@ -196,7 +196,7 @@ export interface ConcatenationConfig {
 
 /** Cumulative sum column creation configuration */
 export interface CumsumConfig {
-  col?: string;
+  cols?: string[];
   group?: string[];
 }
 
