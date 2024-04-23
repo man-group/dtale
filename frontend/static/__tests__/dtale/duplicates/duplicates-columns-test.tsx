@@ -7,12 +7,14 @@ import Duplicates from '../../../popups/duplicates/Duplicates';
 import { DuplicatesActionType, DuplicatesConfigType, KeepType } from '../../../popups/duplicates/DuplicatesState';
 import { AppActions } from '../../../redux/actions/AppActions';
 import { PopupType } from '../../../redux/state/AppState';
+import * as DuplicatesRepository from '../../../repository/DuplicatesRepository';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, parseUrlParams, selectOption } from '../../test-utils';
 
 describe('Duplicates', () => {
   const { location, open, opener } = window;
   let result: Element;
+  let dupesSpy: jest.SpyInstance;
 
   beforeAll(() => {
     delete (window as any).location;
@@ -29,6 +31,7 @@ describe('Duplicates', () => {
   });
 
   beforeEach(async () => {
+    dupesSpy = jest.spyOn(DuplicatesRepository, 'run');
     (axios.get as any).mockImplementation(async (url: string) => {
       if (url.startsWith('/dtale/duplicates')) {
         const urlParams = parseUrlParams(url);
@@ -230,6 +233,28 @@ describe('Duplicates', () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
       expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
+    });
+
+    it('handles duplicates w/ select all', async () => {
+      expect(screen.queryAllByTestId('view-duplicates')).toHaveLength(0);
+      await selectOption(selects(), 'foo');
+      expect(screen.getByText('View Duplicates')).toBeDefined();
+      // await selectOption(selects(), 'bar');
+      await act(async () => {
+        await fireEvent.click(screen.getByTestId('select-all-btn'));
+      });
+      await act(async () => {
+        await fireEvent.click(screen.getByText('View Duplicates'));
+      });
+      await act(async () => {
+        await fireEvent.click(screen.getByText('Execute'));
+      });
+      expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
+      expect(dupesSpy).toHaveBeenCalledWith('1', {
+        action: DuplicatesActionType.EXECUTE,
+        cfg: { filter: undefined, group: ['bar', 'baz', 'biz', 'foo'] },
+        type: DuplicatesConfigType.SHOW,
+      });
     });
 
     it('handles no duplicates', async () => {

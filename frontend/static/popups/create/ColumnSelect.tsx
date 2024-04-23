@@ -103,7 +103,7 @@ export const BaseColumnSelectInput: React.FC<ColumnSelectInputProps & WithTransl
         <button
           className="col-auto btn btn-secondary ml-5"
           onClick={() => updateState({ [prop]: columnOptions })}
-          data-testid="view-duplicates"
+          data-testid="select-all-btn"
           title="Select All"
         >
           <i className="fa-solid fa-check-double" />
