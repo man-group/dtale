@@ -297,6 +297,15 @@ function urlFetcher(url) {
     };
   } else if (url.startsWith('/dtale/load-filtered-ranges')) {
     return { ranges: {} };
+  } else if (url.startsWith('/dtale/aggregations')) {
+    return {
+      mean: -0.009992496843205568,
+      median: -0.007880677745154276,
+      success: true,
+      sum: -149.53771525857132,
+    };
+  } else if (url.startsWith('/dtale/weighted-average')) {
+    return { success: true, result: -1.714556 };
   }
   return {};
 }

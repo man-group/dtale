@@ -2,6 +2,7 @@ import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
+import Aggregations from '../popups/aggregations/Aggregations';
 import { AppActions } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
@@ -316,6 +317,7 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
       <MeasureText />
       <SidePanel gridPanel={gridPanel.current} />
       {dragResize && <div className="blue-line" style={{ left: dragResize + 3 }} />}
+      <Aggregations columns={columns} />
     </div>
   );
 };

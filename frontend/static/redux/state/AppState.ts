@@ -441,6 +441,7 @@ export interface AppSettings {
   hideColumnMenus: boolean;
   enableCustomFilters: boolean;
   enableWebUploads: boolean;
+  columnAggregations: string | null;
 }
 
 /** Properties for specifying filtered ranges */

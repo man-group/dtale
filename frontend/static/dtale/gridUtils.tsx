@@ -20,6 +20,7 @@ export const isStringCol = (dtype?: string): boolean =>
   startswithOne((dtype ?? '').toLowerCase(), ['string', 'object', 'unicode']);
 export const isIntCol = (dtype?: string): boolean => startswithOne((dtype ?? '').toLowerCase(), ['int', 'uint']);
 export const isFloatCol = (dtype?: string): boolean => (dtype ?? '').toLowerCase().startsWith('float');
+export const isNumeric = (dtype?: string): boolean => isIntCol(dtype) || isFloatCol(dtype);
 export const isDateCol = (dtype?: string): boolean =>
   startswithOne((dtype ?? '').toLowerCase(), ['timestamp', 'datetime']);
 export const isBoolCol = (dtype?: string): boolean => (dtype ?? '').toLowerCase().startsWith('bool');

@@ -90,6 +90,8 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
   const prevRibbonOpen = usePrevious(reduxState.ribbonMenuOpen);
 
   const dispatch = useAppDispatch();
+  const openAggregations = (): PayloadAction<{ colName?: string }> =>
+    dispatch(AppActions.UpdateColumnAggregations({ colName: reduxState.selectedCol || undefined }));
   const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
   const hideColumnMenu = (colName: string): void => dispatch(actions.hideColumnMenu(colName));
   const showSidePanel = (column: string, view: SidePanelType): PayloadAction<SidePanelActionProps> =>
@@ -245,7 +247,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
           <ColumnMenuOption
             open={duplicateCol}
             label={t('column_menu:Duplicate')}
-            iconClass="fa-regular fa-copy ml-2 mr-3"
+            iconClass="fa-regular fa-copy ml-2 mr-4"
           />
         )}
         {!reduxState.isArcticDB && (
@@ -305,6 +307,13 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
             open={openPopup({ type: PopupType.VARIANCE, selectedCol, title: 'Variance', visible: true })}
             label={t('Variance Report', { ns: 'column_menu' })}
             iconClass="fas fa-chart-bar ml-2 mr-4"
+          />
+        )}
+        {gu.isNumeric(colCfg.dtype) && !reduxState.isArcticDB && (
+          <ColumnMenuOption
+            open={openAggregations}
+            label={t('Aggregations', { ns: 'menu' })}
+            iconClass="ico-functions ml-2"
           />
         )}
         <ColumnMenuOption open={openFormatting} label={t('column_menu:Formats')} iconClass="ico-palette" />
