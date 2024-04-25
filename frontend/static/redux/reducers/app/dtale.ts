@@ -174,3 +174,7 @@ export const formattingOpen = createReducer<string | null>(null, (builder) =>
 export const menuOpen = createReducer(false, (builder) =>
   builder.addCase(AppActions.OpenMenuAction, () => true).addCase(AppActions.CloseMenuAction, () => false),
 );
+
+export const columnAggregations = createReducer<string | null>(null, (builder) =>
+  builder.addCase(AppActions.UpdateColumnAggregations, (state, { payload }) => payload.colName ?? null),
+);

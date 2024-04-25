@@ -4461,4 +4461,23 @@ def load_arcticdb_symbol():
     global_state.set_settings(
         data_id, dict_merge(curr_settings, dict(startup_code=startup_code))
     )
-    return dict(success=True, data_id=data_id)
+    return jsonify(dict(success=True, data_id=data_id))
+
+
+@dtale.route("/aggregations/<data_id>/<col>")
+@exception_decorator
+def load_aggregations(data_id, col):
+    data = load_filterable_data(data_id, request, columns=[col])
+    s = data[col]
+    sum = s.sum()
+    mean = s.mean()
+    median = s.median()
+    return jsonify(success=True, sum=float(sum), mean=float(mean), median=float(median))
+
+
+@dtale.route("/weighted-average/<data_id>/<col>/<weights>")
+@exception_decorator
+def load_weighted_average(data_id, col, weights):
+    data = load_filterable_data(data_id, request, columns=[col, weights])
+    weighted_average = sum(data[col] * data[weights]) / sum(data[weights])
+    return jsonify(success=True, result=float(weighted_average))

@@ -132,3 +132,4 @@ export const selectIFrame = (state: AppStoreState): boolean => state.iframe;
 export const selectLanguage = (state: AppStoreState): string => state.language;
 export const selectHideShutdown = (state: AppStoreState): boolean => state.hideShutdown;
 export const selectQueryEngine = (state: AppStoreState): QueryEngine => state.queryEngine;
+export const selectColumnAggregations = (state: AppStoreState): string | null => state.columnAggregations;

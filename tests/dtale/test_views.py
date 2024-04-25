@@ -3361,3 +3361,26 @@ def test_save_range_highlights():
             content_type="application/json",
         )
         assert global_state.get_settings(c.port)["rangeHighlight"] is not None
+
+
+@pytest.mark.unit
+def test_aggregations(unittest):
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        build_data_inst({c.port: df})
+
+        resp = c.get(
+            "/dtale/aggregations/{}/a".format(c.port), query_string={"filtered": True}
+        )
+        unittest.assertEquals(
+            resp.json, {"mean": 2.0, "median": 2.0, "success": True, "sum": 6.0}
+        )
+        resp = c.get(
+            "/dtale/weighted-average/{}/a/b".format(c.port),
+            query_string={"filtered": True},
+        )
+        unittest.assertEquals(
+            resp.json, {"result": 2.1333333333333333, "success": True}
+        )

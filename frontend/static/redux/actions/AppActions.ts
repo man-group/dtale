@@ -61,6 +61,7 @@ export enum ActionType {
   UPDATE_HIDE_MAIN_MENU = 'update-hide-main-menu',
   UPDATE_HIDE_COLUMN_MENUS = 'update-hide-column-menus',
   UPDATE_ENABLE_CUSTOM_FILTERS = 'update-enable-custom-filters',
+  UPDATE_COLUMN_AGGREGATIONS = 'update-column-aggregations',
 }
 
 /** Side panel action properties */
@@ -99,6 +100,7 @@ export const AppActions = {
   }>(ActionType.HIDE_COLUMN_MENU),
   OpenMenuAction: createActionWithPayload(ActionType.OPEN_MENU),
   CloseMenuAction: createActionWithPayload(ActionType.CLOSE_MENU),
+  UpdateColumnAggregations: createActionWithPayload<{ colName?: string }>(ActionType.UPDATE_COLUMN_AGGREGATIONS),
   OpenFormattingAction: createActionWithPayload<string>(ActionType.OPEN_FORMATTING),
   CloseFormattingAction: createActionWithPayload(ActionType.CLOSE_FORMATTING),
   UpdateXarrayDimAction: createActionWithPayload<Record<string, any>>(ActionType.UPDATE_XARRAY_DIM),

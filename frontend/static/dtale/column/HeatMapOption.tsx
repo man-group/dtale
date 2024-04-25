@@ -33,7 +33,7 @@ const HeatMapOption: React.FC<HeatMapOptionProps & WithTranslation> = ({ selecte
           <span className="toggler-action">
             <button className="btn btn-plain" onClick={toggleBackground}>
               <i className={`fa fa-${heatmapActive ? 'fire-extinguisher' : 'fire-alt'} ml-2 mr-4`} />
-              <span className={`font-weight-bold pl-3${heatmapActive ? ' flames' : ''}`}>
+              <span className={`font-weight-bold pl-4${heatmapActive ? ' flames' : ''}`}>
                 {t('Heat Map', { ns: 'menu' })}
               </span>
             </button>
