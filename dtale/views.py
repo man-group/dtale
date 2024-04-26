@@ -4,6 +4,7 @@ from __future__ import absolute_import, division
 import os
 import time
 from builtins import map, range, str, zip
+from collections import namedtuple
 from functools import wraps
 from logging import getLogger
 
@@ -278,6 +279,16 @@ class DtaleData(object):
 
         """
         return global_state.get_data(self._data_id)
+
+    @property
+    def view_data(self):
+        """
+        Property which returns the data associated with this instance as well as any sorting or filtering applied
+        from the UI
+
+        """
+        req = namedtuple("req", "args")
+        return load_filterable_data(self._data_id, req(dict(filtered="true")))
 
     @data.setter
     def data(self, data):

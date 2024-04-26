@@ -3384,3 +3384,32 @@ def test_aggregations(unittest):
         unittest.assertEquals(
             resp.json, {"result": 2.1333333333333333, "success": True}
         )
+
+
+@pytest.mark.unit
+def test_instance_data(unittest):
+    import dtale.views as views
+    import dtale
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: dict()})
+
+        params = dict(ids=json.dumps(["1"]), sort=json.dumps([["b", "DESC"]]))
+        c.get("/dtale/data/{}".format(c.port), query_string=params)
+
+        i = dtale.get_instance(c.port)
+        assert i.data["b"].values[0] == 6
+
+        c.get(
+            "/dtale/save-column-filter/{}".format(c.port),
+            query_string=dict(
+                col="b",
+                cfg=json.dumps({"type": "int", "operand": ">=", "value": "5"}),
+            ),
+        )
+
+        assert len(i.view_data) == 2
+        assert i.view_data["b"].values[0] == 6
