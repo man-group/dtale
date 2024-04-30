@@ -162,6 +162,12 @@ tmp['d'] = 4
 # FYI: this will clear any front-end settings you have at the time for this process (filter, sorts, formatting)
 d.data = tmp
 
+# Get raw dataframe w/ any sorting or edits made through the UI
+d.data
+
+# Get raw dataframe similar to '.data' along with any filters applied using the UI
+d.view_data
+
 # Shutting down D-Tale process
 d.kill()
 
