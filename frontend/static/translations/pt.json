@@ -59,7 +59,8 @@
     "Vertical Column Headers": "Vertical Column Headers",
     "Hide Header Editor": "Hide Header Editor",
     "Load ArcticDB Data": "Load ArcticDB Data",
-    "Jump To Column": "Jump To Column"
+    "Jump To Column": "Jump To Column",
+    "Raw Pandas Output": "Raw Pandas Output"
   },
   "menu_description": {
     "describe": "Descreve valores das colunas (Valores únicos, Min, Max, Soma, STD, Var,...)",
@@ -110,7 +111,8 @@
     "timeseries_analysis": "Analyze time series data using different \"statsmodels.tsa\" functions",
     "hide_header_editor": "If checked, hides the header editor when editing cells in the grid",
     "arcticdb": "Load data from a specific library & symbol in ArcticDB",
-    "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown."
+    "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown.",
+    "raw_pandas": "See the raw output from such pandas functions as info, nunique & describe"
   },
   "column_menu": {
     "Asc": "Asc",
@@ -363,7 +365,8 @@
     "Delimiter": "Delimiter",
     "Concatenate": "Concatenate",
     "Replace": "Replace",
-    "Algorithm": "Algorithm"
+    "Algorithm": "Algorithm",
+    "Select All": "Select All"
   },
   "column_filter": {
     "filter": "Para filtros mais complexos use a janela \"Filtro Customizado\" no menu principal.",
@@ -1027,7 +1030,7 @@
     "Build": "Build",
     "Report": "Report",
     "Index": "Index",
-    "Column": "Column",
+    "Column": "Coluna",
     "Agg": "Agg",
     "hpfilter": "Hodrick-Prescott Filter",
     "bkfilter": "Baxter-King Filter",
@@ -1062,5 +1065,15 @@
     "Library": "Library",
     "Symbol": "Symbol",
     "Load": "Carregar"
+  },
+  "aggregations": {
+    "Weights": "Weights",
+    "Weighted Avg": "Weighted Avg",
+    "Total": "Total",
+    "Average": "Média",
+    "Median": "Mediana",
+    "Use filtered data": "Use filtered data",
+    "Column": "Coluna",
+    "Aggregations": "Agregamentos"
   }
 }

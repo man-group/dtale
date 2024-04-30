@@ -394,10 +394,7 @@ def init_callbacks(dash_app):
             Output("query-input", "value"),
             Output("y-all-clicks", "data"),
         ],
-        [
-            Input("data-tabs", "value"),
-            Input("y-select-all-btn", "n_clicks"),
-        ],
+        [Input("data-tabs", "value"), Input("y-select-all-btn", "n_clicks")],
         [
             State("input-data", "data"),
             State("y-all-clicks", "data"),

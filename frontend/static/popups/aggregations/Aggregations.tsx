@@ -91,7 +91,7 @@ const Aggregations: React.FC<AggregationsProps & WithTranslation> = ({ columns, 
     <div className={`side-panel-content aggregations ${!!selectedColumn ? ` is-expanded pl-5 pr-5 pt-3` : ''}`}>
       <div className="row ml-0 mr-0">
         <div className="col-auto pl-0">
-          <h2>{t('Aggregations', { ns: 'menu' })}</h2>
+          <h2>{t('Aggregations')}</h2>
         </div>
         <div className="col" />
         <div className="col-auto p-0">
@@ -114,7 +114,7 @@ const Aggregations: React.FC<AggregationsProps & WithTranslation> = ({ columns, 
           />
           <Form.Switch
             id="filtered-switch"
-            label="Use filtered data?"
+            label={`${t('Use filtered data')}?`}
             checked={filtered}
             onChange={(e) => setFiltered(e.target.checked)}
           />
@@ -149,4 +149,4 @@ const Aggregations: React.FC<AggregationsProps & WithTranslation> = ({ columns, 
   );
 };
 
-export default withTranslation('upload')(Aggregations);
+export default withTranslation('aggregations')(Aggregations);
