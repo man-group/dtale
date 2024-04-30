@@ -1,5 +1,13 @@
 ## Changelog
 
+### 3.12.0 (2024-4-30)
+* [#851](https://github.com/man-group/dtale/issues/851): allowing offline_chart to return plotly objects
+* [#847](https://github.com/man-group/dtale/issues/847): Add 'Select All' option for duplicate check UI
+* [#856](https://github.com/man-group/dtale/issues/856): adding 'Select All' to cumsum and y-axis select in charts
+* [#857](https://github.com/man-group/dtale/issues/857): Aggregations popup
+* [#858](https://github.com/man-group/dtale/issues/858): added 'view_data' property to data instances
+* [#854](https://github.com/man-group/dtale/issues/854): Raw Pandas Output popup
+
 ### 3.11.0 (2024-3-6)
 * Added extra security around whether a custom query can be used to protected against server-side attacks
 

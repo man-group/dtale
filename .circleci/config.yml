@@ -70,7 +70,7 @@ python_variables: &python_variables
   CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
   CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
   CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-  VERSION: 3.11.0
+  VERSION: 3.12.0
   PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
 python_formatting: &python_formatting
     parallelism: 1
@@ -241,9 +241,7 @@ python: &python
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
               set -e
               . ci/bin/activate
-              pip install pypandoc
-              pip install docutils
-              pip install Pygments
+              pip install -r requirements-docs.txt
               grep version setup.py | grep -q $VERSION || (echo "ERROR: Version number not found in setup.py: $VERSION"; exit 1)
               grep -q $VERSION CHANGES.md || (echo "ERROR: Version number not found in CHANGES.md: $VERSION"; exit 1)
               grep -q $VERSION docker/dtale.env || (echo "ERROR: Version number not found in docker/dtale.env: $VERSION"; exit 1)
