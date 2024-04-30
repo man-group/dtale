@@ -3413,3 +3413,28 @@ def test_instance_data(unittest):
 
         assert len(i.view_data) == 2
         assert i.view_data["b"].values[0] == 6
+
+
+@pytest.mark.unit
+def test_raw_pandas(unittest):
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        build_data_inst({c.port: df})
+
+        resp = c.get(
+            "/dtale/raw-pandas/{}".format(c.port), query_string={"func_type": "info"}
+        )
+        assert resp.json["success"]
+
+        resp = c.get(
+            "/dtale/raw-pandas/{}".format(c.port), query_string={"func_type": "nunique"}
+        )
+        assert resp.json["success"]
+
+        resp = c.get(
+            "/dtale/raw-pandas/{}".format(c.port),
+            query_string={"func_type": "describe"},
+        )
+        assert resp.json["success"]

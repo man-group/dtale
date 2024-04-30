@@ -1437,6 +1437,7 @@ POPUP_TITLES = {
     "pps": "Predictive Power Score",
     "merge": "Merge & Stack",
     "arcticdb": "Load ArcticDB Data",
+    "raw-pandas": "Raw Pandas Output",
 }
 
 
@@ -4492,3 +4493,24 @@ def load_weighted_average(data_id, col, weights):
     data = load_filterable_data(data_id, request, columns=[col, weights])
     weighted_average = sum(data[col] * data[weights]) / sum(data[weights])
     return jsonify(success=True, result=float(weighted_average))
+
+
+@dtale.route("/raw-pandas/<data_id>")
+@exception_decorator
+def raw_pandas(data_id):
+    func_type = get_str_arg(request, "func_type", "info")
+    data = load_filterable_data(data_id, request)
+    if func_type == "info":
+        buffer = StringIO()
+        data.info(buf=buffer)
+        output = buffer.getvalue()
+        return jsonify(success=True, output=output)
+    elif func_type == "nunique":
+        output = data.nunique().to_string()
+        return jsonify(success=True, output=output)
+    elif func_type == "describe":
+        output = data.describe().T.to_string()
+        return jsonify(success=True, output=output)
+    return jsonify(
+        success=False, error="Invalid function type passed in: {}".format(func_type)
+    )

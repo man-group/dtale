@@ -116,6 +116,7 @@ interface HotKeyOutput {
   ABOUT: () => PayloadAction<Popups>;
   LOGOUT: VoidFunc;
   SHUTDOWN: VoidFunc;
+  RAW_PANDAS: VoidFunc;
 }
 
 export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
@@ -162,5 +163,6 @@ export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
     ABOUT: () => openChart({ type: PopupType.ABOUT, size: 'sm', backdrop: true, visible: true }),
     LOGOUT: () => (window.location.pathname = fullPath('/logout')),
     SHUTDOWN: () => (window.location.pathname = fullPath('/shutdown')),
+    RAW_PANDAS: openPopupTab('raw-pandas'),
   };
 };

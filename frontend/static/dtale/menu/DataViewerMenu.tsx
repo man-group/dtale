@@ -42,6 +42,7 @@ import PinMenuOption from './PinMenuOption';
 import PPSOption from './PPSOption';
 import PredefinedFiltersOption from './PredefinedFiltersOption';
 import RangeHighlightOption from './RangeHighlightOption';
+import RawPandasOption from './RawPandasOutputOption';
 import ReloadOption from './ReloadOption';
 import ShowHideColumnsOption from './ShowHideColumnsOption';
 import ShutdownOption from './ShutdownOption';
@@ -194,6 +195,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
             />
           )}
           {!largeArcticDB && <GageRnROption open={() => showSidePanel(SidePanelType.GAGE_RNR)} />}
+          {!isArcticDB && <RawPandasOption open={buttonHandlers.RAW_PANDAS} />}
           {!isArcticDB && (
             <InstancesOption
               open={openPopup({ type: PopupType.INSTANCES, title: 'Instances', visible: true }, 450, 750)}

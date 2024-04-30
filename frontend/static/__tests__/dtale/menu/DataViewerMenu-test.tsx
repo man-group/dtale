@@ -118,6 +118,14 @@ describe('DataViewerMenu tests', () => {
     expect(window.open).toHaveBeenCalledWith('/dtale/popup/merge', '_blank');
   });
 
+  it('calls window.open on raw pandas output', async () => {
+    buildMenu();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Raw Pandas Output'));
+    });
+    expect(window.open).toHaveBeenCalledWith('/dtale/popup/raw-pandas/1', '_blank');
+  });
+
   it('updates languages', async () => {
     buildMenu();
     await act(async () => {

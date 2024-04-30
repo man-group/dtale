@@ -8,10 +8,10 @@ export interface CodeExportResponse extends GenericRepository.BaseResponse {
 }
 
 /**
- * Load information related to filtering for a column.
+ * Load code export for data instance.
  *
  * @param dataId the identifier of the data instance you would like the code export for.
- * @return filter data for this column.
+ * @return code export.
  */
 export async function load(dataId: string): Promise<CodeExportResponse | undefined> {
   return await GenericRepository.getDataFromService<CodeExportResponse>(

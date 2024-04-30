@@ -59,7 +59,8 @@
     "Vertical Column Headers": "Vertical Column Headers",
     "Hide Header Editor": "Hide Header Editor",
     "Load ArcticDB Data": "Load ArcticDB Data",
-    "Jump To Column": "Jump To Column"
+    "Jump To Column": "Jump To Column",
+    "Raw Pandas Output": "Raw Pandas Output"
   },
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
@@ -110,7 +111,8 @@
     "timeseries_analysis": "Analyze time series data using different \"statsmodels.tsa\" functions",
     "hide_header_editor": "If checked, hides the header editor when editing cells in the grid",
     "arcticdb": "Load data from a specific library & symbol in ArcticDB",
-    "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown."
+    "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown.",
+    "raw_pandas": "See the raw output from such pandas functions as info, nunique & describe"
   },
   "column_menu": {
     "Asc": "Asc",
@@ -367,7 +369,8 @@
     "Case Sensitive": "Case Sensitive",
     "Regex": "Regex",
     "Search For": "Search For",
-    "Algorithm": "Algorithm"
+    "Algorithm": "Algorithm",
+    "Select All": "Select All"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
@@ -1066,5 +1069,15 @@
     "Library": "Library",
     "Symbol": "Symbol",
     "Load": "Load"
+  },
+  "aggregations": {
+    "Weights": "Weights",
+    "Weighted Avg": "Weighted Avg",
+    "Total": "Total",
+    "Average": "Average",
+    "Median": "Median",
+    "Use filtered data": "Use filtered data",
+    "Column": "Column",
+    "Aggregations": "Aggregations"
   }
 }

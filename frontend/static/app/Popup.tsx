@@ -14,6 +14,7 @@ import FilterPopup from '../popups/filter/FilterPopup';
 import Instances from '../popups/instances/Instances';
 import MergeDatasets from '../popups/merge/MergeDatasets';
 import PredictivePowerScore from '../popups/pps/PredictivePowerScore';
+import { RawPandasOutput } from '../popups/RawPandasOutput';
 import CreateReplacement from '../popups/replacement/CreateReplacement';
 import Reshape from '../popups/reshape/Reshape';
 import Upload from '../popups/upload/Upload';
@@ -96,6 +97,9 @@ export const Popup: React.FC<PopupProps> = ({ pathname }) => {
         break;
       case 'code-export':
         rootNode = <CodeExport />;
+        break;
+      case 'raw-pandas':
+        rootNode = <RawPandasOutput />;
         break;
       case 'arcticdb':
         rootNode = <LibrarySymbolSelector />;

@@ -1,14 +1,13 @@
 import { act, fireEvent, getByText, render, screen } from '@testing-library/react';
 import axios from 'axios';
+import * as React from 'react';
+import { Provider } from 'react-redux';
 
+import { DataViewer } from '../../dtale/DataViewer';
+import DimensionsHelper from '../DimensionsHelper';
 import { clickColMenuButton } from '../iframe/iframe-utils';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, selectOption } from '../test-utils';
-
-import { Provider } from 'react-redux';
-import { DataViewer } from '../../dtale/DataViewer';
-import * as React from 'react';
-import DimensionsHelper from '../DimensionsHelper';
 
 describe('NumericFormatting', () => {
   const { open } = window;
