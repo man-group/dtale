@@ -87,7 +87,7 @@ const XArrayDimensions: React.FC<XArrayDimensionsProps & WithTranslation> = ({ p
   const canSave = convertCurrentSelections(xarrayDim) !== reduxState.xarrayDim;
   return (
     <React.Fragment>
-      <div className="modal-body">
+      <div className="modal-body" data-testid="xarray-dimensions-body">
         {error}
         <BouncerWrapper showBouncer={loadingCoordinates}>
           <div className="row">
@@ -142,7 +142,7 @@ const XArrayDimensions: React.FC<XArrayDimensionsProps & WithTranslation> = ({ p
           </div>
         </BouncerWrapper>
       </div>
-      <div className="modal-footer">
+      <div className="modal-footer" data-testid="xarray-dimensions-footer">
         <button className="btn btn-primary" disabled={!canSave} onClick={save}>
           <span>{t('Update Dimensions')}</span>
         </button>

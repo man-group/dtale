@@ -52,7 +52,7 @@ const XArrayIndexes: React.FC<XArrayIndexesProps & WithTranslation> = ({ propaga
   const options: Array<{ value: string }> = chartData.columns.map((c) => ({ value: c.name })).sort(sortOptions);
   return (
     <React.Fragment>
-      <div className="modal-body">
+      <div className="modal-body" data-testid="xarray-indexes-body">
         {error}
         <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">{t('Index', { ns: 'menu' })}</label>

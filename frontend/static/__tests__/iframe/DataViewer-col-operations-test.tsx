@@ -1,4 +1,4 @@
-import { act, fireEvent, getByRole, getByText, render } from '@testing-library/react';
+import { act, fireEvent, getByRole, getByText, render, screen } from '@testing-library/react';
 import axios from 'axios';
 import * as React from 'react';
 import { Provider } from 'react-redux';
@@ -128,7 +128,7 @@ describe('Column operations in an iframe', () => {
   it('renames a column', async () => {
     await openColMenu(3);
     await clickColMenuButton('Rename');
-    const renameBody = document.body.querySelector('div.modal-body')!;
+    const renameBody = screen.getByTestId('rename-body');
     await act(async () => {
       await fireEvent.change(renameBody.getElementsByTagName('input')[0], { target: { value: 'col2' } });
     });

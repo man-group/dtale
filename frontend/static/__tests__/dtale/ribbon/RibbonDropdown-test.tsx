@@ -226,6 +226,7 @@ describe('RibbonDropdown', () => {
       CLEAN: jest.fn(),
       ABOUT: jest.fn(),
       LOGOUT: jest.fn(),
+      RAW_PANDAS: jest.fn(),
     }));
     await setupElementAndDropdown(RibbonDropdownType.MAIN);
     await act(async () => {
@@ -258,6 +259,7 @@ describe('RibbonDropdown', () => {
         CLEAN: jest.fn(),
         ABOUT: jest.fn(),
         LOGOUT: jest.fn(),
+        RAW_PANDAS: jest.fn(),
       }));
     });
 
@@ -312,6 +314,7 @@ describe('RibbonDropdown', () => {
         CLEAN: jest.fn(),
         ABOUT: jest.fn(),
         LOGOUT: jest.fn(),
+        RAW_PANDAS: jest.fn(),
       }));
     });
 
