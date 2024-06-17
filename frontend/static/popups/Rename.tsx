@@ -61,7 +61,7 @@ export const Rename: React.FC<RenameProps & WithTranslation> = ({ propagateState
 
   return (
     <React.Fragment>
-      <div className="modal-body">
+      <div className="modal-body" data-testid="rename-body">
         {error}
         <div className="form-group row">
           <label className="col-md-4 col-form-label text-right">{t('Current')}</label>

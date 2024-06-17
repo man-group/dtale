@@ -53,7 +53,7 @@ describe('NumericFormatting', () => {
     await act(async () => {
       await fireEvent.click(document.getElementsByClassName('modal-header')[0].getElementsByClassName('ico-close')[0]);
     });
-    expect(spies.body()).toBeUndefined();
+    expect(document.getElementsByClassName('formatting-body')).toHaveLength(0);
     await act(async () => {
       await fireEvent.click(screen.queryAllByTestId('header-cell')[1].getElementsByClassName('text-nowrap')[0]);
     });

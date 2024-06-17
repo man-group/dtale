@@ -110,7 +110,7 @@ export class Spies {
    * @return Formatting body
    */
   public body(): Element {
-    return document.getElementsByClassName('modal-body')[0];
+    return screen.getByTestId('formatting-body');
   }
 
   /**
