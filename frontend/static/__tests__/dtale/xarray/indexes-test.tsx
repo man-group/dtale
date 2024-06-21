@@ -47,9 +47,7 @@ describe('DataViewer tests', () => {
   it('DataViewer: convert data to xarray dataset', async () => {
     const body = screen.getByTestId('xarray-indexes-body');
     await selectOption(
-      body
-        .getElementsByClassName('form-group')[0]
-        .getElementsByClassName('Select')[0] as HTMLElement,
+      body.getElementsByClassName('form-group')[0].getElementsByClassName('Select')[0] as HTMLElement,
       'col1',
     );
     await act(async () => {

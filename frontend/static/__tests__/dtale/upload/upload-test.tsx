@@ -1,4 +1,4 @@
-import { act, fireEvent, queryByText, screen } from '@testing-library/react';
+import { act, fireEvent, getByTestId, screen } from '@testing-library/react';
 
 import * as TestSupport from './Upload.test.support';
 
@@ -44,16 +44,6 @@ describe('Upload', () => {
       await fireEvent.drop(inputEl);
     });
   };
-
-  it('DataViewer: cancel CSV upload', async () => {
-    window.location.pathname = '/dtale/popup/upload';
-    await fireUpload();
-    await act(async () => {
-      await fireEvent.click(screen.getByTestId('csv-options-cancel'));
-    });
-    expect(spies.uploadSpy).not.toHaveBeenCalled();
-    expect(queryByText(document.body, 'Separator')).toBe(null);
-  });
 
   it('renders successfully', async () => {
     expect(upload()).toBeDefined();
@@ -136,6 +126,16 @@ describe('Upload', () => {
       fireEvent.click(formGroups[formGroups.length - 1].getElementsByTagName('button')[0]);
     });
     expect(window.location.assign).toBeCalledWith('/2');
+  });
+
+  it('DataViewer: cancel CSV upload', async () => {
+    window.location.pathname = '/dtale/popup/upload';
+    await fireUpload();
+    await act(async () => {
+      await fireEvent.click(getByTestId(document.body, 'csv-options-cancel'));
+    });
+    expect(spies.uploadSpy).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('csv-options-body')).toBeNull();
   });
 
   describe('web excel uploads', () => {

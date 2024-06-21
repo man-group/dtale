@@ -1,9 +1,9 @@
-/* eslint-disable no-restricted-globals */
-const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
+
 const baseConfig = require('./webpack.config.js');
 
-function createConfig(subConfig) {
+const createConfig = (subConfig) => {
   return {
     ...subConfig,
     mode: 'production',
@@ -26,14 +26,14 @@ function createConfig(subConfig) {
       }),
     ],
   };
-}
+};
 
-function createDashConfig(subConfig) {
+const createDashConfig = (subConfig) => {
   return {
     ...subConfig,
     mode: 'production',
   };
-}
+};
 
 module.exports = baseConfig.map((c) =>
   c.output.path.endsWith('dtale/static/dash') ? createDashConfig(c) : createConfig(c),

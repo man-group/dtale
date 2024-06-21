@@ -83,6 +83,7 @@ describe('reducer tests', () => {
       isVSCode: false,
       isArcticDB: 0.0,
       arcticConn: '',
+      columnAggregations: null,
       columnCount: 0,
       queryEngine: 'python',
       openCustomFilterOnStartup: false,
