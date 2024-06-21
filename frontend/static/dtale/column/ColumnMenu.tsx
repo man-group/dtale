@@ -312,7 +312,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
         {gu.isNumeric(colCfg.dtype) && !reduxState.isArcticDB && (
           <ColumnMenuOption
             open={openAggregations}
-            label={t('Aggregations', { ns: 'menu' })}
+            label={t('Aggregations', { ns: 'aggregations' })}
             iconClass="ico-functions ml-2"
           />
         )}
@@ -329,4 +329,4 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
   );
 };
 
-export default withTranslation(['menu', 'column_menu', 'builders'])(ColumnMenu);
+export default withTranslation(['menu', 'column_menu', 'builders', 'aggregations'])(ColumnMenu);

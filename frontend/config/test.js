@@ -12,7 +12,7 @@ process.env.NODE_ENV = 'test';
 process.on('unhandledRejection', (err) => {
   if (err instanceof Error) {
     throw err;
-  } else if (typeof err == 'string') {
+  } else if (typeof err === 'string') {
     throw Error(err);
   } else if (err && 'toString' in err) {
     throw Error(err.toString());

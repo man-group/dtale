@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 
 import WordcloudBody from '../../../popups/charts/WordcloudBody.tsx';
 
@@ -9,6 +9,7 @@ import WordcloudBody from '../../../popups/charts/WordcloudBody.tsx';
  * or group of wordclouds depending on whether a `group` value has been specified.
  */
 export default class Wordcloud extends Component {
+  /** @override */
   render() {
     const { id } = this.props;
     const buildObj = (value) => ({ value });

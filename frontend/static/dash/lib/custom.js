@@ -2,7 +2,7 @@ require('./publicDashPath');
 
 import axios from 'axios';
 
-function updateLanguage(e, language) {
+const updateLanguage = (e, language) => {
   e.preventDefault();
   let path = `/dtale/update-language?language=${language}`;
   if (window.resourceBaseUrl) {
@@ -13,10 +13,10 @@ function updateLanguage(e, language) {
     .then(() => {
       window.location.reload();
     })
-    .catch((e) => console.log(e)); // eslint-disable-line no-console
-}
+    .catch((err) => console.log(err)); // eslint-disable-line no-console
+};
 
-function openCodeSnippet(e) {
+const openCodeSnippet = (e) => {
   e.preventDefault();
   window.code_popup = { code: document.getElementById('chart-code').value, title: 'Charts' };
 
@@ -25,9 +25,9 @@ function openCodeSnippet(e) {
     path = `${window.resourceBaseUrl}/${path}`;
   }
   window.open(`${window.location.origin}/${path}`, '_blank', `titlebar=1,location=1,status=1,width=700,height=450`);
-}
+};
 
-function copy(e) {
+const copy = (e) => {
   e.preventDefault();
   const textCmp = document.getElementById('copy-text');
   let chartLink = e.target.parentNode.getAttribute('href');
@@ -51,14 +51,14 @@ function copy(e) {
   setTimeout(() => {
     ttBottom.className = [...ttBottomClasses, 'fade-out'].join(' ');
   }, 300);
-}
+};
 
-function exportChart(e, href) {
+const exportChart = (e, href) => {
   e.preventDefault();
   window.open(href + '&_id=' + new Date().getTime(), '_blank');
-}
+};
 
-window.onload = function () {
+window.onload = () => {
   document.addEventListener('click', (e) => {
     const target = e.target;
     if (target.parentNode.classList.contains('code-snippet-btn')) {

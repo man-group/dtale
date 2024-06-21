@@ -118,7 +118,7 @@ export class Spies {
           },
         ).container,
     );
-    return this.result;
+    return this.result!;
   }
 
   /**
