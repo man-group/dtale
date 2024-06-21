@@ -941,6 +941,8 @@ def startup(
     enable_custom_filters=None,
     enable_web_uploads=None,
     force_save=True,
+    main_title=None,
+    main_title_font=None,
 ):
     """
     Loads and stores data globally
@@ -1069,6 +1071,8 @@ def startup(
             hide_column_menus=hide_column_menus,
             enable_custom_filters=enable_custom_filters,
             enable_web_uploads=enable_web_uploads,
+            main_title=main_title,
+            main_title_font=main_title_font,
         )
         startup_code = (
             "from arcticdb import Arctic\n"
@@ -1142,6 +1146,8 @@ def startup(
                 hide_column_menus=hide_column_menus,
                 enable_custom_filters=enable_custom_filters,
                 enable_web_uploads=enable_web_uploads,
+                main_title=main_title,
+                main_title_font=main_title_font,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1215,6 +1221,10 @@ def startup(
             base_settings["enable_web_uploads"] = enable_web_uploads
         if column_edit_options is not None:
             base_settings["column_edit_options"] = column_edit_options
+        if main_title is not None:
+            base_settings["main_title"] = main_title
+        if main_title_font is not None:
+            base_settings["main_title_font"] = main_title_font
         global_state.set_settings(data_id, base_settings)
         if optimize_dataframe and not global_state.is_arcticdb:
             data = optimize_df(data)
@@ -1307,6 +1317,8 @@ def base_render_template(template, data_id, **kwargs):
     hide_header_menu = global_state.load_flag(data_id, "hide_header_menu", False)
     hide_main_menu = global_state.load_flag(data_id, "hide_main_menu", False)
     hide_column_menus = global_state.load_flag(data_id, "hide_column_menus", False)
+    main_title = global_state.load_flag(data_id, "main_title", None)
+    main_title_font = global_state.load_flag(data_id, "main_title_font", None)
     enable_custom_filters = global_state.load_flag(
         data_id, "enable_custom_filters", False
     )
@@ -1322,6 +1334,8 @@ def base_render_template(template, data_id, **kwargs):
         enable_custom_filters=enable_custom_filters,
         enable_web_uploads=enable_web_uploads,
         github_fork=github_fork,
+        main_title=main_title,
+        main_title_font=main_title_font,
     )
     is_arcticdb = 0
     arctic_conn = ""
@@ -1365,7 +1379,7 @@ def _view_main(data_id, iframe=False):
     :type iframe: bool, optional
     :return: HTML
     """
-    title = "D-Tale"
+    title = global_state.load_flag(data_id, "main_title", None) or "D-Tale"
     name = global_state.get_name(data_id)
     if name:
         title = "{} ({})".format(title, name)
@@ -1456,7 +1470,7 @@ def view_popup(popup_type, data_id=None):
     """
     if data_id is None and popup_type not in ["upload", "merge", "arcticdb"]:
         return redirect("/dtale/{}".format(head_endpoint(popup_type)))
-    main_title = global_state.get_app_settings().get("main_title")
+    main_title = global_state.load_flag(data_id, "main_title", None)
     title = main_title or "D-Tale"
     name = global_state.get_name(data_id)
     if name:

@@ -83,6 +83,8 @@ def test_startup(unittest):
         hide_column_menus=True,
         enable_custom_filters=True,
         enable_web_uploads=True,
+        main_title="test_title",
+        main_title_font="test_title_font"
     )
 
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
@@ -107,6 +109,8 @@ def test_startup(unittest):
             backgroundMode=None,
             verticalHeaders=False,
             highlightFilter=False,
+            main_title="test_title",
+            main_title_font="test_title_font"
         ),
         "should lock index columns",
     )
@@ -133,6 +137,8 @@ def test_startup(unittest):
             backgroundMode=None,
             verticalHeaders=False,
             highlightFilter=False,
+            main_title="test_title",
+            main_title_font="test_title_font"
         ),
         "should hide header editor",
     )
@@ -2673,7 +2679,7 @@ def test_jinja_output():
     df, _ = views.format_data(df)
     url = "http://localhost.localdomain:40000"
     with build_app(url=url).test_client() as c:
-        with ExitStack() as stack:
+        with ExitStack():
             build_data_inst({c.port: df})
             build_dtypes({c.port: views.build_dtypes_state(df)})
             response = c.get("/dtale/main/{}".format(c.port))
@@ -2691,6 +2697,15 @@ def test_jinja_output():
             )
             response = c.get("/dtale/main/{}".format(c.port))
             assert 'span id="forkongithub"' in str(response.data)
+
+    with build_app(url=url).test_client() as c:
+        with ExitStack():
+            build_data_inst({c.port: df})
+            build_dtypes({c.port: views.build_dtypes_state(df)})
+            build_settings({c.port: {"main_title": "test_title", "main_title_font": "test_title_font"}})
+            response = c.get("/dtale/main/{}".format(c.port))
+            assert 'input type="hidden" id="main_title" value="test_title"' in str(response.data)
+            assert 'input type="hidden" id="main_title_font" value="test_title_font"' in str(response.data)
 
 
 @pytest.mark.unit

@@ -812,6 +812,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             hide_column_menus=final_options.get("hide_column_menus"),
             enable_custom_filters=final_options.get("enable_custom_filters"),
             enable_web_uploads=final_options.get("enable_web_uploads"),
+            main_title=final_options.get("main_title"),
+            main_title_font=final_options.get("main_title_font"),
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)
