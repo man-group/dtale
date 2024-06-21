@@ -228,6 +228,8 @@ def build_show_options(options=None):
         hide_column_menus=None,
         enable_custom_filters=None,
         enable_web_uploads=None,
+        main_title=None,
+        main_title_font=None,
     )
     config_options = {}
     config = get_config()

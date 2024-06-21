@@ -684,7 +684,7 @@ def load_flag(data_id, flag_name, default):
 
     app_settings = get_app_settings()
     curr_settings = get_settings(data_id) or {}  # noqa: F821
-    global_flag = getattr(dtale, flag_name.upper())
+    global_flag = getattr(dtale, flag_name.upper(), default)
     if global_flag != default:
         return global_flag
     if flag_name in app_settings and app_settings[flag_name] != default:
