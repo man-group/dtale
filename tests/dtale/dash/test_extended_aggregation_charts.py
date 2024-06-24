@@ -7,7 +7,7 @@ import dtale.global_state as global_state
 from dtale.app import build_app
 
 from tests.dtale import build_data_inst
-from tests.dtale.dash.test_dash import build_chart_params, get_url_parser
+from tests.dtale.dash.test_dash import build_chart_params, clean_params, get_url_parser
 from tests.dtale.test_charts import build_col_def
 from tests.dtale.test_views import URL
 
@@ -136,18 +136,20 @@ def test_bar_and_popup(unittest):
         [pathname_val, search_val] = url.split("?")
         response = c.post(
             "/dtale/charts/_dash-update-component",
-            json={
-                "output": "popup-content.children",
-                "changedPropIds": ["url.modified_timestamp"],
-                "inputs": [
-                    {"id": "url", "property": "pathname", "value": pathname_val},
-                    {
-                        "id": "url",
-                        "property": "search",
-                        "value": "?{}".format(search_val),
-                    },
-                ],
-            },
+            json=clean_params(
+                {
+                    "output": "popup-content.children",
+                    "changedPropIds": ["url.modified_timestamp"],
+                    "inputs": [
+                        {"id": "url", "property": "pathname", "value": pathname_val},
+                        {
+                            "id": "url",
+                            "property": "search",
+                            "value": "?{}".format(search_val),
+                        },
+                    ],
+                }
+            ),
         )
         assert response.status_code == 200
 
