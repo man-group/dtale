@@ -4,7 +4,7 @@ import pytest
 from tests import ExitStack
 from tests.dtale import build_data_inst
 from tests.dtale.test_views import app
-from tests.dtale.dash.test_dash import ts_builder
+from tests.dtale.dash.test_dash import clean_params, ts_builder
 
 
 @pytest.mark.unit
@@ -85,23 +85,27 @@ def test_save_chart(unittest):
         for i in SAVED_CHART_IDS
     ]
     with app.test_client() as c:
-        params = {
-            "output": "..save-clicks.data...{}...{}..".format(config_ids, delete_ids),
-            "changedPropIds": ["collapse-data-btn.n_clicks"],
-            "inputs": [{"id": "save-btn", "property": "n_clicks", "value": 1}]
-            + delete_clicks,
-            "state": [
-                {"id": "input-data", "property": "data", "value": {}},
-                {"id": "chart-input-data", "property": "data", "value": {}},
-                {"id": "yaxis-data", "property": "data", "value": {}},
-                {"id": "map-input-data", "property": "data", "value": {}},
-                {"id": "candlestick-input-data", "property": "data", "value": {}},
-                {"id": "treemap-input-data", "property": "data", "value": {}},
-                {"id": "save-clicks", "property": "data", "value": 0},
-            ]
-            + configs
-            + deletes,
-        }
+        params = clean_params(
+            {
+                "output": "..save-clicks.data...{}...{}..".format(
+                    config_ids, delete_ids
+                ),
+                "changedPropIds": ["collapse-data-btn.n_clicks"],
+                "inputs": [{"id": "save-btn", "property": "n_clicks", "value": 1}]
+                + delete_clicks,
+                "state": [
+                    {"id": "input-data", "property": "data", "value": {}},
+                    {"id": "chart-input-data", "property": "data", "value": {}},
+                    {"id": "yaxis-data", "property": "data", "value": {}},
+                    {"id": "map-input-data", "property": "data", "value": {}},
+                    {"id": "candlestick-input-data", "property": "data", "value": {}},
+                    {"id": "treemap-input-data", "property": "data", "value": {}},
+                    {"id": "save-clicks", "property": "data", "value": 0},
+                ]
+                + configs
+                + deletes,
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.status_code == 204
 
@@ -151,25 +155,27 @@ def test_load_saved_chart(unittest):
                 "animate": False,
                 "trendline": False,
             }
-            params = {
-                "output": (
-                    "..saved-chart-div-1.style...saved-chart-1.children...prev-saved-chart-config-1.data."
-                    "..saved-chart-header-1.children.."
-                ),
-                "inputs": [ts_builder("saved-chart-config-1")],
-                "state": [
-                    {
-                        "id": "saved-chart-config-1",
-                        "property": "data",
-                        "value": input_data,
-                    },
-                    {
-                        "id": "prev-saved-chart-config-1",
-                        "property": "data",
-                        "value": None,
-                    },
-                ],
-            }
+            params = clean_params(
+                {
+                    "output": (
+                        "..saved-chart-div-1.style...saved-chart-1.children...prev-saved-chart-config-1.data."
+                        "..saved-chart-header-1.children.."
+                    ),
+                    "inputs": [ts_builder("saved-chart-config-1")],
+                    "state": [
+                        {
+                            "id": "saved-chart-config-1",
+                            "property": "data",
+                            "value": input_data,
+                        },
+                        {
+                            "id": "prev-saved-chart-config-1",
+                            "property": "data",
+                            "value": None,
+                        },
+                    ],
+                }
+            )
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             response = response.json["response"]
             assert response["saved-chart-div-1"]["style"]["display"] == "block"
