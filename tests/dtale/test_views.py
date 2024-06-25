@@ -2944,6 +2944,7 @@ def test_save_column_filter(unittest, custom_data):
                 "meta": {"classification": "S", "column": "str_val", "type": "string"},
             },
         )
+
         for col, f_type in [
             ("bool_val", "string"),
             ("int_val", "int"),
@@ -2952,7 +2953,28 @@ def test_save_column_filter(unittest, custom_data):
             response = c.get(
                 "/dtale/save-column-filter/{}".format(c.port),
                 query_string=dict(
-                    col=col, cfg=json.dumps({"type": f_type, "missing": True})
+                    col=col,
+                    cfg=json.dumps(
+                        {"type": f_type, "populated": True, "missing": False}
+                    ),
+                ),
+            )
+            col_cfg = response.get_json()["currFilters"][col]
+            assert col_cfg["query"] == "~`{col}`.isnull()".format(col=col)
+            assert col_cfg["populated"]
+
+        for col, f_type in [
+            ("bool_val", "string"),
+            ("int_val", "int"),
+            ("date", "date"),
+        ]:
+            response = c.get(
+                "/dtale/save-column-filter/{}".format(c.port),
+                query_string=dict(
+                    col=col,
+                    cfg=json.dumps(
+                        {"type": f_type, "missing": True, "populated": False}
+                    ),
                 ),
             )
             col_cfg = response.get_json()["currFilters"][col]
@@ -3125,6 +3147,8 @@ def test_save_column_filter(unittest, custom_data):
         assert "date" not in response.get_json()["currFilters"]
 
         assert settings[c.port].get("query") is None
+
+        global_state.set_app_settings(dict(enable_custom_filters=True))
 
         response = c.get("/dtale/move-filters-to-custom/{}".format(c.port))
         assert response.json["success"]

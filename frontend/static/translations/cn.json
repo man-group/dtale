@@ -380,7 +380,10 @@
     "Equals": "等于",
     "Not Equals": "Not Equals",
     "to": "to",
-    "Case-Sensitive": "Case-Sensitive"
+    "Case-Sensitive": "Case-Sensitive",
+    "All": "All",
+    "Missing": "Missing",
+    "Populated": "Populated"
   },
   "about": {
     "Your version is currently out of sync with PyPi.": "你的版本目前与PyPi不同步。",

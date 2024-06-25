@@ -1,4 +1,4 @@
-import { act, fireEvent } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 
 import * as TestSupport from './ColumnFilter.test.support';
 
@@ -30,11 +30,11 @@ describe('ColumnFilter date tests', () => {
   it('ColumnFilter date rendering', async () => {
     expect(result.getElementsByClassName('bp5-input').length).toBeGreaterThan(0);
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
     expect(result.getElementsByClassName('bp5-disabled')).toHaveLength(2);
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
     expect(result.getElementsByClassName('bp5-disabled')).toHaveLength(0);
     await act(async () => {

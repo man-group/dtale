@@ -1,4 +1,4 @@
-import { act, fireEvent } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import selectEvent from 'react-select-event';
 
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
@@ -44,11 +44,11 @@ describe('ColumnFilter string tests', () => {
   it('ColumnFilter invalid type rendering', async () => {
     expect(result.getElementsByClassName('string-filter-inputs').length).toBe(1);
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
     expect(result.getElementsByClassName('Select__control--is-disabled').length).toBeGreaterThan(0);
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
     await act(async () => {
       await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);

@@ -66,6 +66,7 @@ export interface ColumnFilter extends Bounds {
   type: string;
   query?: string;
   missing?: boolean;
+  populated?: boolean;
   action?: ColumnFilterAction;
   value?: string | string[] | number | number[];
   raw?: string | number;

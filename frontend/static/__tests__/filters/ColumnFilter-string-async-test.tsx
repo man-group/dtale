@@ -45,10 +45,10 @@ describe('ColumnFilter string tests', () => {
   it('ColumnFilter string rendering', async () => {
     expect(result.getElementsByClassName('string-filter-inputs').length).toBe(1);
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
     expect(result.getElementsByClassName('bp5-disabled')).toHaveLength(0);
     const asyncSelect = result.getElementsByClassName('Select')[1] as HTMLElement;

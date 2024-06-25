@@ -79,30 +79,48 @@ class OutlierFilter(object):
         return self.cfg
 
 
-class MissingFilter(object):
+class MissingOrPopulatedFilter(object):
     def __init__(self, column, classification, cfg):
         self.column = column
         self.classification = classification
         self.cfg = cfg
 
-    def handle_missing(self, fltr):
-        if self.cfg is None or not self.cfg.get("missing", False):
+    def handle_missing_or_populated(self, fltr):
+        if self.cfg is None or (
+            not self.cfg.get("missing", False) and not self.cfg.get("populated", False)
+        ):
             return fltr
-        return {
-            "missing": True,
-            "meta": {
-                "column": self.column,
-                "classification": self.classification,
-                "type": self.cfg["type"],
-            },
-            "query": "{col}.isnull()".format(col=build_col_key(self.column)),
-        }
+        if self.cfg.get("missing", False):
+            return {
+                "missing": True,
+                "meta": {
+                    "column": self.column,
+                    "classification": self.classification,
+                    "type": self.cfg["type"],
+                },
+                "query": "{col}.isnull()".format(col=build_col_key(self.column)),
+            }
+        if self.cfg.get("populated", False):
+            return {
+                "populated": True,
+                "meta": {
+                    "column": self.column,
+                    "classification": self.classification,
+                    "type": self.cfg["type"],
+                },
+                "query": "~{col}.isnull()".format(col=build_col_key(self.column)),
+            }
 
-    def update_missing_query_builder(self, query_builder, fltr=None):
-        if self.cfg is None or not self.cfg.get("missing", False):
+    def update_missing_or_populated_query_builder(self, query_builder, fltr=None):
+        if self.cfg is None or (
+            not self.cfg.get("missing", False) and not self.cfg.get("populated", False)
+        ):
             return fltr
         # TODO: how to handle scenarios where QueryBuilder doesn't support functionality so do it manually
-        return query_builder[self.column] != query_builder[self.column]
+        if self.cfg.get("missing", False):
+            return query_builder[self.column] != query_builder[self.column]
+        if self.cfg.get("populated", False):
+            return query_builder[self.column] == query_builder[self.column]
 
 
 def handle_ne(query, operand):
@@ -117,19 +135,19 @@ def handle_query_builder_ne(query, operand):
     return query
 
 
-class StringFilter(MissingFilter):
+class StringFilter(MissingOrPopulatedFilter):
     def __init__(self, column, classification, cfg):
         super(StringFilter, self).__init__(column, classification, cfg)
 
     def build_filter(self):
         if self.cfg is None:
-            return super(StringFilter, self).handle_missing(None)
+            return super(StringFilter, self).handle_missing_or_populated(None)
 
         action = self.cfg.get("action", "equals")
         if action == "equals" and not len(self.cfg.get("value", [])):
-            return super(StringFilter, self).handle_missing(None)
+            return super(StringFilter, self).handle_missing_or_populated(None)
         elif action != "equals" and not self.cfg.get("raw"):
-            return super(StringFilter, self).handle_missing(None)
+            return super(StringFilter, self).handle_missing_or_populated(None)
 
         state = self.cfg.get("value", [])
         case_sensitive = self.cfg.get("caseSensitive", False)
@@ -191,17 +209,23 @@ class StringFilter(MissingFilter):
                     build_col_key(self.column), raw
                 )
             fltr["query"] = handle_ne(fltr["query"], operand)
-        return super(StringFilter, self).handle_missing(fltr)
+        return super(StringFilter, self).handle_missing_or_populated(fltr)
 
     def update_query_builder(self, query_builder):
         if self.cfg is None:
-            return super(StringFilter, self).update_missing_query_builder(query_builder)
+            return super(StringFilter, self).update_missing_or_populated_query_builder(
+                query_builder
+            )
 
         action = self.cfg.get("action", "equals")
         if action == "equals" and not len(self.cfg.get("value", [])):
-            return super(StringFilter, self).update_missing_query_builder(query_builder)
+            return super(StringFilter, self).update_missing_or_populated_query_builder(
+                query_builder
+            )
         elif action != "equals" and not self.cfg.get("raw"):
-            return super(StringFilter, self).update_missing_query_builder(query_builder)
+            return super(StringFilter, self).update_missing_or_populated_query_builder(
+                query_builder
+            )
 
         state = self.cfg.get("value", [])
         case_sensitive = self.cfg.get("caseSensitive", False)
@@ -232,18 +256,18 @@ class StringFilter(MissingFilter):
         elif action == "length":
             # Not supported by QueryBuilder
             pass
-        return super(StringFilter, self).update_missing_query_builder(
+        return super(StringFilter, self).update_missing_or_populated_query_builder(
             query_builder, fltr.get("query")
         )
 
 
-class NumericFilter(MissingFilter):
+class NumericFilter(MissingOrPopulatedFilter):
     def __init__(self, column, classification, cfg):
         super(NumericFilter, self).__init__(column, classification, cfg)
 
     def build_filter(self):
         if self.cfg is None:
-            return super(NumericFilter, self).handle_missing(None)
+            return super(NumericFilter, self).handle_missing_or_populated(None)
         cfg_val, cfg_operand, cfg_min, cfg_max = (
             self.cfg.get(p) for p in ["value", "operand", "min", "max"]
         )
@@ -259,7 +283,7 @@ class NumericFilter(MissingFilter):
         if cfg_operand in ["=", "ne"]:
             state = make_list(cfg_val or [])
             if not len(state):
-                return super(NumericFilter, self).handle_missing(None)
+                return super(NumericFilter, self).handle_missing_or_populated(None)
             fltr = dict(value=cfg_val, **base_fltr)
             if len(state) == 1:
                 fltr["query"] = "{} {} {}".format(
@@ -273,10 +297,10 @@ class NumericFilter(MissingFilter):
                     "in" if cfg_operand == "=" else "not in",
                     ", ".join(map(str, state)),
                 )
-            return super(NumericFilter, self).handle_missing(fltr)
+            return super(NumericFilter, self).handle_missing_or_populated(fltr)
         if cfg_operand in ["<", ">", "<=", ">="]:
             if cfg_val is None:
-                return super(NumericFilter, self).handle_missing(None)
+                return super(NumericFilter, self).handle_missing_or_populated(None)
             fltr = dict(
                 value=cfg_val,
                 query="{} {} {}".format(
@@ -284,7 +308,7 @@ class NumericFilter(MissingFilter):
                 ),
                 **base_fltr
             )
-            return super(NumericFilter, self).handle_missing(fltr)
+            return super(NumericFilter, self).handle_missing_or_populated(fltr)
         if cfg_operand in ["[]", "()"]:
             fltr = dict(**base_fltr)
             queries = []
@@ -309,14 +333,14 @@ class NumericFilter(MissingFilter):
             if len(queries) == 2 and cfg_max == cfg_min:
                 queries = ["{} == {}".format(build_col_key(self.column), cfg_max)]
             if not len(queries):
-                return super(NumericFilter, self).handle_missing(None)
+                return super(NumericFilter, self).handle_missing_or_populated(None)
             fltr["query"] = " and ".join(queries)
-            return super(NumericFilter, self).handle_missing(fltr)
-        return super(NumericFilter, self).handle_missing(None)
+            return super(NumericFilter, self).handle_missing_or_populated(fltr)
+        return super(NumericFilter, self).handle_missing_or_populated(None)
 
     def update_query_builder(self, query_builder):
         if self.cfg is None:
-            return super(NumericFilter, self).update_missing_query_builder(
+            return super(NumericFilter, self).update_missing_or_populated_query_builder(
                 query_builder
             )
         cfg_val, cfg_operand, cfg_min, cfg_max = (
@@ -328,9 +352,9 @@ class NumericFilter(MissingFilter):
             if self.cfg.get("meta", {}).get("type") == "float":
                 state = [np.float64(val) for val in state]
             if not len(state):
-                return super(NumericFilter, self).update_missing_query_builder(
-                    query_builder
-                )
+                return super(
+                    NumericFilter, self
+                ).update_missing_or_populated_query_builder(query_builder)
             fltr = dict(value=cfg_val, operand=cfg_operand)
             if len(state) == 1:
                 fltr["query"] = handle_query_builder_ne(
@@ -340,14 +364,14 @@ class NumericFilter(MissingFilter):
                 fltr["query"] = handle_query_builder_ne(
                     query_builder[self.column].isin(state), cfg_operand
                 )
-            return super(NumericFilter, self).update_missing_query_builder(
+            return super(NumericFilter, self).update_missing_or_populated_query_builder(
                 query_builder, fltr.get("query")
             )
         if cfg_operand in ["<", ">", "<=", ">="]:
             if cfg_val is None:
-                return super(NumericFilter, self).update_missing_query_builder(
-                    query_builder
-                )
+                return super(
+                    NumericFilter, self
+                ).update_missing_or_populated_query_builder(query_builder)
             fltr = dict(value=cfg_val, operand=cfg_operand)
             if cfg_operand == "<":
                 fltr["query"] = query_builder[self.column] < cfg_val
@@ -357,24 +381,26 @@ class NumericFilter(MissingFilter):
                 fltr["query"] = query_builder[self.column] <= cfg_val
             elif cfg_operand == ">=":
                 fltr["query"] = query_builder[self.column] >= cfg_val
-            return super(NumericFilter, self).update_missing_query_builder(
+            return super(NumericFilter, self).update_missing_or_populated_query_builder(
                 query_builder, fltr.get("query")
             )
         if cfg_operand in ["[]", "()"]:
             # Not supported by QueryBuilder
-            return super(NumericFilter, self).update_missing_query_builder(
+            return super(NumericFilter, self).update_missing_or_populated_query_builder(
                 query_builder
             )
-        return super(NumericFilter, self).update_missing_query_builder(query_builder)
+        return super(NumericFilter, self).update_missing_or_populated_query_builder(
+            query_builder
+        )
 
 
-class DateFilter(MissingFilter):
+class DateFilter(MissingOrPopulatedFilter):
     def __init__(self, column, classification, cfg):
         super(DateFilter, self).__init__(column, classification, cfg)
 
     def build_filter(self):
         if self.cfg is None:
-            return super(DateFilter, self).handle_missing(None)
+            return super(DateFilter, self).handle_missing_or_populated(None)
 
         start, end = (self.cfg.get(p) for p in ["start", "end"])
         fltr = dict(
@@ -394,15 +420,17 @@ class DateFilter(MissingFilter):
         if len(queries) == 2 and start == end:
             queries = ["{} == '{}'".format(build_col_key(self.column), start)]
         if not len(queries):
-            return super(DateFilter, self).handle_missing(None)
+            return super(DateFilter, self).handle_missing_or_populated(None)
         fltr["query"] = " and ".join(queries)
-        return super(DateFilter, self).handle_missing(fltr)
+        return super(DateFilter, self).handle_missing_or_populated(fltr)
 
     def update_query_builder(self, query_builder):
         # TODO: need to use datetime.datetime and then for equivalence you need to do (col > input - 1) & (col <= input)
         # pd.Timestamp('2023-01-04').to_pydatetime() -> to get datetime.datetime
         if self.cfg is None:
-            return super(DateFilter, self).update_missing_query_builder(query_builder)
+            return super(DateFilter, self).update_missing_or_populated_query_builder(
+                query_builder
+            )
 
         start, end = (self.cfg.get(p) for p in ["start", "end"])
         fltr = dict(start=start, end=end)
@@ -426,11 +454,11 @@ class DateFilter(MissingFilter):
                 & (query_builder[self.column] <= start_end)
             ]
         if not len(queries):
-            return super(DateFilter, self).handle_missing(None)
+            return super(DateFilter, self).handle_missing_or_populated(None)
         if len(queries) == 2:
             fltr["query"] = queries[0] & queries[1]
         else:
             fltr["query"] = queries[0]
-        return super(DateFilter, self).update_missing_query_builder(
+        return super(DateFilter, self).update_missing_or_populated_query_builder(
             query_builder, fltr.get("query")
         )
