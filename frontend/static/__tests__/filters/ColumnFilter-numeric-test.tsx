@@ -39,14 +39,19 @@ describe('ColumnFilter numeric tests', () => {
     });
     expect(result.getElementsByClassName('numeric-filter-inputs').length).toBe(1);
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
-    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', missing: true });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', missing: true, populated: false });
     expect(result.getElementsByClassName('Select__control--is-disabled').length).toBeGreaterThan(0);
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', missing: false, populated: false });
     expect(result.getElementsByClassName('Select__control--is-disabled').length).toBe(0);
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Populated'));
+    });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col1', { type: 'int', missing: false, populated: true });
     await selectOption(result.getElementsByClassName('Select')[0] as HTMLElement, 1);
     await act(async () => {
       await tick(300);
@@ -81,13 +86,13 @@ describe('ColumnFilter numeric tests', () => {
     });
     expect(result.getElementsByClassName('numeric-filter-inputs').length).toBe(1);
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
     const numericInput = (idx = 0): HTMLInputElement =>
       result.getElementsByClassName('numeric-filter')[idx] as HTMLInputElement;
     expect(numericInput().disabled).toBe(true);
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
     expect(numericInput().disabled).toBe(false);
     await act(async () => {

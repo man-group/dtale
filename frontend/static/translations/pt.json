@@ -381,7 +381,10 @@
     "Equals": "É Igual",
     "Not Equals": "É Diferente",
     "to": "para",
-    "Case-Sensitive": "Sensível à Caixa"
+    "Case-Sensitive": "Sensível à Caixa",
+    "All": "All",
+    "Missing": "Falta",
+    "Populated": "Populated"
   },
   "about": {
     "Your version is currently out of sync with PyPi.": "Sua versão do PyPi não está sincronizada.",

@@ -52,11 +52,11 @@ describe('ColumnFilter numeric tests', () => {
   it('ColumnFilter int rendering', async () => {
     expect(result.getElementsByClassName('numeric-filter-inputs').length).toBe(1);
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
-    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col5', { type: 'int', missing: true });
+    expect(spies.saveSpy).toHaveBeenLastCalledWith('1', 'col5', { type: 'int', missing: true, populated: false });
     await act(async () => {
-      await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
+      await fireEvent.click(screen.getByText('Missing'));
     });
     expect(result.getElementsByClassName('bp5-disabled')).toHaveLength(0);
     const asyncSelect = result.getElementsByClassName('Select')[0] as HTMLElement;
