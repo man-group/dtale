@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.13.0 (2024-6-26)
+* [#868](https://github.com/man-group/dtale/issues/868): added toggle for missing/populated filter
+* [#864](https://github.com/man-group/dtale/issues/864): adding main_title params to `dtale.show`
+* front-end package upgrades
+
 ### 3.12.0 (2024-4-30)
 * [#851](https://github.com/man-group/dtale/issues/851): allowing offline_chart to return plotly objects
 * [#847](https://github.com/man-group/dtale/issues/847): Add 'Select All' option for duplicate check UI
@@ -35,8 +40,8 @@
 * [#724](https://github.com/man-group/dtale/issues/724): updated logging to use a dedicated dtale logger when not invoking from CLI
 * [#822](https://github.com/man-group/dtale/issues/822): fixed bug with dataframe filters not being persisted to chart builder initially
 * [#816](https://github.com/man-group/dtale/issues/816): frequencies grid filtering
-* * front-end package upgrades (styled_components)
-* * adjusted Pillow dependency
+* front-end package upgrades (styled_components)
+* adjusted Pillow dependency
 
 ### 3.7.0 (2023-10-2)
 * Turn off "Custom Filter" functionality by default
