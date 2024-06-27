@@ -4,9 +4,11 @@ import getpass
 import jinja2
 import logging
 import os
+import numpy as np
 import pandas as pd
 import random
 import socket
+import string
 import sys
 import time
 import traceback
@@ -292,6 +294,14 @@ class DtaleFlask(Flask):
         return super(DtaleFlask, self).get_send_file_max_age(name)
 
 
+def build_secret_key():
+    """
+    Builds a string of 10 randomly chosen characters to be used as the Flask app's SECRET_KEY
+    """
+
+    return "".join(np.random.choice(list(string.ascii_uppercase + string.digits), 10))
+
+
 def build_app(
     url=None, reaper_on=True, app_root=None, additional_templates=None, **kwargs
 ):
@@ -320,7 +330,7 @@ def build_app(
         instance_relative_config=False,
         app_root=app_root,
     )
-    app.config["SECRET_KEY"] = "Dtale"
+    app.config["SECRET_KEY"] = build_secret_key()
 
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
