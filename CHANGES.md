@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.13.1 (2024-6-28)
+* [#870](https://github.com/man-group/dtale/issues/870): updated Flask SECRET_EKY to be dynamically generated
+
 ### 3.13.0 (2024-6-26)
 * [#868](https://github.com/man-group/dtale/issues/868): added toggle for missing/populated filter
 * [#864](https://github.com/man-group/dtale/issues/864): adding main_title params to `dtale.show`
