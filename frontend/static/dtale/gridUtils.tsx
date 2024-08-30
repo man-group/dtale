@@ -110,7 +110,7 @@ export const heatmapAllActive = (backgroundMode?: string): boolean =>
   ['heatmap-col-all', 'heatmap-all-all'].includes(backgroundMode ?? '');
 
 export const getActiveCols = (columns: ColumnDef[], backgroundMode?: string): ColumnDef[] =>
-  columns.filter((c) => (heatmapActive(backgroundMode) ? getHeatActive(c) : c.visible ?? false)) ?? [];
+  columns.filter((c) => (heatmapActive(backgroundMode) ? getHeatActive(c) : (c.visible ?? false))) ?? [];
 
 export const getActiveLockedCols = (columns: ColumnDef[], backgroundMode?: string): ColumnDef[] =>
   getActiveCols(columns, backgroundMode).filter((c) => c.locked) ?? [];
@@ -127,7 +127,7 @@ export const getColWidth = (
   const col = getCol(index, columns, backgroundMode);
   let width = col?.width;
   if (verticalHeaders) {
-    width = col?.resized ? width : col?.dataWidth ?? width;
+    width = col?.resized ? width : (col?.dataWidth ?? width);
   }
   return width ?? DEFAULT_COL_WIDTH;
 };

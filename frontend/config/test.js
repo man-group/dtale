@@ -76,13 +76,13 @@ let resolvedEnv;
 
 try {
   resolvedEnv = resolveJestDefaultEnvironment(`jest-environment-${parsedEnv}`);
-} catch (e) {
+} catch {
   // ignore, this is possible if not using an environment with the prefix 'jest-environment-'
 }
 if (!resolvedEnv) {
   try {
     resolvedEnv = resolveJestDefaultEnvironment(parsedEnv);
-  } catch (e) {
+  } catch {
     // ignore, we'll save the error message for the diagnostic below
   }
 }

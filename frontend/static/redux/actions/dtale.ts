@@ -128,7 +128,7 @@ export const isPopup = (): boolean => !!window.location.pathname?.startsWith('/d
 export const isJSON = (str: string): boolean => {
   try {
     JSON.parse(str);
-  } catch (e) {
+  } catch {
     return false;
   }
   return true;

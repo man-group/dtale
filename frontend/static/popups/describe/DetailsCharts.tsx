@@ -49,7 +49,7 @@ export const DetailsCharts: React.FC<DetailsChartsProps> = ({ details, detailCod
         setChart(state.chart);
         setCode(state.code);
         setError(state.error);
-        setCols(state.hasOwnProperty('cols') ? state.cols ?? [] : cols);
+        setCols(state.hasOwnProperty('cols') ? (state.cols ?? []) : cols);
         setQuery(state.hasOwnProperty('query') ? state.query : query);
         setType(state.hasOwnProperty('type') ? state.type! : type);
         setDtype(state.hasOwnProperty('dtype') ? state.dtype! : dtype);

@@ -106,7 +106,7 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
       <div className="headerCell pointer" onClick={onClick}>
         <div className="row">
           <div className="col-auto" style={{ whiteSpace: 'break-spaces' }}>
-            {dataKey === sortBy ? `${sortDir ? SORT_CHARS[sortDir] ?? '' : ''} ` : ''}
+            {dataKey === sortBy ? `${sortDir ? (SORT_CHARS[sortDir] ?? '') : ''} ` : ''}
             {label as any}
           </div>
         </div>
