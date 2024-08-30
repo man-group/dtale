@@ -28,7 +28,7 @@ export const DtaleSelect = React.forwardRef<Select, DtaleSelectProps>(
         ? {
             value,
             onChange: (selected: MultiValue<BaseOption<any>> | SingleValue<BaseOption<any>>) =>
-              onChange?.(isMulti ? (selected as Array<BaseOption<any>>) : (selected as BaseOption<any>) ?? undefined),
+              onChange?.(isMulti ? (selected as Array<BaseOption<any>>) : ((selected as BaseOption<any>) ?? undefined)),
           }
         : {})}
       noOptionsMessage={() => noOptionsMessage ?? 'No options found'}

@@ -77,12 +77,11 @@ export default [...compat.extends("prettier"), {
             default: "array-simple",
         }],
 
-        "@typescript-eslint/ban-types": ["error", {
+        "@typescript-eslint/no-restricted-types": ["error", {
             types: {
                 Object: {
                     message: "Avoid using the `Object` type. Did you mean `object`?",
                 },
-
                 Function: {
                     message: "Avoid using the `Function` type. Prefer a specific function type, like `() => void`.",
                 },
@@ -155,7 +154,6 @@ export default [...compat.extends("prettier"), {
         "@typescript-eslint/no-misused-new": "error",
         "@typescript-eslint/no-namespace": "error",
         "@typescript-eslint/no-shadow": "error",
-        "@typescript-eslint/no-throw-literal": "error",
 
         "@typescript-eslint/no-unused-expressions": ["error", {
             allowTernary: true,
