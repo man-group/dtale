@@ -126,7 +126,16 @@ def test_from_int():
     builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
     verify_builder(builder, lambda col: col.dtype.name == "category")
 
-    cfg = {"col": "int", "to": "bool", "from": "int"}
+    cfg = {
+        "col": "int",
+        "to": "bool",
+        "from": "int",
+        "cfg": {
+            "equals": {"active": True, "value": "0"},
+            "greaterThan": {"active": True, "value": "0"},
+            "lessThan": {"active": False},
+        },
+    }
     builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
     verify_builder(
         builder,

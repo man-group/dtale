@@ -165,6 +165,19 @@ export enum TypeConversionUnit {
   NANOSECOND = 'ns',
 }
 
+/** Value holder for different modes of converting integer to boolean */
+export interface IntToBoolModeCfg {
+  active: boolean;
+  value?: string;
+}
+
+/** Configuration for converting integer to boolean */
+export interface IntToBoolCfg {
+  equals: IntToBoolModeCfg;
+  greaterThan: IntToBoolModeCfg;
+  lessThan: IntToBoolModeCfg;
+}
+
 /** Type conversion column creation configuration */
 export interface TypeConversionConfig {
   col?: string;
@@ -172,6 +185,7 @@ export interface TypeConversionConfig {
   unit?: TypeConversionUnit;
   to?: string;
   from?: string;
+  cfg?: IntToBoolCfg;
   applyAllType: boolean;
 }
 
