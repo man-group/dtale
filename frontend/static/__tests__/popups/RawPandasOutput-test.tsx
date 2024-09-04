@@ -49,6 +49,18 @@ describe('RawPandasOutput tests', () => {
     expect(result.getElementsByTagName('pre')[0].textContent).toBe('test nunique');
   });
 
+  it('RawPandasOutput zoom', async () => {
+    await build();
+    await act(async () => {
+      fireEvent.click(result.getElementsByClassName('fa-magnifying-glass-plus')[0]);
+    });
+    expect((result.getElementsByTagName('pre')[0].style as any)['font-size']).toBe('12px');
+    await act(async () => {
+      fireEvent.click(result.getElementsByClassName('fa-magnifying-glass-minus')[0]);
+    });
+    expect((result.getElementsByTagName('pre')[0].style as any)['font-size']).toBe('11px');
+  });
+
   it('RawPandasOutput error test', async () => {
     fetchJsonSpy.mockImplementation(async (url: string): Promise<unknown> => {
       if (url.startsWith('/dtale/raw-pandas')) {
