@@ -208,7 +208,9 @@ const RangeHighlight: React.FC<WithTranslation> = ({ t }) => {
             <label className="col-md-4 col-form-label text-right">
               <i
                 className={`ico-check-box${active ? '' : '-outline-blank'} pointer mr-3 float-left`}
-                onClick={() => updateHighlights(key, { active: !active })}
+                onClick={() =>
+                  updateHighlights(key, { active: !active, ...(!active ? { color: color ?? BASE_COLOR } : {}) })
+                }
               />
               {t(label, { ns: 'column_filter' })}
             </label>

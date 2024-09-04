@@ -19,6 +19,7 @@ export const RawPandasOutput: React.FC = () => {
   const [error, setError] = React.useState<JSX.Element>();
   const [output, setOutput] = React.useState<string>();
   const [loadingOutput, setLoadingOutput] = React.useState(false);
+  const [fontSize, setFontSize] = React.useState(11);
 
   const loadOutput = async (): Promise<void> => {
     setError(undefined);
@@ -50,12 +51,21 @@ export const RawPandasOutput: React.FC = () => {
             update={(value) => setFuncType(value)}
             defaultValue={funcType}
             disabled={loadingOutput}
+            className="pl-4"
           />
         </div>
+        {!!output && (
+          <div style={{ textAlign: 'right' }} className="col">
+            <label className="col-auto col-form-label text-right p-0">Zoom</label>
+            <i className="fa-solid fa-magnifying-glass-plus pointer pl-5" onClick={() => setFontSize(fontSize + 1)} />
+            <label className="col-auto col-form-label text-right pr-3 pl-3">|</label>
+            <i className="fa-solid fa-magnifying-glass-minus pointer" onClick={() => setFontSize(fontSize - 1)} />
+          </div>
+        )}
       </div>
       <BouncerWrapper showBouncer={loadingOutput}>
         {!!output && (
-          <pre className="mb-0" style={{ height: 'calc(100vh - 90px)' }}>
+          <pre className="mb-0" style={{ height: 'calc(100vh - 90px)', fontSize }}>
             {output}
           </pre>
         )}
