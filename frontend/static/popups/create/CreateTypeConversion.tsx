@@ -7,11 +7,14 @@ import { ColumnDef } from '../../dtale/DataViewerState';
 import { ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
 import { BaseOption } from '../../redux/state/AppState';
 import { capitalize } from '../../stringUtils';
+import { MODES } from '../RangeHighlight';
 
 import ColumnSelect from './ColumnSelect';
 import {
   BaseCreateComponentProps,
   CreateColumnType,
+  IntToBoolCfg,
+  IntToBoolModeCfg,
   TypeConversionConfig,
   TypeConversionUnit,
 } from './CreateColumnState';
@@ -62,6 +65,11 @@ export const validateTypeConversionCfg = (t: TFunction, cfg: TypeConversionConfi
       return t("Invalid unit selection, valid options are 'YYYYMMDD' or 'ms'") ?? undefined;
     }
   }
+  if (colType === ColumnType.INT && to === 'bool') {
+    if (!cfg.cfg?.equals?.active && !cfg.cfg?.greaterThan?.active && !cfg.cfg?.lessThan?.active) {
+      return 'You must specify a condition for converting an integer column to boolean';
+    }
+  }
   return undefined;
 };
 
@@ -81,6 +89,15 @@ const CreateTypeConversion: React.FC<TypeConversionProps & WithTranslation> = ({
   const [fmt, setFmt] = React.useState<string>();
   const [unit, setUnit] = React.useState<BaseOption<TypeConversionUnit>>();
   const [applyAllType, setApplyAllType] = React.useState(false);
+  const [intToBoolCfg, setIntToBoolCfg] = React.useState<IntToBoolCfg>({
+    equals: { active: false },
+    greaterThan: { active: true, value: '0' },
+    lessThan: { active: false },
+  });
+
+  const updateIntToBoolCfg = (key: keyof IntToBoolCfg, cfgState: Partial<IntToBoolModeCfg>): void => {
+    setIntToBoolCfg({ ...intToBoolCfg, [key]: { ...intToBoolCfg[key], ...cfgState } });
+  };
 
   React.useEffect(() => {
     if (prePopulated?.col) {
@@ -97,8 +114,12 @@ const CreateTypeConversion: React.FC<TypeConversionProps & WithTranslation> = ({
       unit: unit?.value,
       applyAllType,
     };
+    const colType = getColType(col, columns);
+    if (colType === ColumnType.INT && conversion === 'bool') {
+      cfg.cfg = intToBoolCfg;
+    }
     updateState({ cfg: { type: CreateColumnType.TYPE_CONVERSION, cfg }, code: buildCode(cfg) });
-  }, [col, conversion, fmt, unit, applyAllType]);
+  }, [col, conversion, fmt, unit, applyAllType, intToBoolCfg]);
 
   const renderConversions = (): React.ReactNode => {
     if (col) {
@@ -154,6 +175,36 @@ const CreateTypeConversion: React.FC<TypeConversionProps & WithTranslation> = ({
           onChange={(selected) => setUnit(selected as BaseOption<TypeConversionUnit>)}
           isClearable={true}
         />
+      );
+    }
+    if (colType === ColumnType.INT && conversion === 'bool') {
+      return (
+        <>
+          {MODES.map(([label, key, _filter], i) => {
+            const { active, value } = intToBoolCfg[key];
+            return (
+              <div key={i} className="form-group row">
+                <label className="col-md-4 col-form-label text-right">
+                  <i
+                    className={`ico-check-box${active ? '' : '-outline-blank'} pointer mr-3 float-left`}
+                    onClick={() => updateIntToBoolCfg(key, { active: !active })}
+                    data-testid={`${key}-checkbox`}
+                  />
+                  {t(label, { ns: 'column_filter' })}
+                </label>
+                <div className="col-md-6">
+                  <input
+                    disabled={!active}
+                    className="form-control"
+                    value={`${value ?? ''}`}
+                    onChange={(e) => updateIntToBoolCfg(key, { value: e.target.value })}
+                    data-testid={`${key}-input`}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </>
       );
     }
     return null;

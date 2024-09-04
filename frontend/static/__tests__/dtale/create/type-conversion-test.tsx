@@ -70,6 +70,33 @@ describe('CreateTypeConversion', () => {
       name: 'conv_col',
       type: CreateColumnType.TYPE_CONVERSION,
     });
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Bool'));
+    });
+    await act(async () => {
+      await fireEvent.click(screen.getByTestId('equals-checkbox'));
+    });
+    await act(async () => {
+      await act(async () => {
+        fireEvent.change(screen.getByTestId('equals-input'), { target: { value: '1' } });
+      });
+    });
+    await spies.validateCfg({
+      cfg: {
+        to: 'bool',
+        from: 'int64',
+        col: 'col1',
+        unit: TypeConversionUnit.DATE,
+        cfg: {
+          equals: { active: true, value: '1' },
+          greaterThan: { active: true, value: '0' },
+          lessThan: { active: false },
+        },
+        applyAllType: false,
+      },
+      name: 'conv_col',
+      type: CreateColumnType.TYPE_CONVERSION,
+    });
   });
 
   it('builds a float conversion column', async () => {

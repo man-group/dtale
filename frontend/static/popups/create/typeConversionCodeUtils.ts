@@ -1,7 +1,7 @@
 import { ColumnType, findColType } from '../../dtale/gridUtils';
 
 import { CreateColumnCodeSnippet } from './CodeSnippet';
-import { TypeConversionConfig } from './CreateColumnState';
+import { IntToBoolCfg, TypeConversionConfig } from './CreateColumnState';
 
 export const isMixed = (colType?: string): boolean => (colType ?? '').startsWith('mixed');
 const s = (col: string): string => `df['${col}']`;
@@ -45,7 +45,7 @@ const buildStringCode = (col: string, to: string, fmt?: string): CreateColumnCod
   return standardConv(col, to);
 };
 
-const buildIntCode = (col: string, to: string, unit?: string): CreateColumnCodeSnippet => {
+const buildIntCode = (col: string, to: string, unit?: string, cfg?: IntToBoolCfg): CreateColumnCodeSnippet => {
   // date, float, category, str, bool
   if (to === 'date') {
     if (unit === 'YYYYMMDD') {
@@ -55,6 +55,21 @@ const buildIntCode = (col: string, to: string, unit?: string): CreateColumnCodeS
     }
   } else if (to === 'hex') {
     return `${s(col)}.apply(lambda v: v if pd.isnull(v) else hex(v))`;
+  } else if (to === 'bool') {
+    const conds = [];
+    if (cfg?.equals.active && cfg?.equals.value) {
+      conds.push(`cond${conds.length + 1} = ${s(col)}.isin([${(cfg?.equals.value ?? '').split(',').join(',')}])`);
+    }
+    if (cfg?.greaterThan.active && cfg?.greaterThan.value) {
+      conds.push(`cond${conds.length + 1} = (${s(col)} > ${cfg?.greaterThan.value})`);
+    }
+    if (cfg?.lessThan.active && cfg?.lessThan.value) {
+      conds.push(`cond${conds.length + 1} = (${s(col)} < ${cfg?.lessThan.value})`);
+    }
+    if (!conds.length) {
+      return 'False';
+    }
+    return [...conds, conds.map((_, i) => `cond${i + 1}`).join(' | ')];
   }
   return standardConv(col, to);
 };
@@ -78,7 +93,7 @@ export const buildCode = (cfg: TypeConversionConfig): CreateColumnCodeSnippet =>
   if (classifier === ColumnType.STRING) {
     return buildStringCode(cfg.col, cfg.to, cfg.fmt);
   } else if (classifier === ColumnType.INT) {
-    return buildIntCode(cfg.col, cfg.to, cfg.unit);
+    return buildIntCode(cfg.col, cfg.to, cfg.unit, cfg.cfg);
   } else if (classifier === ColumnType.DATE) {
     return buildDateCode(cfg.col, cfg.to, cfg.fmt, cfg.unit);
   } else if (['float', 'bool'].includes(classifier)) {
