@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.14.0 (2024-9-5)
+* [#880](https://github.com/man-group/dtale/issues/880): int -> bool type conversion updates
+* [#876](https://github.com/man-group/dtale/issues/876): Raw Pandas zoom
+
 ### 3.13.1 (2024-6-28)
 * [#870](https://github.com/man-group/dtale/issues/870): updated Flask SECRET_EKY to be dynamically generated
 
