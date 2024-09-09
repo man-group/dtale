@@ -1709,27 +1709,31 @@ def charts_layout(df, settings, **inputs):
             ),
             className="row pt-3 pb-3 charts-filters",
         ),
-        html.Div(
+        (
             html.Div(
-                [
-                    html.Div(
-                        [
-                            query_label,
-                            dcc.Input(
-                                id="query-input",
-                                type="text",
-                                placeholder=query_placeholder,
-                                className="form-control",
-                                value=query_value,
-                                style={"lineHeight": "inherit"},
-                            ),
-                        ],
-                        className="input-group mr-3",
-                    )
-                ],
-                className="col",
-            ),
-            className="row pt-3 pb-3 charts-filters",
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                query_label,
+                                dcc.Input(
+                                    id="query-input",
+                                    type="text",
+                                    placeholder=query_placeholder,
+                                    className="form-control",
+                                    value=query_value,
+                                    style={"lineHeight": "inherit"},
+                                ),
+                            ],
+                            className="input-group mr-3",
+                        )
+                    ],
+                    className="col",
+                ),
+                className="row pt-3 pb-3 charts-filters",
+            )
+            if global_state.load_flag(inputs["data_id"], "enable_custom_filters", False)
+            else None
         ),
         html.Div(
             html.Div(

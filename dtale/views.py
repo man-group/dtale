@@ -3380,9 +3380,12 @@ def get_chart_data(data_id):
         max: maxY,
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
+    custom_query = None
+    if global_state.load_flag(data_id, "enable_custom_filters", False):
+        custom_query = get_str_arg(request, "query")
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, get_str_arg(request, "query")),
+        build_query(data_id, custom_query),
         global_state.get_context_variables(data_id),
     )
     x = get_str_arg(request, "x")
