@@ -1975,6 +1975,7 @@ def test_get_chart_data(unittest, rolling_data):
 
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         response = c.get(
             "/dtale/chart-data/{}".format(c.port),
             query_string=dict(query="missing_col == 'blah'"),
@@ -1997,6 +1998,7 @@ def test_get_chart_data(unittest, rolling_data):
             response_data["error"],
             'query "security_id == 51" found no data, please alter',
         )
+    global_state.set_app_settings(dict(enable_custom_filters=False))
 
     df = pd.DataFrame([dict(a=i, b=np.nan) for i in range(100)])
     df, _ = views.format_data(df)
