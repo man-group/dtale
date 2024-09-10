@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.14.1 (2024-9-10)
+* Updated handling of custom queries in chart builder to eliminate security vulnerability
+
 ### 3.14.0 (2024-9-5)
 * [#880](https://github.com/man-group/dtale/issues/880): int -> bool type conversion updates
 * [#876](https://github.com/man-group/dtale/issues/876): Raw Pandas zoom
