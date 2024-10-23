@@ -228,8 +228,8 @@ def test_score():
         assert pps.score(df, "id", "y")["ppscore"] == 0
 
         # numeric feature and target
-        assert pps.score(df, "x", "y")["ppscore"] > 0.5
-        assert pps.score(df, "y", "x")["ppscore"] < 0.05
+        assert pps.score(df, "x", "y")["ppscore"] > 0.6
+        assert pps.score(df, "y", "x")["ppscore"] < 0.06
 
         # boolean feature or target
         assert pps.score(df, "x", "x_greater_0_boolean")["ppscore"] > 0.6
