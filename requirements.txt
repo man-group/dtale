@@ -29,7 +29,6 @@ Flask<2.3; python_version == '3.7'
 Flask; python_version >= '3.8'
 Flask-Compress<=1.15; python_version <= '3.8'
 Flask-Compress; python_version > '3.8'
-flask-ngrok; python_version > '3.0'
 future>=0.14.0
 immutables<=0.19; python_version == '3.6'
 itsdangerous<=1.1.0; python_version < '3.7'

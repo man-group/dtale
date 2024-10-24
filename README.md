@@ -331,7 +331,7 @@ If this does not work for you try using `USE_NGROK` which is described in the ne
 
 This is yet another hosted notebook site and thanks to the work of [flask_ngrok](https://github.com/gstaff/flask-ngrok) users can run D-Tale within their notebooks.
 
-**DISCLAIMER:** It is import that you set `USE_NGROK` to true when using D-Tale within this service.  Here is an example:
+**DISCLAIMER:** It is import that you set `USE_NGROK` to true when using D-Tale within this service.  Please make sure to run `pip install flask-ngrok` before running this example. Here is an example:
 
 ```python
 import pandas as pd
@@ -1785,15 +1785,18 @@ Have a look at the [detailed documentation](https://dtale.readthedocs.io).
   * dash_daq
   * Flask
   * Flask-Compress
-  * flask-ngrok
   * Pandas
   * plotly
   * scikit-learn
   * scipy
   * xarray
   * arctic [extra]
+  * dash-bio [extra]
+  * flask-ngrok [extra]
   * redis [extra]
   * rpy2 [extra]
+  * streamlit [extra]
+  * swifter [extra]
 * Front-end
   * react-virtualized
   * chart.js
