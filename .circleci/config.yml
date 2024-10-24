@@ -168,6 +168,9 @@ python: &python
               pip install typing_extensions==4.1.1
               pip install soupsieve==2.3.2
             fi
+            if [ "${CIRCLE_JOB}" == "build_3_8" ]; then
+              pip install contourpy
+            fi
             python setup.py develop
       - run:
           name: Print environment
