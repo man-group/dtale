@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.15.1 (2024-10-25)
+* Un-pinned `dash-bootstrap-components` dependency
+
 ### 3.15.0 (2024-10-24)
 * Un-pinned `Flask` dependency
 * Updated `flask-ngrok` to an optional dependency
