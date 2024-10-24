@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.15.0 (2024-10-24)
+* Un-pinned `Flask` dependency
+* Updated `flask-ngrok` to an optional dependency
+* Remove dependency on `contourpy`
+
 ### 3.14.1 (2024-9-10)
 * Updated handling of custom queries in chart builder to eliminate security vulnerability
 
