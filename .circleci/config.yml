@@ -199,6 +199,7 @@ python: &python
               pip install -e ".[arcticdb]"
             fi
             pip install -e ".[dash-bio]"
+            pip install -e ".[ngrok]"
             pip install -e ".[redis]"
             pip install -e ".[r]"
             pip install -e ".[tests]"

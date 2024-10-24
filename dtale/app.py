@@ -773,7 +773,17 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
                     "In order to use ngrok you must be using Python 3 or higher!"
                 )
 
-            from flask_ngrok import _run_ngrok
+            try:
+                from flask_ngrok import _run_ngrok
+            except ImportError:
+                raise Exception(
+                    (
+                        "In order to use ngrok you must install flask-ngrok. This can be accomplished doing one of the "
+                        "following:\n"
+                        "- pip install flask-ngrok\n"
+                        "- pip install dtale[ngrok]"
+                    )
+                )
 
             ACTIVE_HOST = _run_ngrok()
             ACTIVE_PORT = None

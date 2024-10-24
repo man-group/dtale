@@ -89,6 +89,7 @@ setup(
             "dash-bio; python_version > '3.0'",
             "dash-bio==0.7.1; python_version == '2.7'",
         ],
+        "ngrok": ["flask-ngrok; python_version > '3.0'"],
         "r": ["rpy2; python_version > '3.0'"],
         "redis": read_file("requirements-redis.txt").splitlines(),
         "streamlit": ["streamlit"],
