@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/selectors';
 import { BaseOption, Popups } from '../../redux/state/AppState';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
-import { ColumnType, findColType, getCell } from '../gridUtils';
+import { ColumnType, findColType, getCell, isIndex } from '../gridUtils';
 
 import { onKeyDown as baseKeyDown, EditedCellInfoProps } from './editUtils';
 
@@ -179,7 +179,7 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
     );
   };
 
-  if (hideHeaderEditor) {
+  if (hideHeaderEditor || isIndex(cell?.colCfg?.name)) {
     return null;
   }
 

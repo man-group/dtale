@@ -42,6 +42,7 @@ describe('GridCell', () => {
       ctrlCols: null,
       selectedRow: null,
       columnCount: 0,
+      chartData: { visible: false },
       ...state,
     });
     props = {

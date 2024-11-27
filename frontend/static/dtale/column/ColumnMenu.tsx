@@ -163,7 +163,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
       const updatedColumns = [] as ColumnDef[];
       let cIdx = 0;
       columns.forEach((c) => {
-        if (c.name === gu.IDX) {
+        if (gu.isIndex(c.name)) {
           updatedColumns.push(c);
           return;
         }

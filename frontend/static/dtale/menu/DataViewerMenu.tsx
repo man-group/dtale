@@ -147,7 +147,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
           {columnCount > 100 && (
             <JumpToColumnOption open={openPopup({ type: PopupType.JUMP_TO_COLUMN, columns, visible: true }, 450)} />
           )}
-          {!isArcticDB && <XArrayOption columns={columns.filter(({ name }) => name !== gu.IDX)} />}
+          {!isArcticDB && <XArrayOption columns={columns.filter(({ name }) => !gu.isIndex(name))} />}
           <DescribeOption open={buttonHandlers.DESCRIBE} />
           {!isArcticDB && <FilterOption open={() => showSidePanel(SidePanelType.FILTER)} />}
           {!isArcticDB && <PredefinedFiltersOption open={() => showSidePanel(SidePanelType.PREDEFINED_FILTERS)} />}

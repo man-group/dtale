@@ -15,7 +15,9 @@ export const measureText = (str: string): number => {
   for (const [key, value] of Object.entries(styles)) {
     (o.style as any)[key] = value;
   }
-  return Math.round(o.getBoundingClientRect().width) + 20; // 5px padding on each side
+  const width = Math.round(o.getBoundingClientRect().width) + 20; // 5px padding on each side
+  o.textContent = '';
+  return width;
 };
 
 export const MeasureText: React.FC = () => <span id="text-measure" />;

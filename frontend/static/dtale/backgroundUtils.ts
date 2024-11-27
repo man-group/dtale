@@ -25,7 +25,7 @@ const heatMapBackground = (record: DataRecord, range: Bounds): React.CSSProperti
 };
 
 export const dtypeHighlighting = (column?: ColumnDef): React.CSSProperties => {
-  if (column?.name === gu.IDX) {
+  if (gu.isIndex(column?.name)) {
     return {};
   }
   const lowerDtype = (column?.dtype || '').toLowerCase();
@@ -50,7 +50,7 @@ export const dtypeHighlighting = (column?: ColumnDef): React.CSSProperties => {
 
 const missingHighlighting = (column: ColumnDef, value: any): React.CSSProperties => {
   const { name, dtype, hasMissing } = column;
-  if (name === gu.IDX || !hasMissing) {
+  if (gu.isIndex(name) || !hasMissing) {
     return {};
   }
   if (value === 'nan') {
@@ -72,7 +72,7 @@ const missingHighlighting = (column: ColumnDef, value: any): React.CSSProperties
 export const buildOutlierScales = (colCfg: ColumnDef): ColumnDef => {
   const { name, min, max, hasOutliers, outlierRange } = colCfg;
   const updatedColCfg = { ...colCfg };
-  if (name === gu.IDX || !hasOutliers) {
+  if (gu.isIndex(name) || !hasOutliers) {
     return updatedColCfg;
   }
   if (outlierRange && outlierRange.lowerScale === undefined) {
@@ -93,7 +93,7 @@ export const buildOutlierScales = (colCfg: ColumnDef): ColumnDef => {
 const outlierHighlighting = (column: ColumnDef, record: DataRecord): React.CSSProperties => {
   const { name, dtype, hasOutliers, outlierRange } = column;
   const raw = record.raw as number;
-  if (name === gu.IDX || !hasOutliers) {
+  if (gu.isIndex(name) || !hasOutliers) {
     return {};
   }
   const lowerDtype = (dtype || '').toLowerCase();
@@ -118,7 +118,7 @@ const rangeHighlighting = (
 ): React.CSSProperties => {
   const { name, dtype } = column;
   const raw = record.raw as number;
-  if (name === gu.IDX || !rangeHighlight) {
+  if (gu.isIndex(name) || !rangeHighlight) {
     return {};
   }
   let range: RangeHighlightModes;
@@ -147,7 +147,7 @@ const rangeHighlighting = (
 
 const lowVarianceHighlighting = (column: ColumnDef): React.CSSProperties => {
   const { name, lowVariance } = column;
-  if (name === gu.IDX || !lowVariance) {
+  if (gu.isIndex(name) || !lowVariance) {
     return {};
   }
   return { background: 'rgb(255, 128, 128)' };
@@ -182,7 +182,7 @@ export const updateBackgroundStyles = (
         min: settings.filteredRanges?.overall?.min ?? min,
         max: settings.filteredRanges?.overall?.max ?? max,
       };
-      return colCfg.name === gu.IDX ? {} : heatMapBackground(rec, overall);
+      return gu.isIndex(colCfg.name) ? {} : heatMapBackground(rec, overall);
     }
     case 'dtypes':
       return dtypeHighlighting(colCfg);
