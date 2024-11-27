@@ -111,7 +111,7 @@ export const ServerlessDataViewer: React.FC<ServerlessDataViewerProps> = ({ resp
       let updatedColumns = [...columns];
       updatedColumns = response.columns.map((c: ColumnDef) => ({
         ...c,
-        locked: c.name === gu.IDX || (settings?.locked ?? []).includes(c.name),
+        locked: gu.isIndex(c.name) || (settings?.locked ?? []).includes(c.name),
         ...gu.calcColWidth(c, updatedData, updatedRowCount, settings.sortInfo, settings.backgroundMode, maxColumnWidth),
       }));
       if (settings.backgroundMode === 'outliers') {

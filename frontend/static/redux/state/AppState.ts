@@ -5,6 +5,7 @@ import {
   ColumnDef,
   ColumnFilter,
   ColumnFormat,
+  DataRecord,
   DataViewerPropagateState,
   OutlierFilter,
   RangeSelection,
@@ -135,6 +136,7 @@ export enum PopupType {
   XARRAY_DIMENSIONS = 'xarray-dimensions',
   XARRAY_INDEXES = 'xarray-indexes',
   RENAME = 'rename',
+  VIEW_ROW = 'view-row',
   REPLACEMENT = 'replacement',
   ERROR = 'error',
   INSTANCES = 'instances',
@@ -203,9 +205,15 @@ export interface ExportPopupData extends PopupData<typeof PopupType.EXPORT> {
   rows: number;
 }
 
-/** Popup configuration for Error popup */
+/** Popup configuration for Rename popup */
 export interface RenamePopupData extends PopupData<typeof PopupType.RENAME>, HasColumnSelection {
   columns: ColumnDef[];
+}
+
+/** Popup configuration for ViewRow popup */
+export interface ViewRowPopupData extends PopupData<typeof PopupType.VIEW_ROW> {
+  columns: ColumnDef[];
+  row: Record<string, DataRecord>;
 }
 
 /** Popup configuration for JumpToColumn popup */
@@ -318,6 +326,7 @@ export type Popups =
   | CopyRowRangeToClipboardPopupData
   | ErrorPopupData
   | RenamePopupData
+  | ViewRowPopupData
   | RangeHighlightPopupData
   | XArrayDimensionsPopupData
   | XArrayIndexesPopupData

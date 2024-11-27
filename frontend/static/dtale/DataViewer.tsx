@@ -203,7 +203,7 @@ export const DataViewer: React.FC = () => {
         if (!columns.length) {
           updatedColumns = response.columns.map((c: ColumnDef) => ({
             ...c,
-            locked: c.name === gu.IDX || (settings?.locked ?? []).includes(c.name),
+            locked: gu.isIndex(c.name) || (settings?.locked ?? []).includes(c.name),
             ...gu.calcColWidth(
               c,
               updatedData,
@@ -233,19 +233,30 @@ export const DataViewer: React.FC = () => {
         }
         setData(updatedData);
         setRowCount(updatedRowCount);
-        setColumns(
-          updatedColumns.map((c) => ({
-            ...c,
-            ...gu.calcColWidth(
-              c,
-              updatedData,
-              updatedRowCount,
-              settings.sortInfo,
-              settings.backgroundMode,
-              maxColumnWidth,
-            ),
-          })),
-        );
+
+        updatedColumns = updatedColumns.map((c) => ({
+          ...c,
+          ...gu.calcColWidth(
+            c,
+            updatedData,
+            updatedRowCount,
+            settings.sortInfo,
+            settings.backgroundMode,
+            maxColumnWidth,
+          ),
+        }));
+        const fullWidth = updatedColumns.reduce((res, c) => res + (c.width ?? gu.DEFAULT_COL_WIDTH), 0);
+        if (fullWidth > window.innerWidth) {
+          updatedColumns = [
+            updatedColumns[0],
+            { ...gu.EXPANDER_CFG },
+            ...updatedColumns.filter((colCfg) => !gu.isIndex(colCfg.name)),
+          ];
+        } else {
+          updatedColumns = updatedColumns.filter((colCfg) => colCfg.name !== gu.EXPANDER_CFG.name);
+        }
+
+        setColumns(updatedColumns);
         setTriggerResize(refresh ?? updatedTriggerResize);
       }
     });

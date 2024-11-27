@@ -63,6 +63,9 @@ const buildMarkup = (
     colNameMarkup = <div title={`${t('Low Variance')}: ${colCfg.lowVariance}`}>{`${bu.flagIcon} ${colName}`}</div>;
     className = ' background';
   }
+  if (colName === gu.EXPANDER_CFG.name) {
+    colNameMarkup = null;
+  }
   return { headerStyle, colNameMarkup, className };
 };
 
@@ -217,6 +220,11 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   let headerStyle = { ...style };
   const markupProps = buildMarkup(t, colCfg!, colName, settings.backgroundMode);
   headerStyle = { ...headerStyle, ...markupProps.headerStyle };
+
+  if (colName === gu.EXPANDER_CFG.name) {
+    return <div className="headerCell" style={headerStyle} />;
+  }
+
   const rangeClass =
     isInRowOrColumnRange(columnIndex, columnRange) || ctrlCols?.includes(columnIndex) ? ' in-range' : '';
 

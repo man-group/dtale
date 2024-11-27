@@ -10,6 +10,17 @@ import { measureText } from './MeasureText';
 import * as menuFuncs from './menu/dataViewerMenuUtils';
 
 export const IDX = 'dtale_index';
+export const EXPANDER_CFG = {
+  dataWidth: 25,
+  dtype: 'int64',
+  headerWidth: 25,
+  locked: true,
+  name: 'dtale_expander',
+  visible: true,
+  width: 25,
+} as any as ColumnDef;
+export const isIndex = (name?: string): boolean => name === IDX || name === EXPANDER_CFG.name;
+
 export const DEFAULT_COL_WIDTH = 70;
 
 numeral.nullFormat('');
@@ -102,7 +113,7 @@ export const buildDataProps = (
 });
 
 const getHeatActive = (column: ColumnDef): boolean =>
-  (column.hasOwnProperty('min') || column.name === IDX) && column.visible === true;
+  (column.hasOwnProperty('min') || isIndex(column.name)) && column.visible === true;
 
 export const heatmapActive = (backgroundMode?: string): boolean =>
   ['heatmap-col', 'heatmap-all'].includes(backgroundMode ?? '');
@@ -204,7 +215,7 @@ export const calcColWidth = (
     return { width, headerWidth, dataWidth };
   }
   let w;
-  if (name === IDX) {
+  if (isIndex(name)) {
     w = measureText(`${(rowCount ?? 1) - 1}`);
     w = w < DEFAULT_COL_WIDTH ? DEFAULT_COL_WIDTH : w;
     return { width: w, headerWidth: w, dataWidth: w };
@@ -350,7 +361,7 @@ export const refreshColumns = (
   const updatedColumns = buildColMap(newColumns);
   const finalColumns = [
     ...columns.map((c) => {
-      if (c.dtype !== updatedColumns[c.name].dtype) {
+      if (c.dtype !== updatedColumns[c.name]?.dtype) {
         return { ...c, ...updatedColumns[c.name] };
       }
       return { ...c, visible: updatedColumns[c.name].visible };

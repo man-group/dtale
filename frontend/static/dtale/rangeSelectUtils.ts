@@ -105,7 +105,8 @@ export const buildCtrlColumnCopyText = (
   columnIndexes: number[],
   callback: (text: CopyText) => void,
 ): void => {
-  const selectedColumns = columnIndexes.sort(SORT_DESC).map((idx) => columns[idx]);
+  const activeColumns = columns.filter((c) => c.visible && !gu.isIndex(c.name));
+  const selectedColumns = columnIndexes.sort(SORT_DESC).map((idx) => activeColumns[idx]);
   buildColumnCopyPost(selectedColumns, callback, dataId);
 };
 
@@ -115,7 +116,7 @@ export const buildRowCopyText = (
   params: Record<string, string>,
   callback: (text: CopyText) => void,
 ): void => {
-  const selectedColumns = columns.filter((c) => c.visible && c.name !== gu.IDX);
+  const selectedColumns = columns.filter((c) => c.visible && !gu.isIndex(c.name));
   const headers = selectedColumns.map((col) => col.name);
   CopyRangeRepository.buildCopyRows(dataId, headers, params).then((response) => {
     if (response?.success) {
