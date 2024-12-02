@@ -4439,12 +4439,19 @@ def load_arcticdb_description():
             sorted(description.columns, key=lambda c: c.name),
         )
     )
+
+    if isinstance(description.index, (list, tuple)):
+        description_index = [(i.name, i.dtype) for i in description.index]
+    elif description.index is None:
+        description_index = []
+    else:
+        description_index = list(zip(description.index.name, description.index.dtype))
     index = list(
         map(
             lambda i: "{} ({})".format(
                 i[0], _TYPEDESCRIPTOR_VALUETYPE.values[i[1].value_type].name
             ),
-            zip(description.index.name, description.index.dtype),
+            description_index,
         )
     )
     rows = description.row_count

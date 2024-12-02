@@ -153,24 +153,7 @@ python: &python
           command: |
             virtualenv ci
             . ci/bin/activate
-            # xlrd & xarray do not load correctly from "python setup.py develop"
-            # possibly switch this script to use "pip install -r requirements.txt"
-            pip install pillow
-            pip install xlrd
-            pip install xarray
-            if [ "${CIRCLE_JOB}" == "build_3_10" ]; then
-              pip install pybind11
-              pip install -r requirements.txt
-            fi
-            # dash>=2.0.0 has a dependency on typing_extensions>=3.6.4 and for some reason circleci allows you to
-            # download versions greater than 4.1.1 which aren't compatible with python 3.6
-            if [ "${CIRCLE_JOB}" == "build_3_6" ]; then
-              pip install typing_extensions==4.1.1
-              pip install soupsieve==2.3.2
-            fi
-            if [ "${CIRCLE_JOB}" == "build_3_8" ]; then
-              pip install contourpy
-            fi
+            pip install -r requirements.txt
             python setup.py develop
       - run:
           name: Print environment
