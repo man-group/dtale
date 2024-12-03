@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.16.0 (2024-12-3)
+* [#891](https://github.com/man-group/dtale/issues/891): row details popup
+* front-end package updates
+* functionality to turn row expanders on/off
+* updated CircleCI build script to use pip instead of setup.py for dependency installation
+
 ### 3.15.1 (2024-10-25)
 * Un-pinned `dash-bootstrap-components` dependency
 
