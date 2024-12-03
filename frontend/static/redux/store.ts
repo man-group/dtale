@@ -51,6 +51,7 @@ export const buildApp = (): Store<AppStoreState> => {
   actions.loadHideHeaderMenu(store);
   actions.loadHideMainMenu(store);
   actions.loadHideColumnMenus(store);
+  actions.loadHideRowExpanders(store);
   actions.loadEnableCustomFilters(store);
   return store;
 };

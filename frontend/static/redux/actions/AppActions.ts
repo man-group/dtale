@@ -60,6 +60,7 @@ export enum ActionType {
   UPDATE_HIDE_HEADER_MENU = 'update-hide-header-menu',
   UPDATE_HIDE_MAIN_MENU = 'update-hide-main-menu',
   UPDATE_HIDE_COLUMN_MENUS = 'update-hide-column-menus',
+  UPDATE_HIDE_ROW_EXPANDERS = 'update-hide-row-expanders',
   UPDATE_ENABLE_CUSTOM_FILTERS = 'update-enable-custom-filters',
   UPDATE_COLUMN_AGGREGATIONS = 'update-column-aggregations',
 }
@@ -129,5 +130,6 @@ export const AppActions = {
   UpdateHideHeaderMenu: createActionWithPayload<boolean>(ActionType.UPDATE_HIDE_HEADER_MENU),
   UpdateHideMainMenu: createActionWithPayload<boolean>(ActionType.UPDATE_HIDE_MAIN_MENU),
   UpdateHideColumnMenus: createActionWithPayload<boolean>(ActionType.UPDATE_HIDE_COLUMN_MENUS),
+  UpdateHideRowExpanders: createActionWithPayload<boolean>(ActionType.UPDATE_HIDE_ROW_EXPANDERS),
   UpdateEnableCustomFilters: createActionWithPayload<boolean>(ActionType.UPDATE_ENABLE_CUSTOM_FILTERS),
 };

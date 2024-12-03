@@ -60,6 +60,7 @@ const selectResult = createSelector(
     selectors.selectIsArcticDB,
     selectors.selectHideMainMenu,
     selectors.selectHideColumnMenus,
+    selectors.selectHideRowExpanders,
   ],
   (
     dataId,
@@ -75,6 +76,7 @@ const selectResult = createSelector(
     isArcticDB,
     hideMainMenu,
     hideColumnMenus,
+    hideRowExpanders,
   ) => ({
     dataId,
     theme,
@@ -89,6 +91,7 @@ const selectResult = createSelector(
     isArcticDB,
     hideMainMenu,
     hideColumnMenus,
+    hideRowExpanders,
   }),
 );
 
@@ -107,6 +110,7 @@ export const DataViewer: React.FC = () => {
     isArcticDB,
     hideMainMenu,
     hideColumnMenus,
+    hideRowExpanders,
   } = useAppSelector(selectResult);
   const dispatch = useAppDispatch();
   const closeColumnMenu = (): void => dispatch(actions.closeColumnMenu());
@@ -246,7 +250,7 @@ export const DataViewer: React.FC = () => {
           ),
         }));
         const fullWidth = updatedColumns.reduce((res, c) => res + (c.width ?? gu.DEFAULT_COL_WIDTH), 0);
-        if (fullWidth > window.innerWidth) {
+        if (!hideRowExpanders && fullWidth > window.innerWidth) {
           updatedColumns = [
             updatedColumns[0],
             { ...gu.EXPANDER_CFG },

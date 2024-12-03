@@ -23,6 +23,7 @@ describe('reduxGridUtils', () => {
       hide_header_menu: false,
       hide_main_menu: false,
       hide_column_menus: false,
+      hide_row_expanders: false,
       enable_custom_filters: false,
     };
     reduxUtils.handleReduxState(

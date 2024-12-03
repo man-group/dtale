@@ -244,7 +244,7 @@ const buildViewRow = (props: BuilderInput): BuilderOutput => {
   const title = (
     <React.Fragment>
       <i className="ico-edit" />
-      <strong>{`${props.t('View Row', { ns: 'menu' })} (index: ${chartData.row[gu.IDX].view})`}</strong>
+      <strong>{`${props.t('View Row', { ns: 'popup' })} (index: ${chartData.row[gu.IDX].view})`}</strong>
     </React.Fragment>
   );
   const body = <ViewRow {...props} />;

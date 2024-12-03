@@ -47,7 +47,7 @@ const ShowNonNumericHeatmapColumns: React.FC<WithTranslation> = ({ t }) => {
       <span className="toggler-action">
         <button className="btn btn-plain">
           <i
-            className={`ico-check-box${showAllHeatmapColumns ? '' : '-outline-blank'}`}
+            className={`ico-check-box${showAllHeatmapColumns ? '' : '-outline-blank'} pr-2`}
             style={{ marginTop: '-.25em' }}
           />
           <span className="font-weight-bold" style={{ fontSize: '95%' }}>

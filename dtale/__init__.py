@@ -22,6 +22,7 @@ with warnings.catch_warnings():
     HIDE_HEADER_MENU = False
     HIDE_MAIN_MENU = False
     HIDE_COLUMN_MENUS = False
+    HIDE_ROW_EXPANDERS = False
     ENABLE_CUSTOM_FILTERS = False
     ENABLE_WEB_UPLOADS = False
 

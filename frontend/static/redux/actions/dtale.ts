@@ -63,6 +63,13 @@ export const loadHideColumnMenus = (store: Store<AppStoreState>): void => {
   store.dispatch(AppActions.UpdateHideColumnMenus(hideColumnMenus ?? settings.hide_column_menus ?? hideColumnMenus));
 };
 
+export const loadHideRowExpanders = (store: Store<AppStoreState>): void => {
+  const { settings, hideRowExpanders } = store.getState();
+  store.dispatch(
+    AppActions.UpdateHideRowExpanders(hideRowExpanders ?? settings.hide_row_expanders ?? hideRowExpanders),
+  );
+};
+
 export const loadEnableCustomFilters = (store: Store<AppStoreState>): void => {
   const { settings, enableCustomFilters } = store.getState();
   store.dispatch(

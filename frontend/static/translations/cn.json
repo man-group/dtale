@@ -59,7 +59,8 @@
     "Hide Header Editor": "Hide Header Editor",
     "Load ArcticDB Data": "Load ArcticDB Data",
     "Jump To Column": "Jump To Column",
-    "Raw Pandas Output": "Raw Pandas Output"
+    "Raw Pandas Output": "Raw Pandas Output",
+    "Hide Row Expanders": "Hide Row Expanders"
   },
   "menu_description": {
     "describe": "描述每列的值（最上面的唯一值，最小值，最大值，总和，STD，变量，...）。",
@@ -111,7 +112,8 @@
     "hide_header_editor": "If checked, hides the header editor when editing cells in the grid",
     "arcticdb": "Load data from a specific library & symbol in ArcticDB",
     "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown.",
-    "raw_pandas": "See the raw output from such pandas functions as info, nunique & describe"
+    "raw_pandas": "See the raw output from such pandas functions as info, nunique & describe",
+    "hide_row_expanders": "If checked, hides the row expansion cells (▶) in the grid"
   },
   "column_menu": {
     "Asc": "Asc",
@@ -490,7 +492,8 @@
     "Active D-Tale Instances": "活跃的D-Tale实例",
     "Yes": "是",
     "No": "否",
-    "About": "关于"
+    "About": "关于",
+    "View Row": "View Row"
   },
   "correlations": {
     "(Click on any point in the scatter to filter the grid down to that record)": "(Click on any point in the scatter to filter the grid down to that record)",
@@ -797,7 +800,6 @@
     "sem": "sem",
     "std": "std",
     "sum": "sum",
-    "unique": "unique",
     "var": "var",
     "Word": "Word",
     "Min": "最少",
@@ -808,7 +810,6 @@
     "None": "None",
     "navigate": "Use ↑ ↓ buttons to switch columns",
     "Most Frequent": "Most Frequent",
-    "Frequency":"Frequency",
     "Percent": "Percent",
     "TOTAL": "TOTAL"
   },

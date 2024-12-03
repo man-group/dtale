@@ -46,6 +46,13 @@ export const hideColumnMenus = createReducer(false, (builder) =>
     .addCase(AppActions.LoadPreviewAction, () => true),
 );
 
+export const hideRowExpanders = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('hide_row_expanders')))
+    .addCase(AppActions.UpdateHideRowExpanders, (state, { payload }) => payload)
+    .addCase(AppActions.LoadPreviewAction, () => true),
+);
+
 export const enableCustomFilters = createReducer(false, (builder) =>
   builder
     .addCase(AppActions.InitAction, () => toBool(getHiddenValue('enable_custom_filters')))
