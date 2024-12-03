@@ -30,7 +30,10 @@ const VerticalColumnHeaders: React.FC<WithTranslation> = ({ t }) => {
     <MenuItem className="hoverable" description={t('menu_description:vertical_headers')} onClick={setVerticalHeaders}>
       <span className="toggler-action">
         <button className="btn btn-plain">
-          <i className={`ico-check-box${verticalHeaders ? '' : '-outline-blank'}`} style={{ marginTop: '-.25em' }} />
+          <i
+            className={`ico-check-box${verticalHeaders ? '' : '-outline-blank'} pr-2`}
+            style={{ marginTop: '-.25em' }}
+          />
           <span className="font-weight-bold" style={{ fontSize: '95%' }}>
             {t('Vertical Column Headers', { ns: 'menu' })}
           </span>

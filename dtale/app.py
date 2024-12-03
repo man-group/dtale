@@ -722,6 +722,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :param hide_column_menus: If true, this will hide the column menus from the screen
     :type hide_column_menus: bool, optional
     :param column_edit_options: The options to allow on the front-end when editing a cell for the columns specified
+    :param hide_row_expanders: If true, this will hide the row expanders from the screen
+    :type hide_row_expanders: bool, optional
     :type column_edit_options: dict, optional
     :param auto_hide_empty_columns: if True, then auto-hide any columns on the front-end that are comprised entirely of
                                     NaN values
@@ -830,6 +832,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             hide_header_menu=final_options.get("hide_header_menu"),
             hide_main_menu=final_options.get("hide_main_menu"),
             hide_column_menus=final_options.get("hide_column_menus"),
+            hide_row_expanders=final_options.get("hide_row_expanders"),
             enable_custom_filters=final_options.get("enable_custom_filters"),
             enable_web_uploads=final_options.get("enable_web_uploads"),
             main_title=final_options.get("main_title"),

@@ -366,6 +366,7 @@ class DtaleData(object):
         * hide_header_menu - if true, this will hide the header menu from the screen
         * hide_main_menu - if true, this will hide the main menu from the screen
         * hide_column_menus - if true, this will hide the column menus from the screen
+        * hide_row_expanders - if true, this will hide row expanders from the screen
         * enable_custom_filters - if True, allow users to specify custom filters from the UI using pandas.query strings
         * enable_web_uploads - if True, allow users to upload files using URLs from the UI
 
@@ -938,6 +939,7 @@ def startup(
     hide_header_menu=None,
     hide_main_menu=None,
     hide_column_menus=None,
+    hide_row_expanders=None,
     enable_custom_filters=None,
     enable_web_uploads=None,
     force_save=True,
@@ -1069,6 +1071,7 @@ def startup(
             hide_header_menu=hide_header_menu,
             hide_main_menu=hide_main_menu,
             hide_column_menus=hide_column_menus,
+            hide_row_expanders=hide_row_expanders,
             enable_custom_filters=enable_custom_filters,
             enable_web_uploads=enable_web_uploads,
             main_title=main_title,
@@ -1144,6 +1147,7 @@ def startup(
                 hide_header_menu=hide_header_menu,
                 hide_main_menu=hide_main_menu,
                 hide_column_menus=hide_column_menus,
+                hide_row_expanders=hide_row_expanders,
                 enable_custom_filters=enable_custom_filters,
                 enable_web_uploads=enable_web_uploads,
                 main_title=main_title,
@@ -1215,6 +1219,8 @@ def startup(
             base_settings["hide_main_menu"] = hide_main_menu
         if hide_column_menus is not None:
             base_settings["hide_column_menus"] = hide_column_menus
+        if hide_row_expanders is not None:
+            base_settings["hide_row_expanders"] = hide_row_expanders
         if enable_custom_filters is not None:
             base_settings["enable_custom_filters"] = enable_custom_filters
         if enable_web_uploads is not None:
@@ -1317,6 +1323,7 @@ def base_render_template(template, data_id, **kwargs):
     hide_header_menu = global_state.load_flag(data_id, "hide_header_menu", False)
     hide_main_menu = global_state.load_flag(data_id, "hide_main_menu", False)
     hide_column_menus = global_state.load_flag(data_id, "hide_column_menus", False)
+    hide_row_expanders = global_state.load_flag(data_id, "hide_row_expanders", False)
     main_title = global_state.load_flag(data_id, "main_title", None)
     main_title_font = global_state.load_flag(data_id, "main_title_font", None)
     enable_custom_filters = global_state.load_flag(
@@ -1331,6 +1338,7 @@ def base_render_template(template, data_id, **kwargs):
         hide_header_menu=hide_header_menu,
         hide_main_menu=hide_main_menu,
         hide_column_menus=hide_column_menus,
+        hide_row_expanders=hide_row_expanders,
         enable_custom_filters=enable_custom_filters,
         enable_web_uploads=enable_web_uploads,
         github_fork=github_fork,

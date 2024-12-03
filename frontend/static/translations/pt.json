@@ -60,7 +60,8 @@
     "Hide Header Editor": "Hide Header Editor",
     "Load ArcticDB Data": "Load ArcticDB Data",
     "Jump To Column": "Jump To Column",
-    "Raw Pandas Output": "Raw Pandas Output"
+    "Raw Pandas Output": "Raw Pandas Output",
+    "Hide Row Expanders": "Hide Row Expanders"
   },
   "menu_description": {
     "describe": "Descreve valores das colunas (Valores únicos, Min, Max, Soma, STD, Var,...)",
@@ -112,7 +113,8 @@
     "hide_header_editor": "If checked, hides the header editor when editing cells in the grid",
     "arcticdb": "Load data from a specific library & symbol in ArcticDB",
     "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown.",
-    "raw_pandas": "See the raw output from such pandas functions as info, nunique & describe"
+    "raw_pandas": "See the raw output from such pandas functions as info, nunique & describe",
+    "hide_row_expanders": "If checked, hides the row expansion cells (▶) in the grid"
   },
   "column_menu": {
     "Asc": "Asc",
@@ -491,7 +493,8 @@
     "Active D-Tale Instances": "Instâncias D-Tale Ativadas",
     "Yes": "Sim",
     "No": "Não",
-    "About": "Sobre"
+    "About": "Sobre",
+    "View Row": "View Row"
   },
   "correlations": {
     "(Click on any point in the scatter to filter the grid down to that record)": "(Clique em qualquer ponto na dispersão para filtrar a grade até esse registro)",
@@ -806,7 +809,6 @@
     "None": "Nenhum",
     "navigate": "Usar botões ↑ ↓ para mudar colunas",
     "Most Frequent": "Mais frequentes",
-    "Frequency":"Frequency",
     "Percent": "Percent",
     "TOTAL": "TOTAL"
   },

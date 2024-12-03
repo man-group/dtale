@@ -27,6 +27,7 @@ import FilterOption from '../menu/FilterOption';
 import GageRnROption from '../menu/GageRnROption';
 import HeatMapOption from '../menu/HeatMapOption';
 import HideHeaderEditor from '../menu/HideHeaderEditor';
+import HideRowExpanders from '../menu/HideRowExpanders';
 import HighlightOption from '../menu/HighlightOption';
 import InstancesOption from '../menu/InstancesOption';
 import JumpToColumnOption from '../menu/JumpToColumnOption';
@@ -177,7 +178,7 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
     <div
       className={`ribbon-menu-dd-content${visible ? ' is-expanded' : ''}`}
       data-testid="ribbon-dropdown"
-      style={style}
+      style={{ ...style, ...(name === RibbonDropdownType.SETTINGS ? { minWidth: '16em' } : {}) }}
       ref={ref}
       onClick={(e): void => {
         e.stopPropagation();
@@ -306,6 +307,7 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
           <ShowNonNumericHeatmapColumns />
           <VerticalColumnHeaders />
           <HideHeaderEditor />
+          <HideRowExpanders />
         </ul>
       )}
     </div>

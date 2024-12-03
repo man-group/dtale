@@ -34,6 +34,7 @@ APP_SETTINGS = {
     "hide_column_menus": False,
     "enable_custom_filters": False,
     "enable_web_uploads": False,
+    "hide_row_expanders": False,
 }
 
 AUTH_SETTINGS = {"active": False, "username": None, "password": None}
@@ -612,6 +613,8 @@ def set_app_settings(settings):
         instance_updates["hide_main_menu"] = settings.get("hide_main_menu")
     if settings.get("hide_column_menus") is not None:
         instance_updates["hide_column_menus"] = settings.get("hide_column_menus")
+    if settings.get("hide_row_expanders") is not None:
+        instance_updates["hide_row_expanders"] = settings.get("hide_row_expanders")
     if settings.get("enable_custom_filters") is not None:
         instance_updates["enable_custom_filters"] = settings.get(
             "enable_custom_filters"

@@ -390,6 +390,7 @@ export interface InstanceSettings {
   hide_header_menu: boolean;
   hide_main_menu: boolean;
   hide_column_menus: boolean;
+  hide_row_expanders: boolean;
   isArcticDB?: number;
   enable_custom_filters: boolean;
 }
@@ -405,6 +406,7 @@ export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
   hide_header_menu: false,
   hide_main_menu: false,
   hide_column_menus: false,
+  hide_row_expanders: false,
   enable_custom_filters: false,
 });
 
@@ -448,6 +450,7 @@ export interface AppSettings {
   hideHeaderMenu: boolean;
   hideMainMenu: boolean;
   hideColumnMenus: boolean;
+  hideRowExpanders: boolean;
   enableCustomFilters: boolean;
   enableWebUploads: boolean;
   columnAggregations: string | null;

@@ -58,6 +58,7 @@ export const selectBaseLockHeaderMenu = (state: AppStoreState): boolean => state
 export const selectBaseHideHeaderMenu = (state: AppStoreState): boolean => state.hideHeaderMenu;
 export const selectBaseHideMainMenu = (state: AppStoreState): boolean => state.hideMainMenu;
 export const selectBaseHideColumnMenus = (state: AppStoreState): boolean => state.hideColumnMenus;
+export const selectBaseHideRowExpanders = (state: AppStoreState): boolean => state.hideRowExpanders;
 export const selectBaseEnableCustomFilters = (state: AppStoreState): boolean => state.enableCustomFilters;
 export const selectEnableWebUploads = (state: AppStoreState): boolean => state.enableWebUploads;
 export const selectFilteredRanges = (state: AppStoreState): FilteredRanges => state.filteredRanges;
@@ -107,6 +108,11 @@ const selectSettingsHideColumnMenus = createSelector([selectSettings], (settings
 export const selectHideColumnMenus = createSelector(
   [selectSettingsHideColumnMenus, selectBaseHideColumnMenus],
   (settingsHideColumnMenus, hideColumnMenus) => settingsHideColumnMenus ?? hideColumnMenus,
+);
+const selectSettingsHideRowExpanders = createSelector([selectSettings], (settings) => settings?.hide_row_expanders);
+export const selectHideRowExpanders = createSelector(
+  [selectSettingsHideRowExpanders, selectBaseHideRowExpanders],
+  (settingsHideRowExpanders, hideRowExpanders) => settingsHideRowExpanders ?? hideRowExpanders,
 );
 const selectSettingsEnableCustomFilters = createSelector(
   [selectSettings],
