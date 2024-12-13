@@ -585,6 +585,21 @@ def test_update_settings(test_data, unittest):
             response_data = response.get_json()
             assert "error" in response_data
 
+    settings = json.dumps(dict(enable_custom_filters=True))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            global_state.set_data(c.port, None)
+            response = c.get(
+                "/dtale/update-settings/{}".format(c.port),
+                query_string=dict(settings=settings),
+            )
+            assert response.status_code == 200, "should return 200 response"
+            response_data = response.get_json()
+            assert (
+                response_data["error"]
+                == "Cannot alter the property 'enable_custom_filters' from this endpoint"
+            )
+
 
 @pytest.mark.unit
 def test_update_formats():
