@@ -1625,6 +1625,13 @@ def update_settings(data_id):
     """
 
     updated_settings = get_json_arg(request, "settings", {})
+
+    # block users from manually updating 'enable_custom_filters'
+    if "enable_custom_filters" in updated_settings:
+        raise ValueError(
+            "Cannot alter the property 'enable_custom_filters' from this endpoint"
+        )
+
     if not global_state.load_flag(data_id, "enable_custom_filters", False):
         updated_settings.pop("query", None)
 
