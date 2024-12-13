@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.16.1 (2024-12-13)
+* [#894](https://github.com/man-group/dtale/issues/894): updates to 'update-settings' endpoint for security
+
 ### 3.16.0 (2024-12-3)
 * [#891](https://github.com/man-group/dtale/issues/891): row details popup
 * front-end package updates
