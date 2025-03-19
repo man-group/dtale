@@ -1,7 +1,6 @@
 import json
 
 import dash_bootstrap_components as dbc
-import dash_colorscales as dcs
 import dash_daq as daq
 import os
 import plotly
@@ -9,6 +8,7 @@ from pkg_resources import parse_version
 from six import PY3
 
 from dtale.dash_application import dcc, html
+import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.dash_application.extended_aggregations as extended_aggregations
 import dtale.global_state as global_state
@@ -1427,7 +1427,7 @@ def build_slider_counts(df, data_id, query_value):
 
 
 def collapse_btn_text(is_open, label):
-    return "{} {}".format("\u25BC" if is_open else "\u25B6", label)
+    return "{} {}".format("\u25bc" if is_open else "\u25b6", label)
 
 
 def charts_layout(df, settings, **inputs):
@@ -1466,6 +1466,9 @@ def charts_layout(df, settings, **inputs):
     scatter_input = dict(display="block" if chart_type == "scatter" else "none")
     bar_style, barsort_input_style = bar_input_style(**inputs)
     animate_style, animate_by_style, animate_opts = animate_styles(df, **inputs)
+    custom_filtering = global_state.load_flag(
+        inputs["data_id"], "enable_custom_filters", False
+    )
 
     options = build_input_options(df, **inputs)
     (
@@ -1722,7 +1725,13 @@ def charts_layout(df, settings, **inputs):
                                     placeholder=query_placeholder,
                                     className="form-control",
                                     value=query_value,
-                                    style={"lineHeight": "inherit"},
+                                    style={
+                                        "lineHeight": "inherit",
+                                        "display": (
+                                            "inherit" if custom_filtering else "none"
+                                        ),
+                                    },
+                                    disabled=not custom_filtering,
                                 ),
                             ],
                             className="input-group mr-3",
@@ -1732,8 +1741,6 @@ def charts_layout(df, settings, **inputs):
                 ),
                 className="row pt-3 pb-3 charts-filters",
             )
-            if global_state.load_flag(inputs["data_id"], "enable_custom_filters", False)
-            else None
         ),
         html.Div(
             html.Div(
@@ -2602,7 +2609,7 @@ def charts_layout(df, settings, **inputs):
                 ),
                 build_input(
                     text("Colorscale"),
-                    dcs.DashColorscales(
+                    dash_components.DashColorscales(
                         id="colorscale-picker",
                         colorscale=inputs.get("colorscale") or default_cscale,
                     ),

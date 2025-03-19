@@ -46,3 +46,7 @@ frontend/package-lock.json
 
 # arcticdb test data
 tests/data/arcticdb/*
+
+# dash component generation
+dash-components/node_modules/
+dash-components/yarn.lock

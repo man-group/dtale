@@ -207,13 +207,13 @@ def test_collapse_data_input():
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
         assert response["collapse-data"]["is_open"]
-        assert response["collapse-data-btn"]["children"] == "\u25BC Data Selection"
+        assert response["collapse-data-btn"]["children"] == "\u25bc Data Selection"
 
         params["state"][0]["value"] = True
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
         assert not response["collapse-data"]["is_open"]
-        assert response["collapse-data-btn"]["children"] == "\u25B6 Data Selection"
+        assert response["collapse-data-btn"]["children"] == "\u25b6 Data Selection"
 
         params["inputs"][0]["value"] = 0
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -239,13 +239,13 @@ def test_collapse_cleaners_input():
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
         assert response["collapse-cleaners"]["is_open"]
-        assert response["collapse-cleaners-btn"]["children"] == "\u25BC Cleaners"
+        assert response["collapse-cleaners-btn"]["children"] == "\u25bc Cleaners"
 
         params["state"][0]["value"] = True
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
         assert not response["collapse-cleaners"]["is_open"]
-        assert response["collapse-cleaners-btn"]["children"] == "\u25B6 Cleaners"
+        assert response["collapse-cleaners-btn"]["children"] == "\u25b6 Cleaners"
 
         params["inputs"][0]["value"] = 0
         response = c.post("/dtale/charts/_dash-update-component", json=params)

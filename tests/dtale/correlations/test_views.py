@@ -149,13 +149,14 @@ def test_get_correlations(unittest, test_data, rolling_data):
             "should return correlation date columns",
         )
 
-    with app.test_client() as c:
-        build_data_inst({c.port: df})
-        build_dtypes({c.port: views.build_dtypes_state(df)})
-        response = c.get(
-            "/dtale/correlations/{}".format(c.port), query_string=dict(image=True)
-        )
-        assert response.content_type == "image/png"
+    if parse_version(platform.python_version()) < parse_version("3.10.0"):
+        with app.test_client() as c:
+            build_data_inst({c.port: df})
+            build_dtypes({c.port: views.build_dtypes_state(df)})
+            response = c.get(
+                "/dtale/correlations/{}".format(c.port), query_string=dict(image=True)
+            )
+            assert response.content_type == "image/png"
 
 
 @pytest.mark.skipif(

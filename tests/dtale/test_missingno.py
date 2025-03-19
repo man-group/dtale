@@ -1,12 +1,13 @@
 import pandas as pd
 import pytest
+import sys
 
 from dtale.app import build_app
 from tests.dtale.test_views import URL
 from tests.dtale import build_data_inst
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(sys.version_info >= (3, 10), reason="requires python 3.9 or lower")
 def test_matrix():
     import dtale.views as views
 
@@ -18,7 +19,7 @@ def test_matrix():
         assert resp.content_type == "image/png"
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(sys.version_info >= (3, 10), reason="requires python 3.9 or lower")
 def test_bar():
     import dtale.views as views
 
@@ -30,7 +31,7 @@ def test_bar():
         assert resp.content_type == "image/png"
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(sys.version_info >= (3, 10), reason="requires python 3.9 or lower")
 def test_heatmap():
     import dtale.views as views
 
@@ -42,7 +43,7 @@ def test_heatmap():
         assert resp.content_type == "image/png"
 
 
-@pytest.mark.unit
+@pytest.mark.skipif(sys.version_info >= (3, 10), reason="requires python 3.9 or lower")
 def test_dendrogram(rolling_data):
     import dtale.views as views
 

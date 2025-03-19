@@ -2072,8 +2072,14 @@ def heatmap_builder(data_id, export=False, **inputs):
         layout_cfg["title"]["text"] += " (Correlation)" if "corr" == agg else ""
         layout_cfg = build_layout(layout_cfg)
 
-        heatmap_func = go.Heatmapgl
-        heatmap_func_str = "go.Heatmapgl(z=chart_data.values, text=text, **hm_kwargs)"
+        try:
+            heatmap_func = go.Heatmapgl
+            heatmap_func_str = (
+                "go.Heatmapgl(z=chart_data.values, text=text, **hm_kwargs)"
+            )
+        except AttributeError:
+            heatmap_func = go.Heatmap
+            heatmap_func_str = "go.Heatmap(z=chart_data.values, text=text, **hm_kwargs)"
         if len(x_data) * len(y_data) < 10000:
             heatmap_func = go.Heatmap
             heatmap_func_str = (

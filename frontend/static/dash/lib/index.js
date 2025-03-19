@@ -1,5 +1,6 @@
 require('./publicDashPath');
 
+import DashColorscales from './components/DashColorscales.react';
 import Wordcloud from './components/Wordcloud.react';
 
-export { Wordcloud };
+export { DashColorscales, Wordcloud };

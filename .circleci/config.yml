@@ -155,6 +155,7 @@ python: &python
             . ci/bin/activate
             pip install -r requirements.txt
             python setup.py develop
+            pip install matplotlib --force-reinstall
       - run:
           name: Print environment
           command: |
@@ -233,7 +234,8 @@ python: &python
               grep -q $VERSION CHANGES.md || (echo "ERROR: Version number not found in CHANGES.md: $VERSION"; exit 1)
               grep -q $VERSION docker/dtale.env || (echo "ERROR: Version number not found in docker/dtale.env: $VERSION"; exit 1)
               grep -q $VERSION docs/source/conf.py || (echo "ERROR: Version number not found in docs/source/conf.py: $VERSION"; exit 1)
-              grep -q $VERSION frontend/package.json || (echo "ERROR: Version number not found in package.json: $VERSION"; exit 1)
+              grep -q $VERSION frontend/package.json || (echo "ERROR: Version number not found in frontend/package.json: $VERSION"; exit 1)
+              grep -q $VERSION dash-components/package.json || (echo "ERROR: Version number not found in dash-components/package.json: $VERSION"; exit 1)
               python setup.py --long-description > ../README.rst
               # pandoc --from=markdown --to=rst --output=../README.rst README.md
               cat ../README.rst | rst2html.py 1> ../README.html 2> ../log
