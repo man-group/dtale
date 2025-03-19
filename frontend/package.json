@@ -150,6 +150,7 @@
     "react-addons-shallow-compare": "15.6.3",
     "react-bootstrap": "2.10.6",
     "react-color": "2.19.3",
+    "react-colorscales": "0.7.3",
     "react-dom": "18.3.1",
     "react-draggable": "4.4.6",
     "react-dropzone": "14.3.5",

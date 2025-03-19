@@ -4280,10 +4280,8 @@ def drop_filtered_rows(data_id):
     final_query = build_query(data_id, global_state.get_query(data_id))
     curr_history = global_state.get_history(data_id) or []
     curr_history += [
-        (
-            "# drop filtered rows\n"
-            'df = df.query("{}")'.format(final_query.replace("`", ""))
-        )
+        "# drop filtered rows\n"
+        'df = df.query("{}")'.format(final_query.replace("`", ""))
     ]
     global_state.set_history(data_id, curr_history)
     data = run_query(

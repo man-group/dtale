@@ -266,7 +266,8 @@ def json_float(x, precision=2, nan_display="nan", inf_display="inf", as_string=F
             output = float(round(x, precision))
             if as_string:
                 str_output = format(
-                    DECIMAL_CTX.create_decimal(repr(x)), ",.{}f".format(str(precision))
+                    DECIMAL_CTX.create_decimal(repr(float(x))),
+                    ",.{}f".format(str(precision)),
                 )
                 # drop trailing zeroes off & trailing decimal points if necessary
                 return str_output.rstrip("0").rstrip(".")
