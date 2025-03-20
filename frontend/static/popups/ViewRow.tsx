@@ -28,7 +28,9 @@ export const ViewRow: React.FC<WithTranslation> = ({ t }) => {
           <React.Fragment key={idx}>
             <div className="col-md-6 view-row-cell">
               <b>{`${colCfg.name}:`}</b>
-              <span className="float-right">{row[colCfg.name].view}</span>
+              <div className="float-right" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {row[colCfg.name].view}
+              </div>
             </div>
           </React.Fragment>
         ))}
