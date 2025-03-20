@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.17.0 (2025-3-20)
+* [#905](https://github.com/man-group/dtale/issues/905): updates for dash 3.0.0
+* [#902](https://github.com/man-group/dtale/issues/902): fix text wrapping on row detail popup
+
 ### 3.16.1 (2024-12-13)
 * [#894](https://github.com/man-group/dtale/issues/894): updates to 'update-settings' endpoint for security
 
