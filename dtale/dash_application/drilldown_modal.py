@@ -219,9 +219,8 @@ def init_callbacks(dash_app):
         if click_data:
             click_point = next((p for p in click_data.get("points", [])), None)
             if click_point:
-                curr_settings = global_state.get_settings(data_id) or {}
                 query = build_query(
-                    data_id, all_inputs.get("query") or curr_settings.get("query")
+                    data_id, all_inputs.get("query") or global_state.get_query(data_id)
                 )
                 x_col = all_inputs.get("x")
                 y_col = next((y2 for y2 in make_list(all_inputs.get("y"))), None)

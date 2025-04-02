@@ -147,6 +147,7 @@ class RemoveDuplicateRows(object):
 
     def check(self, df):
         subset, keep = (self.cfg.get(p) for p in ["subset", "keep"])
+        subset = None if not len(subset or []) else subset
         dupe_args = {"keep": False if keep == "none" else keep}
         duplicates = df.duplicated(subset, **dupe_args)
         removed = int(duplicates.sum())

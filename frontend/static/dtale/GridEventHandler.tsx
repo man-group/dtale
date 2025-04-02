@@ -1,19 +1,11 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
-import {
-  ActionType,
-  EditedCellAction,
-  HideMenuTooltipAction,
-  HideRibbonMenuAction,
-  OpenChartAction,
-  SetRangeStateAction,
-  ShowMenuTooltipAction,
-  ShowRibbonMenuAction,
-} from '../redux/actions/AppActions';
+import Aggregations from '../popups/aggregations/Aggregations';
+import { AppActions } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import * as selectors from '../redux/selectors';
 import { Popups, PopupType, RangeState } from '../redux/state/AppState';
 
@@ -110,17 +102,23 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
     settings,
     lockHeaderMenu,
     hideHeaderMenu,
-  } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
-  const editCell = (editedCell: string): EditedCellAction => dispatch({ type: ActionType.EDIT_CELL, editedCell });
-  const setRibbonVisibility = (show: boolean): ShowRibbonMenuAction | HideRibbonMenuAction =>
-    dispatch({ type: show ? ActionType.SHOW_RIBBON_MENU : ActionType.HIDE_RIBBON_MENU });
-  const showTooltip = (element: HTMLElement, content: React.ReactNode): ShowMenuTooltipAction =>
-    dispatch({ type: ActionType.SHOW_MENU_TOOLTIP, element, content });
-  const hideTooltip = (): HideMenuTooltipAction => dispatch({ type: ActionType.HIDE_MENU_TOOLTIP });
-  const updateRangeState = (state: RangeState): SetRangeStateAction =>
-    dispatch({ type: ActionType.SET_RANGE_STATE, ...state });
+  } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
+  const editCell = (editedCell: string): PayloadAction<string | undefined> =>
+    dispatch(AppActions.EditedCellAction(editedCell));
+  const setRibbonVisibility = (show: boolean): PayloadAction<void> =>
+    dispatch(show ? AppActions.ShowRibbonMenuAction() : AppActions.HideRibbonMenuAction());
+  const showTooltip = (
+    element: HTMLElement,
+    content: React.ReactNode,
+  ): PayloadAction<{
+    element: HTMLElement;
+    content: React.ReactNode;
+  }> => dispatch(AppActions.ShowMenuTooltipAction({ element, content }));
+  const hideTooltip = (): PayloadAction<void> => dispatch(AppActions.HideMenuTooltipAction());
+  const updateRangeState = (state: RangeState): PayloadAction<RangeState> =>
+    dispatch(AppActions.SetRangeStateAction({ ...state }));
 
   const [currY, setCurrY] = React.useState<number>();
   const gridPanel = React.useRef<HTMLDivElement>(null);
@@ -160,7 +158,7 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
     const coords = convertCellIdxToCoords(cellIdx);
     if (rowRange) {
       const title = t('Copy Rows to Clipboard?');
-      const callback = (copyText: CopyText): OpenChartAction =>
+      const callback = (copyText: CopyText): PayloadAction<Popups> =>
         openChart({
           ...copyText,
           type: PopupType.COPY_ROW_RANGE,
@@ -319,6 +317,7 @@ const GridEventHandler: React.FC<React.PropsWithChildren<GridEventHandlerProps &
       <MeasureText />
       <SidePanel gridPanel={gridPanel.current} />
       {dragResize && <div className="blue-line" style={{ left: dragResize + 3 }} />}
+      <Aggregations columns={columns} />
     </div>
   );
 };

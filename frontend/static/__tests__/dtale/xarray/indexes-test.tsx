@@ -1,4 +1,4 @@
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
 import * as React from 'react';
 import { Provider } from 'react-redux';
@@ -45,11 +45,9 @@ describe('DataViewer tests', () => {
   afterAll(() => dimensions.afterAll());
 
   it('DataViewer: convert data to xarray dataset', async () => {
+    const body = screen.getByTestId('xarray-indexes-body');
     await selectOption(
-      document.body
-        .getElementsByClassName('modal-body')[0]
-        .getElementsByClassName('form-group')[0]
-        .getElementsByClassName('Select')[0] as HTMLElement,
+      body.getElementsByClassName('form-group')[0].getElementsByClassName('Select')[0] as HTMLElement,
       'col1',
     );
     await act(async () => {

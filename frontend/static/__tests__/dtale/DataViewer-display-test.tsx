@@ -47,7 +47,7 @@ describe('DataViewer tests', () => {
     jest.restoreAllMocks();
   });
 
-  it('DataViewer: loads dark mode correct on inital render', async () => {
+  it('DataViewer: loads dark mode correct on initial render', async () => {
     expect(store.getState().theme).toBe('dark');
     expect(container.getElementsByClassName('BottomLeftGrid_ScrollWrapper')[0]).toHaveStyle({
       backgroundColor: 'inherit',

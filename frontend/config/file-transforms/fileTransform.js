@@ -14,7 +14,7 @@ module.exports = {
    * @param {Object} options any configuration options
    * @return {Object} an ES5 compliant module string
    */
-  process(_sourceText, sourcePath, _options) {
+  process(sourceText, sourcePath, options) {
     return { code: `module.exports = ${JSON.stringify(path.basename(sourcePath))};` };
   },
 };

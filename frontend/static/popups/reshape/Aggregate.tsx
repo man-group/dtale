@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { default as Select } from 'react-select';
 
 import ButtonToggle from '../../ButtonToggle';
 import * as gu from '../../dtale/gridUtils';
 import { default as ColumnSelect, constructColumnOptionsFilteredByOtherValues } from '../../popups/create/ColumnSelect';
+import { useAppSelector } from '../../redux/hooks';
 import { selectPythonVersion } from '../../redux/selectors';
 import { BaseOption } from '../../redux/state/AppState';
 import { pivotAggs } from '../analysis/filters/Constants';
@@ -85,7 +85,7 @@ export const buildCode = (cfg: ReshapeAggregateConfig): CreateColumnCodeSnippet 
 };
 
 const Aggregate: React.FC<BaseReshapeComponentProps & WithTranslation> = ({ columns, updateState, t }) => {
-  const pythonVersion = useSelector(selectPythonVersion);
+  const pythonVersion = useAppSelector(selectPythonVersion);
   const currentAggRef = React.useRef<Select>(null);
   const currentColRef = React.useRef<Select>(null);
   const [currentAggCol, setCurrentAggCol] = React.useState<BaseOption<string>>();

@@ -1,5 +1,79 @@
 ## Changelog
 
+### 3.17.0 (2025-3-20)
+* [#905](https://github.com/man-group/dtale/issues/905): updates for dash 3.0.0
+* [#902](https://github.com/man-group/dtale/issues/902): fix text wrapping on row detail popup
+
+### 3.16.1 (2024-12-13)
+* [#894](https://github.com/man-group/dtale/issues/894): updates to 'update-settings' endpoint for security
+
+### 3.16.0 (2024-12-3)
+* [#891](https://github.com/man-group/dtale/issues/891): row details popup
+* front-end package updates
+* functionality to turn row expanders on/off
+* updated CircleCI build script to use pip instead of setup.py for dependency installation
+
+### 3.15.1 (2024-10-25)
+* Un-pinned `dash-bootstrap-components` dependency
+
+### 3.15.0 (2024-10-24)
+* Un-pinned `Flask` dependency
+* Updated `flask-ngrok` to an optional dependency
+* Remove dependency on `contourpy`
+
+### 3.14.1 (2024-9-10)
+* Updated handling of custom queries in chart builder to eliminate security vulnerability
+
+### 3.14.0 (2024-9-5)
+* [#880](https://github.com/man-group/dtale/issues/880): int -> bool type conversion updates
+* [#876](https://github.com/man-group/dtale/issues/876): Raw Pandas zoom
+
+### 3.13.1 (2024-6-28)
+* [#870](https://github.com/man-group/dtale/issues/870): updated Flask SECRET_EKY to be dynamically generated
+
+### 3.13.0 (2024-6-26)
+* [#868](https://github.com/man-group/dtale/issues/868): added toggle for missing/populated filter
+* [#864](https://github.com/man-group/dtale/issues/864): adding main_title params to `dtale.show`
+* front-end package upgrades
+
+### 3.12.0 (2024-4-30)
+* [#851](https://github.com/man-group/dtale/issues/851): allowing offline_chart to return plotly objects
+* [#847](https://github.com/man-group/dtale/issues/847): Add 'Select All' option for duplicate check UI
+* [#856](https://github.com/man-group/dtale/issues/856): adding 'Select All' to cumsum and y-axis select in charts
+* [#857](https://github.com/man-group/dtale/issues/857): Aggregations popup
+* [#858](https://github.com/man-group/dtale/issues/858): added 'view_data' property to data instances
+* [#854](https://github.com/man-group/dtale/issues/854): Raw Pandas Output popup
+
+### 3.11.0 (2024-3-6)
+* Added extra security around whether a custom query can be used to protected against server-side attacks
+
+### 3.10.0 (2024-1-31)
+* Updated front-end packages (namely redux)
+* [#843](https://github.com/man-group/dtale/issues/843): Chart export background colors
+* [#787](https://github.com/man-group/dtale/issues/787): force colab host to 0.0.0.0
+* [#840](https://github.com/man-group/dtale/issues/840): hide 'View Duplicates' button until column is selected
+* [#837](https://github.com/man-group/dtale/issues/837): frequency table search bug
+
+### 3.9.0 (2024-1-5)
+* Updated web data uploads to be turned off by default
+* [#835](https://github.com/man-group/dtale/issues/835): fixed bug with `dtale.show(open_browser=True)`
+* [#834](https://github.com/man-group/dtale/issues/834): fix for plotly tooltips in charts
+* [#831](https://github.com/man-group/dtale/issues/831): time difference functionality
+
+### 3.8.1 (2023-11-29)
+* [#823](https://github.com/man-group/dtale/issues/823): wrap skew/kurtosis calculations in try/except for pyarrow
+
+### 3.8.0 (2023-11-27)
+* [#823](https://github.com/man-group/dtale/issues/823): only run skew/kurtosis calculations when series has those functions
+* [#825](https://github.com/man-group/dtale/issues/825): unpin werkzeug dependency
+* front-end package upgrades (axios 1.6.0)
+* [#827](https://github.com/man-group/dtale/issues/827): allowing user's to override the host used by `Flask.run`
+* [#724](https://github.com/man-group/dtale/issues/724): updated logging to use a dedicated dtale logger when not invoking from CLI
+* [#822](https://github.com/man-group/dtale/issues/822): fixed bug with dataframe filters not being persisted to chart builder initially
+* [#816](https://github.com/man-group/dtale/issues/816): frequencies grid filtering
+* front-end package upgrades (styled_components)
+* adjusted Pillow dependency
+
 ### 3.7.0 (2023-10-2)
 * Turn off "Custom Filter" functionality by default
 * [#811](https://github.com/man-group/dtale/issues/811): weekday name function

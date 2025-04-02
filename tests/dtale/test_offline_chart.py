@@ -105,3 +105,23 @@ def test_build_notebook(test_data):
         assert output is None
         init_notebook_mode_mock.assert_called_once()
         iplot_mock.assert_called_once()
+
+
+@pytest.mark.unit
+def test_output_object(test_data):
+    from dtale import offline_chart
+    from dtale.dash_application import dcc
+
+    with ExitStack() as stack:
+        stack.enter_context(
+            mock.patch("dtale.views.in_ipython_frontend", mock.Mock(return_value=False))
+        )
+        output = offline_chart(
+            test_data,
+            return_object=True,
+            chart_type="bar",
+            x="date",
+            y="foo",
+            agg="sum",
+        )
+        assert isinstance(output, dcc.Graph)

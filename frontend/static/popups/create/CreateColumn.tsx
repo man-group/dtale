@@ -1,17 +1,17 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef, DataViewerPropagateState } from '../../dtale/DataViewerState';
-import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
 import { RemovableError } from '../../RemovableError';
 import * as CreateColumnRepository from '../../repository/CreateColumnRepository';
 import * as DtypesRepository from '../../repository/DtypesRepository';
 import ColumnSaveType from '../replacement/ColumnSaveType';
-import { buildForwardURL } from '../reshape/Reshape';
+import { buildForwardURL } from '../reshape/utils';
 
 import CodeSnippet from './CodeSnippet';
 import {
@@ -38,9 +38,9 @@ export interface CreateColumnProps {
 }
 
 const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopulated, propagateState, t }) => {
-  const dataId = useSelector(selectDataId);
-  const dispatch = useDispatch();
-  const onClose = (): CloseChartAction => dispatch(closeChart());
+  const dataId = useAppSelector(selectDataId);
+  const dispatch = useAppDispatch();
+  const onClose = (): PayloadAction<void> => dispatch(closeChart());
 
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
   const [error, setError] = React.useState<JSX.Element>();
@@ -81,7 +81,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
     const createParams: CreateColumnSaveParams = { saveAs, ...cfg };
     if (saveAs === SaveAs.NEW) {
       if (!name) {
-        setError(<RemovableError error="Name is required!" />);
+        setError(<RemovableError error={`${cfg.type === CreateColumnType.CUMSUM ? 'Suffix' : 'Name'} is required!`} />);
         return;
       }
       if (columns.find((column) => column.name === name)) {
@@ -138,7 +138,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
       <div key="body" className="modal-body">
         {nameInput === 'name' && (
           <LabeledInput
-            label={t('Name')}
+            label={t(type === CreateColumnType.CUMSUM ? 'Suffix' : 'Name')}
             value={name}
             setter={(value) => {
               setName(value);

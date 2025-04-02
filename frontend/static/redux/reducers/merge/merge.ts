@@ -1,8 +1,8 @@
-import { AnyAction, combineReducers } from 'redux';
+import { combineReducers, createReducer } from '@reduxjs/toolkit';
 
 import { ColumnDef } from '../../../dtale/DataViewerState';
 import { ErrorState } from '../../../repository/GenericRepository';
-import { ConfigUpdateAction, MergeActionType, MergeAppActionTypes } from '../../actions/MergeActions';
+import { ConfigUpdateProps, MergeActions } from '../../actions/MergeActions';
 import {
   Dataset,
   HowToMerge,
@@ -15,255 +15,170 @@ import {
   StackConfig,
 } from '../../state/MergeState';
 
-/**
- * Reducer managing instances available for merging.
- *
- * @param state the current redux state of instances.
- * @param mergeAction application event.
- * @return the updated instances.
- */
-export function instances(state: MergeInstance[] = [], mergeAction: MergeAppActionTypes): MergeInstance[] {
-  switch (mergeAction.type) {
-    case MergeActionType.LOAD_INSTANCES:
-      return mergeAction.instances.data || [];
-    default:
-      return state;
-  }
-}
+export const instances = createReducer<MergeInstance[]>([], (builder) =>
+  builder.addCase(MergeActions.LoadInstancesAction, (state, { payload }) => payload.data ?? []),
+);
 
-/**
- * Reducer managing the loading flag.
- *
- * @param state the current redux state of loading.
- * @param mergeAction application event.
- * @return the updated loading.
- */
-export function loading(state = true, mergeAction: MergeAppActionTypes): boolean {
-  switch (mergeAction.type) {
-    case MergeActionType.LOAD_INSTANCES:
-      return false;
-    default:
-      return state;
-  }
-}
+export const loading = createReducer(true, (builder) => builder.addCase(MergeActions.LoadInstancesAction, () => false));
 
-/**
- * Reducer managing the loadingDatasets flag.
- *
- * @param state the current redux state of loadingDatasets.
- * @param mergeAction application event.
- * @return the updated loadingDatasets.
- */
-export function loadingDatasets(state = false, mergeAction: MergeAppActionTypes): boolean {
-  switch (mergeAction.type) {
-    case MergeActionType.LOADING_DATASETS:
-      return true;
-    case MergeActionType.LOAD_INSTANCES:
-      return false;
-    default:
-      return state;
-  }
-}
+export const loadingDatasets = createReducer(false, (builder) =>
+  builder
+    .addCase(MergeActions.LoadingDatasetsAction, () => true)
+    .addCase(MergeActions.LoadInstancesAction, () => false),
+);
 
-/**
- * Reducer managing the state of any loading error.
- *
- * @param state the current redux state of loadingError.
- * @param mergeAction application event.
- * @return the updated loadingError.
- */
-export function loadingError(state: ErrorState | null = null, mergeAction: MergeAppActionTypes): ErrorState | null {
-  switch (mergeAction.type) {
-    case MergeActionType.CLEAR_ERRORS:
-      return null;
-    case MergeActionType.LOAD_INSTANCES:
-      return mergeAction.instances.error ? mergeAction.instances : null;
-    default:
-      return state;
-  }
-}
+export const loadingError = createReducer<ErrorState | null>(null, (builder) =>
+  builder
+    .addCase(MergeActions.ClearErrorsAction, () => null)
+    .addCase(MergeActions.LoadInstancesAction, (state, { payload }) => (payload.error ? payload : null)),
+);
 
-/**
- * Reducer managing the state of the loadingMerge flag.
- *
- * @param state the current redux state of loadingMerge.
- * @param mergeAction application event.
- * @return the updated loadingMerge.
- */
-export function loadingMerge(state = false, mergeAction: MergeAppActionTypes): boolean {
-  switch (mergeAction.type) {
-    case MergeActionType.LOAD_MERGE:
-      return true;
-    case MergeActionType.LOAD_MERGE_ERROR:
-    case MergeActionType.LOAD_MERGE_DATA:
-      return false;
-    default:
-      return state;
-  }
-}
+export const loadingMerge = createReducer(false, (builder) =>
+  builder
+    .addCase(MergeActions.LoadMergeAction, () => true)
+    .addCase(MergeActions.LoadMergeErrorAction, () => false)
+    .addCase(MergeActions.LoadMergeDataAction, () => false),
+);
 
-/**
- * Reducer managing the state of any merge error.
- *
- * @param state the current redux state of mergeError.
- * @param mergeAction application event.
- * @return the updated mergeError.
- */
-export function mergeError(state: ErrorState | null = null, mergeAction: MergeAppActionTypes): ErrorState | null {
-  switch (mergeAction.type) {
-    case MergeActionType.LOAD_MERGE:
-    case MergeActionType.LOAD_MERGE_DATA:
-    case MergeActionType.CLEAR_ERRORS:
-      return null;
-    case MergeActionType.LOAD_MERGE_ERROR:
-      return mergeAction.error ?? null;
-    default:
-      return state;
-  }
-}
+export const mergeError = createReducer<ErrorState | null>(null, (builder) =>
+  builder
+    .addCase(MergeActions.LoadMergeAction, () => null)
+    .addCase(MergeActions.LoadMergeDataAction, () => null)
+    .addCase(MergeActions.ClearErrorsAction, () => null)
+    .addCase(MergeActions.LoadMergeErrorAction, (state, { payload }) => payload ?? null),
+);
 
-/**
- * Reducer managing the state of the merge config action.
- *
- * @param state the current redux state of action.
- * @param mergeAction application event.
- * @return the updated action.
- */
-export function action(state = MergeConfigType.MERGE, mergeAction: MergeAppActionTypes): MergeConfigType {
-  switch (mergeAction.type) {
-    case MergeActionType.UPDATE_ACTION_TYPE:
-      return mergeAction.action;
-    default:
-      return state;
-  }
-}
+export const action = createReducer(MergeConfigType.MERGE, (builder) =>
+  builder.addCase(MergeActions.UpdateMergeActionTypeAction, (state, { payload }) => payload),
+);
 
-const mergeReducers = combineReducers<MergeConfig>({
-  how: (state = initialMergeConfig.how, mergeAction: ConfigUpdateAction<HowToMerge>): HowToMerge =>
-    mergeAction.prop === 'how' ? mergeAction.value : state,
-  sort: (state = initialMergeConfig.sort, mergeAction: ConfigUpdateAction<boolean>): boolean =>
-    mergeAction.prop === 'sort' ? mergeAction.value : state,
-  indicator: (state = initialMergeConfig.indicator, mergeAction: ConfigUpdateAction<boolean>): boolean =>
-    mergeAction.prop === 'indicator' ? mergeAction.value : state,
+const mergeReducers = combineReducers({
+  how: createReducer<HowToMerge>(initialMergeConfig.how, (builder) =>
+    builder.addCase(MergeActions.ConfigUpdateAction, (state, { payload }) =>
+      payload.prop === 'how' ? (payload.value as HowToMerge) : state,
+    ),
+  ),
+  sort: createReducer<boolean>(initialMergeConfig.sort, (builder) =>
+    builder.addCase(MergeActions.ConfigUpdateAction, (state, { payload }) =>
+      payload.prop === 'sort' ? (payload.value as boolean) : state,
+    ),
+  ),
+  indicator: createReducer<boolean>(initialMergeConfig.indicator, (builder) =>
+    builder.addCase(MergeActions.ConfigUpdateAction, (state, { payload }) =>
+      payload.prop === 'indicator' ? (payload.value as boolean) : state,
+    ),
+  ),
 });
 
-const stackReducers = combineReducers<StackConfig>({
-  ignoreIndex: (state = initialStackConfig.ignoreIndex, mergeAction: ConfigUpdateAction<boolean>): boolean =>
-    mergeAction.prop === 'ignoreIndex' ? mergeAction.value : state,
+const stackReducers = combineReducers({
+  ignoreIndex: createReducer<boolean>(initialStackConfig.ignoreIndex, (builder) =>
+    builder.addCase(MergeActions.ConfigUpdateAction, (state, { payload }) =>
+      payload.prop === 'ignoreIndex' ? (payload.value as boolean) : state,
+    ),
+  ),
 });
 
-/**
- * Reducer managing the state of the merge config.
- *
- * @param state the current redux state of mergeConfig.
- * @param mergeAction application event.
- * @return the updated mergeConfig.
- */
-export function mergeConfig(state: MergeConfig = initialMergeConfig, mergeAction: MergeAppActionTypes): MergeConfig {
-  if (
-    (mergeAction.type === MergeActionType.UPDATE_ACTION_CONFIG && mergeAction.action === MergeConfigType.MERGE) ||
-    mergeAction.type === MergeActionType.INIT_PARAMS
-  ) {
-    return mergeReducers(state, mergeAction);
-  }
-  return state;
-}
+export const mergeConfig = createReducer<MergeConfig>(initialMergeConfig, (builder) =>
+  builder
+    .addCase(MergeActions.ConfigUpdateAction, (state, mergeAction) => {
+      if (mergeAction.payload.action === MergeConfigType.MERGE) {
+        return mergeReducers(state, mergeAction);
+      }
+      return state;
+    })
+    .addCase(MergeActions.InitAction, (state, mergeAction) => mergeReducers(state, mergeAction)),
+);
 
-/**
- * Reducer managing the state of the stack config.
- *
- * @param state the current redux state of stackConfig.
- * @param mergeAction application event.
- * @return the updated stackConfig.
- */
-export function stackConfig(state: StackConfig = initialStackConfig, mergeAction: MergeAppActionTypes): StackConfig {
-  if (
-    (mergeAction.type === MergeActionType.UPDATE_ACTION_CONFIG && mergeAction.action === MergeConfigType.STACK) ||
-    mergeAction.type === MergeActionType.INIT_PARAMS
-  ) {
-    return stackReducers(state, mergeAction);
-  }
-  return state;
-}
+export const stackConfig = createReducer<StackConfig>(initialStackConfig, (builder) =>
+  builder
+    .addCase(MergeActions.ConfigUpdateAction, (state, stackAction) => {
+      if (stackAction.payload.action === MergeConfigType.STACK) {
+        return stackReducers(state, stackAction);
+      }
+      return state;
+    })
+    .addCase(MergeActions.InitAction, (state, stackAction) => stackReducers(state, stackAction)),
+);
 
-const datasetReducers = combineReducers<Dataset>({
-  dataId: (state: string | null = null, mergeAction: ConfigUpdateAction<string>): string | null =>
-    mergeAction.prop === 'dataId' ? mergeAction.value : state,
-  index: (state: ColumnDef[] = [], mergeAction: ConfigUpdateAction<ColumnDef[]>): ColumnDef[] =>
-    (mergeAction.prop === 'index' ? mergeAction.value : state).map((c) => ({ ...c })),
-  columns: (state: ColumnDef[] = [], mergeAction: ConfigUpdateAction<ColumnDef[]>): ColumnDef[] =>
-    (mergeAction.prop === 'columns' ? mergeAction.value : state).map((c) => ({ ...c })),
-  suffix: (state: string | null = null, mergeAction: ConfigUpdateAction<string>): string | null =>
-    mergeAction.prop === 'suffix' ? mergeAction.value : state,
-  isOpen: (state = initialDataset.isOpen, mergeAction: ConfigUpdateAction<boolean>): boolean =>
-    mergeAction.prop === 'isOpen' ? mergeAction.value : state,
-  isDataOpen: (state = initialDataset.isDataOpen, mergeAction: ConfigUpdateAction<boolean>): boolean =>
-    mergeAction.prop === 'isDataOpen' ? mergeAction.value : state,
+const datasetReducers = combineReducers({
+  dataId: createReducer<string | null>(null, (builder) =>
+    builder.addCase(MergeActions.ConfigUpdateAction, (state, { payload }) =>
+      payload.prop === 'dataId' ? (payload.value as string) : state,
+    ),
+  ),
+  index: createReducer<ColumnDef[]>([], (builder) =>
+    builder.addCase(MergeActions.ConfigUpdateAction, (state, { payload }) =>
+      (payload.prop === 'index' ? (payload.value as ColumnDef[]) : state).map((c) => ({ ...c })),
+    ),
+  ),
+  columns: createReducer<ColumnDef[]>([], (builder) =>
+    builder.addCase(MergeActions.ConfigUpdateAction, (state, { payload }) =>
+      (payload.prop === 'columns' ? (payload.value as ColumnDef[]) : state).map((c) => ({ ...c })),
+    ),
+  ),
+  suffix: createReducer<string | null>(null, (builder) =>
+    builder.addCase(MergeActions.ConfigUpdateAction, (state, { payload }) =>
+      payload.prop === 'suffix' ? (payload.value as string) : state,
+    ),
+  ),
+  isOpen: createReducer<boolean>(initialDataset.isOpen, (builder) =>
+    builder.addCase(MergeActions.ConfigUpdateAction, (state, { payload }) =>
+      payload.prop === 'isOpen' ? (payload.value as boolean) : state,
+    ),
+  ),
+  isDataOpen: createReducer<boolean>(initialDataset.isDataOpen, (builder) =>
+    builder.addCase(MergeActions.ConfigUpdateAction, (state, { payload }) =>
+      payload.prop === 'isDataOpen' ? (payload.value as boolean) : state,
+    ),
+  ),
 });
 
-/**
- * Reducer managing the state of the datasets being used in your merge.
- *
- * @param state the current redux state of datasets.
- * @param mergeAction application event.
- * @return the updated datasets.
- */
-export function datasets(state: Dataset[] = [], mergeAction: MergeAppActionTypes): Dataset[] {
-  switch (mergeAction.type) {
-    case MergeActionType.ADD_DATASET:
+export const datasets = createReducer<Dataset[]>([], (builder) =>
+  builder
+    .addCase(MergeActions.AddDatasetAction, (state, { payload }) => {
       return [
         ...state.map((d) => ({ ...d, isOpen: false })),
-        datasetReducers({ ...initialDataset }, {
-          ...mergeAction,
-          prop: 'dataId',
-          value: mergeAction.dataId,
-        } as AnyAction),
+        datasetReducers(
+          { ...initialDataset },
+          MergeActions.ConfigUpdateAction({
+            action: MergeConfigType.MERGE,
+            prop: 'dataId',
+            value: payload,
+          } as ConfigUpdateProps<string>),
+        ),
       ];
-    case MergeActionType.REMOVE_DATASET:
-      return state.filter((_, i) => i !== mergeAction.index).map((d, i) => ({ ...d, isOpen: i === state.length - 2 }));
-    case MergeActionType.TOGGLE_DATASET:
-      return state.map((d, i) => (i === mergeAction.index ? { ...d, isOpen: !d.isOpen } : d));
-    case MergeActionType.UPDATE_DATASET:
-      return state.map((d, i) => (i === mergeAction.index ? datasetReducers(d, mergeAction) : d));
-    default:
-      return state;
-  }
-}
+    })
+    .addCase(MergeActions.RemoveDatasetAction, (state, { payload }) =>
+      state.filter((_, i) => i !== payload).map((d, i) => ({ ...d, isOpen: i === state.length - 2 })),
+    )
+    .addCase(MergeActions.ToggleDatasetAction, (state, { payload }) =>
+      state.map((d, i) => (i === payload ? { ...d, isOpen: !d.isOpen } : d)),
+    )
+    .addCase(MergeActions.UpdateDatasetAction, (state, { payload }) =>
+      state.map((d, i) =>
+        i === payload.index
+          ? datasetReducers(
+              { ...d },
+              MergeActions.ConfigUpdateAction({
+                action: MergeConfigType.MERGE,
+                prop: payload.prop,
+                value: payload.value,
+              } as ConfigUpdateProps<string>),
+            )
+          : d,
+      ),
+    ),
+);
 
-/**
- * Reducer managing the state of the showCode flag.
- *
- * @param state the current redux state of showCode.
- * @param mergeAction application event.
- * @return the updated showCode.
- */
-export function showCode(state = true, mergeAction: MergeAppActionTypes): boolean {
-  switch (mergeAction.type) {
-    case MergeActionType.LOAD_MERGE_DATA:
-      return false;
-    case MergeActionType.CLEAR_MERGE_DATA:
-      return true;
-    case MergeActionType.TOGGLE_SHOW_CODE:
-      return !state;
-    default:
-      return state;
-  }
-}
+export const showCode = createReducer(true, (builder) =>
+  builder
+    .addCase(MergeActions.LoadMergeDataAction, () => false)
+    .addCase(MergeActions.ClearMergeDataAction, () => true)
+    .addCase(MergeActions.ToggleShowCodeAction, (state) => !state),
+);
 
-/**
- * Reducer managing the state of the dataId for any merge data.
- *
- * @param state the current redux state of mergeDataId.
- * @param mergeAction application event.
- * @return the updated mergeDataId.
- */
-export function mergeDataId(state: string | null = null, mergeAction: MergeAppActionTypes): string | null {
-  switch (mergeAction.type) {
-    case MergeActionType.LOAD_MERGE_DATA:
-      return `${mergeAction.dataId}`;
-    case MergeActionType.CLEAR_MERGE_DATA:
-      return null;
-    default:
-      return state;
-  }
-}
+export const mergeDataId = createReducer<string | null>(null, (builder) =>
+  builder
+    .addCase(MergeActions.LoadMergeDataAction, (state, { payload }) => `${payload}`)
+    .addCase(MergeActions.ClearMergeDataAction, () => null),
+);

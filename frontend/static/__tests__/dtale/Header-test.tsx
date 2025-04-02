@@ -13,7 +13,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('Header', () => {
   let container: HTMLElement;
@@ -72,7 +72,7 @@ describe('Header', () => {
     let myEvent = createEvent.mouseDown(dragHandle, current);
     fireEvent(dragHandle, myEvent);
     expect(myEvent.defaultPrevented).toBe(true);
-    expect(mockDispatch).toHaveBeenCalledWith({ type: ActionType.DRAG_RESIZE, x: 10 });
+    expect(mockDispatch).toHaveBeenCalledWith({ type: ActionType.DRAG_RESIZE, payload: 10 });
 
     current.clientX += 1;
     myEvent = createEvent.mouseMove(dragHandle, current);
@@ -81,7 +81,7 @@ describe('Header', () => {
     const textWrapper = container.getElementsByClassName('text-nowrap')[0];
     myEvent = createEvent.click(textWrapper);
     fireEvent(textWrapper, myEvent);
-    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.DRAG_RESIZE, x: 11 });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.DRAG_RESIZE, payload: 11 });
     expect(screen.queryAllByTestId('header-cell')[0].style.width).toBe('101px');
     const updatedColumns = [{ ...props.columns[0] }, { ...props.columns[1], width: 101, resized: true }];
     myEvent = createEvent.mouseUp(dragHandle, current);

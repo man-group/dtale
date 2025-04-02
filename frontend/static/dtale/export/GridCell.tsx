@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
+import { useAppSelector } from '../../redux/hooks';
 import { selectSettings } from '../../redux/selectors';
 import * as bu from '../backgroundUtils';
 import {
@@ -40,7 +40,7 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
   propagateState,
   t,
 }) => {
-  const settings = useSelector(selectSettings);
+  const settings = useAppSelector(selectSettings);
 
   const colCfg = React.useMemo(() => {
     return gu.getCol(columnIndex, columns, settings.backgroundMode);

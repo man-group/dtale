@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
+import { useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
 import { BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -27,10 +27,10 @@ export interface ShowDuplicatesProps extends BaseDuplicatesComponentProps {
 }
 
 /** Response type definition for testing ShowDuplicates config */
-type TestType = DuplicatesRepository.DuplicatesResponse<ShowDuplicatesResult>;
+type TestType = DuplicatesRepository.DuplicatesResponse<ShowDuplicatesResult> & { cfg: ShowDuplicatesConfig };
 
 const ShowDuplicates: React.FC<ShowDuplicatesProps & WithTranslation> = ({ columns, setCfg, t }) => {
-  const dataId = useSelector(selectDataId);
+  const dataId = useAppSelector(selectDataId);
   const [group, setGroup] = React.useState<Array<BaseOption<string>>>();
   const [filter, setFilter] = React.useState<string>();
   const [testOutput, setTestOutput] = React.useState<TestType>();
@@ -47,13 +47,14 @@ const ShowDuplicates: React.FC<ShowDuplicatesProps & WithTranslation> = ({ colum
 
   const test = (): void => {
     setLoadingTest(true);
+    const cfg = buildCfg();
     DuplicatesRepository.run<TestType>(dataId, {
       type: DuplicatesConfigType.SHOW,
-      cfg: buildCfg(),
+      cfg,
       action: DuplicatesActionType.TEST,
     }).then((response) => {
       setLoadingTest(false);
-      setTestOutput(response);
+      setTestOutput({ ...response, cfg } as TestType);
       setFilter(undefined);
     });
   };
@@ -69,7 +70,7 @@ const ShowDuplicates: React.FC<ShowDuplicatesProps & WithTranslation> = ({ colum
     if (Object.keys(testOutput.results).length) {
       return (
         <React.Fragment>
-          <span>{`${t('Duplicates exist for the following')} (${cfg.group?.join(', ')}) ${t('groups')}:`}</span>
+          <span>{`${t('Duplicates exist for the following')} (${testOutput.cfg.group?.join(', ')}) ${t('groups')}:`}</span>
           <br />
           <b>Total Duplicates</b>
           {`: ${Object.values(testOutput.results).reduce((res, { count }) => res + count, 0)}`}
@@ -107,13 +108,16 @@ const ShowDuplicates: React.FC<ShowDuplicatesProps & WithTranslation> = ({ colum
         }}
         columns={columns}
         isMulti={true}
+        selectAll={true}
       />
       <div className="form-group row">
         <div className="col-md-3" />
         <div className="col-md-8">
-          <button className="col-auto btn btn-secondary" onClick={test}>
-            {t('View Duplicates')}
-          </button>
+          {!!group?.length && (
+            <button className="col-auto btn btn-secondary" onClick={test} data-testid="view-duplicates">
+              {t('View Duplicates')}
+            </button>
+          )}
         </div>
       </div>
       <div className="form-group row">

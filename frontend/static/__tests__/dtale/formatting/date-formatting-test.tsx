@@ -33,8 +33,7 @@ describe('DateFormatting', () => {
     });
     const momentUrl = 'https://momentjs.com/docs/#/displaying/format/';
     expect(openFn.mock.calls[openFn.mock.calls.length - 1][0]).toBe(momentUrl);
-    const input = document
-      .getElementsByClassName('modal-body')[0]
+    const input = getByTestId(document.body, 'formatting-body')
       .querySelector('div.form-group')!
       .getElementsByTagName('input');
     await act(async () => {

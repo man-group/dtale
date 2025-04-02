@@ -1,12 +1,11 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
-import { ActionType, HideRibbonMenuAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import * as actions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectSettings, selectShowAllHeatmapColumns } from '../../redux/selectors';
 
 import { MenuItem } from './MenuItem';
@@ -17,11 +16,11 @@ const selectResult = createSelector(
 );
 
 const ShowNonNumericHeatmapColumns: React.FC<WithTranslation> = ({ t }) => {
-  const { showAllHeatmapColumns, settings } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const hideRibbonMenu = (): HideRibbonMenuAction => dispatch({ type: ActionType.HIDE_RIBBON_MENU });
-  const toggleBackground = (backgroundMode: string): AnyAction =>
-    dispatch(settingsActions.updateSettings({ backgroundMode }) as any as AnyAction);
+  const { showAllHeatmapColumns, settings } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const hideRibbonMenu = (): PayloadAction<void> => dispatch(AppActions.HideRibbonMenuAction());
+  const toggleBackground = (backgroundMode: string): void =>
+    dispatch(settingsActions.updateSettings({ backgroundMode }));
 
   const updateShowAllHeatmapColumns = (): void => {
     const updatedShowAllHeatmapColumns = !showAllHeatmapColumns;
@@ -48,7 +47,7 @@ const ShowNonNumericHeatmapColumns: React.FC<WithTranslation> = ({ t }) => {
       <span className="toggler-action">
         <button className="btn btn-plain">
           <i
-            className={`ico-check-box${showAllHeatmapColumns ? '' : '-outline-blank'}`}
+            className={`ico-check-box${showAllHeatmapColumns ? '' : '-outline-blank'} pr-2`}
             style={{ marginTop: '-.25em' }}
           />
           <span className="font-weight-bold" style={{ fontSize: '95%' }}>

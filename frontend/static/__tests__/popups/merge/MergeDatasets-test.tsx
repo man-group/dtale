@@ -23,7 +23,7 @@ jest.mock('../../../popups/Popup', () => {
 });
 
 import MergeDatasets from '../../../popups/merge/MergeDatasets';
-import { MergeActionType } from '../../../redux/actions/MergeActions';
+import { MergeActions, MergeActionType } from '../../../redux/actions/MergeActions';
 import { MergeConfigType, MergeInstance } from '../../../redux/state/MergeState';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, selectOption } from '../../test-utils';
@@ -33,7 +33,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('MergeDatasets', () => {
   const mockDispatch = jest.fn();
@@ -51,9 +51,9 @@ describe('MergeDatasets', () => {
   const buildResult = async (): Promise<void> => {
     const store = reduxUtils.createMergeStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({ type: MergeActionType.LOAD_INSTANCES, instances: { data: instances } });
-    store.dispatch({ type: MergeActionType.UPDATE_ACTION_TYPE, action: MergeConfigType.MERGE });
-    store.dispatch({ type: MergeActionType.ADD_DATASET, dataId: '1' });
+    store.dispatch(MergeActions.LoadInstancesAction({ data: instances }));
+    store.dispatch(MergeActions.UpdateMergeActionTypeAction(MergeConfigType.MERGE));
+    store.dispatch(MergeActions.AddDatasetAction('1'));
 
     await act(
       () =>
@@ -73,16 +73,18 @@ describe('MergeDatasets', () => {
     await act(async () => {
       await fireEvent.click(screen.getByText('Dataset 1'));
     });
-    expect(mockDispatch).toHaveBeenLastCalledWith({ type: MergeActionType.TOGGLE_DATASET, index: 0 });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: MergeActionType.TOGGLE_DATASET, payload: 0 });
     await selectOption(
       screen.getByText('Index(es)*:').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
       'foo (int)',
     );
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_DATASET,
-      index: 0,
-      prop: 'index',
-      value: [instances[0].names[0]],
+      payload: {
+        index: 0,
+        prop: 'index',
+        value: [instances[0].names[0]],
+      },
     });
     await selectOption(
       screen.getByText('Column(s):').parentElement!.getElementsByClassName('Select')[0] as HTMLElement,
@@ -90,9 +92,11 @@ describe('MergeDatasets', () => {
     );
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_DATASET,
-      index: 0,
-      prop: 'columns',
-      value: [instances[0].names[0]],
+      payload: {
+        index: 0,
+        prop: 'columns',
+        value: [instances[0].names[0]],
+      },
     });
     await act(async () => {
       await fireEvent.change(screen.getByText('Suffix:').parentElement!.getElementsByTagName('input')[0], {
@@ -101,22 +105,26 @@ describe('MergeDatasets', () => {
     });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_DATASET,
-      index: 0,
-      prop: 'suffix',
-      value: 'suffix',
+      payload: {
+        index: 0,
+        prop: 'suffix',
+        value: 'suffix',
+      },
     });
     await act(async () => {
       await fireEvent.click(screen.getByText('Remove Dataset'));
     });
-    expect(mockDispatch).toHaveBeenLastCalledWith({ type: MergeActionType.REMOVE_DATASET, index: 0 });
+    expect(mockDispatch).toHaveBeenLastCalledWith({ type: MergeActionType.REMOVE_DATASET, payload: 0 });
     await act(async () => {
       await fireEvent.click(screen.getByText('Data'));
     });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: MergeActionType.UPDATE_DATASET,
-      index: 0,
-      prop: 'isDataOpen',
-      value: true,
+      payload: {
+        index: 0,
+        prop: 'isDataOpen',
+        value: true,
+      },
     });
   });
 });

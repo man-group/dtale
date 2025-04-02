@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
+import { useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
 import { BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -33,7 +33,7 @@ export interface RowsProps extends BaseDuplicatesComponentProps {
 type TestType = DuplicatesRepository.DuplicatesResponse<RowsResult>;
 
 const Rows: React.FC<RowsProps & WithTranslation> = ({ columns, selectedCol, setCfg, t }) => {
-  const dataId = useSelector(selectDataId);
+  const dataId = useAppSelector(selectDataId);
   const [keep, setKeep] = React.useState(KeepType.FIRST);
   const [subset, setSubset] = React.useState<Array<BaseOption<string>> | undefined>(
     selectedCol ? [{ value: selectedCol }] : undefined,
@@ -64,16 +64,19 @@ const Rows: React.FC<RowsProps & WithTranslation> = ({ columns, selectedCol, set
       let result: React.ReactNode = `${t('No duplicate rows exist for the column(s)')}: ${
         cfg.subset?.join(', ') ?? ''
       }`;
-      if (response?.results && Object.keys(response.results).length) {
+      if (!cfg.subset?.length) {
+        result = t('No duplicate rows exist');
+      }
+      if (response?.results && response.results.removed) {
         result = (
           <React.Fragment>
             <span className="pr-3">{t('From')}</span>
             <b>{response.results.total}</b>
-            <span className="pl-3">{` ${t('rows')}:`}</span>
+            <span className="pl-2">{` ${t('rows')}:`}</span>
             <ul>
               <li>
                 <b>{response.results.removed}</b>
-                {t(' duplicate rows will be removed')}
+                {t(` ${cfg.subset ? `(${cfg.subset?.join(', ')}) ` : ''}duplicate rows will be removed`)}
               </li>
               <li>
                 <b>{response.results.remaining}</b>

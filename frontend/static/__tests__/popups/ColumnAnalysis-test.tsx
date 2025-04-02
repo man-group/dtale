@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 
 import * as chartUtils from '../../chartUtils';
 import ColumnAnalysis from '../../popups/analysis/ColumnAnalysis';
-import { ActionType } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import { ColumnAnalysisPopupData, PopupType } from '../../redux/state/AppState';
 import * as ColumnAnalysisRepository from '../../repository/ColumnAnalysisRepository';
 import reduxUtils from '../redux-test-utils';
@@ -32,9 +32,9 @@ describe('ColumnAnalysis tests', () => {
   const updateProps = async (chartData?: Partial<ColumnAnalysisPopupData>): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { ...props, ...chartData } });
+    store.dispatch(AppActions.OpenChartAction({ ...props, ...chartData }));
     if (chartData?.visible === false) {
-      store.dispatch({ type: ActionType.CLOSE_CHART });
+      store.dispatch(AppActions.CloseChartAction());
     }
     result = await act(
       () =>

@@ -1,14 +1,14 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 import { GlobalHotKeys } from 'react-hotkeys';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { Correlations } from '../../popups/correlations/Correlations';
 import FilterPanel from '../../popups/filter/FilterPanel';
 import PredictivePowerScore from '../../popups/pps/PredictivePowerScore';
 import Reports from '../../popups/timeseries/Reports';
-import { ActionType, HideSidePanelAction, SidePanelAction } from '../../redux/actions/AppActions';
+import { AppActions, SidePanelActionProps } from '../../redux/actions/AppActions';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectSidePanelView, selectSidePanelVisible } from '../../redux/selectors';
 import { SidePanelType } from '../../redux/state/AppState';
 
@@ -32,11 +32,11 @@ const selectResult = createSelector([selectSidePanelVisible, selectSidePanelView
 }));
 
 export const SidePanel: React.FC<SidePanelProps> = ({ gridPanel }) => {
-  const { visible, view } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
-  const updatePanelWidth = (offsetUpdate?: number): SidePanelAction =>
-    dispatch({ type: ActionType.UPDATE_SIDE_PANEL_WIDTH, offset: offsetUpdate });
+  const { visible, view } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const hideSidePanel = (): PayloadAction<void> => dispatch(AppActions.HideSidePanelAction());
+  const updatePanelWidth = (offsetUpdate?: number): PayloadAction<SidePanelActionProps> =>
+    dispatch(AppActions.UpdateSidePanelWidthAction({ offset: offsetUpdate }));
   const [offset, setOffset] = React.useState<number>();
   const panel = React.useRef<HTMLDivElement>(null);
 

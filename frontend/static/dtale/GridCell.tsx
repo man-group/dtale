@@ -1,11 +1,13 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { Checkbox } from '../popups/create/LabeledCheckbox';
-import { ActionType, HideMenuTooltipAction, ShowMenuTooltipAction } from '../redux/actions/AppActions';
+import { AppActions } from '../redux/actions/AppActions';
+import * as chartActions from '../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import * as selectors from '../redux/selectors';
+import { Popups, PopupType, ViewRowPopupData } from '../redux/state/AppState';
 
 import * as bu from './backgroundUtils';
 import { ColumnDef, DataRecord, DataViewerData, DataViewerPropagateState, StringColumnFormat } from './DataViewerState';
@@ -40,6 +42,7 @@ const selectResult = createSelector(
     selectors.selectCtrlRows,
     selectors.selectCtrlCols,
     selectors.selectSelectedRow,
+    selectors.selectChartData,
   ],
   (
     editedCell,
@@ -52,6 +55,7 @@ const selectResult = createSelector(
     ctrlRows,
     ctrlCols,
     selectedRow,
+    chartData,
   ) => ({
     editedCell,
     allowCellEdits,
@@ -63,6 +67,7 @@ const selectResult = createSelector(
     ctrlRows,
     ctrlCols,
     selectedRow,
+    chartData,
   }),
 );
 
@@ -79,11 +84,24 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
   propagateState,
   t,
 }) => {
-  const { editedCell, allowCellEdits, isArcticDB, settings, ...rangeState } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const showTooltip = (element: HTMLElement, content: React.ReactNode): ShowMenuTooltipAction =>
-    dispatch({ type: ActionType.SHOW_MENU_TOOLTIP, element, content });
-  const hideTooltip = (): HideMenuTooltipAction => dispatch({ type: ActionType.HIDE_MENU_TOOLTIP });
+  const reduxState = useAppSelector(selectResult);
+  const { chartData, editedCell, allowCellEdits, isArcticDB, settings, ...rangeState } = reduxState;
+  const expandedRowIndex = React.useMemo(() => {
+    if (chartData.visible) {
+      return (chartData as ViewRowPopupData)?.row?.[gu.IDX]?.raw;
+    }
+    return undefined;
+  }, [chartData.visible, (chartData as ViewRowPopupData)?.row?.[gu.IDX]?.raw]);
+  const dispatch = useAppDispatch();
+  const showTooltip = (
+    element: HTMLElement,
+    content: React.ReactNode,
+  ): PayloadAction<{
+    element: HTMLElement;
+    content: React.ReactNode;
+  }> => dispatch(AppActions.ShowMenuTooltipAction({ element, content }));
+  const hideTooltip = (): PayloadAction<void> => dispatch(AppActions.HideMenuTooltipAction());
+  const openChart = (popupData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(popupData));
 
   const ref = React.useRef<HTMLDivElement>(null);
 
@@ -129,7 +147,7 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
   const row = data[rowIndex - 1] ?? {};
   const rec = row[colCfg?.name ?? ''] ?? {};
   const isBool = gu.ColumnType.BOOL === gu.findColType(colCfg?.dtype);
-  if (columnIndex > 0 && cellIdx === editedCell) {
+  if (columnIndex > 0 && !gu.isIndex(colCfg?.name) && cellIdx === editedCell) {
     return (
       <div
         ref={ref}
@@ -169,6 +187,12 @@ const GridCell: React.FC<GridCellProps & WithTranslation> = ({
       );
     } else if ((settings.columnFormats?.[colCfg.name]?.fmt as StringColumnFormat)?.html === true) {
       value = <div className="html-cell" dangerouslySetInnerHTML={{ __html: value as string }} />;
+    } else if (colCfg.name === gu.EXPANDER_CFG.name) {
+      value = expandedRowIndex !== undefined && row?.[gu.IDX]?.raw === expandedRowIndex ? '▼' : '▶';
+      valueStyle.cursor = 'pointer';
+      divProps.onClick = () => {
+        openChart({ type: PopupType.VIEW_ROW, columns, row, size: 'lg', visible: true });
+      };
     }
   }
   return (

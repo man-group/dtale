@@ -5,6 +5,7 @@ import {
   ColumnDef,
   ColumnFilter,
   ColumnFormat,
+  DataRecord,
   DataViewerPropagateState,
   OutlierFilter,
   RangeSelection,
@@ -51,7 +52,7 @@ export enum RibbonDropdownType {
 
 /** Properties of a ribbon menu dropdown */
 export interface RibbonDropdownProps extends HasVisibility {
-  element?: HTMLDivElement;
+  element?: HTMLElement;
   name?: RibbonDropdownType;
 }
 
@@ -97,7 +98,7 @@ export interface ToggleColumnsDataViewerUpdate extends BaseDataViewerUpdateProps
 /** Update maximum width DataViewer update */
 export interface UpdateMaxWidthDataViewerUpdate
   extends BaseDataViewerUpdateProps<DataViewerUpdateType.UPDATE_MAX_WIDTH> {
-  width: number;
+  width?: number;
 }
 
 /** Update maximum row height DataViewer update */
@@ -135,6 +136,7 @@ export enum PopupType {
   XARRAY_DIMENSIONS = 'xarray-dimensions',
   XARRAY_INDEXES = 'xarray-indexes',
   RENAME = 'rename',
+  VIEW_ROW = 'view-row',
   REPLACEMENT = 'replacement',
   ERROR = 'error',
   INSTANCES = 'instances',
@@ -203,9 +205,15 @@ export interface ExportPopupData extends PopupData<typeof PopupType.EXPORT> {
   rows: number;
 }
 
-/** Popup configuration for Error popup */
+/** Popup configuration for Rename popup */
 export interface RenamePopupData extends PopupData<typeof PopupType.RENAME>, HasColumnSelection {
   columns: ColumnDef[];
+}
+
+/** Popup configuration for ViewRow popup */
+export interface ViewRowPopupData extends PopupData<typeof PopupType.VIEW_ROW> {
+  columns: ColumnDef[];
+  row: Record<string, DataRecord>;
 }
 
 /** Popup configuration for JumpToColumn popup */
@@ -318,6 +326,7 @@ export type Popups =
   | CopyRowRangeToClipboardPopupData
   | ErrorPopupData
   | RenamePopupData
+  | ViewRowPopupData
   | RangeHighlightPopupData
   | XArrayDimensionsPopupData
   | XArrayIndexesPopupData
@@ -381,6 +390,7 @@ export interface InstanceSettings {
   hide_header_menu: boolean;
   hide_main_menu: boolean;
   hide_column_menus: boolean;
+  hide_row_expanders: boolean;
   isArcticDB?: number;
   enable_custom_filters: boolean;
 }
@@ -396,6 +406,7 @@ export const BASE_INSTANCE_SETTINGS: InstanceSettings = Object.freeze({
   hide_header_menu: false,
   hide_main_menu: false,
   hide_column_menus: false,
+  hide_row_expanders: false,
   enable_custom_filters: false,
 });
 
@@ -439,7 +450,10 @@ export interface AppSettings {
   hideHeaderMenu: boolean;
   hideMainMenu: boolean;
   hideColumnMenus: boolean;
+  hideRowExpanders: boolean;
   enableCustomFilters: boolean;
+  enableWebUploads: boolean;
+  columnAggregations: string | null;
 }
 
 /** Properties for specifying filtered ranges */
@@ -492,33 +506,4 @@ export interface RangeState {
   ctrlRows: number[] | null;
   ctrlCols: number[] | null;
   selectedRow: number | null;
-}
-
-/** Properties of application state */
-export interface AppState extends AppSettings, RangeState {
-  chartData: Popups;
-  dataId: string;
-  editedCell: string | null;
-  editedTextAreaHeight: number;
-  iframe: boolean;
-  columnMenuOpen: boolean;
-  selectedCol: string | null;
-  selectedColRef: HTMLDivElement | null;
-  xarray: boolean;
-  xarrayDim: Record<string, any>;
-  filteredRanges: FilteredRanges;
-  settings: InstanceSettings;
-  isPreview: boolean;
-  menuPinned: boolean;
-  menuTooltip: MenuTooltipProps;
-  ribbonMenuOpen: boolean;
-  ribbonDropdown: RibbonDropdownProps;
-  sidePanel: SidePanelProps;
-  dataViewerUpdate: DataViewerUpdate | null;
-  predefinedFilters: PredefinedFilter[];
-  dragResize: number | null;
-  auth: boolean;
-  username: string | null;
-  menuOpen: boolean;
-  formattingOpen: string | null;
 }

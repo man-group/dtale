@@ -2,7 +2,14 @@ import { TFunction } from 'i18next';
 import * as React from 'react';
 
 import { DataViewerPropagateState } from '../dtale/DataViewerState';
-import { ColumnAnalysisPopupData, CreateColumnPopupData, Popups, PopupType } from '../redux/state/AppState';
+import * as gu from '../dtale/gridUtils';
+import {
+  ColumnAnalysisPopupData,
+  CreateColumnPopupData,
+  Popups,
+  PopupType,
+  ViewRowPopupData,
+} from '../redux/state/AppState';
 
 import About from './About';
 import ColumnAnalysis from './analysis/ColumnAnalysis';
@@ -25,6 +32,7 @@ import CreateReplacement from './replacement/CreateReplacement';
 import Reshape from './reshape/Reshape';
 import Upload from './upload/Upload';
 import Variance from './variance/Variance';
+import ViewRow from './ViewRow';
 import XArrayDimensions from './XArrayDimensions';
 import XArrayIndexes from './XArrayIndexes';
 
@@ -231,6 +239,18 @@ const buildRename = (props: BuilderInput): BuilderOutput => {
   return { title, body };
 };
 
+const buildViewRow = (props: BuilderInput): BuilderOutput => {
+  const chartData = props.chartData as ViewRowPopupData;
+  const title = (
+    <React.Fragment>
+      <i className="ico-edit" />
+      <strong>{`${props.t('View Row', { ns: 'popup' })} (index: ${chartData.row[gu.IDX].view})`}</strong>
+    </React.Fragment>
+  );
+  const body = <ViewRow {...props} />;
+  return { title, body };
+};
+
 const buildReplacement = (props: BuilderInput): BuilderOutput => {
   const title = (
     <React.Fragment>
@@ -363,6 +383,7 @@ const POPUP_MAP: Record<PopupType, (props: BuilderInput) => BuilderOutput> = {
   [PopupType.CHARTS]: () => ({}),
   [PopupType.ARCTICDB]: buildArcticDB,
   [PopupType.JUMP_TO_COLUMN]: buildJumpToColumn,
+  [PopupType.VIEW_ROW]: buildViewRow,
 };
 
 export const buildBodyAndTitle = (props: BuilderInput): BuilderOutput =>

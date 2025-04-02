@@ -6,12 +6,22 @@ import pytest
 
 from pkg_resources import parse_version
 
+import dtale.global_state as global_state
 import dtale.pandas_util as pandas_util
 
 from dtale.charts.utils import CHART_POINTS_LIMIT
 
 from tests.dtale.test_views import app, build_ts_data
 from tests.dtale import build_data_inst, build_settings, build_dtypes
+
+
+def setup_function(function):
+    global_state.cleanup()
+
+
+def teardown_function(function):
+    global_state.cleanup()
+
 
 CORRELATIONS_CODE = """# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'
 
@@ -90,6 +100,7 @@ def test_get_correlations(unittest, test_data, rolling_data):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         settings = {c.port: {"query": "missing_col == 'blah'"}}
         build_settings(settings)
         response = c.get("/dtale/correlations/{}".format(c.port))
@@ -138,13 +149,14 @@ def test_get_correlations(unittest, test_data, rolling_data):
             "should return correlation date columns",
         )
 
-    with app.test_client() as c:
-        build_data_inst({c.port: df})
-        build_dtypes({c.port: views.build_dtypes_state(df)})
-        response = c.get(
-            "/dtale/correlations/{}".format(c.port), query_string=dict(image=True)
-        )
-        assert response.content_type == "image/png"
+    if parse_version(platform.python_version()) < parse_version("3.10.0"):
+        with app.test_client() as c:
+            build_data_inst({c.port: df})
+            build_dtypes({c.port: views.build_dtypes_state(df)})
+            response = c.get(
+                "/dtale/correlations/{}".format(c.port), query_string=dict(image=True)
+            )
+            assert response.content_type == "image/png"
 
 
 @pytest.mark.skipif(
@@ -247,19 +259,21 @@ def test_get_correlations_ts(unittest, rolling_data):
             },
             "max": {"corr": 1.0, "x": "2000-01-05"},
             "min": {"corr": 1.0, "x": "2000-01-01"},
-            "pps": None
-            if no_pps
-            else {
-                "baseline_score": 12.5,
-                "case": "regression",
-                "is_valid_score": True,
-                "metric": "mean absolute error",
-                "model": "DecisionTreeRegressor()",
-                "model_score": 0.0,
-                "ppscore": 1.0,
-                "x": "foo",
-                "y": "bar",
-            },
+            "pps": (
+                None
+                if no_pps
+                else {
+                    "baseline_score": 12.5,
+                    "case": "regression",
+                    "is_valid_score": True,
+                    "metric": "mean absolute error",
+                    "model": "DecisionTreeRegressor()",
+                    "model_score": 0.0,
+                    "ppscore": 1.0,
+                    "x": "foo",
+                    "y": "bar",
+                }
+            ),
             "success": True,
         }
         unittest.assertEqual(
@@ -307,6 +321,7 @@ def test_get_correlations_ts(unittest, rolling_data):
 
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         settings = {c.port: {"query": "missing_col == 'blah'"}}
         build_settings(settings)
         response = c.get("/dtale/correlations-ts/{}".format(c.port))
@@ -371,19 +386,21 @@ def test_get_scatter(unittest, rolling_data):
                 "only_in_s0": 0,
                 "only_in_s1": 0,
                 "spearman": 0.9999999999999999,
-                "pps": None
-                if no_pps
-                else {
-                    "baseline_score": 1.2,
-                    "case": "regression",
-                    "is_valid_score": True,
-                    "metric": "mean absolute error",
-                    "model": "DecisionTreeRegressor()",
-                    "model_score": 1.0,
-                    "ppscore": 0.16666666666666663,
-                    "x": "foo",
-                    "y": "bar",
-                },
+                "pps": (
+                    None
+                    if no_pps
+                    else {
+                        "baseline_score": 1.2,
+                        "case": "regression",
+                        "is_valid_score": True,
+                        "metric": "mean absolute error",
+                        "model": "DecisionTreeRegressor()",
+                        "model_score": 1.0,
+                        "ppscore": 0.16666666666666663,
+                        "x": "foo",
+                        "y": "bar",
+                    }
+                ),
             },
             data={
                 "all": {
@@ -450,19 +467,21 @@ def test_get_scatter(unittest, rolling_data):
                 "only_in_s0": 0,
                 "only_in_s1": 0,
                 "pearson": 1.0,
-                "pps": None
-                if no_pps
-                else {
-                    "baseline_score": 3736.0678,
-                    "case": "regression",
-                    "is_valid_score": True,
-                    "metric": "mean absolute error",
-                    "model": "DecisionTreeRegressor()",
-                    "model_score": 2.2682,
-                    "ppscore": 0.9993928911033145,
-                    "x": "foo",
-                    "y": "bar",
-                },
+                "pps": (
+                    None
+                    if no_pps
+                    else {
+                        "baseline_score": 3736.0678,
+                        "case": "regression",
+                        "is_valid_score": True,
+                        "metric": "mean absolute error",
+                        "model": "DecisionTreeRegressor()",
+                        "model_score": 2.2682,
+                        "ppscore": 0.9993928911033145,
+                        "x": "foo",
+                        "y": "bar",
+                    }
+                ),
                 "spearman": 1.0,
             },
             error="Dataset exceeds 15,000 records, cannot render scatter. Please apply filter...",
@@ -477,6 +496,7 @@ def test_get_scatter(unittest, rolling_data):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         settings = {c.port: {"query": "missing_col == 'blah'"}}
         build_settings(settings)
         params = dict(dateCol="date", cols=json.dumps(["foo", "bar"]), date="20000101")

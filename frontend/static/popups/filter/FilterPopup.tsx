@@ -1,16 +1,14 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnFilter, OutlierFilter } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
-import { CloseChartAction, SetQueryEngineAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
 import * as dtaleActions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectDataId, selectEnableCustomFilters, selectQueryEngine, selectSettings } from '../../redux/selectors';
 import { InstanceSettings, QueryEngine } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -28,7 +26,7 @@ export const DISABLED_CUSTOM_FILTERS_MSG = [
   '- add "enable_custom_filters=True" to your dtale.show call\n',
   '- run this code before calling dtale.show\n',
   '\timport dtale.global_state as global_state\n\tglobal_state.set_app_settings(dict(enable_custom_filters=True))\n',
-  '- add "enable_custom_filters = False" to the [app] section of your dtale.ini config file',
+  '- add "enable_custom_filters = True" to the [app] section of your dtale.ini config file',
 ].join('');
 
 export const selectResult = createSelector(
@@ -37,12 +35,12 @@ export const selectResult = createSelector(
 );
 
 const FilterPopup: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, queryEngine, enableCustomFilters, settings } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const onClose = (): CloseChartAction => dispatch(closeChart());
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings, callback) as any as AnyAction);
-  const setEngine = (engine: QueryEngine): SetQueryEngineAction => dispatch(dtaleActions.setQueryEngine(engine));
+  const { dataId, queryEngine, enableCustomFilters, settings } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const onClose = (): PayloadAction<void> => dispatch(closeChart());
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>, callback?: () => void): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings, callback));
+  const setEngine = (engine: QueryEngine): PayloadAction<QueryEngine> => dispatch(dtaleActions.setQueryEngine(engine));
 
   const [query, setQuery] = React.useState('');
   const [highlightFilter, setHighlightFilter] = React.useState(settings.highlightFilter ?? false);

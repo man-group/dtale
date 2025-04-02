@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { default as HeatMapOption, HeatMapOptionProps } from '../../../dtale/menu/HeatMapOption';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
@@ -23,7 +23,7 @@ describe('HeatMapOption tests', () => {
       ...propOverrides,
     };
     store = reduxUtils.createDtaleStore();
-    store.dispatch({ type: ActionType.UPDATE_SHOW_ALL_HEATMAP_COLUMNS, showAllHeatmapColumns });
+    store.dispatch(AppActions.UpdateShowAllHeatmapColumnsAction(showAllHeatmapColumns));
     buildInnerHTML({ settings: '' }, store);
     result = await act(
       () =>

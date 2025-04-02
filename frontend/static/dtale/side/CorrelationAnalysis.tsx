@@ -1,8 +1,7 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import numeral from 'numeral';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   AutoSizer as _AutoSizer,
   Column as _Column,
@@ -16,15 +15,11 @@ import {
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { buildSort, sortData } from '../../popups/correlations/CorrelationsGrid';
-import {
-  ActionType,
-  DataViewerUpdateAction,
-  HideSidePanelAction,
-  OpenChartAction,
-} from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectDataId, selectIsArcticDB } from '../../redux/selectors';
-import { DataViewerUpdateType, Popups, PopupType, SortDef } from '../../redux/state/AppState';
+import { DataViewerUpdate, DataViewerUpdateType, Popups, PopupType, SortDef } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
 import * as CorrelationsRepository from '../../repository/CorrelationsRepository';
 import { StyledSlider, Thumb, Track } from '../../sliderUtils';
@@ -57,12 +52,12 @@ const buildData = (
 const selectResult = createSelector([selectDataId, selectIsArcticDB], (dataId, isArcticDB) => ({ dataId, isArcticDB }));
 
 const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, isArcticDB } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
-  const reduxDropColumns = (columns: string[]): DataViewerUpdateAction =>
-    dispatch({ type: ActionType.DATA_VIEWER_UPDATE, update: { type: DataViewerUpdateType.DROP_COLUMNS, columns } });
-  const hideSidePanel = (): HideSidePanelAction => dispatch({ type: ActionType.HIDE_SIDE_PANEL });
+  const { dataId, isArcticDB } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
+  const reduxDropColumns = (columns: string[]): PayloadAction<DataViewerUpdate> =>
+    dispatch(AppActions.DataViewerUpdateAction({ type: DataViewerUpdateType.DROP_COLUMNS, columns }));
+  const hideSidePanel = (): PayloadAction<void> => dispatch(AppActions.HideSidePanelAction());
 
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<JSX.Element>();
@@ -111,7 +106,7 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
       <div className="headerCell pointer" onClick={onClick}>
         <div className="row">
           <div className="col-auto" style={{ whiteSpace: 'break-spaces' }}>
-            {dataKey === sortBy ? `${sortDir ? SORT_CHARS[sortDir] ?? '' : ''} ` : ''}
+            {dataKey === sortBy ? `${sortDir ? (SORT_CHARS[sortDir] ?? '') : ''} ` : ''}
             {label as any}
           </div>
         </div>

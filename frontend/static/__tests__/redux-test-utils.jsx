@@ -1,12 +1,13 @@
 /* eslint max-lines: "off" */
-import dtaleApp from '../redux/reducers/app';
-import mergeApp from '../redux/reducers/merge';
+import { reducers as dtaleApp } from '../redux/reducers/app';
+import { reducers as mergeApp } from '../redux/reducers/merge';
 import { createAppStore } from '../redux/store';
-import chartsData from './data/charts.json';
+
 import groupedChartsData from './data/charts-grouped.json';
+import chartsData from './data/charts.json';
 import columnAnalysisData from './data/column-analysis.json';
-import correlationsData from './data/correlations.json';
 import correlationsTsData from './data/correlations-ts.json';
+import correlationsData from './data/correlations.json';
 import scatterData from './data/scatter.json';
 
 const DTYPES = {
@@ -169,15 +170,14 @@ const CONTEXT_VARIABLES = {
   success: true,
 };
 
-function getDataId(url) {
+const getDataId = (url) => {
   if (url.startsWith('/dtale/filter-info')) {
     return url.split('?')[0].split('/')[3];
   }
   return null;
-}
+};
 
-// eslint-disable-next-line max-statements, complexity
-function urlFetcher(url) {
+const urlFetcher = (url) => {
   const urlParams = Object.fromEntries(new URLSearchParams(url.split('?')[1]));
   const query = urlParams.query;
   if (url.startsWith('/dtale/data')) {
@@ -297,9 +297,18 @@ function urlFetcher(url) {
     };
   } else if (url.startsWith('/dtale/load-filtered-ranges')) {
     return { ranges: {} };
+  } else if (url.startsWith('/dtale/aggregations')) {
+    return {
+      mean: -0.009992496843205568,
+      median: -0.007880677745154276,
+      success: true,
+      sum: -149.53771525857132,
+    };
+  } else if (url.startsWith('/dtale/weighted-average')) {
+    return { success: true, result: -1.714556 };
   }
   return {};
-}
+};
 
 export default {
   urlFetcher,

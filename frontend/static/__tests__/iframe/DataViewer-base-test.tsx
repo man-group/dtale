@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
-import { ActionType } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, clickMainMenuButton } from '../test-utils';
@@ -84,8 +84,8 @@ describe('DataViewer iframe tests', () => {
       ...['Clean Column', 'Merge & Stack', 'Summarize Data', 'Time Series Analysis', 'Duplicates', 'Missing Analysis'],
       ...['Feature Analysis', 'Correlations', 'Predictive Power Score', 'Charts', 'Network Viewer', 'Heat Map'],
       ...['Highlight Dtypes', 'Highlight Missing', 'Highlight Outliers', 'Highlight Range', 'Low Variance Flag'],
-      ...['gage_rnr', 'Instances 1', 'Code Export', 'Export', 'Load Data', 'Refresh Widths', 'About', 'Theme'],
-      ...['Reload Data', 'Pin menu', 'Language', 'Shutdown'],
+      ...['gage_rnr', 'Raw Pandas Output', 'Instances 1', 'Code Export', 'Export', 'Load Data', 'Refresh Widths'],
+      ...['About', 'Theme', 'Reload Data', 'Pin menu', 'Language', 'Shutdown'],
     ]);
   });
 
@@ -93,7 +93,7 @@ describe('DataViewer iframe tests', () => {
     await openColMenu(3);
     expect(document.getElementById('column-menu-div')).toBeDefined();
     await act(async () => {
-      await store.dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName: 'col4' });
+      await store.dispatch(AppActions.HideColumnMenuAction({ colName: 'col4' }));
     });
     expect(document.getElementById('column-menu-div')).toBeNull();
     await openColMenu(3);
@@ -119,7 +119,7 @@ describe('DataViewer iframe tests', () => {
     await openColMenu(2);
     expect(colMenu().getElementsByTagName('header')[0].textContent).toBe('Column "col3"Data Type:object');
     await act(async () => {
-      await store.dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName: 'col3' });
+      await store.dispatch(AppActions.HideColumnMenuAction({ colName: 'col3' }));
     });
     await openColMenu(3);
     await clickColMenuSubButton('fa-step-backward', 1);

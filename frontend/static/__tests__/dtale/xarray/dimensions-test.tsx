@@ -1,4 +1,4 @@
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
 import * as React from 'react';
 import { Provider } from 'react-redux';
@@ -69,9 +69,8 @@ describe('DataViewer tests', () => {
   });
 
   it('DataViewer: update selected dimensions of xarray', async () => {
-    const select = document.body
-      .getElementsByClassName('modal-body')[0]
-      .getElementsByClassName('Select')[0] as HTMLElement;
+    const body = screen.getByTestId('xarray-dimensions-body');
+    const select = body.getElementsByClassName('Select')[0] as HTMLElement;
     await act(async () => {
       await selectEvent.openMenu(select);
     });
@@ -79,27 +78,26 @@ describe('DataViewer tests', () => {
     await act(async () => {
       await selectEvent.select(select, 'foo2', { container: document.body });
     });
-    const liElements = document.body.getElementsByClassName('modal-body')[0].getElementsByTagName('li');
+    const liElements = body.getElementsByTagName('li');
     const lastLi = liElements[liElements.length - 1];
     await act(async () => {
       fireEvent.click(lastLi);
     });
     await selectOption(lastLi.getElementsByClassName('Select')[0] as HTMLElement, 'bar2');
     await act(async () => {
-      fireEvent.click(document.body.getElementsByClassName('modal-footer')[0].getElementsByTagName('button')[0]);
+      fireEvent.click(screen.getByTestId('xarray-dimensions-footer').getElementsByTagName('button')[0]);
     });
     expect(store.getState().xarrayDim).toEqual({ foo: 'foo2', bar: 'bar2' });
   });
 
   it('DataViewer: clearing selected dimensions', async () => {
-    const select = document.body
-      .getElementsByClassName('modal-body')[0]
-      .getElementsByClassName('Select')[0] as HTMLElement;
+    const body = screen.getByTestId('xarray-dimensions-body');
+    const select = body.getElementsByClassName('Select')[0] as HTMLElement;
     await act(async () => {
       await selectEvent.clearFirst(select);
     });
     await act(async () => {
-      fireEvent.click(document.body.getElementsByClassName('modal-footer')[0].getElementsByTagName('button')[0]);
+      fireEvent.click(screen.getByTestId('xarray-dimensions-footer').getElementsByTagName('button')[0]);
     });
     expect(store.getState().xarrayDim).toEqual({});
   });

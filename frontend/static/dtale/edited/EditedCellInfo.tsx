@@ -1,21 +1,16 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { Checkbox } from '../../popups/create/LabeledCheckbox';
 import { DtaleSelect } from '../../popups/create/LabeledSelect';
-import {
-  ActionType,
-  ClearEditAction,
-  EditedTextAreaHeightAction,
-  OpenChartAction,
-} from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/selectors';
 import { BaseOption, Popups } from '../../redux/state/AppState';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
-import { ColumnType, findColType, getCell } from '../gridUtils';
+import { ColumnType, findColType, getCell, isIndex } from '../gridUtils';
 
 import { onKeyDown as baseKeyDown, EditedCellInfoProps } from './editUtils';
 
@@ -53,12 +48,12 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
   rowCount,
   t,
 }) => {
-  const { dataId, editedCell, settings, maxColumnWidth, hideHeaderEditor } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
-  const clearEdit = (): ClearEditAction => dispatch({ type: ActionType.CLEAR_EDIT });
-  const updateHeight = (height: number): EditedTextAreaHeightAction =>
-    dispatch({ type: ActionType.EDITED_CELL_TEXTAREA_HEIGHT, height });
+  const { dataId, editedCell, settings, maxColumnWidth, hideHeaderEditor } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
+  const clearEdit = (): PayloadAction<void> => dispatch(AppActions.ClearEditAction());
+  const updateHeight = (height: number): PayloadAction<number> =>
+    dispatch(AppActions.EditedTextAreaHeightAction(height));
 
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
 
@@ -184,7 +179,7 @@ const EditedCellInfo: React.FC<EditedCellInfoProps & WithTranslation> = ({
     );
   };
 
-  if (hideHeaderEditor) {
+  if (hideHeaderEditor || isIndex(cell?.colCfg?.name)) {
     return null;
   }
 

@@ -1,15 +1,14 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 import { components, GetStyles, GroupBase, LoadingIndicatorProps } from 'react-select';
-import { AnyAction } from 'redux';
 
 import { ColumnDef, ColumnFilter as ColumnFilterObj, OutlierFilter } from '../dtale/DataViewerState';
 import * as gu from '../dtale/gridUtils';
 import * as menuFuncs from '../dtale/menu/dataViewerMenuUtils';
-import { OpenChartAction } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import * as settingsActions from '../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { selectDataId } from '../redux/selectors';
 import { InstanceSettings, Popups, PopupType } from '../redux/state/AppState';
 import * as ColumnFilterRepository from '../repository/ColumnFilterRepository';
@@ -52,11 +51,11 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   t,
   ...props
 }) => {
-  const dataId = useSelector(selectDataId);
-  const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
+  const dataId = useAppSelector(selectDataId);
+  const dispatch = useAppDispatch();
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
 
   const colCfg: ColumnDef | undefined = columns.find((column) => column.name === selectedCol);
   const dtype = colCfg?.dtype ?? '';
@@ -68,6 +67,7 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   const [queryApplied, setQueryApplied] = React.useState<boolean>(outlierFilters?.[selectedCol] !== undefined);
   const [filterData, setFilterData] = React.useState<ColumnFilterRepository.ColumnFilterData>();
   const [missing, setMissing] = React.useState<boolean>(columnFilters?.[selectedCol]?.missing ?? false);
+  const [populated, setPopulated] = React.useState<boolean>(columnFilters?.[selectedCol]?.populated ?? false);
   const [loadingState, setLoadingState] = React.useState<boolean>(true);
   const [cfg, setCfg] = React.useState<ColumnFilterObj | undefined>(columnFilters?.[selectedCol]);
 
@@ -95,6 +95,9 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
     if (updatedCfg?.missing !== undefined) {
       setMissing(updatedCfg.missing);
     }
+    if (updatedCfg?.populated !== undefined) {
+      setPopulated(updatedCfg.populated);
+    }
     const response = await ColumnFilterRepository.save(dataId, selectedCol, updatedCfg);
     updateSettings({ columnFilters: response?.currFilters ?? {} });
   };
@@ -116,15 +119,40 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
 
   const renderMissingToggle = (showIcon: boolean): React.ReactNode => {
     if (filterData?.hasMissing) {
-      const toggleMissing = async (): Promise<void> => updateState({ ...cfg, type: colType, missing: !missing });
+      const toggleAll = async (): Promise<void> =>
+        updateState({ ...cfg, type: colType, populated: false, missing: false } as ColumnFilterObj);
+      const toggleMissing = async (): Promise<void> =>
+        updateState({ ...cfg, type: colType, missing: !missing, populated: false } as ColumnFilterObj);
+      const togglePopulated = async (): Promise<void> =>
+        updateState({ ...cfg, type: colType, populated: !populated, missing: false } as ColumnFilterObj);
       return (
         <li>
           {renderIcon(showIcon)}
-          <div className="m-auto">
-            <div className="column-filter m-2">
-              <span className="font-weight-bold pr-3">{t('Show Only Missing')}</span>
-              <i className={`ico-check-box${missing ? '' : '-outline-blank'} pointer`} onClick={toggleMissing} />
-            </div>
+          <div
+            className="btn-group compact m-auto font-weight-bold column-sorting pt-3 pb-3"
+            data-testid="missing-toggle"
+          >
+            <button
+              style={!missing && !populated ? {} : { color: '#565b68' }}
+              className={`btn btn-primary ${!missing && !populated ? 'active' : ''} font-weight-bold`}
+              onClick={toggleAll}
+            >
+              {t('All')}
+            </button>
+            <button
+              style={missing ? {} : { color: '#565b68' }}
+              className={`btn btn-primary ${missing ? 'active' : ''} font-weight-bold`}
+              onClick={toggleMissing}
+            >
+              {t('Missing')}
+            </button>
+            <button
+              style={populated ? {} : { color: '#565b68' }}
+              className={`btn btn-primary ${populated ? 'active' : ''} font-weight-bold`}
+              onClick={togglePopulated}
+            >
+              {t('Populated')}
+            </button>
           </div>
         </li>
       );
@@ -176,6 +204,7 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
   switch (colType) {
     case gu.ColumnType.STRING:
     case gu.ColumnType.CATEGORY:
+    case gu.ColumnType.BOOL:
     case gu.ColumnType.UNKNOWN: {
       if (!dtype.startsWith('timedelta')) {
         markup = (
@@ -222,11 +251,8 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
     default:
       break;
   }
-  let missingToggle = null;
+  let missingToggle;
   if (markup === null) {
-    if (!filterData?.hasMissing) {
-      return null;
-    }
     missingToggle = renderMissingToggle(true);
   } else {
     markup = (

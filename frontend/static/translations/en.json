@@ -59,7 +59,9 @@
     "Vertical Column Headers": "Vertical Column Headers",
     "Hide Header Editor": "Hide Header Editor",
     "Load ArcticDB Data": "Load ArcticDB Data",
-    "Jump To Column": "Jump To Column"
+    "Jump To Column": "Jump To Column",
+    "Raw Pandas Output": "Raw Pandas Output",
+    "Hide Row Expanders": "Hide Row Expanders"
   },
   "menu_description": {
     "describe": "Describe column's values (Top unique values, Min, Max, Sum, STD, Var,...)",
@@ -110,7 +112,9 @@
     "timeseries_analysis": "Analyze time series data using different \"statsmodels.tsa\" functions",
     "hide_header_editor": "If checked, hides the header editor when editing cells in the grid",
     "arcticdb": "Load data from a specific library & symbol in ArcticDB",
-    "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown."
+    "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown.",
+    "raw_pandas": "See the raw output from such pandas functions as info, nunique & describe",
+    "hide_row_expanders": "If checked, hides the row expansion cells (▶) in the grid"
   },
   "column_menu": {
     "Asc": "Asc",
@@ -207,6 +211,9 @@
     "Quarter End": "Quarter End",
     "Year Start": "Year Start",
     "Year End": "Year End",
+    "Time Difference": "Time Difference",
+    "Differences": "Differences",
+    "Now": "Now",
     "Float": "Float",
     "Int": "Int",
     "Choice": "Choice",
@@ -364,7 +371,8 @@
     "Case Sensitive": "Case Sensitive",
     "Regex": "Regex",
     "Search For": "Search For",
-    "Algorithm": "Algorithm"
+    "Algorithm": "Algorithm",
+    "Select All": "Select All"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
@@ -379,7 +387,10 @@
     "Equals": "Equals",
     "Not Equals": "Not Equals",
     "to": "to",
-    "Case-Sensitive": "Case-Sensitive"
+    "Case-Sensitive": "Case-Sensitive",
+    "All": "All",
+    "Missing": "Missing",
+    "Populated": "Populated"
   },
   "about": {
     "Your version is currently out of sync with PyPi.": "Your version is currently out of sync with PyPi.",
@@ -486,7 +497,8 @@
     "Active D-Tale Instances": "Active D-Tale Instances",
     "Yes": "Yes",
     "No": "No",
-    "About": "About"
+    "About": "About",
+    "View Row": "View Row"
   },
   "correlations": {
     "(Click on any point in the scatter to filter the grid down to that record)": "(Click on any point in the scatter to filter the grid down to that record)",
@@ -801,7 +813,6 @@
     "None": "None",
     "navigate": "Use ↑ ↓ buttons to switch columns",
     "Most Frequent": "Most Frequent",
-    "Frequency":"Frequency",
     "Percent": "Percent",
     "TOTAL": "TOTAL"
   },
@@ -1063,5 +1074,15 @@
     "Library": "Library",
     "Symbol": "Symbol",
     "Load": "Load"
+  },
+  "aggregations": {
+    "Weights": "Weights",
+    "Weighted Avg": "Weighted Avg",
+    "Total": "Total",
+    "Average": "Average",
+    "Median": "Median",
+    "Use filtered data": "Use filtered data",
+    "Column": "Column",
+    "Aggregations": "Aggregations"
   }
 }

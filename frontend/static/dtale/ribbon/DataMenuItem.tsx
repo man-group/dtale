@@ -1,13 +1,9 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
-import {
-  ActionType,
-  HideMenuTooltipAction,
-  HideRibbonMenuAction,
-  ShowMenuTooltipAction,
-} from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectIFrame } from '../../redux/selectors';
 
 /** Component properties for DataMenuItem */
@@ -18,12 +14,17 @@ export interface DataMenuItemProps {
 }
 
 const DataMenuItem: React.FC<DataMenuItemProps & WithTranslation> = ({ id, name, cleanup, t }) => {
-  const iframe = useSelector(selectIFrame);
-  const dispatch = useDispatch();
-  const showTooltip = (element: HTMLLIElement, content: React.ReactNode): ShowMenuTooltipAction =>
-    dispatch({ type: ActionType.SHOW_MENU_TOOLTIP, element, content });
-  const hideTooltip = (): HideMenuTooltipAction => dispatch({ type: ActionType.HIDE_MENU_TOOLTIP });
-  const hideRibbonMenu = (): HideRibbonMenuAction => dispatch({ type: ActionType.HIDE_RIBBON_MENU });
+  const iframe = useAppSelector(selectIFrame);
+  const dispatch = useAppDispatch();
+  const showTooltip = (
+    element: HTMLElement,
+    content: React.ReactNode,
+  ): PayloadAction<{
+    element: HTMLElement;
+    content: React.ReactNode;
+  }> => dispatch(AppActions.ShowMenuTooltipAction({ element, content }));
+  const hideTooltip = (): PayloadAction<void> => dispatch(AppActions.HideMenuTooltipAction());
+  const hideRibbonMenu = (): PayloadAction<void> => dispatch(AppActions.HideRibbonMenuAction());
   const liRef = React.useRef<HTMLLIElement>(null);
 
   const onClick = (func: () => void): void => {

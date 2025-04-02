@@ -4,9 +4,11 @@ import getpass
 import jinja2
 import logging
 import os
+import numpy as np
 import pandas as pd
 import random
 import socket
+import string
 import sys
 import time
 import traceback
@@ -292,6 +294,14 @@ class DtaleFlask(Flask):
         return super(DtaleFlask, self).get_send_file_max_age(name)
 
 
+def build_secret_key():
+    """
+    Builds a string of 10 randomly chosen characters to be used as the Flask app's SECRET_KEY
+    """
+
+    return "".join(np.random.choice(list(string.ascii_uppercase + string.digits), 10))
+
+
 def build_app(
     url=None, reaper_on=True, app_root=None, additional_templates=None, **kwargs
 ):
@@ -320,7 +330,7 @@ def build_app(
         instance_relative_config=False,
         app_root=app_root,
     )
-    app.config["SECRET_KEY"] = "Dtale"
+    app.config["SECRET_KEY"] = build_secret_key()
 
     app.jinja_env.trim_blocks = True
     app.jinja_env.lstrip_blocks = True
@@ -712,6 +722,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :param hide_column_menus: If true, this will hide the column menus from the screen
     :type hide_column_menus: bool, optional
     :param column_edit_options: The options to allow on the front-end when editing a cell for the columns specified
+    :param hide_row_expanders: If true, this will hide the row expanders from the screen
+    :type hide_row_expanders: bool, optional
     :type column_edit_options: dict, optional
     :param auto_hide_empty_columns: if True, then auto-hide any columns on the front-end that are comprised entirely of
                                     NaN values
@@ -721,6 +733,8 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
     :type highlight_filter: boolean, optional
     :param enable_custom_filters: If true, this will enable users to make custom filters from the UI
     :type enable_custom_filters: bool, optional
+    :param enable_web_uploads: If true, this will enable users to upload files using URLs from the UI
+    :type enable_web_uploads: bool, optional
 
     :Example:
 
@@ -732,7 +746,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
 
         ..link displayed in logging can be copied and pasted into any browser
     """
-    global ACTIVE_HOST, ACTIVE_PORT, SSL_CONTEXT, USE_NGROK
+    global ACTIVE_HOST, ACTIVE_PORT, SSL_CONTEXT, USE_COLAB, USE_NGROK
 
     if name:
         if global_state.get_data_id_by_name(name):
@@ -753,7 +767,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
         logfile, log_level, verbose = map(
             final_options.get, ["logfile", "log_level", "verbose"]
         )
-        setup_logging(logfile, log_level or "info", verbose)
+        setup_logging(logfile, log_level or "info", verbose, dedicated_logger=True)
 
         if USE_NGROK:
             if not PY3:
@@ -761,11 +775,23 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
                     "In order to use ngrok you must be using Python 3 or higher!"
                 )
 
-            from flask_ngrok import _run_ngrok
+            try:
+                from flask_ngrok import _run_ngrok
+            except ImportError:
+                raise Exception(
+                    (
+                        "In order to use ngrok you must install flask-ngrok. This can be accomplished doing one of the "
+                        "following:\n"
+                        "- pip install flask-ngrok\n"
+                        "- pip install dtale[ngrok]"
+                    )
+                )
 
             ACTIVE_HOST = _run_ngrok()
             ACTIVE_PORT = None
         else:
+            if USE_COLAB:
+                ACTIVE_HOST = "0.0.0.0"
             initialize_process_props(
                 final_options["host"], final_options["port"], final_options["force"]
             )
@@ -806,7 +832,11 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
             hide_header_menu=final_options.get("hide_header_menu"),
             hide_main_menu=final_options.get("hide_main_menu"),
             hide_column_menus=final_options.get("hide_column_menus"),
+            hide_row_expanders=final_options.get("hide_row_expanders"),
             enable_custom_filters=final_options.get("enable_custom_filters"),
+            enable_web_uploads=final_options.get("enable_web_uploads"),
+            main_title=final_options.get("main_title"),
+            main_title_font=final_options.get("main_title_font"),
         )
         instance.started_with_open_browser = final_options["open_browser"]
         is_active = not running_with_flask_debug() and is_up(app_url)
@@ -852,7 +882,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
                         app.run(threaded=True, **run_kwargs)
                     else:
                         app.run(
-                            host="0.0.0.0",
+                            host=ACTIVE_HOST,
                             port=ACTIVE_PORT,
                             debug=final_options["debug"],
                             threaded=True,
@@ -950,6 +980,7 @@ def get_instance(data_id):
 
 def offline_chart(
     df,
+    return_object=False,
     chart_type=None,
     query=None,
     x=None,
@@ -971,6 +1002,8 @@ def offline_chart(
 
     :param df: integer string identifier for a D-Tale process's data
     :type df: :class:`pandas:pandas.DataFrame`
+    :param return_object: if True, return the plotly graph object for this chart
+    :type return_object: bool
     :param chart_type: type of chart, possible options are line|bar|pie|scatter|3d_scatter|surface|heatmap
     :type chart_type: str
     :param query: pandas dataframe query string
@@ -1009,6 +1042,7 @@ def offline_chart(
     """
     instance = startup(url=None, data=df, data_id=999, is_proxy=JUPYTER_SERVER_PROXY)
     output = instance.offline_chart(
+        return_object=return_object,
         chart_type=chart_type,
         query=query,
         x=x,

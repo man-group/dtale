@@ -165,6 +165,19 @@ export enum TypeConversionUnit {
   NANOSECOND = 'ns',
 }
 
+/** Value holder for different modes of converting integer to boolean */
+export interface IntToBoolModeCfg {
+  active: boolean;
+  value?: string;
+}
+
+/** Configuration for converting integer to boolean */
+export interface IntToBoolCfg {
+  equals: IntToBoolModeCfg;
+  greaterThan: IntToBoolModeCfg;
+  lessThan: IntToBoolModeCfg;
+}
+
 /** Type conversion column creation configuration */
 export interface TypeConversionConfig {
   col?: string;
@@ -172,6 +185,7 @@ export interface TypeConversionConfig {
   unit?: TypeConversionUnit;
   to?: string;
   from?: string;
+  cfg?: IntToBoolCfg;
   applyAllType: boolean;
 }
 
@@ -196,7 +210,7 @@ export interface ConcatenationConfig {
 
 /** Cumulative sum column creation configuration */
 export interface CumsumConfig {
-  col?: string;
+  cols?: string[];
   group?: string[];
 }
 
@@ -209,6 +223,7 @@ export interface DataSlopeConfig {
 export enum DatetimeOperation {
   PROPERTY = 'property',
   CONVERSION = 'conversion',
+  TIME_DIFFERENCE = 'time_difference',
 }
 
 /** Different datetime properties to choose from */
@@ -222,6 +237,12 @@ export enum DatetimePropertyType {
   MONTH = 'month',
   QUARTER = 'quarter',
   YEAR = 'year',
+}
+
+/** Different datetime time differences */
+export enum DatetimeTimeDifferenceType {
+  NOW = 'now',
+  COL = 'col',
 }
 
 /** Different datetime conversions */
@@ -240,6 +261,8 @@ export interface DatetimeConfig {
   operation: DatetimeOperation;
   property?: DatetimePropertyType;
   conversion?: DatetimeConversionType;
+  timeDifference?: DatetimeTimeDifferenceType;
+  timeDifferenceCol?: string;
 }
 
 /** Difference column creation configuration */

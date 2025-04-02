@@ -12,7 +12,7 @@ process.env.NODE_ENV = 'test';
 process.on('unhandledRejection', (err) => {
   if (err instanceof Error) {
     throw err;
-  } else if (typeof err == 'string') {
+  } else if (typeof err === 'string') {
     throw Error(err);
   } else if (err && 'toString' in err) {
     throw Error(err.toString());
@@ -76,13 +76,13 @@ let resolvedEnv;
 
 try {
   resolvedEnv = resolveJestDefaultEnvironment(`jest-environment-${parsedEnv}`);
-} catch (e) {
+} catch {
   // ignore, this is possible if not using an environment with the prefix 'jest-environment-'
 }
 if (!resolvedEnv) {
   try {
     resolvedEnv = resolveJestDefaultEnvironment(parsedEnv);
-  } catch (e) {
+  } catch {
     // ignore, we'll save the error message for the diagnostic below
   }
 }

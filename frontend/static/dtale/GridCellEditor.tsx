@@ -1,11 +1,11 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { Checkbox } from '../popups/create/LabeledCheckbox';
 import { DtaleSelect } from '../popups/create/LabeledSelect';
-import { ActionType, ClearEditAction, OpenChartAction } from '../redux/actions/AppActions';
+import { AppActions } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { selectDataId, selectMaxColumnWidth, selectSettings } from '../redux/selectors';
 import { BaseOption, Popups } from '../redux/state/AppState';
 import * as ColumnFilterRepository from '../repository/ColumnFilterRepository';
@@ -39,10 +39,10 @@ export const GridCellEditor: React.FC<GridCellEditorProps> = ({
   rowCount,
   ...props
 }) => {
-  const { dataId, settings, maxColumnWidth } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
-  const clearEdit = (): ClearEditAction => dispatch({ type: ActionType.CLEAR_EDIT });
+  const { dataId, settings, maxColumnWidth } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
+  const clearEdit = (): PayloadAction<void> => dispatch(AppActions.ClearEditAction());
 
   const [value, setValue] = React.useState(props.value ?? '');
   const [options, setOptions] = React.useState<Array<BaseOption<string>>>([]);

@@ -1,10 +1,10 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import { createFilter, default as Select } from 'react-select';
 
 import { ColumnFilter, ColumnFilterOperand } from '../dtale/DataViewerState';
+import { useAppSelector } from '../redux/hooks';
 import { selectColumnCount, selectDataId, selectIsArcticDB } from '../redux/selectors';
 
 import AsyncValueSelect from './AsyncValueSelect';
@@ -39,7 +39,7 @@ export const StringFilter: React.FC<StringFilterProps & WithTranslation> = ({
   uniqueCt,
   t,
 }) => {
-  const { dataId, isArcticDB, columnCount } = useSelector(selectResult);
+  const { dataId, isArcticDB, columnCount } = useAppSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],

@@ -5,14 +5,16 @@ import { Provider } from 'react-redux';
 
 import Duplicates from '../../../popups/duplicates/Duplicates';
 import { DuplicatesActionType, DuplicatesConfigType, KeepType } from '../../../popups/duplicates/DuplicatesState';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import { PopupType } from '../../../redux/state/AppState';
+import * as DuplicatesRepository from '../../../repository/DuplicatesRepository';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, parseUrlParams, selectOption } from '../../test-utils';
 
 describe('Duplicates', () => {
   const { location, open, opener } = window;
   let result: Element;
+  let dupesSpy: jest.SpyInstance;
 
   beforeAll(() => {
     delete (window as any).location;
@@ -29,6 +31,7 @@ describe('Duplicates', () => {
   });
 
   beforeEach(async () => {
+    dupesSpy = jest.spyOn(DuplicatesRepository, 'run');
     (axios.get as any).mockImplementation(async (url: string) => {
       if (url.startsWith('/dtale/duplicates')) {
         const urlParams = parseUrlParams(url);
@@ -37,7 +40,7 @@ describe('Duplicates', () => {
           if (urlParams.type === DuplicatesConfigType.SHOW) {
             if (cfg.group?.[0] === 'foo') {
               return Promise.resolve({ data: { results: {} } });
-            } else if (!cfg.group?.length) {
+            } else if (cfg.group?.[0] === 'biz') {
               return Promise.resolve({ data: { error: 'Failure' } });
             }
             return Promise.resolve({
@@ -70,6 +73,7 @@ describe('Duplicates', () => {
         dtypes.dtypes[0].name = 'foo';
         dtypes.dtypes[1].name = 'bar';
         dtypes.dtypes[2].name = 'baz';
+        dtypes.dtypes[3].name = 'biz';
         return Promise.resolve({ data: dtypes });
       }
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
@@ -77,10 +81,7 @@ describe('Duplicates', () => {
 
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({
-      type: ActionType.OPEN_CHART,
-      chartData: { type: PopupType.DUPLICATES, visible: true, selectedCol: 'foo' },
-    });
+    store.dispatch(AppActions.OpenChartAction({ type: PopupType.DUPLICATES, visible: true, selectedCol: 'foo' }));
     result = await act(
       () =>
         render(
@@ -221,6 +222,8 @@ describe('Duplicates', () => {
     });
 
     it('handles duplicates', async () => {
+      expect(screen.queryAllByTestId('view-duplicates')).toHaveLength(0);
+      await selectOption(selects(), 'foo');
       expect(screen.getByText('View Duplicates')).toBeDefined();
       await selectOption(selects(), 'bar');
       await act(async () => {
@@ -232,6 +235,28 @@ describe('Duplicates', () => {
       expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
     });
 
+    it('handles duplicates w/ select all', async () => {
+      expect(screen.queryAllByTestId('view-duplicates')).toHaveLength(0);
+      await selectOption(selects(), 'foo');
+      expect(screen.getByText('View Duplicates')).toBeDefined();
+      // await selectOption(selects(), 'bar');
+      await act(async () => {
+        await fireEvent.click(screen.getByTestId('select-all-btn'));
+      });
+      await act(async () => {
+        await fireEvent.click(screen.getByText('View Duplicates'));
+      });
+      await act(async () => {
+        await fireEvent.click(screen.getByText('Execute'));
+      });
+      expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
+      expect(dupesSpy).toHaveBeenCalledWith('1', {
+        action: DuplicatesActionType.EXECUTE,
+        cfg: { filter: undefined, group: ['bar', 'baz', 'biz', 'foo'] },
+        type: DuplicatesConfigType.SHOW,
+      });
+    });
+
     it('handles no duplicates', async () => {
       await selectOption(selects(), 'foo');
       await act(async () => {
@@ -241,10 +266,10 @@ describe('Duplicates', () => {
     });
 
     it('handles error', async () => {
+      await selectOption(selects(), 'biz');
       await act(async () => {
         await fireEvent.click(screen.getByText('View Duplicates'));
       });
-      await selectOption(selects(), 'baz');
       expect(screen.getByRole('alert')).toBeDefined();
     });
   });

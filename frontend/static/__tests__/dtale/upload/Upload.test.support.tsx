@@ -1,11 +1,14 @@
 import { act, render } from '@testing-library/react';
 import axios from 'axios';
 import * as React from 'react';
+import { Provider } from 'react-redux';
+import { Store } from 'redux';
 
 import Upload from '../../../popups/upload/Upload';
 import { Dataset, DataType } from '../../../popups/upload/UploadState';
 import * as UploadRepository from '../../../repository/UploadRepository';
 import reduxUtils from '../../redux-test-utils';
+import { buildInnerHTML } from '../../test-utils';
 
 /** Bundles alot of jest setup for CreateColumn component tests */
 export class Spies {
@@ -17,6 +20,7 @@ export class Spies {
   public presetUploadSpy: jest.SpyInstance<Promise<UploadRepository.UploadResponse | undefined>, [dataset: Dataset]>;
   public readAsDataURLSpy: jest.SpyInstance;
   public btoaSpy: jest.SpyInstance;
+  public store: Store;
 
   /** Initializes all spy instances */
   constructor() {
@@ -25,6 +29,7 @@ export class Spies {
     this.presetUploadSpy = jest.spyOn(UploadRepository, 'presetUpload');
     this.readAsDataURLSpy = jest.spyOn(FileReader.prototype, 'readAsDataURL');
     this.btoaSpy = jest.spyOn(window, 'btoa');
+    this.store = reduxUtils.createDtaleStore();
   }
 
   /** Sets the mockImplementation/mockReturnValue for spy instances */
@@ -48,11 +53,21 @@ export class Spies {
   /**
    * Build the initial wrapper.
    *
+   * @param overrides redux overrides
    * @return the wrapper for testing.
    */
-  public async setupWrapper(): Promise<Element> {
+  public async setupWrapper(overrides?: Record<string, string>): Promise<Element> {
+    this.store = reduxUtils.createDtaleStore();
+    buildInnerHTML({ enableWebUploads: 'True', ...overrides }, this.store);
     return await act((): Element => {
-      const { container } = render(<Upload />);
+      const { container } = render(
+        <Provider store={this.store}>
+          <Upload />
+        </Provider>,
+        {
+          container: document.getElementById('content') ?? undefined,
+        },
+      );
       return container;
     });
   }

@@ -1,13 +1,12 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
-import { ActionType, OpenChartAction, SidePanelAction, ToggleMenuAction } from '../../redux/actions/AppActions';
+import { AppActions, SidePanelActionProps } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/selectors';
 import { Popups, PopupType, SidePanelType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
@@ -43,6 +42,7 @@ import PinMenuOption from './PinMenuOption';
 import PPSOption from './PPSOption';
 import PredefinedFiltersOption from './PredefinedFiltersOption';
 import RangeHighlightOption from './RangeHighlightOption';
+import RawPandasOption from './RawPandasOutputOption';
 import ReloadOption from './ReloadOption';
 import ShowHideColumnsOption from './ShowHideColumnsOption';
 import ShutdownOption from './ShutdownOption';
@@ -86,21 +86,22 @@ const selectResult = createSelector(
 
 const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, columns, rows, propagateState }) => {
   const { dataId, menuPinned, mainTitle, mainTitleFont, isArcticDB, isVSCode, settings, menuOpen, columnCount } =
-    useSelector(selectResult);
+    useAppSelector(selectResult);
   const largeArcticDB = React.useMemo(
     () => !!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100),
     [isArcticDB, columnCount],
   );
-  const dispatch = useDispatch();
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
-  const openMenu = (): ToggleMenuAction => dispatch({ type: ActionType.OPEN_MENU });
-  const closeMenu = (): ToggleMenuAction => dispatch({ type: ActionType.CLOSE_MENU });
-  const showSidePanel = (view: SidePanelType): SidePanelAction => dispatch({ type: ActionType.SHOW_SIDE_PANEL, view });
-  const updateBg = (bgType: string): AnyAction =>
+  const dispatch = useAppDispatch();
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
+  const openMenu = (): PayloadAction<void> => dispatch(AppActions.OpenMenuAction());
+  const closeMenu = (): PayloadAction<void> => dispatch(AppActions.CloseMenuAction());
+  const showSidePanel = (view: SidePanelType): PayloadAction<SidePanelActionProps> =>
+    dispatch(AppActions.ShowSidePanelAction({ view }));
+  const updateBg = (bgType: string): void =>
     dispatch(
       settingsActions.updateSettings({
         backgroundMode: settings.backgroundMode === bgType ? undefined : bgType,
-      }) as any as AnyAction,
+      }),
     );
 
   const buttonHandlers = menuFuncs.buildHotkeyHandlers({ dataId, columns, openChart, openMenu, closeMenu, isVSCode });
@@ -146,7 +147,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
           {columnCount > 100 && (
             <JumpToColumnOption open={openPopup({ type: PopupType.JUMP_TO_COLUMN, columns, visible: true }, 450)} />
           )}
-          {!isArcticDB && <XArrayOption columns={columns.filter(({ name }) => name !== gu.IDX)} />}
+          {!isArcticDB && <XArrayOption columns={columns.filter(({ name }) => !gu.isIndex(name))} />}
           <DescribeOption open={buttonHandlers.DESCRIBE} />
           {!isArcticDB && <FilterOption open={() => showSidePanel(SidePanelType.FILTER)} />}
           {!isArcticDB && <PredefinedFiltersOption open={() => showSidePanel(SidePanelType.PREDEFINED_FILTERS)} />}
@@ -194,6 +195,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
             />
           )}
           {!largeArcticDB && <GageRnROption open={() => showSidePanel(SidePanelType.GAGE_RNR)} />}
+          {!isArcticDB && <RawPandasOption open={buttonHandlers.RAW_PANDAS} />}
           {!isArcticDB && (
             <InstancesOption
               open={openPopup({ type: PopupType.INSTANCES, title: 'Instances', visible: true }, 450, 750)}

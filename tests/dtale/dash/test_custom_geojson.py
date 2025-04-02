@@ -8,7 +8,7 @@ import pytest
 
 from tests import ExitStack
 from tests.dtale import build_data_inst
-from tests.dtale.dash.test_dash import build_chart_params
+from tests.dtale.dash.test_dash import build_chart_params, clean_params
 from tests.dtale.test_views import app
 
 
@@ -35,24 +35,26 @@ def test_update_geojson():
                     custom_geojson_data,
                 )
             )
-            params = {
-                "output": "..output-geojson-upload.children...geojson-dropdown.options..",
-                "changedPropIds": ["upload-geojson.content"],
-                "inputs": [
-                    {
-                        "id": "upload-geojson",
-                        "property": "content",
-                        "value": build_geojson_data(),
-                    }
-                ],
-                "state": [
-                    {
-                        "id": "upload-geojson",
-                        "property": "filename",
-                        "value": "USA.json",
-                    }
-                ],
-            }
+            params = clean_params(
+                {
+                    "output": "..output-geojson-upload.children...geojson-dropdown.options..",
+                    "changedPropIds": ["upload-geojson.content"],
+                    "inputs": [
+                        {
+                            "id": "upload-geojson",
+                            "property": "content",
+                            "value": build_geojson_data(),
+                        }
+                    ],
+                    "state": [
+                        {
+                            "id": "upload-geojson",
+                            "property": "filename",
+                            "value": "USA.json",
+                        }
+                    ],
+                }
+            )
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
             assert resp_data["output-geojson-upload"]["children"] == "USA uploaded!"
@@ -124,16 +126,22 @@ def test_update_featureidkey_options():
                     custom_geojson_data,
                 )
             )
-            params = {
-                "output": (
-                    "..featureidkey-dropdown.options...featureidkey-dropdown.disabled..."
-                    "featureidkey-dropdown.placeholder.."
-                ),
-                "changedPropIds": ["geojson-dropdown.value"],
-                "inputs": [
-                    {"id": "geojson-dropdown", "property": "content", "value": "test"}
-                ],
-            }
+            params = clean_params(
+                {
+                    "output": (
+                        "..featureidkey-dropdown.options...featureidkey-dropdown.disabled..."
+                        "featureidkey-dropdown.placeholder.."
+                    ),
+                    "changedPropIds": ["geojson-dropdown.value"],
+                    "inputs": [
+                        {
+                            "id": "geojson-dropdown",
+                            "property": "content",
+                            "value": "test",
+                        }
+                    ],
+                }
+            )
             response = c.post("/dtale/charts/_dash-update-component", json=params)
             resp_data = response.get_json()["response"]
             assert resp_data["featureidkey-dropdown"]["options"] == [
@@ -158,15 +166,19 @@ def test_update_featureidkey_options():
 @pytest.mark.unit
 def test_toggle_modal():
     with app.test_client() as c:
-        params = {
-            "output": "geojson-modal.is_open",
-            "changedPropIds": ["geojson-dropdown.value"],
-            "inputs": [
-                {"id": "open-geojson-modal", "property": "n_clicks", "value": 0},
-                {"id": "close-geojson-modal", "property": "n_clicks", "value": 0},
-            ],
-            "state": [{"id": "geojson-modal", "property": "is_open", "value": True}],
-        }
+        params = clean_params(
+            {
+                "output": "geojson-modal.is_open",
+                "changedPropIds": ["geojson-dropdown.value"],
+                "inputs": [
+                    {"id": "open-geojson-modal", "property": "n_clicks", "value": 0},
+                    {"id": "close-geojson-modal", "property": "n_clicks", "value": 0},
+                ],
+                "state": [
+                    {"id": "geojson-modal", "property": "is_open", "value": True}
+                ],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         assert resp_data["geojson-modal"]["is_open"]
@@ -203,24 +215,26 @@ def test_building_choropleth_map_w_custom_geojson(unittest):
                     custom_geojson_data,
                 )
             )
-            params = {
-                "output": "..output-geojson-upload.children...geojson-dropdown.options..",
-                "changedPropIds": ["upload-geojson.content"],
-                "inputs": [
-                    {
-                        "id": "upload-geojson",
-                        "property": "content",
-                        "value": build_geojson_data(),
-                    }
-                ],
-                "state": [
-                    {
-                        "id": "upload-geojson",
-                        "property": "filename",
-                        "value": "USA.json",
-                    }
-                ],
-            }
+            params = clean_params(
+                {
+                    "output": "..output-geojson-upload.children...geojson-dropdown.options..",
+                    "changedPropIds": ["upload-geojson.content"],
+                    "inputs": [
+                        {
+                            "id": "upload-geojson",
+                            "property": "content",
+                            "value": build_geojson_data(),
+                        }
+                    ],
+                    "state": [
+                        {
+                            "id": "upload-geojson",
+                            "property": "filename",
+                            "value": "USA.json",
+                        }
+                    ],
+                }
+            )
             c.post("/dtale/charts/_dash-update-component", json=params)
 
             df, _ = views.format_data(df)

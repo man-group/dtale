@@ -1,14 +1,13 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
-import { CloseChartAction } from '../../redux/actions/AppActions';
 import { closeChart } from '../../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId } from '../../redux/selectors';
 import { BaseOption, ReplacementPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -63,9 +62,9 @@ const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
     ],
     [t],
   );
-  const { dataId, chartData } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const onClose = (): CloseChartAction => dispatch(closeChart());
+  const { dataId, chartData } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const onClose = (): PayloadAction<void> => dispatch(closeChart());
 
   const [type, setType] = React.useState<ReplacementType>();
   const [saveAs, setSaveAs] = React.useState(SaveAs.INPLACE);

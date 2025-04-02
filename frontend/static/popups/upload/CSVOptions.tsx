@@ -44,7 +44,7 @@ const CSVOptions: React.FC<CSVOptionsProps & WithTranslation> = ({ show, loader,
         <Modal.Header>
           <Modal.Title>{t('CSV Options')}</Modal.Title>
         </Modal.Header>
-        <div key="body" className="modal-body">
+        <div key="body" className="modal-body" data-testid="csv-options-body">
           <div style={{ maxHeight: 300, overflowY: 'auto' }} className="col-md-12" data-testid="csv-options">
             <LabeledCheckbox label={`${t('Header')}?`} value={header} setter={setHeader} />
             <div className="form-group row">

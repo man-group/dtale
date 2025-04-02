@@ -11,6 +11,15 @@
   z-index: 10;
   background: white;
 
+  &.aggregations {
+    left: 0;
+    bottom: 0;
+    box-shadow: 0 0 0 1px rgba(101, 108, 126, 0.5) inset, 0 1px 3px 1px rgba(64, 64, 64, 0.5);
+    overflow-y: hidden;
+    height: 350px;
+    right: unset;
+  }
+
   &.is-expanded {
     width: calc(50vw);
   }
@@ -21,6 +30,10 @@
   &.is-expanded.gage_rnr,
   &.is-expanded.timeseries_analysis {
     width: calc(75vw);
+  }
+
+  &.is-expanded.aggregations {
+    width: 400px;
   }
 
   &.is-expanded.correlations .modal-body,

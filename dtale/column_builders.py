@@ -155,12 +155,16 @@ class ConcatenateColumnBuilder(object):
         left, right = (self.cfg.get(p) for p in ["left", "right"])
         return "df.loc[:, '{name}'] = {left} + {right}".format(
             name=self.name,
-            left="df['{}'].astype('str')".format(left["col"])
-            if "col" in left
-            else left["val"],
-            right="df['{}'].astype('str')".format(right["col"])
-            if "col" in right
-            else right["val"],
+            left=(
+                "df['{}'].astype('str')".format(left["col"])
+                if "col" in left
+                else left["val"]
+            ),
+            right=(
+                "df['{}'].astype('str')".format(right["col"])
+                if "col" in right
+                else right["val"]
+            ),
         )
 
 
@@ -211,6 +215,16 @@ class DatetimeColumnBuilder(object):
 
     def build_column(self, data):
         col = self.cfg["col"]
+        if "timeDifference" in self.cfg:
+            if self.cfg["timeDifference"] == "now":
+                return pd.Series(
+                    pd.Timestamp("now") - data[col], index=data.index, name=self.name
+                )
+            return pd.Series(
+                data[col] - data[self.cfg["timeDifferenceCol"]],
+                index=data.index,
+                name=self.name,
+            )
         if "property" in self.cfg:
             if self.cfg["property"] == "weekday_name":
                 return data[col].dt.day_name()
@@ -228,6 +242,16 @@ class DatetimeColumnBuilder(object):
         return pd.Series(conversion_data, index=data.index, name=self.name)
 
     def build_code(self):
+        if "timeDifference" in self.cfg:
+            if self.cfg["timeDifference"] == "now":
+                return "df.loc[:, '{name}'] = pd.Timestamp('now') - df['{col}']".format(
+                    name=self.name, **self.cfg
+                )
+            return (
+                "df.loc[:, '{name}'] = df['{col}'] - df['{timeDifferenceCol}']".format(
+                    name=self.name, **self.cfg
+                )
+            )
         if "property" in self.cfg:
             if self.cfg["property"] == "weekday_name":
                 return "df.loc[:, '{name}'] = df['{col}'].dt.day_name()".format(
@@ -555,6 +579,22 @@ class TypeConversionColumnBuilder(object):
                     return v if pd.isnull(v) else hex(v)
 
                 return pd.Series(apply(s, int_to_hex), name=self.name, index=s.index)
+            elif to_type == "bool":
+                bool_cfg = self.cfg.get("cfg") or {}
+                cond = None
+                if bool_cfg.get("equals", {}).get("active", False):
+                    cond = s.isin(
+                        [int(v) for v in bool_cfg["equals"]["value"].split(",")]
+                    )
+                if bool_cfg.get("greaterThan", {}).get("active", False):
+                    gt_cond = s > int(bool_cfg["greaterThan"]["value"])
+                    cond = gt_cond if cond is None else cond | gt_cond
+                if bool_cfg.get("lessThan", {}).get("active", False):
+                    lt_cond = s < int(bool_cfg["lessThan"]["value"])
+                    cond = lt_cond if cond is None else cond | lt_cond
+                return pd.Series(
+                    False if cond is None else cond, name=self.name, index=s.index
+                )
             return pd.Series(s.astype(to_type), name=self.name, index=s.index)
         elif classifier == "F":  # str, int
             if to_type == "hex":
@@ -583,7 +623,10 @@ class TypeConversionColumnBuilder(object):
             "data type conversion not supported for dtype: {}".format(from_type)
         )
 
-    def build_inner_code(self):
+    def _wrap_code(self, code):
+        return "df.loc[:, '{name}'] = {code}".format(name=self.name, code=code)
+
+    def build_code(self):
         col, from_type, to_type = (self.cfg.get(p) for p in ["col", "from", "to"])
         s = "df['{col}']".format(col=col)
         classifier = classify_type(from_type)
@@ -594,101 +637,165 @@ class TypeConversionColumnBuilder(object):
                 else:
                     date_kwargs = "infer_datetime_format=True"
                 code = "pd.Series(pd.to_datetime({s}, {kwargs}), name='{name}', index={s}.index)"
-                return code.format(s=s, name=self.name, kwargs=date_kwargs)
+                return self._wrap_code(
+                    code.format(s=s, name=self.name, kwargs=date_kwargs)
+                )
             elif to_type == "int":
-                return (
-                    "s = {s}"
-                    "if s.str.startswith('0x').any():\n"
-                    "\tdef str_hex_to_int(v):\n"
-                    "\t\treturn v if pd.isnull(v) else int(v, base=16)\n"
-                    "\tstr_data = s.apply(str_hex_to_int)\n"
-                    "else:\n"
-                    "\tstr_data = s.astype('float').astype('int')\n"
-                    "pd.Series(str_data, name='{name}', index=s.index)"
-                ).format(s=s, name=self.name)
+                return self._wrap_code(
+                    (
+                        "s = {s}"
+                        "if s.str.startswith('0x').any():\n"
+                        "\tdef str_hex_to_int(v):\n"
+                        "\t\treturn v if pd.isnull(v) else int(v, base=16)\n"
+                        "\tstr_data = s.apply(str_hex_to_int)\n"
+                        "else:\n"
+                        "\tstr_data = s.astype('float').astype('int')\n"
+                        "pd.Series(str_data, name='{name}', index=s.index)"
+                    ).format(s=s, name=self.name)
+                )
             elif to_type == "float":
-                return (
-                    "s = {s}"
-                    "if s.str.startswith('0x').any():\n"
-                    "\tstr_data = s.apply(float.fromhex)\n"
-                    "else:\n"
-                    "\tstr_data = pd.to_numeric(s, errors='coerce')\n"
-                    "pd.Series(str_data, name='{name}', index=s.index)"
-                ).format(s=s, name=self.name)
+                return self._wrap_code(
+                    (
+                        "s = {s}"
+                        "if s.str.startswith('0x').any():\n"
+                        "\tstr_data = s.apply(float.fromhex)\n"
+                        "else:\n"
+                        "\tstr_data = pd.to_numeric(s, errors='coerce')\n"
+                        "pd.Series(str_data, name='{name}', index=s.index)"
+                    ).format(s=s, name=self.name)
+                )
             else:
                 if from_type.startswith("mixed"):
                     if to_type == "float":
-                        return "pd.Series(pd.to_numeric({s}, errors='coerce'), name='{name}', index={s}.index)".format(
-                            s=s, name=self.name
+                        return self._wrap_code(
+                            "pd.Series(pd.to_numeric({s}, errors='coerce'), name='{name}', index={s}.index)".format(
+                                s=s, name=self.name
+                            )
                         )
                     elif to_type == "bool":
-                        return (
-                            "def _process_mixed_bool(v):\n"
-                            "from six import string_types\n\n"
-                            "\tif isinstance(v, bool):\n"
-                            "\t\treturn v\n"
-                            "\tif isinstance(v, string_types):\n"
-                            "\t\treturn dict(true=True, false=False).get(v.lower(), np.nan)\n"
-                            "\treturn np.nan\n\n"
-                            "pd.Series({s}.apply(_process_mixed_bool), name='{name}', index={s}.index)"
-                        ).format(s=s, name=self.name)
-                return "pd.Series({s}.astype({to_type}), name='{name}', index={s}.index)".format(
-                    s=s, to_type=to_type, name=self.name
+                        return self._wrap_code(
+                            (
+                                "def _process_mixed_bool(v):\n"
+                                "from six import string_types\n\n"
+                                "\tif isinstance(v, bool):\n"
+                                "\t\treturn v\n"
+                                "\tif isinstance(v, string_types):\n"
+                                "\t\treturn dict(true=True, false=False).get(v.lower(), np.nan)\n"
+                                "\treturn np.nan\n\n"
+                                "pd.Series({s}.apply(_process_mixed_bool), name='{name}', index={s}.index)"
+                            ).format(s=s, name=self.name)
+                        )
+                return self._wrap_code(
+                    "pd.Series({s}.astype({to_type}), name='{name}', index={s}.index)".format(
+                        s=s, to_type=to_type, name=self.name
+                    )
                 )
         elif classifier == "I":  # date, float, category, str, bool, hex
             if to_type == "date":
                 unit = self.cfg.get("unit") or "D"
                 if unit == "YYYYMMDD":
-                    return "pd.Series({s}.astype(str).apply(pd.Timestamp), name='{name}', index={s}.index)".format(
-                        s=s, name=self.name
+                    return self._wrap_code(
+                        "pd.Series({s}.astype(str).apply(pd.Timestamp), name='{name}', index={s}.index)".format(
+                            s=s, name=self.name
+                        )
                     )
-                return "pd.Series(pd.to_datetime({s}, unit='{unit}'), name='{name}', index={s}.index)".format(
-                    s=s, name=self.name, unit=unit
+                return self._wrap_code(
+                    "pd.Series(pd.to_datetime({s}, unit='{unit}'), name='{name}', index={s}.index)".format(
+                        s=s, name=self.name, unit=unit
+                    )
                 )
             elif to_type == "hex":
-                return (
-                    "pd.Series(\n"
-                    "\t{s}.apply(lambda v: v if pd.isnull(v) else hex(v)), name='{name}', index={s}.index\n"
-                    ")"
-                ).format(s=s, name=self.name)
-            return "pd.Series({s}.astype('{to_type}'), name='{name}', index={s}.index)".format(
-                s=s, to_type=to_type, name=self.name
+                return self._wrap_code(
+                    (
+                        "pd.Series(\n"
+                        "\t{s}.apply(lambda v: v if pd.isnull(v) else hex(v)), name='{name}', index={s}.index\n"
+                        ")"
+                    ).format(s=s, name=self.name)
+                )
+            elif to_type == "bool":
+                bool_cfg = self.cfg.get("cfg") or {}
+                conds = []
+                if bool_cfg.get("equals", {}).get("active", False):
+                    conds.append(
+                        "cond"
+                        + str(len(conds) + 1)
+                        + " = {s}.isin(["
+                        + bool_cfg["equals"]["value"]
+                        + "])"
+                    )
+                if bool_cfg.get("greaterThan", {}).get("active", False):
+                    conds.append(
+                        "cond"
+                        + str(len(conds) + 1)
+                        + " = {s} > "
+                        + bool_cfg["greaterThan"]["value"]
+                    )
+                if bool_cfg.get("lessThan", {}).get("active", False):
+                    conds.append(
+                        "cond"
+                        + str(len(conds) + 1)
+                        + " = {s} < "
+                        + bool_cfg["lessThan"]["value"]
+                    )
+                cond = (
+                    " | ".join(["cond{}".format(i + 1) for i, _ in enumerate(conds)])
+                    if len(conds)
+                    else "False"
+                )
+                conds.append(
+                    "df.loc[:, '{name}'] = pd.Series("
+                    + cond
+                    + ", name='{name}', index={s}.index)"
+                )
+                return "\n".join(conds).format(s=s, name=self.name)
+            return self._wrap_code(
+                "pd.Series({s}.astype('{to_type}'), name='{name}', index={s}.index)".format(
+                    s=s, to_type=to_type, name=self.name
+                )
             )
         elif classifier == "F":  # str, int, hex
             if to_type == "hex":
-                return "pd.Series(s.apply(float.hex), name='{name}', index={s}.index)".format(
-                    s=s, name=self.name
+                return self._wrap_code(
+                    "pd.Series(s.apply(float.hex), name='{name}', index={s}.index)".format(
+                        s=s, name=self.name
+                    )
                 )
-            return "pd.Series(s.astype('{to_type}'), name='{name}', index={s}.index)".format(
-                s=s, to_type=to_type, name=self.name
+            return self._wrap_code(
+                "pd.Series(s.astype('{to_type}'), name='{name}', index={s}.index)".format(
+                    s=s, to_type=to_type, name=self.name
+                )
             )
         elif classifier == "D":  # str, int
             if to_type == "int":
                 unit = self.cfg.get("unit") or "D"
                 if unit == "YYYYMMDD":
-                    return "pd.Series({s}.dt.strftime('%Y%m%d').astype(int), name='{name}', index={s}.index)".format(
-                        s=s, name=self.name
+                    return self._wrap_code(
+                        "pd.Series({s}.dt.strftime('%Y%m%d').astype(int), name='{name}', index={s}.index)".format(
+                            s=s, name=self.name
+                        )
                     )
-                return (
-                    "pd.Series(\n"
-                    "\t{s}.apply(lambda x: time.mktime(x.timetuple())).astype(int), \n"
-                    "name='{name}', index={s}.index\n"
-                    ")"
-                ).format(s=s, name=self.name)
-            return "pd.Series({s}.dt.strftime('{fmt}'), name='{name}', index={s}.index)".format(
-                fmt=self.cfg.get("fmt") or "%Y%m%d", s=s, name=self.name
+                return self._wrap_code(
+                    (
+                        "pd.Series(\n"
+                        "\t{s}.apply(lambda x: time.mktime(x.timetuple())).astype(int), \n"
+                        "name='{name}', index={s}.index\n"
+                        ")"
+                    ).format(s=s, name=self.name)
+                )
+            return self._wrap_code(
+                "pd.Series({s}.dt.strftime('{fmt}'), name='{name}', index={s}.index)".format(
+                    fmt=self.cfg.get("fmt") or "%Y%m%d", s=s, name=self.name
+                )
             )
         elif classifier == "B":
-            return "pd.Series(s.astype('{to_type}'), name='{name}', index={s}.index)".format(
-                s=s, to_type=to_type, name=self.name
+            return self._wrap_code(
+                "pd.Series(s.astype('{to_type}'), name='{name}', index={s}.index)".format(
+                    s=s, to_type=to_type, name=self.name
+                )
             )
         raise NotImplementedError(
             "data type conversion not supported for dtype: {}".format(from_type)
         )
-
-    def build_code(self):
-        code = self.build_inner_code()
-        return "df.loc[:, '{name}'] = {code}".format(name=self.name, code=code)
 
 
 class TransformColumnBuilder(object):
@@ -1407,9 +1514,11 @@ class RollingBuilder(object):
                 "rolling_vals = df['{col}'].rolling({window}{kwargs}).{comp}()".format(
                     col=col,
                     window=window,
-                    kwargs=""
-                    if not rolling_kwargs_str
-                    else ", {}".format(rolling_kwargs_str),
+                    kwargs=(
+                        ""
+                        if not rolling_kwargs_str
+                        else ", {}".format(rolling_kwargs_str)
+                    ),
                     comp=comp,
                 )
             ]
@@ -1455,25 +1564,30 @@ class CumsumColumnBuilder(object):
         self.cfg = cfg
 
     def build_column(self, data):
-        col = self.cfg.get("col")
+        cols = self.cfg.get("cols")
         group = self.cfg.get("group")
         if group:
-            s = data.groupby(group)[col]
+            s = data.groupby(group)[cols]
         else:
-            s = data[col]
-        return pd.Series(s.cumsum(axis=0), index=data.index, name=self.name)
+            s = data[cols]
+        s = s.cumsum(axis=0)
+        s.columns = ["{}{}".format(col, self.name) for col in s.columns]
+        return pd.DataFrame(s, index=data.index)
 
     def build_code(self):
-        col = self.cfg.get("col")
+        cols = self.cfg.get("cols")
         group = self.cfg.get("group")
         group_code = ""
         if group:
             group_code = ".groupby(['{}'])".format("','".join(group))
         return (
-            "df.loc[:, '{name}'] = pd.Series(\n"
-            "\t(data{group}['{col}'].cumsum(axis=0), index=data.index, name='{name}'\n"
-            ")"
-        ).format(name=self.name, col=col, group=group_code)
+            "cumsum = pd.DataFrame(\n"
+            "\t(data{group}['{cols}'].cumsum(axis=0), index=data.index\n"
+            ")\n"
+            "for i in range(len(cumsum.columns)):\n"
+            "\tnew_col = cumsum.iloc[:, i]\n"
+            "\tdf.loc[:, str(new_col.name) + '{name}'] = new_col"
+        ).format(name=self.name, cols="','".join(cols), group=group_code)
 
 
 class ShiftBuilder(object):

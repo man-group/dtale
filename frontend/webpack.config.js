@@ -1,9 +1,9 @@
-/* eslint-disable no-restricted-globals */
-const webpack = require('webpack');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const autoprefixer = require('autoprefixer');
-const postcssNested = require('postcss-nested');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const path = require('path');
+const postcssNested = require('postcss-nested');
+const webpack = require('webpack');
+
 const paths = require('./config/paths');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
@@ -16,7 +16,7 @@ const entries = [
   ['export', './static/dtale/export/main.tsx'],
 ];
 
-function createConfig(entry) {
+const createConfig = (entry) => {
   const entryName = entry[0];
   const entryPath = entry[1];
   const cfg = {
@@ -155,14 +155,14 @@ function createConfig(entry) {
     cfg.output.publicPath = '';
   }
   return cfg;
-}
+};
 
 const dashEntries = [
   ['components', './static/dash/lib/index.js'],
   ['custom', './static/dash/lib/custom.js'],
 ];
 
-function createDashConfig(entry) {
+const createDashConfig = (entry) => {
   const entryName = entry[0];
   const entryPath = entry[1];
   return {
@@ -235,6 +235,6 @@ function createDashConfig(entry) {
       ],
     },
   };
-}
+};
 
 module.exports = [...entries.map(createConfig), ...dashEntries.map(createDashConfig)];

@@ -1,297 +1,194 @@
-import { ActionType, AppActionTypes } from '../../actions/AppActions';
+import { createReducer } from '@reduxjs/toolkit';
+
+import { AppActions } from '../../actions/AppActions';
 import { QueryEngine, ThemeType, Version } from '../../state/AppState';
 import { getHiddenValue, toBool, toFloat, toJson } from '../utils';
 
-export const hideShutdown = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('hide_shutdown'));
-    case ActionType.UPDATE_HIDE_SHUTDOWN:
-      return action.value;
-    case ActionType.LOAD_PREVIEW:
-      return true;
-    default:
-      return state;
-  }
-};
+export const hideShutdown = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('hide_shutdown')))
+    .addCase(AppActions.UpdateHideShutdown, (state, { payload }) => payload)
+    .addCase(AppActions.LoadPreviewAction, () => true),
+);
 
-export const hideHeaderEditor = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('hide_header_editor'));
-    case ActionType.UPDATE_HIDE_HEADER_EDITOR:
-      return action.value;
-    case ActionType.LOAD_PREVIEW:
-      return true;
-    default:
-      return state;
-  }
-};
+export const hideHeaderEditor = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('hide_header_editor')))
+    .addCase(AppActions.UpdateHideHeaderEditor, (state, { payload }) => payload)
+    .addCase(AppActions.LoadPreviewAction, () => true),
+);
 
-export const lockHeaderMenu = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('lock_header_menu'));
-    case ActionType.UPDATE_LOCK_HEADER_MENU:
-      return action.value;
-    case ActionType.LOAD_PREVIEW:
-      return true;
-    default:
-      return state;
-  }
-};
+export const lockHeaderMenu = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('lock_header_menu')))
+    .addCase(AppActions.UpdateLockHeaderMenu, (state, { payload }) => payload)
+    .addCase(AppActions.LoadPreviewAction, () => true),
+);
 
-export const hideHeaderMenu = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('hide_header_menu'));
-    case ActionType.UPDATE_HIDE_HEADER_MENU:
-      return action.value;
-    case ActionType.LOAD_PREVIEW:
-      return true;
-    default:
-      return state;
-  }
-};
+export const hideHeaderMenu = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('hide_header_menu')))
+    .addCase(AppActions.UpdateHideHeaderMenu, (state, { payload }) => payload)
+    .addCase(AppActions.LoadPreviewAction, () => true),
+);
 
-export const hideMainMenu = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('hide_main_menu'));
-    case ActionType.UPDATE_HIDE_MAIN_MENU:
-      return action.value;
-    case ActionType.LOAD_PREVIEW:
-      return true;
-    default:
-      return state;
-  }
-};
+export const hideMainMenu = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('hide_main_menu')))
+    .addCase(AppActions.UpdateHideMainMenu, (state, { payload }) => payload)
+    .addCase(AppActions.LoadPreviewAction, () => true),
+);
 
-export const hideColumnMenus = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('hide_column_menus'));
-    case ActionType.UPDATE_HIDE_COLUMN_MENUS:
-      return action.value;
-    case ActionType.LOAD_PREVIEW:
-      return true;
-    default:
-      return state;
-  }
-};
+export const hideColumnMenus = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('hide_column_menus')))
+    .addCase(AppActions.UpdateHideColumnMenus, (state, { payload }) => payload)
+    .addCase(AppActions.LoadPreviewAction, () => true),
+);
 
-export const enableCustomFilters = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('enable_custom_filters'));
-    case ActionType.UPDATE_ENABLE_CUSTOM_FILTERS:
-      return action.value;
-    case ActionType.LOAD_PREVIEW:
-      return false;
-    default:
-      return state;
-  }
-};
+export const hideRowExpanders = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('hide_row_expanders')))
+    .addCase(AppActions.UpdateHideRowExpanders, (state, { payload }) => payload)
+    .addCase(AppActions.LoadPreviewAction, () => true),
+);
 
-export const openCustomFilterOnStartup = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('open_custom_filter_on_startup'));
-    case ActionType.LOAD_PREVIEW:
-      return false;
-    default:
-      return state;
-  }
-};
+export const enableCustomFilters = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('enable_custom_filters')))
+    .addCase(AppActions.UpdateEnableCustomFilters, (state, { payload }) => payload)
+    .addCase(AppActions.LoadPreviewAction, () => false),
+);
 
-export const openPredefinedFiltersOnStartup = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return (
+export const enableWebUploads = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('enable_web_uploads')))
+    .addCase(AppActions.LoadPreviewAction, () => false),
+);
+
+export const openCustomFilterOnStartup = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('open_custom_filter_on_startup')))
+    .addCase(AppActions.LoadPreviewAction, () => false),
+);
+
+export const openPredefinedFiltersOnStartup = createReducer(false, (builder) =>
+  builder
+    .addCase(
+      AppActions.InitAction,
+      () =>
         toBool(getHiddenValue('open_predefined_filters_on_startup')) &&
-        getHiddenValue('predefined_filters') !== undefined
-      );
-    case ActionType.LOAD_PREVIEW:
-      return false;
-    default:
-      return state;
-  }
-};
+        getHiddenValue('predefined_filters') !== undefined,
+    )
+    .addCase(AppActions.LoadPreviewAction, () => false),
+);
 
-export const hideDropRows = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('hide_drop_rows'));
-    default:
-      return state;
-  }
-};
+export const hideDropRows = createReducer(false, (builder) =>
+  builder.addCase(AppActions.InitAction, () => toBool(getHiddenValue('hide_drop_rows'))),
+);
 
-export const allowCellEdits = (state: boolean | string[] = true, action: AppActionTypes): boolean | string[] => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS: {
-      return toJson(getHiddenValue('allow_cell_edits'));
-    }
-    case ActionType.UPDATE_ALLOW_CELL_EDITS:
-      return action.value;
-    case ActionType.LOAD_PREVIEW:
-      return false;
-    default:
-      return state;
-  }
-};
+export const allowCellEdits = createReducer<boolean | string[]>(true, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toJson(getHiddenValue('allow_cell_edits')))
+    .addCase(AppActions.UpdateAllowCellEdits, (state, { payload }) => payload)
+    .addCase(AppActions.LoadPreviewAction, () => false),
+);
 
-export const theme = (state = ThemeType.LIGHT, action: AppActionTypes): ThemeType => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS: {
+export const theme = createReducer<ThemeType>(ThemeType.LIGHT, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, (state) => {
       const themeStr = getHiddenValue('theme');
       const themeVal = Object.values(ThemeType).find((t) => t.valueOf() === themeStr);
       return themeVal ?? state;
-    }
-    case ActionType.SET_THEME: {
+    })
+    .addCase(AppActions.SetThemeAction, (state, { payload }) => {
       const body = document.getElementsByTagName('body')[0];
       body.classList.remove(`${state}-mode`);
-      body.classList.add(`${action.theme}-mode`);
-      return action.theme;
-    }
-    default:
-      return state;
-  }
-};
+      body.classList.add(`${payload}-mode`);
+      return payload;
+    }),
+);
 
-export const language = (state = 'en', action: AppActionTypes): string => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return getHiddenValue('language') ?? state;
-    case ActionType.SET_LANGUAGE:
-      return action.language;
-    default:
-      return state;
-  }
-};
+export const language = createReducer('en', (builder) =>
+  builder
+    .addCase(AppActions.InitAction, (state) => getHiddenValue('language') ?? state)
+    .addCase(AppActions.SetLanguageAction, (state, { payload }) => payload),
+);
 
-export const pythonVersion = (state: Version | null = null, action: AppActionTypes): Version | null => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-    case ActionType.LOAD_PREVIEW: {
+export const pythonVersion = createReducer<Version | null>(null, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, (state) => {
       const version = getHiddenValue('python_version');
       if (version) {
         return version.split('.').map((subVersion: string) => parseInt(subVersion, 10)) as Version;
       }
       return state;
-    }
-    default:
+    })
+    .addCase(AppActions.LoadPreviewAction, (state) => {
+      const version = getHiddenValue('python_version');
+      if (version) {
+        return version.split('.').map((subVersion: string) => parseInt(subVersion, 10)) as Version;
+      }
       return state;
-  }
-};
+    }),
+);
 
-export const isVSCode = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toBool(getHiddenValue('is_vscode')) && global.top !== global.self;
-    case ActionType.LOAD_PREVIEW:
-      return false;
-    default:
-      return state;
-  }
-};
+export const isVSCode = createReducer(false, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toBool(getHiddenValue('is_vscode')) && global.top !== global.self)
+    .addCase(AppActions.LoadPreviewAction, () => false),
+);
 
-export const isArcticDB = (state = 0, action: AppActionTypes): number => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toFloat(getHiddenValue('is_arcticdb')) as number;
-    case ActionType.LOAD_PREVIEW:
-      return 0;
-    default:
-      return state;
-  }
-};
+export const isArcticDB = createReducer(0, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toFloat(getHiddenValue('is_arcticdb')) as number)
+    .addCase(AppActions.LoadPreviewAction, () => 0),
+);
 
-export const arcticConn = (state = '', action: AppActionTypes): string => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return getHiddenValue('arctic_conn') ?? '';
-    case ActionType.LOAD_PREVIEW:
-      return '';
-    default:
-      return state;
-  }
-};
+export const arcticConn = createReducer('', (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => getHiddenValue('arctic_conn') ?? '')
+    .addCase(AppActions.LoadPreviewAction, () => ''),
+);
 
-export const columnCount = (state = 0, action: AppActionTypes): number => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toFloat(getHiddenValue('column_count')) as number;
-    case ActionType.LOAD_PREVIEW:
-      return 0;
-    default:
-      return state;
-  }
-};
+export const columnCount = createReducer(0, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toFloat(getHiddenValue('column_count')) as number)
+    .addCase(AppActions.LoadPreviewAction, () => 0),
+);
 
-export const maxColumnWidth = (state: number | null = null, action: AppActionTypes): number | null => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toFloat(getHiddenValue('max_column_width'), true) ?? null;
-    case ActionType.UPDATE_MAX_WIDTH:
-      return action.width;
-    case ActionType.CLEAR_MAX_WIDTH:
-      return null;
-    default:
-      return state;
-  }
-};
+export const maxColumnWidth = createReducer<number | null>(null, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toFloat(getHiddenValue('max_column_width'), true) ?? null)
+    .addCase(AppActions.UpdateMaxColumnWidthAction, (state, { payload }) => payload)
+    .addCase(AppActions.ClearMaxWidthAction, () => null),
+);
 
-export const maxRowHeight = (state: number | null = null, action: AppActionTypes): number | null => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return toFloat(getHiddenValue('max_row_height'), true) ?? null;
-    case ActionType.UPDATE_MAX_HEIGHT:
-      return action.height;
-    case ActionType.CLEAR_MAX_HEIGHT:
-      return null;
-    default:
-      return state;
-  }
-};
+export const maxRowHeight = createReducer<number | null>(null, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, () => toFloat(getHiddenValue('max_row_height'), true) ?? null)
+    .addCase(AppActions.UpdateMaxRowHeightAction, (state, { payload }) => payload)
+    .addCase(AppActions.ClearMaxHeightAction, () => null),
+);
 
-export const mainTitle = (state: string | null = null, action: AppActionTypes): string | null => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return getHiddenValue('main_title') ?? null;
-    default:
-      return state;
-  }
-};
+export const mainTitle = createReducer<string | null>(null, (builder) =>
+  builder.addCase(AppActions.InitAction, () => getHiddenValue('main_title') ?? null),
+);
 
-export const mainTitleFont = (state: string | null = null, action: AppActionTypes): string | null => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS:
-      return getHiddenValue('main_title_font') ?? null;
-    default:
-      return state;
-  }
-};
+export const mainTitleFont = createReducer<string | null>(null, (builder) =>
+  builder.addCase(AppActions.InitAction, () => getHiddenValue('main_title_font') ?? null),
+);
 
-export const queryEngine = (state = QueryEngine.PYTHON, action: AppActionTypes): QueryEngine => {
-  switch (action.type) {
-    case ActionType.INIT_PARAMS: {
+export const queryEngine = createReducer<QueryEngine>(QueryEngine.PYTHON, (builder) =>
+  builder
+    .addCase(AppActions.InitAction, (state) => {
       const engineStr = getHiddenValue('query_engine');
       const queryEngineVal = Object.values(QueryEngine).find((key) => key.valueOf() === engineStr);
       return queryEngineVal ?? state;
-    }
-    case ActionType.SET_QUERY_ENGINE:
-      return action.engine;
-    default:
-      return state;
-  }
-};
+    })
+    .addCase(AppActions.SetQueryEngineAction, (state, { payload }) => payload),
+);
 
-export const showAllHeatmapColumns = (state = false, action: AppActionTypes): boolean => {
-  switch (action.type) {
-    case ActionType.UPDATE_SHOW_ALL_HEATMAP_COLUMNS:
-      return action.showAllHeatmapColumns;
-    default:
-      return state;
-  }
-};
+export const showAllHeatmapColumns = createReducer(false, (builder) =>
+  builder.addCase(AppActions.UpdateShowAllHeatmapColumnsAction, (state, { payload }) => payload),
+);

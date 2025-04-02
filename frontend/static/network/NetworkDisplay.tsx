@@ -7,7 +7,7 @@ import { Edge, Network, Node, Options } from 'vis-network/standalone/umd/vis-net
 
 import { BouncerWrapper } from '../BouncerWrapper';
 import ColumnSelect from '../popups/create/ColumnSelect';
-import { AppState } from '../redux/state/AppState';
+import { AppStoreState } from '../redux/reducers/app';
 import { RemovableError } from '../RemovableError';
 import * as DtypesRepository from '../repository/DtypesRepository';
 import * as NetworkRepository from '../repository/NetworkRespository';
@@ -341,7 +341,7 @@ const ReduxNetworkDisplay = connect<
   NetworkDisplayReduxProps,
   Record<string, unknown>,
   NetworkDisplayComponentProps,
-  AppState
->((state: AppState): NetworkDisplayReduxProps => ({ dataId: state.dataId }))(TranslateReactNetworkDisplay);
+  AppStoreState
+>((state: AppStoreState): NetworkDisplayReduxProps => ({ dataId: state.dataId }))(TranslateReactNetworkDisplay);
 
 export { ReduxNetworkDisplay as NetworkDisplay, TranslateReactNetworkDisplay as ReactNetworkDisplay };

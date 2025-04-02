@@ -33,6 +33,8 @@ APP_SETTINGS = {
     "hide_main_menu": False,
     "hide_column_menus": False,
     "enable_custom_filters": False,
+    "enable_web_uploads": False,
+    "hide_row_expanders": False,
 }
 
 AUTH_SETTINGS = {"active": False, "username": None, "password": None}
@@ -442,6 +444,12 @@ class DefaultStore(object):
     def get_settings(self, data_id):
         return self.get_data_inst(data_id).settings
 
+    def get_query(self, data_id):
+        if load_flag(data_id, "enable_custom_filters", False):
+            curr_settings = self.get_settings(data_id) or {}
+            return curr_settings.get("query")
+        return None
+
     def get_metadata(self, data_id):
         return self.get_data_inst(data_id).metadata
 
@@ -605,6 +613,8 @@ def set_app_settings(settings):
         instance_updates["hide_main_menu"] = settings.get("hide_main_menu")
     if settings.get("hide_column_menus") is not None:
         instance_updates["hide_column_menus"] = settings.get("hide_column_menus")
+    if settings.get("hide_row_expanders") is not None:
+        instance_updates["hide_row_expanders"] = settings.get("hide_row_expanders")
     if settings.get("enable_custom_filters") is not None:
         instance_updates["enable_custom_filters"] = settings.get(
             "enable_custom_filters"
@@ -614,6 +624,15 @@ def set_app_settings(settings):
                 (
                     "Turning on custom filtering. Custom filters are vulnerable to code injection attacks, please only "
                     "use in trusted environments."
+                )
+            )
+    if settings.get("enable_web_uploads") is not None:
+        instance_updates["enable_web_uploads"] = settings.get("enable_web_uploads")
+        if instance_updates["enable_web_uploads"]:
+            logger.warning(
+                (
+                    "Turning on Web uploads. Web uploads are vulnerable to blind server side request forgery, please "
+                    "only use in trusted environments."
                 )
             )
 
@@ -668,7 +687,7 @@ def load_flag(data_id, flag_name, default):
 
     app_settings = get_app_settings()
     curr_settings = get_settings(data_id) or {}  # noqa: F821
-    global_flag = getattr(dtale, flag_name.upper())
+    global_flag = getattr(dtale, flag_name.upper(), default)
     if global_flag != default:
         return global_flag
     if flag_name in app_settings and app_settings[flag_name] != default:

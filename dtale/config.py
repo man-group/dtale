@@ -87,16 +87,19 @@ def load_app_settings(config):
         getter="getboolean",
     )
     hide_main_menu = get_config_val(
-        config,
-        curr_app_settings,
-        "hide_main_menu",
-        section="app",
-        getter="getboolean",
+        config, curr_app_settings, "hide_main_menu", section="app", getter="getboolean"
     )
     hide_column_menus = get_config_val(
         config,
         curr_app_settings,
         "hide_column_menus",
+        section="app",
+        getter="getboolean",
+    )
+    hide_row_expanders = get_config_val(
+        config,
+        curr_app_settings,
+        "hide_row_expanders",
         section="app",
         getter="getboolean",
     )
@@ -111,6 +114,13 @@ def load_app_settings(config):
         config,
         curr_app_settings,
         "enable_custom_filters",
+        section="app",
+        getter="getboolean",
+    )
+    enable_web_uploads = get_config_val(
+        config,
+        curr_app_settings,
+        "enable_web_uploads",
         section="app",
         getter="getboolean",
     )
@@ -152,7 +162,9 @@ def load_app_settings(config):
             hide_header_menu=hide_header_menu,
             hide_main_menu=hide_main_menu,
             hide_column_menus=hide_column_menus,
+            hide_row_expanders=hide_row_expanders,
             enable_custom_filters=enable_custom_filters,
+            enable_web_uploads=enable_web_uploads,
         )
     )
 
@@ -222,7 +234,11 @@ def build_show_options(options=None):
         hide_header_menu=None,
         hide_main_menu=None,
         hide_column_menus=None,
+        hide_row_expanders=None,
         enable_custom_filters=None,
+        enable_web_uploads=None,
+        main_title=None,
+        main_title_font=None,
     )
     config_options = {}
     config = get_config()

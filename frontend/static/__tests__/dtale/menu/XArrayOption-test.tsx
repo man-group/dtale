@@ -4,7 +4,7 @@ import { Provider, useDispatch } from 'react-redux';
 
 import { MenuTooltip } from '../../../dtale/menu/MenuTooltip';
 import XArrayOption from '../../../dtale/menu/XArrayOption';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
@@ -13,7 +13,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('XArrayOption tests', () => {
   const mockDispatch = jest.fn();
@@ -25,7 +25,7 @@ describe('XArrayOption tests', () => {
   it('renders selected xarray dimensions', async () => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', xarray: 'True' }, store);
-    store.dispatch({ type: ActionType.UPDATE_XARRAY_DIM, xarrayDim: { foo: 1 } });
+    store.dispatch(AppActions.UpdateXarrayDimAction({ foo: 1 }));
     await act(
       () =>
         render(
@@ -43,6 +43,6 @@ describe('XArrayOption tests', () => {
       await fireEvent.mouseOver(menuItem);
       await fireEvent.mouseLeave(menuItem);
     });
-    expect(mockDispatch.mock.calls[0][0].content.endsWith('1 (foo)')).toBe(true);
+    expect(mockDispatch.mock.calls[0][0].payload.content.endsWith('1 (foo)')).toBe(true);
   });
 });

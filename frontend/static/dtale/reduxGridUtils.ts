@@ -1,4 +1,5 @@
-import { ClearDataViewerUpdateAction } from '../redux/actions/AppActions';
+import { PayloadAction } from '@reduxjs/toolkit';
+
 import { DataViewerUpdate, DataViewerUpdateType, InstanceSettings } from '../redux/state/AppState';
 
 import { ColumnDef, DataViewerData, DataViewerPropagateState, PropagatedState } from './DataViewerState';
@@ -19,7 +20,7 @@ export const handleReduxState = (
   data: DataViewerData,
   rowCount: number,
   dataViewerUpdate: DataViewerUpdate | null,
-  clearDataViewerUpdate: () => ClearDataViewerUpdateAction,
+  clearDataViewerUpdate: () => PayloadAction,
   propagateState: DataViewerPropagateState,
   settings: InstanceSettings,
 ): void => {

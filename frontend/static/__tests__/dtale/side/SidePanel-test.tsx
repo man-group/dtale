@@ -15,7 +15,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('SidePanel', () => {
   let wrapper: RenderResult;
@@ -80,6 +80,9 @@ describe('SidePanel', () => {
     fireEvent.mouseDown(handle, { clientX: 30, clientY: 20 });
     fireEvent.mouseMove(handle, { clientX: 10, clientY: 20 });
     fireEvent.mouseUp(handle);
-    expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.UPDATE_SIDE_PANEL_WIDTH, offset: -20 });
+    expect(mockDispatch).toHaveBeenLastCalledWith({
+      type: ActionType.UPDATE_SIDE_PANEL_WIDTH,
+      payload: { offset: -20 },
+    });
   });
 });

@@ -1,17 +1,18 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, ToggleMenuPinnedAction } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectMenuPinned } from '../../redux/selectors';
 import * as serverState from '../serverStateManagement';
 
 import { MenuItem } from './MenuItem';
 
 const PinMenuOption: React.FC<WithTranslation> = ({ t }) => {
-  const menuPinned = useSelector(selectMenuPinned);
-  const dispatch = useDispatch();
-  const toggleMenuPinned = (): ToggleMenuPinnedAction => dispatch({ type: ActionType.TOGGLE_MENU_PINNED });
+  const menuPinned = useAppSelector(selectMenuPinned);
+  const dispatch = useAppDispatch();
+  const toggleMenuPinned = (): PayloadAction<void> => dispatch(AppActions.ToggleMenuPinnedAction());
 
   const togglePinned = async (): Promise<void> => {
     await serverState.updatePinMenu(!menuPinned);

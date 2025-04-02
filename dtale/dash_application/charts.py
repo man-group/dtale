@@ -51,7 +51,11 @@ from dtale.dash_application.layout.layout import (
     test_plotly_version,
     update_label_for_freq_and_agg,
 )
-from dtale.dash_application.layout.utils import graph_wrapper, reset_charts
+from dtale.dash_application.layout.utils import (
+    build_hoverable,
+    graph_wrapper,
+    reset_charts,
+)
 from dtale.dash_application.topojson_injections import INJECTIONS
 from dtale.query import handle_predefined, run_query
 from dtale.code_export import build_code_export
@@ -522,20 +526,6 @@ def chart_wrapper(data_id, data, url_params=None):
         def build_url(path, query):
             return fix_url_path("{}/{}/{}?{}".format(app_root, path, data_id, query))
 
-        def build_hoverable(link, msg):
-            return html.Div(
-                [
-                    link,
-                    html.Div(
-                        msg,
-                        className="hoverable__content",
-                        style={"width": "max-content", "font-size": "80%"},
-                    ),
-                ],
-                className="hoverable",
-                style={"border-bottom": "none"},
-            )
-
         popup_link = build_hoverable(
             html.A(
                 html.I(className="far fa-window-restore mr-4"),
@@ -544,6 +534,13 @@ def chart_wrapper(data_id, data, url_params=None):
                 className="mr-5",
             ),
             "Popup Chart",
+            hover_class="saved-chart-config",
+            hover_style={
+                "width": "max-content",
+                "font-size": "80%",
+                "min-width": "unset",
+                "top": "unset",
+            },
         )
         copy_link = html.Div(
             [
@@ -573,6 +570,8 @@ def chart_wrapper(data_id, data, url_params=None):
                 className="code-snippet-btn mr-5",
             ),
             "Code Export",
+            hover_style={"width": "max-content", "font-size": "80%", "top": "unset"},
+            hover_class="",
         )
         export_html_link = build_hoverable(
             html.A(
@@ -581,6 +580,8 @@ def chart_wrapper(data_id, data, url_params=None):
                 className="export-chart-btn mr-5",
             ),
             "Export Chart",
+            hover_style={"width": "max-content", "font-size": "80%", "top": "unset"},
+            hover_class="",
         )
         export_png_link = build_hoverable(
             html.A(
@@ -589,6 +590,8 @@ def chart_wrapper(data_id, data, url_params=None):
                 className="export-png-btn mr-5",
             ),
             "Export PNG",
+            hover_style={"width": "max-content", "font-size": "80%", "top": "unset"},
+            hover_class="",
         )
         export_csv_link = build_hoverable(
             html.A(
@@ -597,6 +600,8 @@ def chart_wrapper(data_id, data, url_params=None):
                 className="export-chart-btn",
             ),
             "Export CSV",
+            hover_style={"width": "max-content", "font-size": "80%", "top": "unset"},
+            hover_class="",
         )
         links = html.Div(
             [
@@ -607,13 +612,7 @@ def chart_wrapper(data_id, data, url_params=None):
                 export_png_link,
                 export_csv_link,
             ],
-            style={
-                "position": "absolute",
-                "zIndex": 5,
-                "left": 5,
-                "top": 2,
-                "height": "100%",
-            },
+            style={"position": "absolute", "zIndex": 5, "left": 5, "top": 2},
         )
         return html.Div(
             [links] + make_list(chart), style={"position": "relative", "height": "100%"}
@@ -873,11 +872,14 @@ def scatter_builder(
 
         return wrapper(
             graph_wrapper(figure=figure_cfg, modal=modal),
-            group_filter=dict_merge(
-                dict(y=y_val), {} if group_filter is None else dict(group=group_filter)
-            )
-            if group_filter is not None
-            else None,
+            group_filter=(
+                dict_merge(
+                    dict(y=y_val),
+                    {} if group_filter is None else dict(group=group_filter),
+                )
+                if group_filter is not None
+                else None
+            ),
         )
 
     return [_build_final_scatter(final_cols)]
@@ -1273,9 +1275,11 @@ def bar_builder(
                                             "type": "bar",
                                         },
                                         name_builder(y2, series_key),
-                                        {}
-                                        if i == 1 or not allow_multiaxis
-                                        else {"yaxis": "y{}".format(i)},
+                                        (
+                                            {}
+                                            if i == 1 or not allow_multiaxis
+                                            else {"yaxis": "y{}".format(i)}
+                                        ),
                                         hover_text.get(series_key) or {},
                                     )
                                     for i, y2 in enumerate(y_value, 1)
@@ -1309,9 +1313,11 @@ def bar_builder(
                                                     "type": "bar",
                                                 },
                                                 name_builder(y2, series_key),
-                                                {}
-                                                if i == 1 or not allow_multiaxis
-                                                else {"yaxis": "y{}".format(i)},
+                                                (
+                                                    {}
+                                                    if i == 1 or not allow_multiaxis
+                                                    else {"yaxis": "y{}".format(i)}
+                                                ),
                                                 hover_text.get(series_key) or {},
                                             )
                                             for i, y2 in enumerate(y_value, 1)
@@ -1395,9 +1401,11 @@ def bar_builder(
                                 "customdata": [frame["name"]] * len(series["x"]),
                             },
                             name_builder(y2, series_key),
-                            {}
-                            if i == 1 or not allow_multiaxis
-                            else {"yaxis": "y{}".format(i)},
+                            (
+                                {}
+                                if i == 1 or not allow_multiaxis
+                                else {"yaxis": "y{}".format(i)}
+                            ),
                         )
                     )
                 if barmode == "group" and allow_multiaxis:
@@ -1563,9 +1571,11 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                                                 "y": series[sub_y_value],
                                             },
                                             name_builder(sub_y_value, series_key),
-                                            {}
-                                            if i == 1 or not multi_yaxis
-                                            else {"yaxis": "y{}".format(i)},
+                                            (
+                                                {}
+                                                if i == 1 or not multi_yaxis
+                                                else {"yaxis": "y{}".format(i)}
+                                            ),
                                         )
                                     )
                                     for i, sub_y_value in enumerate(y_value, 1)
@@ -1601,9 +1611,11 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                                                     name_builder(
                                                         sub_y_value, series_key
                                                     ),
-                                                    {}
-                                                    if i == 1 or not multi_yaxis
-                                                    else {"yaxis": "y{}".format(i)},
+                                                    (
+                                                        {}
+                                                        if i == 1 or not multi_yaxis
+                                                        else {"yaxis": "y{}".format(i)}
+                                                    ),
                                                 )
                                             )
                                             for i, sub_y_value in enumerate(y_value, 1)
@@ -1664,9 +1676,11 @@ def line_builder(data, x, y, axes_builder, wrapper, cpg=False, cpy=False, **inpu
                                 "marker": {"size": marker_size},
                             },
                             name_builder(y2, series_key),
-                            {}
-                            if j == 1 or not multi_yaxis
-                            else {"yaxis": "y{}".format(j)},
+                            (
+                                {}
+                                if j == 1 or not multi_yaxis
+                                else {"yaxis": "y{}".format(j)}
+                            ),
                         )
                     )
 
@@ -1820,9 +1834,11 @@ def pie_builder(data, x, y, wrapper, export=False, **inputs):
                     ),
                     group_filter=dict_merge(
                         dict(y=y2),
-                        {}
-                        if series_key == "all"
-                        else dict(group=series.get("_filter_")),
+                        (
+                            {}
+                            if series_key == "all"
+                            else dict(group=series.get("_filter_"))
+                        ),
                     ),
                 )
                 if len(negative_values):
@@ -2056,8 +2072,14 @@ def heatmap_builder(data_id, export=False, **inputs):
         layout_cfg["title"]["text"] += " (Correlation)" if "corr" == agg else ""
         layout_cfg = build_layout(layout_cfg)
 
-        heatmap_func = go.Heatmapgl
-        heatmap_func_str = "go.Heatmapgl(z=chart_data.values, text=text, **hm_kwargs)"
+        try:
+            heatmap_func = go.Heatmapgl
+            heatmap_func_str = (
+                "go.Heatmapgl(z=chart_data.values, text=text, **hm_kwargs)"
+            )
+        except AttributeError:
+            heatmap_func = go.Heatmap
+            heatmap_func_str = "go.Heatmap(z=chart_data.values, text=text, **hm_kwargs)"
         if len(x_data) * len(y_data) < 10000:
             heatmap_func = go.Heatmap
             heatmap_func_str = (
@@ -2571,9 +2593,11 @@ def funnel_builder(data_id, export=False, **inputs):
                         chart,
                         group_filter=dict_merge(
                             dict(y=y2),
-                            {}
-                            if series_key == "all"
-                            else dict(group=series.get("_filter_")),
+                            (
+                                {}
+                                if series_key == "all"
+                                else dict(group=series.get("_filter_"))
+                            ),
                         ),
                     )
                 if len(negative_values):
@@ -2755,9 +2779,9 @@ def clustergram_builder(data_id, export=False, **inputs):
 
             chart = chart_builder(
                 graph,
-                group_filter={}
-                if series_key == "all"
-                else dict(group=series.get("_filter_")),
+                group_filter=(
+                    {} if series_key == "all" else dict(group=series.get("_filter_"))
+                ),
             )
 
             # clean up filters when passing to graph
@@ -2890,9 +2914,9 @@ def pareto_builder(data_id, export=False, **inputs):
 
             chart = chart_builder(
                 graph,
-                group_filter={}
-                if series_key == "all"
-                else dict(group=series.get("_filter_")),
+                group_filter=(
+                    {} if series_key == "all" else dict(group=series.get("_filter_"))
+                ),
             )
 
             # clean up filters when passing to graph
@@ -3017,9 +3041,9 @@ def histogram_builder(data_id, export=False, **inputs):
 
             chart = chart_builder(
                 graph,
-                group_filter={}
-                if series_key == "all"
-                else dict(group=series.get("_filter_")),
+                group_filter=(
+                    {} if series_key == "all" else dict(group=series.get("_filter_"))
+                ),
             )
 
             # clean up filters when passing to graph
@@ -3987,10 +4011,26 @@ def build_raw_chart(data_id=None, **inputs):
             find_figures(output, formatted_output)
             output = formatted_output
         if isinstance(output, dcc.Graph):
-            output = output.figure
             if inputs.get("title"):
-                output["layout"]["title"] = dict(text=inputs.get("title"))
-            output["layout"]["colorway"] = px.colors.qualitative.D3
+                output.figure["layout"]["title"] = dict(text=inputs.get("title"))
+            output.figure["layout"]["colorway"] = px.colors.qualitative.D3
+            output.figure["layout"]["plot_bgcolor"] = "white"
+            output.figure["layout"]["xaxis"].update(
+                mirror=True,
+                ticks="outside",
+                showline=True,
+                linecolor="black",
+                gridcolor="lightgrey",
+            )
+            output.figure["layout"]["yaxis"].update(
+                mirror=True,
+                ticks="outside",
+                showline=True,
+                linecolor="black",
+                gridcolor="lightgrey",
+            )
+            if inputs.get("return_object") is not True:
+                output = output.figure
         return output
 
     def _raw_chart_builder():

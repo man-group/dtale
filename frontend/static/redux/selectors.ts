@@ -2,8 +2,8 @@ import { createSelector } from '@reduxjs/toolkit';
 
 import { RangeSelection } from '../dtale/DataViewerState';
 
+import { AppStoreState } from './reducers/app';
 import {
-  AppState,
   DataViewerUpdate,
   FilteredRanges,
   InstanceSettings,
@@ -16,20 +16,20 @@ import {
   Version,
 } from './state/AppState';
 
-export const selectDataId = (state: AppState): string => state.dataId;
-export const selectAuth = (state: AppState): boolean => state.auth;
-export const selectUsername = (state: AppState): string | null => state.username;
-export const selectEditedCell = (state: AppState): string | null => state.editedCell;
-export const selectIsVSCode = (state: AppState): boolean => state.isVSCode;
-export const selectCtrlRows = (state: AppState): number[] | null => state.ctrlRows;
-export const selectCtrlCols = (state: AppState): number[] | null => state.ctrlCols;
-export const selectIsArcticDB = (state: AppState): number => state.isArcticDB;
-export const selectColumnCount = (state: AppState): number => state.columnCount;
-export const selectColumnMenuOpen = (state: AppState): boolean => state.columnMenuOpen;
-export const selectSelectedCol = (state: AppState): string | null => state.selectedCol;
-export const selectSelectedColRef = (state: AppState): HTMLDivElement | null => state.selectedColRef;
-export const selectIsPreview = (state: AppState): boolean => state.isPreview;
-export const selectRibbonDropdown = (state: AppState): RibbonDropdownProps => state.ribbonDropdown;
+export const selectDataId = (state: AppStoreState): string => state.dataId;
+export const selectAuth = (state: AppStoreState): boolean => state.auth;
+export const selectUsername = (state: AppStoreState): string | null => state.username;
+export const selectEditedCell = (state: AppStoreState): string | null => state.editedCell;
+export const selectIsVSCode = (state: AppStoreState): boolean => state.isVSCode;
+export const selectCtrlRows = (state: AppStoreState): number[] | null => state.ctrlRows;
+export const selectCtrlCols = (state: AppStoreState): number[] | null => state.ctrlCols;
+export const selectIsArcticDB = (state: AppStoreState): number => state.isArcticDB;
+export const selectColumnCount = (state: AppStoreState): number => state.columnCount;
+export const selectColumnMenuOpen = (state: AppStoreState): boolean => state.columnMenuOpen;
+export const selectSelectedCol = (state: AppStoreState): string | null => state.selectedCol;
+export const selectSelectedColRef = (state: AppStoreState): HTMLElement | null => state.selectedColRef;
+export const selectIsPreview = (state: AppStoreState): boolean => state.isPreview;
+export const selectRibbonDropdown = (state: AppStoreState): RibbonDropdownProps => state.ribbonDropdown;
 export const selectRibbonDropdownVisible = createSelector(
   [selectRibbonDropdown],
   (ribbonDropdown) => ribbonDropdown.visible,
@@ -39,7 +39,7 @@ export const selectRibbonDropdownElement = createSelector(
   (ribbonDropdown) => ribbonDropdown.element,
 );
 export const selectRibbonDropdownName = createSelector([selectRibbonDropdown], (ribbonDropdown) => ribbonDropdown.name);
-export const selectSettings = (state: AppState): InstanceSettings => state.settings;
+export const selectSettings = (state: AppStoreState): InstanceSettings => state.settings;
 export const selectColumnFilters = createSelector([selectSettings], (settings) => settings?.columnFilters);
 export const selectOutlierFilters = createSelector([selectSettings], (settings) => settings?.outlierFilters);
 export const selectInvertFilter = createSelector([selectSettings], (settings) => settings?.invertFilter);
@@ -54,39 +54,41 @@ export const selectSettingsHideHeaderEditor = createSelector(
 );
 export const selectBackgroundMode = createSelector([selectSettings], (settings) => settings?.backgroundMode);
 export const selectRangeHighlight = createSelector([selectSettings], (settings) => settings?.rangeHighlight);
-export const selectBaseLockHeaderMenu = (state: AppState): boolean => state.lockHeaderMenu;
-export const selectBaseHideHeaderMenu = (state: AppState): boolean => state.hideHeaderMenu;
-export const selectBaseHideMainMenu = (state: AppState): boolean => state.hideMainMenu;
-export const selectBaseHideColumnMenus = (state: AppState): boolean => state.hideColumnMenus;
-export const selectBaseEnableCustomFilters = (state: AppState): boolean => state.enableCustomFilters;
-export const selectFilteredRanges = (state: AppState): FilteredRanges => state.filteredRanges;
-export const selectShowAllHeatmapColumns = (state: AppState): boolean => state.showAllHeatmapColumns;
-export const selectChartData = (state: AppState): Popups => state.chartData;
-export const selectSidePanel = (state: AppState): SidePanelProps => state.sidePanel;
+export const selectBaseLockHeaderMenu = (state: AppStoreState): boolean => state.lockHeaderMenu;
+export const selectBaseHideHeaderMenu = (state: AppStoreState): boolean => state.hideHeaderMenu;
+export const selectBaseHideMainMenu = (state: AppStoreState): boolean => state.hideMainMenu;
+export const selectBaseHideColumnMenus = (state: AppStoreState): boolean => state.hideColumnMenus;
+export const selectBaseHideRowExpanders = (state: AppStoreState): boolean => state.hideRowExpanders;
+export const selectBaseEnableCustomFilters = (state: AppStoreState): boolean => state.enableCustomFilters;
+export const selectEnableWebUploads = (state: AppStoreState): boolean => state.enableWebUploads;
+export const selectFilteredRanges = (state: AppStoreState): FilteredRanges => state.filteredRanges;
+export const selectShowAllHeatmapColumns = (state: AppStoreState): boolean => state.showAllHeatmapColumns;
+export const selectChartData = (state: AppStoreState): Popups => state.chartData;
+export const selectSidePanel = (state: AppStoreState): SidePanelProps => state.sidePanel;
 export const selectSidePanelVisible = createSelector([selectSidePanel], (sidePanel) => sidePanel.visible);
 export const selectSidePanelView = createSelector([selectSidePanel], (sidePanel) => sidePanel.view);
 export const selectSidePanelColumn = createSelector([selectSidePanel], (sidePanel) => sidePanel.column);
 export const selectSidePanelOffset = createSelector([selectSidePanel], (sidePanel) => sidePanel.offset);
-export const selectTheme = (state: AppState): ThemeType => state.theme;
-export const selectPythonVersion = (state: AppState): Version | null => state.pythonVersion;
-export const selectMaxColumnWidth = (state: AppState): number | null => state.maxColumnWidth;
-export const selectAllowCellEdits = (state: AppState): boolean | string[] => state.allowCellEdits;
-export const selectRowRange = (state: AppState): RangeSelection<number> | null => state.rowRange;
-export const selectColumnRange = (state: AppState): RangeSelection<number> | null => state.columnRange;
-export const selectRangeSelect = (state: AppState): RangeSelection<string> | null => state.rangeSelect;
-export const selectSelectedRow = (state: AppState): number | null => state.selectedRow;
-export const selectFormattingOpen = (state: AppState): string | null => state.formattingOpen;
-export const selectMenuPinned = (state: AppState): boolean => state.menuPinned;
-export const selectMenuOpen = (state: AppState): boolean => state.menuOpen;
-export const selectBaseHideHeaderEditor = (state: AppState): boolean => state.hideHeaderEditor;
+export const selectTheme = (state: AppStoreState): ThemeType => state.theme;
+export const selectPythonVersion = (state: AppStoreState): Version | null => state.pythonVersion;
+export const selectMaxColumnWidth = (state: AppStoreState): number | null => state.maxColumnWidth;
+export const selectAllowCellEdits = (state: AppStoreState): boolean | string[] => state.allowCellEdits;
+export const selectRowRange = (state: AppStoreState): RangeSelection<number> | null => state.rowRange;
+export const selectColumnRange = (state: AppStoreState): RangeSelection<number> | null => state.columnRange;
+export const selectRangeSelect = (state: AppStoreState): RangeSelection<string> | null => state.rangeSelect;
+export const selectSelectedRow = (state: AppStoreState): number | null => state.selectedRow;
+export const selectFormattingOpen = (state: AppStoreState): string | null => state.formattingOpen;
+export const selectMenuPinned = (state: AppStoreState): boolean => state.menuPinned;
+export const selectMenuOpen = (state: AppStoreState): boolean => state.menuOpen;
+export const selectBaseHideHeaderEditor = (state: AppStoreState): boolean => state.hideHeaderEditor;
 export const selectHideHeaderEditor = createSelector(
   [selectSettingsHideHeaderEditor, selectBaseHideHeaderEditor],
   (settingsHideHeaderEditor, hideHeaderEditor) => settingsHideHeaderEditor ?? hideHeaderEditor,
 );
-export const selectPredefinedFilterConfigs = (state: AppState): PredefinedFilter[] => state.predefinedFilters;
-export const selectHideDropRows = (state: AppState): boolean => state.hideDropRows;
-export const selectArcticConn = (state: AppState): string => state.arcticConn;
-export const selectBaseRibbonMenuOpen = (state: AppState): boolean => state.ribbonMenuOpen;
+export const selectPredefinedFilterConfigs = (state: AppStoreState): PredefinedFilter[] => state.predefinedFilters;
+export const selectHideDropRows = (state: AppStoreState): boolean => state.hideDropRows;
+export const selectArcticConn = (state: AppStoreState): string => state.arcticConn;
+export const selectBaseRibbonMenuOpen = (state: AppStoreState): boolean => state.ribbonMenuOpen;
 const selectSettingsLockHeaderMenu = createSelector([selectSettings], (settings) => settings?.lock_header_menu);
 export const selectLockHeaderMenu = createSelector(
   [selectSettingsLockHeaderMenu, selectBaseLockHeaderMenu],
@@ -107,6 +109,11 @@ export const selectHideColumnMenus = createSelector(
   [selectSettingsHideColumnMenus, selectBaseHideColumnMenus],
   (settingsHideColumnMenus, hideColumnMenus) => settingsHideColumnMenus ?? hideColumnMenus,
 );
+const selectSettingsHideRowExpanders = createSelector([selectSettings], (settings) => settings?.hide_row_expanders);
+export const selectHideRowExpanders = createSelector(
+  [selectSettingsHideRowExpanders, selectBaseHideRowExpanders],
+  (settingsHideRowExpanders, hideRowExpanders) => settingsHideRowExpanders ?? hideRowExpanders,
+);
 const selectSettingsEnableCustomFilters = createSelector(
   [selectSettings],
   (settings) => settings?.enable_custom_filters,
@@ -119,15 +126,16 @@ export const selectRibbonMenuOpen = createSelector(
   [selectBaseRibbonMenuOpen, selectLockHeaderMenu, selectHideHeaderMenu],
   (ribbonMenuOpen, lockHeaderMenu, hideHeaderMenu) => (ribbonMenuOpen || lockHeaderMenu) && !hideHeaderMenu,
 );
-export const selectMainTitle = (state: AppState): string | null => state.mainTitle;
-export const selectMainTitleFont = (state: AppState): string | null => state.mainTitleFont;
-export const selectDataViewerUpdate = (state: AppState): DataViewerUpdate | null => state.dataViewerUpdate;
-export const selectMaxRowHeight = (state: AppState): number | null => state.maxRowHeight;
-export const selectEditedTextAreaHeight = (state: AppState): number => state.editedTextAreaHeight;
-export const selectDragResize = (state: AppState): number | null => state.dragResize;
-export const selectXArray = (state: AppState): boolean => state.xarray;
-export const selectXArrayDim = (state: AppState): Record<string, any> => state.xarrayDim;
-export const selectIFrame = (state: AppState): boolean => state.iframe;
-export const selectLanguage = (state: AppState): string => state.language;
-export const selectHideShutdown = (state: AppState): boolean => state.hideShutdown;
-export const selectQueryEngine = (state: AppState): QueryEngine => state.queryEngine;
+export const selectMainTitle = (state: AppStoreState): string | null => state.mainTitle;
+export const selectMainTitleFont = (state: AppStoreState): string | null => state.mainTitleFont;
+export const selectDataViewerUpdate = (state: AppStoreState): DataViewerUpdate | null => state.dataViewerUpdate;
+export const selectMaxRowHeight = (state: AppStoreState): number | null => state.maxRowHeight;
+export const selectEditedTextAreaHeight = (state: AppStoreState): number => state.editedTextAreaHeight;
+export const selectDragResize = (state: AppStoreState): number | null => state.dragResize;
+export const selectXArray = (state: AppStoreState): boolean => state.xarray;
+export const selectXArrayDim = (state: AppStoreState): Record<string, any> => state.xarrayDim;
+export const selectIFrame = (state: AppStoreState): boolean => state.iframe;
+export const selectLanguage = (state: AppStoreState): string => state.language;
+export const selectHideShutdown = (state: AppStoreState): boolean => state.hideShutdown;
+export const selectQueryEngine = (state: AppStoreState): QueryEngine => state.queryEngine;
+export const selectColumnAggregations = (state: AppStoreState): string | null => state.columnAggregations;

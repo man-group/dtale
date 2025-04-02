@@ -4,6 +4,7 @@ from __future__ import absolute_import, division
 import os
 import time
 from builtins import map, range, str, zip
+from collections import namedtuple
 from functools import wraps
 from logging import getLogger
 
@@ -248,7 +249,8 @@ class DtaleData(object):
         self.app_root = app_root
 
     def build_main_url(self, name=None):
-        if name or self._data_id:
+        data_keys = global_state.keys()
+        if (name or self._data_id) and len(data_keys):
             quoted_data_id = get_url_quote()(
                 get_url_quote()(name or self._data_id, safe="")
             )
@@ -261,6 +263,9 @@ class DtaleData(object):
 
     @property
     def _main_url(self):
+        data_keys = global_state.keys()
+        if not len(data_keys):
+            return self.build_main_url()
         suffix = self._data_id
         name = global_state.get_name(suffix)
         if name:
@@ -274,6 +279,16 @@ class DtaleData(object):
 
         """
         return global_state.get_data(self._data_id)
+
+    @property
+    def view_data(self):
+        """
+        Property which returns the data associated with this instance as well as any sorting or filtering applied
+        from the UI
+
+        """
+        req = namedtuple("req", "args")
+        return load_filterable_data(self._data_id, req(dict(filtered="true")))
 
     @data.setter
     def data(self, data):
@@ -351,7 +366,9 @@ class DtaleData(object):
         * hide_header_menu - if true, this will hide the header menu from the screen
         * hide_main_menu - if true, this will hide the main menu from the screen
         * hide_column_menus - if true, this will hide the column menus from the screen
+        * hide_row_expanders - if true, this will hide row expanders from the screen
         * enable_custom_filters - if True, allow users to specify custom filters from the UI using pandas.query strings
+        * enable_web_uploads - if True, allow users to upload files using URLs from the UI
 
         After applying please refresh any open browsers!
         """
@@ -579,6 +596,7 @@ class DtaleData(object):
 
     def offline_chart(
         self,
+        return_object=False,
         chart_type=None,
         query=None,
         x=None,
@@ -600,6 +618,8 @@ class DtaleData(object):
         """
         Builds the HTML for a plotly chart figure to saved to a file or output to a jupyter notebook
 
+        :param return_object: if True, return the plotly graph object for this chart
+        :type return_object: bool
         :param chart_type: type of chart, possible options are line|bar|pie|scatter|3d_scatter|surface|heatmap
         :type chart_type: str
         :param query: pandas dataframe query string
@@ -640,6 +660,7 @@ class DtaleData(object):
                  - otherwise it will return the HTML output as a string
         """
         params = dict(
+            return_object=return_object,
             chart_type=chart_type,
             query=query,
             x=x,
@@ -666,6 +687,9 @@ class DtaleData(object):
             )  # for some reason iplot does not like when the 'id' property is populated
             iplot(chart)
             return
+
+        if return_object:
+            return build_raw_chart(self._data_id, export=True, **params)
 
         html_str = export_chart(self._data_id, params)
         if filepath is None:
@@ -743,8 +767,12 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
             if not any((np.isnan(v) or np.isinf(v) for v in [o_s, o_e])):
                 dtype_data["hasOutliers"] += int(((s < o_s) | (s > o_e)).sum())
                 dtype_data["outlierRange"] = dict(lower=o_s, upper=o_e)
-            dtype_data["skew"] = json_float(s.skew())
-            dtype_data["kurt"] = json_float(s.kurt())
+            skew_val = pandas_util.run_function(s, "skew")
+            if skew_val is not None:
+                dtype_data["skew"] = json_float(skew_val)
+            kurt_val = pandas_util.run_function(s, "kurt")
+            if kurt_val is not None:
+                dtype_data["kurt"] = json_float(kurt_val)
 
         if classification in ["F", "I"] and not s.isnull().all():
             # build variance flag
@@ -759,8 +787,12 @@ def dtype_formatter(data, dtypes, data_ranges, prev_dtypes=None):
 
         if classification in ["D"] and not s.isnull().all():
             timestamps = apply(s, lambda x: json_timestamp(x, np.nan))
-            dtype_data["skew"] = json_float(timestamps.skew())
-            dtype_data["kurt"] = json_float(timestamps.kurt())
+            skew_val = pandas_util.run_function(timestamps, "skew")
+            if skew_val is not None:
+                dtype_data["skew"] = json_float(skew_val)
+            kurt_val = pandas_util.run_function(timestamps, "kurt")
+            if kurt_val is not None:
+                dtype_data["kurt"] = json_float(kurt_val)
 
         if classification == "S" and not dtype_data["hasMissing"]:
             if (
@@ -907,8 +939,12 @@ def startup(
     hide_header_menu=None,
     hide_main_menu=None,
     hide_column_menus=None,
+    hide_row_expanders=None,
     enable_custom_filters=None,
+    enable_web_uploads=None,
     force_save=True,
+    main_title=None,
+    main_title_font=None,
 ):
     """
     Loads and stores data globally
@@ -1035,7 +1071,11 @@ def startup(
             hide_header_menu=hide_header_menu,
             hide_main_menu=hide_main_menu,
             hide_column_menus=hide_column_menus,
+            hide_row_expanders=hide_row_expanders,
             enable_custom_filters=enable_custom_filters,
+            enable_web_uploads=enable_web_uploads,
+            main_title=main_title,
+            main_title_font=main_title_font,
         )
         startup_code = (
             "from arcticdb import Arctic\n"
@@ -1107,7 +1147,11 @@ def startup(
                 hide_header_menu=hide_header_menu,
                 hide_main_menu=hide_main_menu,
                 hide_column_menus=hide_column_menus,
+                hide_row_expanders=hide_row_expanders,
                 enable_custom_filters=enable_custom_filters,
+                enable_web_uploads=enable_web_uploads,
+                main_title=main_title,
+                main_title_font=main_title_font,
             )
 
             global_state.set_dataset(instance._data_id, data)
@@ -1175,10 +1219,18 @@ def startup(
             base_settings["hide_main_menu"] = hide_main_menu
         if hide_column_menus is not None:
             base_settings["hide_column_menus"] = hide_column_menus
+        if hide_row_expanders is not None:
+            base_settings["hide_row_expanders"] = hide_row_expanders
         if enable_custom_filters is not None:
             base_settings["enable_custom_filters"] = enable_custom_filters
+        if enable_web_uploads is not None:
+            base_settings["enable_web_uploads"] = enable_web_uploads
         if column_edit_options is not None:
             base_settings["column_edit_options"] = column_edit_options
+        if main_title is not None:
+            base_settings["main_title"] = main_title
+        if main_title_font is not None:
+            base_settings["main_title_font"] = main_title_font
         global_state.set_settings(data_id, base_settings)
         if optimize_dataframe and not global_state.is_arcticdb:
             data = optimize_df(data)
@@ -1231,6 +1283,13 @@ def startup(
                     "use in trusted environments."
                 )
             )
+        if global_state.load_flag(data_id, "enable_web_uploads", False):
+            logger.warning(
+                (
+                    "Web uploads enabled. Web uploads are vulnerable to blind server side request forgery, please "
+                    "only use in trusted environments."
+                )
+            )
         return DtaleData(data_id, url, is_proxy=is_proxy, app_root=app_root)
     else:
         raise NoDataLoadedException("No data has been loaded into this D-Tale session!")
@@ -1264,9 +1323,13 @@ def base_render_template(template, data_id, **kwargs):
     hide_header_menu = global_state.load_flag(data_id, "hide_header_menu", False)
     hide_main_menu = global_state.load_flag(data_id, "hide_main_menu", False)
     hide_column_menus = global_state.load_flag(data_id, "hide_column_menus", False)
+    hide_row_expanders = global_state.load_flag(data_id, "hide_row_expanders", False)
+    main_title = global_state.load_flag(data_id, "main_title", None)
+    main_title_font = global_state.load_flag(data_id, "main_title_font", None)
     enable_custom_filters = global_state.load_flag(
         data_id, "enable_custom_filters", False
     )
+    enable_web_uploads = global_state.load_flag(data_id, "enable_web_uploads", False)
     app_overrides = dict(
         allow_cell_edits=json.dumps(allow_cell_edits),
         hide_shutdown=hide_shutdown,
@@ -1275,8 +1338,12 @@ def base_render_template(template, data_id, **kwargs):
         hide_header_menu=hide_header_menu,
         hide_main_menu=hide_main_menu,
         hide_column_menus=hide_column_menus,
+        hide_row_expanders=hide_row_expanders,
         enable_custom_filters=enable_custom_filters,
+        enable_web_uploads=enable_web_uploads,
         github_fork=github_fork,
+        main_title=main_title,
+        main_title_font=main_title_font,
     )
     is_arcticdb = 0
     arctic_conn = ""
@@ -1286,9 +1353,11 @@ def base_render_template(template, data_id, **kwargs):
         arctic_conn = global_state.store.uri
     return render_template(
         template,
-        data_id=get_url_quote()(get_url_quote()(data_id, safe=""))
-        if data_id is not None
-        else "",
+        data_id=(
+            get_url_quote()(get_url_quote()(data_id, safe=""))
+            if data_id is not None
+            else ""
+        ),
         xarray=global_state.get_data_inst(data_id).is_xarray_dataset,
         xarray_dim=json.dumps(global_state.get_dataset_dim(data_id)),
         settings=json.dumps(curr_settings),
@@ -1318,7 +1387,7 @@ def _view_main(data_id, iframe=False):
     :type iframe: bool, optional
     :return: HTML
     """
-    title = "D-Tale"
+    title = global_state.load_flag(data_id, "main_title", None) or "D-Tale"
     name = global_state.get_name(data_id)
     if name:
         title = "{} ({})".format(title, name)
@@ -1390,6 +1459,7 @@ POPUP_TITLES = {
     "pps": "Predictive Power Score",
     "merge": "Merge & Stack",
     "arcticdb": "Load ArcticDB Data",
+    "raw-pandas": "Raw Pandas Output",
 }
 
 
@@ -1408,7 +1478,7 @@ def view_popup(popup_type, data_id=None):
     """
     if data_id is None and popup_type not in ["upload", "merge", "arcticdb"]:
         return redirect("/dtale/{}".format(head_endpoint(popup_type)))
-    main_title = global_state.get_app_settings().get("main_title")
+    main_title = global_state.load_flag(data_id, "main_title", None)
     title = main_title or "D-Tale"
     name = global_state.get_name(data_id)
     if name:
@@ -1554,7 +1624,18 @@ def update_settings(data_id):
     :return: JSON
     """
 
-    global_state.update_settings(data_id, get_json_arg(request, "settings", {}))
+    updated_settings = get_json_arg(request, "settings", {})
+
+    # block users from manually updating 'enable_custom_filters'
+    if "enable_custom_filters" in updated_settings:
+        raise ValueError(
+            "Cannot alter the property 'enable_custom_filters' from this endpoint"
+        )
+
+    if not global_state.load_flag(data_id, "enable_custom_filters", False):
+        updated_settings.pop("query", None)
+
+    global_state.update_settings(data_id, updated_settings)
     return jsonify(dict(success=True))
 
 
@@ -1859,9 +1940,11 @@ def build_column(data_id):
         curr_dtypes = global_state.get_dtypes(data_id)
         if next((cdt for cdt in curr_dtypes if cdt["name"] in new_cols), None):
             curr_dtypes = [
-                dtype_f(len(curr_dtypes), cdt["name"])
-                if cdt["name"] in new_cols
-                else cdt
+                (
+                    dtype_f(len(curr_dtypes), cdt["name"])
+                    if cdt["name"] in new_cols
+                    else cdt
+                )
                 for cdt in curr_dtypes
             ]
         else:
@@ -2559,12 +2642,11 @@ def edit_cell(data_id):
     row_index = get_int_arg(request, "rowIndex")
     updated = get_str_arg(request, "updated")
     updated_str = updated
-    curr_settings = global_state.get_settings(data_id)
 
     # make sure to load filtered data in order to get correct row index
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
@@ -2740,7 +2822,7 @@ def get_data(data_id):
 
     curr_settings = global_state.get_settings(data_id) or {}
     curr_locked = curr_settings.get("locked", [])
-    final_query = build_query(data_id, curr_settings.get("query"))
+    final_query = build_query(data_id, global_state.get_query(data_id))
     highlight_filter = curr_settings.get("highlightFilter") or False
 
     if global_state.is_arcticdb:
@@ -3009,7 +3091,7 @@ def export_html(data_id, return_data):
 @exception_decorator
 def load_filtered_ranges(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
-    final_query = build_query(data_id, curr_settings.get("query"))
+    final_query = build_query(data_id, global_state.get_query(data_id))
     if not final_query:
         return {}
     curr_filtered_ranges = curr_settings.get("filteredRanges", {})
@@ -3050,11 +3132,10 @@ def load_filtered_ranges(data_id):
 @dtale.route("/data-export/<data_id>")
 @exception_decorator
 def data_export(data_id):
-    curr_settings = global_state.get_settings(data_id) or {}
     curr_dtypes = global_state.get_dtypes(data_id) or []
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
@@ -3143,10 +3224,9 @@ def build_correlations_matrix_image(
 
 
 def build_correlations_matrix(data_id, is_pps=False, encode_strings=False, image=False):
-    curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
     )
     valid_corr_cols, valid_str_corr_cols, valid_date_cols = correlations.get_col_groups(
@@ -3315,9 +3395,12 @@ def get_chart_data(data_id):
         max: maxY,
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
+    custom_query = None
+    if global_state.load_flag(data_id, "enable_custom_filters", False):
+        custom_query = get_str_arg(request, "query")
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, get_str_arg(request, "query")),
+        build_query(data_id, custom_query),
         global_state.get_context_variables(data_id),
     )
     x = get_str_arg(request, "x")
@@ -3414,10 +3497,9 @@ def get_correlations_ts(data_id):
         data: {:col1:col2: {data: [{corr: 0.99, date: 'YYYY-MM-DD'},...], max: 0.99, min: 0.99}
     } or {error: 'Exception message', traceback: 'Exception stacktrace'}
     """
-    curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
     )
     cols = get_json_arg(request, "cols")
@@ -3534,10 +3616,9 @@ def get_scatter(data_id):
     date_col = get_str_arg(request, "dateCol")
     rolling = get_bool_arg(request, "rolling")
 
-    curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
     )
     idx_col = str("_corr_index")
@@ -3918,6 +3999,17 @@ def web_upload():
     from dtale.cli.loaders.excel_loader import load_file as load_excel
     from dtale.cli.loaders.parquet_loader import loader_func as load_parquet
 
+    if not global_state.get_app_settings().get("enable_web_uploads", False):
+        return jsonify(
+            dict(
+                success=False,
+                error=(
+                    "Web uploads not enabled! Web uploads are vulnerable to blind server side request forgery, please "
+                    "only use in trusted environments."
+                ),
+            )
+        )
+
     data_type = get_str_arg(request, "type")
     url = get_str_arg(request, "url")
     proxy = get_str_arg(request, "proxy")
@@ -3983,10 +4075,9 @@ def build_column_text(data_id):
     columns = request.json.get("columns")
     columns = json.loads(columns)
 
-    curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
@@ -4000,10 +4091,9 @@ def build_row_text(data_id):
         request.json.get(p) for p in ["start", "end", "rows", "columns"]
     )
     columns = json.loads(columns)
-    curr_settings = global_state.get_settings(data_id) or {}
     data = run_query(
         handle_predefined(data_id),
-        build_query(data_id, curr_settings.get("query")),
+        build_query(data_id, global_state.get_query(data_id)),
         global_state.get_context_variables(data_id),
         ignore_empty=True,
     )
@@ -4099,15 +4189,19 @@ def network_analysis(data_id):
         "most_connected_node": "{} (Connections: {})".format(*most_connected_node),
         "leaf_ct": sum((1 for edge, degree in dict(G.degree()).items() if degree == 1)),
         "edge_ct": sum(dict(G.degree()).values()),
-        "max_edge": None
-        if max_edge is None
-        else "{} (source: {}, target: {})".format(
-            max_edge[-1]["weight"], max_edge[0], max_edge[1]
+        "max_edge": (
+            None
+            if max_edge is None
+            else "{} (source: {}, target: {})".format(
+                max_edge[-1]["weight"], max_edge[0], max_edge[1]
+            )
         ),
-        "min_edge": None
-        if min_edge is None
-        else "{} (source: {}, target: {})".format(
-            min_edge[-1]["weight"], min_edge[0], min_edge[1]
+        "min_edge": (
+            None
+            if min_edge is None
+            else "{} (source: {}, target: {})".format(
+                min_edge[-1]["weight"], min_edge[0], min_edge[1]
+            )
         ),
         "avg_weight": json_float(avg_weight),
     }
@@ -4183,13 +4277,11 @@ def build_missingno_chart(chart_type, data_id):
 @exception_decorator
 def drop_filtered_rows(data_id):
     curr_settings = global_state.get_settings(data_id) or {}
-    final_query = build_query(data_id, curr_settings.get("query"))
+    final_query = build_query(data_id, global_state.get_query(data_id))
     curr_history = global_state.get_history(data_id) or []
     curr_history += [
-        (
-            "# drop filtered rows\n"
-            'df = df.query("{}")'.format(final_query.replace("`", ""))
-        )
+        "# drop filtered rows\n"
+        'df = df.query("{}")'.format(final_query.replace("`", ""))
     ]
     global_state.set_history(data_id, curr_history)
     data = run_query(
@@ -4219,8 +4311,17 @@ def drop_filtered_rows(data_id):
 @dtale.route("/move-filters-to-custom/<data_id>")
 @exception_decorator
 def move_filters_to_custom(data_id):
-    curr_settings = global_state.get_settings(data_id) or {}
-    query = build_query(data_id, curr_settings.get("query"))
+    if not global_state.load_flag(data_id, "enable_custom_filters", False):
+        return jsonify(
+            dict(
+                success=False,
+                error=(
+                    "Custom Filters not enabled! Custom filters are vulnerable to code injection attacks, please only "
+                    "use in trusted environments."
+                ),
+            )
+        )
+    query = build_query(data_id, global_state.get_query(data_id))
     global_state.update_settings(
         data_id,
         {
@@ -4351,12 +4452,19 @@ def load_arcticdb_description():
             sorted(description.columns, key=lambda c: c.name),
         )
     )
+
+    if isinstance(description.index, (list, tuple)):
+        description_index = [(i.name, i.dtype) for i in description.index]
+    elif description.index is None:
+        description_index = []
+    else:
+        description_index = list(zip(description.index.name, description.index.dtype))
     index = list(
         map(
             lambda i: "{} ({})".format(
                 i[0], _TYPEDESCRIPTOR_VALUETYPE.values[i[1].value_type].name
             ),
-            zip(description.index.name, description.index.dtype),
+            description_index,
         )
     )
     rows = description.row_count
@@ -4402,4 +4510,44 @@ def load_arcticdb_symbol():
     global_state.set_settings(
         data_id, dict_merge(curr_settings, dict(startup_code=startup_code))
     )
-    return dict(success=True, data_id=data_id)
+    return jsonify(dict(success=True, data_id=data_id))
+
+
+@dtale.route("/aggregations/<data_id>/<col>")
+@exception_decorator
+def load_aggregations(data_id, col):
+    data = load_filterable_data(data_id, request, columns=[col])
+    s = data[col]
+    sum = s.sum()
+    mean = s.mean()
+    median = s.median()
+    return jsonify(success=True, sum=float(sum), mean=float(mean), median=float(median))
+
+
+@dtale.route("/weighted-average/<data_id>/<col>/<weights>")
+@exception_decorator
+def load_weighted_average(data_id, col, weights):
+    data = load_filterable_data(data_id, request, columns=[col, weights])
+    weighted_average = sum(data[col] * data[weights]) / sum(data[weights])
+    return jsonify(success=True, result=float(weighted_average))
+
+
+@dtale.route("/raw-pandas/<data_id>")
+@exception_decorator
+def raw_pandas(data_id):
+    func_type = get_str_arg(request, "func_type", "info")
+    data = load_filterable_data(data_id, request)
+    if func_type == "info":
+        buffer = StringIO()
+        data.info(buf=buffer)
+        output = buffer.getvalue()
+        return jsonify(success=True, output=output)
+    elif func_type == "nunique":
+        output = data.nunique().to_string()
+        return jsonify(success=True, output=output)
+    elif func_type == "describe":
+        output = data.describe().T.to_string()
+        return jsonify(success=True, output=output)
+    return jsonify(
+        success=False, error="Invalid function type passed in: {}".format(func_type)
+    )

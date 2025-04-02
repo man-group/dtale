@@ -6,6 +6,7 @@ import numpy as np
 import os
 import dtale.global_state as global_state
 import pandas as pd
+import platform
 import pytest
 from pandas.tseries.offsets import Day
 from pkg_resources import parse_version
@@ -80,7 +81,11 @@ def test_startup(unittest):
         hide_header_menu=True,
         hide_main_menu=True,
         hide_column_menus=True,
+        hide_row_expanders=True,
         enable_custom_filters=True,
+        enable_web_uploads=True,
+        main_title="test_title",
+        main_title_font="test_title_font",
     )
 
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
@@ -95,7 +100,9 @@ def test_startup(unittest):
             hide_header_menu=True,
             hide_main_menu=True,
             hide_column_menus=True,
+            hide_row_expanders=True,
             enable_custom_filters=True,
+            enable_web_uploads=True,
             locked=["date", "security_id"],
             indexes=["date", "security_id"],
             precision=2,
@@ -104,6 +111,8 @@ def test_startup(unittest):
             backgroundMode=None,
             verticalHeaders=False,
             highlightFilter=False,
+            main_title="test_title",
+            main_title_font="test_title_font",
         ),
         "should lock index columns",
     )
@@ -120,7 +129,9 @@ def test_startup(unittest):
             hide_header_menu=True,
             hide_main_menu=True,
             hide_column_menus=True,
+            hide_row_expanders=True,
             enable_custom_filters=True,
+            enable_web_uploads=True,
             locked=["date", "security_id"],
             indexes=["date", "security_id"],
             precision=2,
@@ -129,6 +140,8 @@ def test_startup(unittest):
             backgroundMode=None,
             verticalHeaders=False,
             highlightFilter=False,
+            main_title="test_title",
+            main_title_font="test_title_font",
         ),
         "should hide header editor",
     )
@@ -572,6 +585,21 @@ def test_update_settings(test_data, unittest):
             response_data = response.get_json()
             assert "error" in response_data
 
+    settings = json.dumps(dict(enable_custom_filters=True))
+    with app.test_client() as c:
+        with ExitStack() as stack:
+            global_state.set_data(c.port, None)
+            response = c.get(
+                "/dtale/update-settings/{}".format(c.port),
+                query_string=dict(settings=settings),
+            )
+            assert response.status_code == 200, "should return 200 response"
+            response_data = response.get_json()
+            assert (
+                response_data["error"]
+                == "Cannot alter the property 'enable_custom_filters' from this endpoint"
+            )
+
 
 @pytest.mark.unit
 def test_update_formats():
@@ -748,8 +776,7 @@ def test_duplicate_cols(unittest):
         build_dtypes(dtypes)
 
         resp = c.get(
-            "/dtale/duplicate-col/{}".format(c.port),
-            query_string=dict(col="b"),
+            "/dtale/duplicate-col/{}".format(c.port), query_string=dict(col="b")
         )
         unittest.assertEquals(
             list(global_state.get_data(c.port).columns), ["a", "b", "b_2", "c"]
@@ -915,7 +942,9 @@ def test_update_visibility(unittest):
 def test_build_column():
     from dtale.views import build_dtypes_state
 
-    df = pd.DataFrame([dict(a=1, b=2, c=3, d=pd.Timestamp("20200101"))])
+    df = pd.DataFrame(
+        [dict(a=1, b=2, c=3, d=pd.Timestamp("20200101"), e=pd.Timestamp("20200102"))]
+    )
     with app.test_client() as c:
         data = {c.port: df}
         dtypes = {c.port: build_dtypes_state(df)}
@@ -1052,6 +1081,34 @@ def test_build_column():
                     cfg=json.dumps(dict(col="d", conversion=conv)),
                 ),
             )
+
+        response = c.get("/dtale/code-export/{}".format(c.port))
+        response_data = response.get_json()
+        assert response_data["success"]
+
+        c.get(
+            "/dtale/build-column/{}".format(c.port),
+            query_string=dict(
+                type="datetime",
+                name="ts_diff",
+                cfg=json.dumps(dict(col="d", timeDifference="now")),
+            ),
+        )
+
+        response = c.get("/dtale/code-export/{}".format(c.port))
+        response_data = response.get_json()
+        assert response_data["success"]
+
+        c.get(
+            "/dtale/build-column/{}".format(c.port),
+            query_string=dict(
+                type="datetime",
+                name="ts_diff_col",
+                cfg=json.dumps(
+                    dict(col="d", timeDifference="col", timeDifferenceCol="e")
+                ),
+            ),
+        )
 
         response = c.get("/dtale/code-export/{}".format(c.port))
         response_data = response.get_json()
@@ -1323,6 +1380,12 @@ def test_variance(unittest):
             expected["x"]["check2"]["val2"]["val"] = 1
         response_data = response.get_json()
         del response_data["code"]
+        response_data["shapiroWilk"]["pvalue"] = round(
+            response_data["shapiroWilk"]["pvalue"], 4
+        )
+        response_data["shapiroWilk"]["statistic"] = round(
+            response_data["shapiroWilk"]["statistic"], 4
+        )
         response_data["jarqueBera"]["pvalue"] = round(
             response_data["jarqueBera"]["pvalue"], 4
         )
@@ -1338,6 +1401,9 @@ def test_variance(unittest):
         del response_data["code"]
         response_data["shapiroWilk"]["statistic"] = round(
             response_data["shapiroWilk"]["statistic"], 4
+        )
+        response_data["shapiroWilk"]["pvalue"] = round(
+            response_data["shapiroWilk"]["pvalue"], 4
         )
         response_data["jarqueBera"]["statistic"] = round(
             response_data["jarqueBera"]["statistic"], 4
@@ -1715,6 +1781,7 @@ def test_get_data(unittest, test_data):
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         build_dtypes({c.port: views.build_dtypes_state(test_data)})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         build_settings({c.port: dict(query="missing_col == 'blah'")})
         response = c.get(
             "/dtale/data/{}".format(c.port), query_string=dict(ids=json.dumps(["0"]))
@@ -1926,6 +1993,7 @@ def test_get_chart_data(unittest, rolling_data):
 
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
         response = c.get(
             "/dtale/chart-data/{}".format(c.port),
             query_string=dict(query="missing_col == 'blah'"),
@@ -1948,6 +2016,7 @@ def test_get_chart_data(unittest, rolling_data):
             response_data["error"],
             'query "security_id == 51" found no data, please alter',
         )
+    global_state.set_app_settings(dict(enable_custom_filters=False))
 
     df = pd.DataFrame([dict(a=i, b=np.nan) for i in range(100)])
     df, _ = views.format_data(df)
@@ -2220,7 +2289,10 @@ def test_chart_exports_funnel(treemap_data):
         assert response.content_type == "text/html"
 
 
-@pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
+@pytest.mark.skipif(
+    not PY3 or parse_version(platform.python_version()) >= parse_version("3.9.0"),
+    reason="requires 3.0.0 <= python < 3.9.0",
+)
 def test_chart_exports_clustergram(clustergram_data):
     pytest.importorskip("dash_bio")
     import dtale.views as views
@@ -2627,7 +2699,7 @@ def test_jinja_output():
     df, _ = views.format_data(df)
     url = "http://localhost.localdomain:40000"
     with build_app(url=url).test_client() as c:
-        with ExitStack() as stack:
+        with ExitStack():
             build_data_inst({c.port: df})
             build_dtypes({c.port: views.build_dtypes_state(df)})
             response = c.get("/dtale/main/{}".format(c.port))
@@ -2645,6 +2717,27 @@ def test_jinja_output():
             )
             response = c.get("/dtale/main/{}".format(c.port))
             assert 'span id="forkongithub"' in str(response.data)
+
+    with build_app(url=url).test_client() as c:
+        with ExitStack():
+            build_data_inst({c.port: df})
+            build_dtypes({c.port: views.build_dtypes_state(df)})
+            build_settings(
+                {
+                    c.port: {
+                        "main_title": "test_title",
+                        "main_title_font": "test_title_font",
+                    }
+                }
+            )
+            response = c.get("/dtale/main/{}".format(c.port))
+            assert 'input type="hidden" id="main_title" value="test_title"' in str(
+                response.data
+            )
+            assert (
+                'input type="hidden" id="main_title_font" value="test_title_font"'
+                in str(response.data)
+            )
 
 
 @pytest.mark.unit
@@ -2860,9 +2953,9 @@ def test_save_column_filter(unittest, custom_data):
         unittest.assertEqual(
             response.get_json()["currFilters"]["str_val"],
             {
-                "query": "`str_val` in ('a', 'b')"
-                if PY3
-                else "`str_val` in (u'a', u'b')",
+                "query": (
+                    "`str_val` in ('a', 'b')" if PY3 else "`str_val` in (u'a', u'b')"
+                ),
                 "value": ["a", "b"],
                 "action": "equals",
                 "caseSensitive": False,
@@ -2871,6 +2964,7 @@ def test_save_column_filter(unittest, custom_data):
                 "meta": {"classification": "S", "column": "str_val", "type": "string"},
             },
         )
+
         for col, f_type in [
             ("bool_val", "string"),
             ("int_val", "int"),
@@ -2879,7 +2973,28 @@ def test_save_column_filter(unittest, custom_data):
             response = c.get(
                 "/dtale/save-column-filter/{}".format(c.port),
                 query_string=dict(
-                    col=col, cfg=json.dumps({"type": f_type, "missing": True})
+                    col=col,
+                    cfg=json.dumps(
+                        {"type": f_type, "populated": True, "missing": False}
+                    ),
+                ),
+            )
+            col_cfg = response.get_json()["currFilters"][col]
+            assert col_cfg["query"] == "~`{col}`.isnull()".format(col=col)
+            assert col_cfg["populated"]
+
+        for col, f_type in [
+            ("bool_val", "string"),
+            ("int_val", "int"),
+            ("date", "date"),
+        ]:
+            response = c.get(
+                "/dtale/save-column-filter/{}".format(c.port),
+                query_string=dict(
+                    col=col,
+                    cfg=json.dumps(
+                        {"type": f_type, "missing": True, "populated": False}
+                    ),
                 ),
             )
             col_cfg = response.get_json()["currFilters"][col]
@@ -3052,6 +3167,8 @@ def test_save_column_filter(unittest, custom_data):
         assert "date" not in response.get_json()["currFilters"]
 
         assert settings[c.port].get("query") is None
+
+        global_state.set_app_settings(dict(enable_custom_filters=True))
 
         response = c.get("/dtale/move-filters-to-custom/{}".format(c.port))
         assert response.json["success"]
@@ -3315,3 +3432,80 @@ def test_save_range_highlights():
             content_type="application/json",
         )
         assert global_state.get_settings(c.port)["rangeHighlight"] is not None
+
+
+@pytest.mark.unit
+def test_aggregations(unittest):
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        build_data_inst({c.port: df})
+
+        resp = c.get(
+            "/dtale/aggregations/{}/a".format(c.port), query_string={"filtered": True}
+        )
+        unittest.assertEquals(
+            resp.json, {"mean": 2.0, "median": 2.0, "success": True, "sum": 6.0}
+        )
+        resp = c.get(
+            "/dtale/weighted-average/{}/a/b".format(c.port),
+            query_string={"filtered": True},
+        )
+        unittest.assertEquals(
+            resp.json, {"result": 2.1333333333333333, "success": True}
+        )
+
+
+@pytest.mark.unit
+def test_instance_data(unittest):
+    import dtale.views as views
+    import dtale
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: dict()})
+
+        params = dict(ids=json.dumps(["1"]), sort=json.dumps([["b", "DESC"]]))
+        c.get("/dtale/data/{}".format(c.port), query_string=params)
+
+        i = dtale.get_instance(c.port)
+        assert i.data["b"].values[0] == 6
+
+        c.get(
+            "/dtale/save-column-filter/{}".format(c.port),
+            query_string=dict(
+                col="b",
+                cfg=json.dumps({"type": "int", "operand": ">=", "value": "5"}),
+            ),
+        )
+
+        assert len(i.view_data) == 2
+        assert i.view_data["b"].values[0] == 6
+
+
+@pytest.mark.unit
+def test_raw_pandas(unittest):
+    import dtale.views as views
+
+    df, _ = views.format_data(pd.DataFrame(dict(a=[1, 2, 3], b=[4, 5, 6])))
+    with build_app(url=URL).test_client() as c:
+        build_data_inst({c.port: df})
+
+        resp = c.get(
+            "/dtale/raw-pandas/{}".format(c.port), query_string={"func_type": "info"}
+        )
+        assert resp.json["success"]
+
+        resp = c.get(
+            "/dtale/raw-pandas/{}".format(c.port), query_string={"func_type": "nunique"}
+        )
+        assert resp.json["success"]
+
+        resp = c.get(
+            "/dtale/raw-pandas/{}".format(c.port),
+            query_string={"func_type": "describe"},
+        )
+        assert resp.json["success"]

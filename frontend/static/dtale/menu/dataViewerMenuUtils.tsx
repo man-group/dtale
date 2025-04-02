@@ -1,7 +1,6 @@
-import { AnyAction } from 'redux';
+import { PayloadAction } from '@reduxjs/toolkit';
 
 import { buildClickHandler } from '../../menuUtils';
-import { OpenChartAction, ToggleMenuAction } from '../../redux/actions/AppActions';
 import { cleanupEndpoint } from '../../redux/actions/url-utils';
 import { InstanceSettings, Popups, PopupType, SortDef, SortDir } from '../../redux/state/AppState';
 import { ColumnDef, ColumnFormatStyle } from '../DataViewerState';
@@ -14,7 +13,7 @@ export const updateSort = (
   selectedCols: string[],
   dir: SortDir | undefined,
   sortInfo: SortDef[],
-  updateSettings: (updatedSettings: Partial<InstanceSettings>) => AnyAction,
+  updateSettings: (updatedSettings: Partial<InstanceSettings>) => void,
 ): void => {
   let updatedSortInfo = sortInfo.filter(([col, _dir]) => !selectedCols.includes(col));
   switch (dir) {
@@ -78,7 +77,7 @@ export const openPopup =
   (
     popup: Popups,
     dataId: string,
-    openChart: (chartData: Popups) => OpenChartAction,
+    openChart: (chartData: Popups) => PayloadAction<Popups>,
     height = 450,
     width = 500,
     isVSCode = false,
@@ -94,9 +93,9 @@ export const openPopup =
 /** Input properties for hot key builder */
 interface HotkeyProps {
   columns: ColumnDef[];
-  openMenu: () => ToggleMenuAction;
-  closeMenu: () => ToggleMenuAction;
-  openChart: (chartData: Popups) => OpenChartAction;
+  openMenu: () => PayloadAction;
+  closeMenu: () => PayloadAction;
+  openChart: (chartData: Popups) => PayloadAction<Popups>;
   dataId: string;
   isVSCode: boolean;
 }
@@ -114,9 +113,10 @@ interface HotKeyOutput {
   DUPLICATES: VoidFunc;
   CHARTS: VoidFunc;
   CODE: VoidFunc;
-  ABOUT: () => OpenChartAction;
+  ABOUT: () => PayloadAction<Popups>;
   LOGOUT: VoidFunc;
   SHUTDOWN: VoidFunc;
+  RAW_PANDAS: VoidFunc;
 }
 
 export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
@@ -163,5 +163,6 @@ export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
     ABOUT: () => openChart({ type: PopupType.ABOUT, size: 'sm', backdrop: true, visible: true }),
     LOGOUT: () => (window.location.pathname = fullPath('/logout')),
     SHUTDOWN: () => (window.location.pathname = fullPath('/shutdown')),
+    RAW_PANDAS: openPopupTab('raw-pandas'),
   };
 };

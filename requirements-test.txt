@@ -5,4 +5,5 @@ mock
 nbconvert
 pytest
 pytest-cov
-pytest-server-fixtures
+pytest-server-fixtures<=1.7.0; python_version == '2.7'
+pytest-server-fixtures; python_version >= '3.6'

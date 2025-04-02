@@ -1,6 +1,9 @@
 import pandas as pd
 
+from logging import getLogger
 from pkg_resources import parse_version
+
+logger = getLogger(__name__)
 
 
 def check_pandas_version(version_number):
@@ -27,3 +30,12 @@ def groupby_code(index, dropna=True):
 
 def is_pandas2():
     return check_pandas_version("2.0.0")
+
+
+def run_function(obj, calc_name):
+    try:
+        if hasattr(obj, calc_name):
+            return getattr(obj, calc_name)()
+    except BaseException as ex:
+        logger.debug("Could not execute {} function: {}".format(calc_name, ex))
+    return None

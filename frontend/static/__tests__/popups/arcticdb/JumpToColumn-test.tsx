@@ -6,7 +6,7 @@ import selectEvent from 'react-select-event';
 
 import * as serverState from '../../../dtale/serverStateManagement';
 import JumpToColumn from '../../../popups/arcticdb/JumpToColumn';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
 import { JumpToColumnPopupData, PopupType } from '../../../redux/state/AppState';
 import { mockColumnDef } from '../../mocks/MockColumnDef';
 import reduxUtils from '../../redux-test-utils';
@@ -44,9 +44,9 @@ describe('JumpToColumn tests', () => {
   const updateProps = async (chartData?: Partial<JumpToColumnPopupData>): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', isArcticDB: '100' }, store);
-    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { ...props, ...chartData } });
+    store.dispatch(AppActions.OpenChartAction({ ...props, ...chartData }));
     if (chartData?.visible === false) {
-      store.dispatch({ type: ActionType.CLOSE_CHART });
+      store.dispatch(AppActions.CloseChartAction());
     }
     propagateStateSpy = jest.fn();
     await act(

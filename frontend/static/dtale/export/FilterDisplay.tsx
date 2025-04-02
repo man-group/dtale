@@ -1,8 +1,8 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
+import { useAppSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/selectors';
 import { truncate } from '../../stringUtils';
 import { ColumnFilter, OutlierFilter } from '../DataViewerState';
@@ -55,7 +55,7 @@ const selectResult = createSelector(
 );
 
 const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpen, setMenuOpen, t }) => {
-  const reduxState = useSelector(selectResult);
+  const reduxState = useAppSelector(selectResult);
   const filterRef = React.useRef<HTMLDivElement>(null);
 
   const displayPredefined = (): JSX.Element => (

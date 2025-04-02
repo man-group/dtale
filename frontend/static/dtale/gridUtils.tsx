@@ -10,6 +10,17 @@ import { measureText } from './MeasureText';
 import * as menuFuncs from './menu/dataViewerMenuUtils';
 
 export const IDX = 'dtale_index';
+export const EXPANDER_CFG = {
+  dataWidth: 25,
+  dtype: 'int64',
+  headerWidth: 25,
+  locked: true,
+  name: 'dtale_expander',
+  visible: true,
+  width: 25,
+} as any as ColumnDef;
+export const isIndex = (name?: string): boolean => name === IDX || name === EXPANDER_CFG.name;
+
 export const DEFAULT_COL_WIDTH = 70;
 
 numeral.nullFormat('');
@@ -20,6 +31,7 @@ export const isStringCol = (dtype?: string): boolean =>
   startswithOne((dtype ?? '').toLowerCase(), ['string', 'object', 'unicode']);
 export const isIntCol = (dtype?: string): boolean => startswithOne((dtype ?? '').toLowerCase(), ['int', 'uint']);
 export const isFloatCol = (dtype?: string): boolean => (dtype ?? '').toLowerCase().startsWith('float');
+export const isNumeric = (dtype?: string): boolean => isIntCol(dtype) || isFloatCol(dtype);
 export const isDateCol = (dtype?: string): boolean =>
   startswithOne((dtype ?? '').toLowerCase(), ['timestamp', 'datetime']);
 export const isBoolCol = (dtype?: string): boolean => (dtype ?? '').toLowerCase().startsWith('bool');
@@ -101,7 +113,7 @@ export const buildDataProps = (
 });
 
 const getHeatActive = (column: ColumnDef): boolean =>
-  (column.hasOwnProperty('min') || column.name === IDX) && column.visible === true;
+  (column.hasOwnProperty('min') || isIndex(column.name)) && column.visible === true;
 
 export const heatmapActive = (backgroundMode?: string): boolean =>
   ['heatmap-col', 'heatmap-all'].includes(backgroundMode ?? '');
@@ -109,7 +121,7 @@ export const heatmapAllActive = (backgroundMode?: string): boolean =>
   ['heatmap-col-all', 'heatmap-all-all'].includes(backgroundMode ?? '');
 
 export const getActiveCols = (columns: ColumnDef[], backgroundMode?: string): ColumnDef[] =>
-  columns.filter((c) => (heatmapActive(backgroundMode) ? getHeatActive(c) : c.visible ?? false)) ?? [];
+  columns.filter((c) => (heatmapActive(backgroundMode) ? getHeatActive(c) : (c.visible ?? false))) ?? [];
 
 export const getActiveLockedCols = (columns: ColumnDef[], backgroundMode?: string): ColumnDef[] =>
   getActiveCols(columns, backgroundMode).filter((c) => c.locked) ?? [];
@@ -126,7 +138,7 @@ export const getColWidth = (
   const col = getCol(index, columns, backgroundMode);
   let width = col?.width;
   if (verticalHeaders) {
-    width = col?.resized ? width : col?.dataWidth ?? width;
+    width = col?.resized ? width : (col?.dataWidth ?? width);
   }
   return width ?? DEFAULT_COL_WIDTH;
 };
@@ -203,7 +215,7 @@ export const calcColWidth = (
     return { width, headerWidth, dataWidth };
   }
   let w;
-  if (name === IDX) {
+  if (isIndex(name)) {
     w = measureText(`${(rowCount ?? 1) - 1}`);
     w = w < DEFAULT_COL_WIDTH ? DEFAULT_COL_WIDTH : w;
     return { width: w, headerWidth: w, dataWidth: w };
@@ -349,7 +361,7 @@ export const refreshColumns = (
   const updatedColumns = buildColMap(newColumns);
   const finalColumns = [
     ...columns.map((c) => {
-      if (c.dtype !== updatedColumns[c.name].dtype) {
+      if (c.dtype !== updatedColumns[c.name]?.dtype) {
         return { ...c, ...updatedColumns[c.name] };
       }
       return { ...c, visible: updatedColumns[c.name].visible };

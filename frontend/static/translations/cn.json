@@ -58,7 +58,9 @@
     "Vertical Column Headers": "纵向列标题",
     "Hide Header Editor": "Hide Header Editor",
     "Load ArcticDB Data": "Load ArcticDB Data",
-    "Jump To Column": "Jump To Column"
+    "Jump To Column": "Jump To Column",
+    "Raw Pandas Output": "Raw Pandas Output",
+    "Hide Row Expanders": "Hide Row Expanders"
   },
   "menu_description": {
     "describe": "描述每列的值（最上面的唯一值，最小值，最大值，总和，STD，变量，...）。",
@@ -109,7 +111,9 @@
     "timeseries_analysis": "Analyze time series data using different \"statsmodels.tsa\" functions",
     "hide_header_editor": "If checked, hides the header editor when editing cells in the grid",
     "arcticdb": "Load data from a specific library & symbol in ArcticDB",
-    "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown."
+    "jump_to_column": "For wide dataframes, you can shrink the columns displayed down to what is locked and a column selected from a dropdown.",
+    "raw_pandas": "See the raw output from such pandas functions as info, nunique & describe",
+    "hide_row_expanders": "If checked, hides the row expansion cells (▶) in the grid"
   },
   "column_menu": {
     "Asc": "Asc",
@@ -211,6 +215,9 @@
     "Quarter End": "季度末",
     "Year Start": "年初",
     "Year End": "年末",
+    "Time Difference": "Time Difference",
+    "Differences": "Differences",
+    "Now": "Now",
     "Float": "浮点数",
     "Int": "整数",
     "Choice": "选项",
@@ -359,7 +366,8 @@
     "Delimiter": "Delimiter",
     "Concatenate": "Concatenate",
     "Replace": "Replace",
-    "Algorithm": "Algorithm"
+    "Algorithm": "Algorithm",
+    "Select All": "Select All"
   },
   "column_filter": {
     "filter": "For more complex filters use \"Custom Filter\" popup on main menu.",
@@ -374,7 +382,10 @@
     "Equals": "等于",
     "Not Equals": "Not Equals",
     "to": "to",
-    "Case-Sensitive": "Case-Sensitive"
+    "Case-Sensitive": "Case-Sensitive",
+    "All": "All",
+    "Missing": "Missing",
+    "Populated": "Populated"
   },
   "about": {
     "Your version is currently out of sync with PyPi.": "你的版本目前与PyPi不同步。",
@@ -481,7 +492,8 @@
     "Active D-Tale Instances": "活跃的D-Tale实例",
     "Yes": "是",
     "No": "否",
-    "About": "关于"
+    "About": "关于",
+    "View Row": "View Row"
   },
   "correlations": {
     "(Click on any point in the scatter to filter the grid down to that record)": "(Click on any point in the scatter to filter the grid down to that record)",
@@ -788,7 +800,6 @@
     "sem": "sem",
     "std": "std",
     "sum": "sum",
-    "unique": "unique",
     "var": "var",
     "Word": "Word",
     "Min": "最少",
@@ -799,7 +810,6 @@
     "None": "None",
     "navigate": "Use ↑ ↓ buttons to switch columns",
     "Most Frequent": "Most Frequent",
-    "Frequency":"Frequency",
     "Percent": "Percent",
     "TOTAL": "TOTAL"
   },
@@ -1004,7 +1014,7 @@
   },
   "corr_analysis": {
     "Keep": "Keep",
-    "Column": "Column",
+    "Column": "列",
     "Max Correlation": "Max Correlation",
     "w/ Other Columns": "w/ Other Columns",
     "Correlations": "Correlations",
@@ -1026,7 +1036,7 @@
     "Build": "Build",
     "Report": "Report",
     "Index": "Index",
-    "Column": "Column",
+    "Column": "列",
     "Agg": "Agg",
     "hpfilter": "Hodrick-Prescott Filter",
     "bkfilter": "Baxter-King Filter",
@@ -1061,5 +1071,15 @@
     "Library": "Library",
     "Symbol": "Symbol",
     "Load": "加载"
+  },
+  "aggregations": {
+    "Weights": "Weights",
+    "Weighted Avg": "Weighted Avg",
+    "Total": "Total",
+    "Average": "平均",
+    "Median": "中位数",
+    "Use filtered data": "Use filtered data",
+    "Column": "列",
+    "Aggregations": "Aggregations"
   }
 }

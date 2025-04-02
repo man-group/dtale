@@ -11,7 +11,7 @@ jest.mock('../../../popups/merge/DataPreview', () => {
 import MergeOutput from '../../../popups/merge/MergeOutput';
 import * as uploadUtils from '../../../popups/upload/uploadUtils';
 import * as mergeActions from '../../../redux/actions/merge';
-import { MergeActionType } from '../../../redux/actions/MergeActions';
+import { ConfigUpdateProps, MergeActions } from '../../../redux/actions/MergeActions';
 import { HowToMerge, MergeConfigType, MergeState } from '../../../redux/state/MergeState';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
@@ -21,7 +21,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('MergeOutput', () => {
   const mockDispatch = jest.fn();
@@ -64,16 +64,20 @@ describe('MergeOutput', () => {
   const buildResult = async (): Promise<void> => {
     store = reduxUtils.createMergeStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({ type: MergeActionType.LOAD_INSTANCES, instances: { data: state.instances } });
-    store.dispatch({ type: MergeActionType.UPDATE_ACTION_TYPE, action: state.action });
+    store.dispatch(MergeActions.LoadInstancesAction({ data: state.instances }));
+    store.dispatch(MergeActions.UpdateMergeActionTypeAction(state.action!));
     Object.entries(state.mergeConfig ?? {}).forEach(([prop, value]) => {
-      store.dispatch({ type: MergeActionType.UPDATE_ACTION_CONFIG, action: MergeConfigType.MERGE, prop, value });
+      store.dispatch(
+        MergeActions.ConfigUpdateAction({ action: MergeConfigType.MERGE, prop, value } as ConfigUpdateProps),
+      );
     });
     Object.entries(state.mergeConfig ?? {}).forEach(([prop, value]) => {
-      store.dispatch({ type: MergeActionType.UPDATE_ACTION_CONFIG, action: MergeConfigType.STACK, prop, value });
+      store.dispatch(
+        MergeActions.ConfigUpdateAction({ action: MergeConfigType.STACK, prop, value } as ConfigUpdateProps),
+      );
     });
-    store.dispatch({ type: MergeActionType.ADD_DATASET, dataId: '1' });
-    store.dispatch({ type: MergeActionType.ADD_DATASET, dataId: '1' });
+    store.dispatch(MergeActions.AddDatasetAction('1'));
+    store.dispatch(MergeActions.AddDatasetAction('1'));
     await act(
       () =>
         render(
@@ -110,7 +114,7 @@ describe('MergeOutput', () => {
     jumpToDatasetSpy.mockImplementation(() => Promise.resolve(undefined));
     await buildResult();
     await act(async () => {
-      await store.dispatch({ type: MergeActionType.LOAD_MERGE_DATA, dataId: '1' });
+      await store.dispatch(MergeActions.LoadMergeDataAction(1));
     });
     await act(async () => {
       await fireEvent.click(screen.getByText('Keep Data & Jump To Grid'));

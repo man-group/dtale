@@ -103,8 +103,32 @@ div.preview.dark-mode div.background:hover {
 }
 
 body.dark-mode div.modal-content div.modal-resizable,
+body.dark-mode div.modal-content [class^='ico-'],
+body.dark-mode div.modal-content div.modal-title,
+body.dark-mode div.modal-content label,
 div.preview.dark-mode div.modal-content div.modal-resizable {
-  color: black;
+  background-color: black !important;
+  color: white !important;
+}
+
+body.dark-mode div.modal-content div.modal-header {
+  border-bottom: 2px solid white;
+}
+
+body.dark-mode div.modal-content div.modal-footer {
+  border-top: 2px solid white;
+  background-color: black !important;
+  color: white !important;
+}
+
+body.dark-mode div.modal-content .resizable-handle {
+  border-bottom: solid 2px white;
+  border-right: solid 2px white;
+}
+
+.modal-body form-group.row {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 body.dark-mode > div.container-fluid  div#popup-content label,
@@ -7893,9 +7917,16 @@ a.text-dark:focus, a.text-dark:hover {
   border-collapse: separate;
   height: calc(1.91562rem + 2px);
   outline: none;
-  overflow: hidden;
   position: relative;
   width: 100%;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+.input-group.select-all  .Select__control,
+.input-group.select-all  .Select-control {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .Select__control:hover,
@@ -11098,12 +11129,13 @@ div.container-fluid.cleaners > div#popup-content > div.modal-footer {
 
 .resizable-handle {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 6px;
+  height: 6px;
+  margin: 4px;
+  border-bottom: solid 2px #656c7e;
+  border-right: solid 2px #656c7e;
   bottom: 0;
   right: 0;
-  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pg08IS0tIEdlbmVyYXRvcjogQWRvYmUgRmlyZXdvcmtzIENTNiwgRXhwb3J0IFNWRyBFeHRlbnNpb24gYnkgQWFyb24gQmVhbGwgKGh0dHA6Ly9maXJld29ya3MuYWJlYWxsLmNvbSkgLiBWZXJzaW9uOiAwLjYuMSAgLS0+DTwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DTxzdmcgaWQ9IlVudGl0bGVkLVBhZ2UlMjAxIiB2aWV3Qm94PSIwIDAgNiA2IiBzdHlsZT0iYmFja2dyb3VuZC1jb2xvcjojZmZmZmZmMDAiIHZlcnNpb249IjEuMSINCXhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbDpzcGFjZT0icHJlc2VydmUiDQl4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjZweCIgaGVpZ2h0PSI2cHgiDT4NCTxnIG9wYWNpdHk9IjAuMzAyIj4NCQk8cGF0aCBkPSJNIDYgNiBMIDAgNiBMIDAgNC4yIEwgNCA0LjIgTCA0LjIgNC4yIEwgNC4yIDAgTCA2IDAgTCA2IDYgTCA2IDYgWiIgZmlsbD0iIzAwMDAwMCIvPg0JPC9nPg08L3N2Zz4=);
-  background-position: bottom right;
   padding: 0 3px 3px 0;
   background-repeat: no-repeat;
   background-origin: content-box;
@@ -11119,4 +11151,11 @@ div.container-fluid.cleaners > div#popup-content > div.modal-footer {
   display: flex;
   flex-direction: column;
   position: absolute;
+}
+
+.select-all-btn {
+  padding: .25rem .2rem;
+  height: 24px;
+  margin-top: auto;
+  margin-bottom: auto;
 }

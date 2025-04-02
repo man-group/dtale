@@ -58,6 +58,7 @@ interface ColumnSelectInputProps {
   updateState: (state: Record<string, BaseOption<string> | Array<BaseOption<string>> | undefined>) => void;
   dtypes?: string[];
   includeAllOption?: boolean;
+  selectAll?: boolean;
 }
 
 export const BaseColumnSelectInput: React.FC<ColumnSelectInputProps & WithTranslation> = ({
@@ -69,6 +70,7 @@ export const BaseColumnSelectInput: React.FC<ColumnSelectInputProps & WithTransl
   prop,
   updateState,
   includeAllOption,
+  selectAll,
   t,
 }) => {
   const [dtypesStr, columnOptions] = React.useMemo(() => {
@@ -83,19 +85,31 @@ export const BaseColumnSelectInput: React.FC<ColumnSelectInputProps & WithTransl
   }, [dtypes, columns, parent, otherProps, includeAllOption]);
 
   return (
-    <Select
-      isMulti={isMulti ?? false}
-      className="Select is-clearable is-searchable Select--single"
-      classNamePrefix="Select"
-      options={columnOptions}
-      getOptionLabel={(o) => o.label ?? o.value}
-      getOptionValue={(o) => o.value}
-      value={parent[prop] ?? null}
-      onChange={(selected?: BaseOption<string> | Array<BaseOption<string>>) => updateState({ [prop]: selected })}
-      isClearable={true}
-      filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
-      noOptionsMessage={() => `${t('No columns available')}${dtypesStr}!`}
-    />
+    <>
+      <Select
+        isMulti={isMulti ?? false}
+        className="Select is-clearable is-searchable Select--single"
+        classNamePrefix="Select"
+        options={columnOptions}
+        getOptionLabel={(o) => o.label ?? o.value}
+        getOptionValue={(o) => o.value}
+        value={parent[prop] ?? null}
+        onChange={(selected?: BaseOption<string> | Array<BaseOption<string>>) => updateState({ [prop]: selected })}
+        isClearable={true}
+        filterOption={createFilter({ ignoreAccents: false })} // required for performance reasons!
+        noOptionsMessage={() => `${t('No columns available')}${dtypesStr}!`}
+      />
+      {isMulti && selectAll && columnOptions.length > (parent[prop] ?? []).length && (
+        <button
+          className="col-auto btn btn-secondary ml-3 select-all-btn"
+          onClick={() => updateState({ [prop]: columnOptions })}
+          data-testid="select-all-btn"
+          title="Select All"
+        >
+          <i className="fa-solid fa-check-double" />
+        </button>
+      )}
+    </>
   );
 };
 
@@ -115,7 +129,7 @@ const ColumnSelect: React.FC<React.PropsWithChildren<ColumnSelectProps & WithTra
   <div className="form-group row">
     <label className="col-md-3 col-form-label text-right">{label || inputProps.prop}</label>
     <div className="col-md-8">
-      <div className="input-group">
+      <div className={`input-group${inputProps.isMulti && inputProps.selectAll ? ' select-all' : ''}`}>
         <ColumnSelectInput {...inputProps} />
       </div>
       {children}

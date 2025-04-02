@@ -1,12 +1,12 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 import { createFilter, default as Select } from 'react-select';
 
 import { DataViewerPropagateState, PropagatedState } from '../dtale/DataViewerState';
 import { sortOptions } from '../popups/analysis/filters/Constants';
-import { ActionType } from '../redux/actions/AppActions';
+import { AppActions } from '../redux/actions/AppActions';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { selectChartData, selectDataId } from '../redux/selectors';
 import { XArrayIndexesPopupData } from '../redux/state/AppState';
 import { RemovableError } from '../RemovableError';
@@ -23,8 +23,8 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 }));
 
 const XArrayIndexes: React.FC<XArrayIndexesProps & WithTranslation> = ({ propagateState, t }) => {
-  const { dataId, chartData } = useSelector(selectResult);
-  const dispatch = useDispatch();
+  const { dataId, chartData } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
 
   const [index, setIndex] = React.useState<Array<{ value: string }>>(
     chartData.columns.filter((column) => column.locked).map((column) => ({ value: column.name })),
@@ -45,14 +45,14 @@ const XArrayIndexes: React.FC<XArrayIndexesProps & WithTranslation> = ({ propaga
         locked: index.find((i) => i.value === c.name) !== undefined,
       }));
     }
-    dispatch({ type: ActionType.CONVERT_TO_XARRAY });
+    dispatch(AppActions.ConvertToXarrayAction());
     propagateState(newState);
   };
 
   const options: Array<{ value: string }> = chartData.columns.map((c) => ({ value: c.name })).sort(sortOptions);
   return (
     <React.Fragment>
-      <div className="modal-body">
+      <div className="modal-body" data-testid="xarray-indexes-body">
         {error}
         <div className="form-group row">
           <label className="col-md-3 col-form-label text-right">{t('Index', { ns: 'menu' })}</label>

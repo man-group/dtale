@@ -2,7 +2,6 @@ import { createSelector } from '@reduxjs/toolkit';
 import numeral from 'numeral';
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 import {
   AutoSizer as _AutoSizer,
   Column as _Column,
@@ -14,6 +13,7 @@ import {
 
 import { Bouncer } from '../../Bouncer';
 import * as gu from '../../dtale/gridUtils';
+import { useAppSelector } from '../../redux/hooks';
 import { selectDataId, selectIFrame } from '../../redux/selectors';
 import { RemovableError } from '../../RemovableError';
 import * as InstanceRepository from '../../repository/InstanceRepository';
@@ -31,7 +31,7 @@ const Table = _Table as unknown as React.FC<TableProps>;
 const selectResult = createSelector([selectDataId, selectIFrame], (dataId, iframe) => ({ dataId, iframe }));
 
 const Instances: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, iframe } = useSelector(selectResult);
+  const { dataId, iframe } = useAppSelector(selectResult);
   const [instances, setInstances] = React.useState<InstanceRepository.Instance[]>([]);
   const [error, setError] = React.useState<JSX.Element>();
   const [loadingInstances, setLoadingInstances] = React.useState(true);

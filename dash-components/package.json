@@ -1,0 +1,27 @@
+{
+  "name": "dtale",
+  "version": "3.17.0",
+  "description": "Visualizer for Pandas Data Structures",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/man-group/dtale.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/man-group/dtale/issues"
+  },
+  "homepage": "https://github.com/man-group/dtale",
+  "scripts": {
+    "build-dash-py": "dash-generate-components ./../frontend/static/dash/lib/components ./../dtale/dash_application/components -p package-info.json"
+  },
+  "author": "",
+  "dependencies": {
+    "prop-types": "^15.5.9",
+    "react": "^15.5.4",
+    "react-colorscales": "0.4.2",
+    "react-docgen": "^4.1.0",
+    "react-dom": "^15.5.4",
+    "react-wordcloud": "https://github.com/ahmohamed/react-wordcloud"
+  }
+}

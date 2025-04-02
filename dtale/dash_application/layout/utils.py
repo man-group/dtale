@@ -233,6 +233,7 @@ def build_hoverable(
     hover_class="map-types",
     top="50%",
     additional_classes="",
+    hover_style=None,
 ):
     return html.Div(
         [
@@ -240,7 +241,7 @@ def build_hoverable(
             html.Div(
                 hoverable_content,
                 className="hoverable__content {}".format(hover_class),
-                style=dict(top=top),
+                style=dict_merge(dict(top=top), hover_style or dict()),
             ),
         ],
         style=dict(borderBottom="none"),

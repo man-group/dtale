@@ -72,7 +72,7 @@ class PyTest(TestCommand):
 
 setup(
     name="dtale",
-    version="3.7.0",
+    version="3.17.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
@@ -80,7 +80,7 @@ setup(
     long_description=long_description,
     keywords=["numeric", "pandas", "visualization", "flask"],
     url="https://github.com/man-group/dtale",
-    install_requires=read_file("requirements.txt"),
+    install_requires=read_file("requirements.txt").splitlines(),
     extras_require={
         "arctic": ["arctic <= 1.79.4"],
         "arcticdb": ["arcticdb"],
@@ -89,11 +89,12 @@ setup(
             "dash-bio; python_version > '3.0'",
             "dash-bio==0.7.1; python_version == '2.7'",
         ],
+        "ngrok": ["flask-ngrok; python_version > '3.0'"],
         "r": ["rpy2; python_version > '3.0'"],
-        "redis": read_file("requirements-redis.txt"),
+        "redis": read_file("requirements-redis.txt").splitlines(),
         "streamlit": ["streamlit"],
         "swifter": ["swifter"],
-        "tests": read_file("requirements-test.txt"),
+        "tests": read_file("requirements-test.txt").splitlines(),
     },
     classifiers=[
         "Development Status :: 4 - Beta",

@@ -211,7 +211,7 @@ def test_get_host():
 @pytest.mark.unit
 def test_json_string(builtin_pkg):
     assert utils.json_string(None, nan_display="nan") == "nan"
-    assert utils.json_string("\u25B2") is not None
+    assert utils.json_string("\u25b2") is not None
 
     class MockStr(object):
         def __init__(self, string=""):

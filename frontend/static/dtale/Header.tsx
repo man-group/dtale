@@ -1,22 +1,14 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import { TFunction } from 'i18next';
 import * as React from 'react';
 import Draggable, { DraggableEvent } from 'react-draggable';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
 import { openMenu } from '../menuUtils';
-import {
-  ActionType,
-  DragResizeAction,
-  OpenChartAction,
-  SetRangeStateAction,
-  StopResizeAction,
-  ToggleColumnAction,
-} from '../redux/actions/AppActions';
+import { AppActions } from '../redux/actions/AppActions';
 import * as chartActions from '../redux/actions/charts';
 import * as actions from '../redux/actions/dtale';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import {
   selectColumnRange,
   selectCtrlCols,
@@ -71,6 +63,9 @@ const buildMarkup = (
     colNameMarkup = <div title={`${t('Low Variance')}: ${colCfg.lowVariance}`}>{`${bu.flagIcon} ${colName}`}</div>;
     className = ' background';
   }
+  if (colName === gu.EXPANDER_CFG.name) {
+    colNameMarkup = null;
+  }
   return { headerStyle, colNameMarkup, className };
 };
 
@@ -112,16 +107,21 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   maxRowHeight,
   t,
 }) => {
-  const { dataId, settings, columnRange, ctrlCols, hideColumnMenus } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const toggleColumnMenu = (colName: string, headerRef: HTMLDivElement): ToggleColumnAction =>
-    dispatch(actions.toggleColumnMenu(colName, headerRef));
-  const hideColumnMenu = (colName: string): AnyAction => dispatch(actions.hideColumnMenu(colName) as any as AnyAction);
-  const updateDragResize = (x: number): DragResizeAction => dispatch({ type: ActionType.DRAG_RESIZE, x });
-  const stopDragResize = (): StopResizeAction => dispatch({ type: ActionType.STOP_RESIZE });
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
-  const updateRangeState = (state: RangeState): SetRangeStateAction =>
-    dispatch({ type: ActionType.SET_RANGE_STATE, ...state });
+  const { dataId, settings, columnRange, ctrlCols, hideColumnMenus } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const toggleColumnMenu = (
+    colName: string,
+    headerRef: HTMLElement,
+  ): PayloadAction<{
+    colName?: string;
+    headerRef?: HTMLElement;
+  }> => dispatch(actions.toggleColumnMenu(colName, headerRef));
+  const hideColumnMenu = (colName: string): void => dispatch(actions.hideColumnMenu(colName));
+  const updateDragResize = (x: number): PayloadAction<number> => dispatch(AppActions.DragResizeAction(x));
+  const stopDragResize = (): PayloadAction<void> => dispatch(AppActions.StopResizeAction());
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
+  const updateRangeState = (state: RangeState): PayloadAction<RangeState> =>
+    dispatch(AppActions.SetRangeStateAction({ ...state }));
 
   const [drag, setDrag] = React.useState(false);
   const [colWidth, setColWidth] = React.useState<number>();
@@ -181,7 +181,7 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
       if (e.shiftKey) {
         if (columnRange) {
           const title = t('Copy Columns to Clipboard?');
-          const callback = (copyText: CopyText): OpenChartAction =>
+          const callback = (copyText: CopyText): PayloadAction<Popups> =>
             openChart({
               ...copyText,
               type: PopupType.COPY_COLUMN_RANGE,
@@ -220,6 +220,11 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
   let headerStyle = { ...style };
   const markupProps = buildMarkup(t, colCfg!, colName, settings.backgroundMode);
   headerStyle = { ...headerStyle, ...markupProps.headerStyle };
+
+  if (colName === gu.EXPANDER_CFG.name) {
+    return <div className="headerCell" style={headerStyle} />;
+  }
+
   const rangeClass =
     isInRowOrColumnRange(columnIndex, columnRange) || ctrlCols?.includes(columnIndex) ? ' in-range' : '';
 

@@ -1,6 +1,5 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   AutoSizer as _AutoSizer,
   InfiniteLoader as _InfiniteLoader,
@@ -12,14 +11,14 @@ import {
   MultiGridProps,
   SectionRenderedParams,
 } from 'react-virtualized';
-import { AnyAction } from 'redux';
 
 import { usePrevious } from '../customHooks';
 import Formatting from '../popups/formats/Formatting';
 import Popup from '../popups/Popup';
-import { ActionType, ClearDataViewerUpdateAction } from '../redux/actions/AppActions';
+import { AppActions } from '../redux/actions/AppActions';
 import * as actions from '../redux/actions/dtale';
 import { buildURLParams } from '../redux/actions/url-utils';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import * as selectors from '../redux/selectors';
 import { RemovableError } from '../RemovableError';
 import * as DataRepository from '../repository/DataRepository';
@@ -61,6 +60,7 @@ const selectResult = createSelector(
     selectors.selectIsArcticDB,
     selectors.selectHideMainMenu,
     selectors.selectHideColumnMenus,
+    selectors.selectHideRowExpanders,
   ],
   (
     dataId,
@@ -76,6 +76,7 @@ const selectResult = createSelector(
     isArcticDB,
     hideMainMenu,
     hideColumnMenus,
+    hideRowExpanders,
   ) => ({
     dataId,
     theme,
@@ -90,6 +91,7 @@ const selectResult = createSelector(
     isArcticDB,
     hideMainMenu,
     hideColumnMenus,
+    hideRowExpanders,
   }),
 );
 
@@ -108,13 +110,12 @@ export const DataViewer: React.FC = () => {
     isArcticDB,
     hideMainMenu,
     hideColumnMenus,
-  } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const closeColumnMenu = (): AnyAction => dispatch(actions.closeColumnMenu() as any as AnyAction);
-  const updateFilteredRanges = (query: string): AnyAction =>
-    dispatch(actions.updateFilteredRanges(query) as any as AnyAction);
-  const clearDataViewerUpdate = (): ClearDataViewerUpdateAction =>
-    dispatch({ type: ActionType.CLEAR_DATA_VIEWER_UPDATE });
+    hideRowExpanders,
+  } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const closeColumnMenu = (): void => dispatch(actions.closeColumnMenu());
+  const updateFilteredRanges = (query: string): void => dispatch(actions.updateFilteredRanges(query));
+  const clearDataViewerUpdate = (): PayloadAction<void> => dispatch(AppActions.ClearDataViewerUpdateAction());
 
   const [rowCount, setRowCount] = React.useState(!!isArcticDB ? isArcticDB : 0);
   const [data, setData] = React.useState<DataViewerData>({});
@@ -206,7 +207,7 @@ export const DataViewer: React.FC = () => {
         if (!columns.length) {
           updatedColumns = response.columns.map((c: ColumnDef) => ({
             ...c,
-            locked: c.name === gu.IDX || (settings?.locked ?? []).includes(c.name),
+            locked: gu.isIndex(c.name) || (settings?.locked ?? []).includes(c.name),
             ...gu.calcColWidth(
               c,
               updatedData,
@@ -236,19 +237,30 @@ export const DataViewer: React.FC = () => {
         }
         setData(updatedData);
         setRowCount(updatedRowCount);
-        setColumns(
-          updatedColumns.map((c) => ({
-            ...c,
-            ...gu.calcColWidth(
-              c,
-              updatedData,
-              updatedRowCount,
-              settings.sortInfo,
-              settings.backgroundMode,
-              maxColumnWidth,
-            ),
-          })),
-        );
+
+        updatedColumns = updatedColumns.map((c) => ({
+          ...c,
+          ...gu.calcColWidth(
+            c,
+            updatedData,
+            updatedRowCount,
+            settings.sortInfo,
+            settings.backgroundMode,
+            maxColumnWidth,
+          ),
+        }));
+        const fullWidth = updatedColumns.reduce((res, c) => res + (c.width ?? gu.DEFAULT_COL_WIDTH), 0);
+        if (!hideRowExpanders && fullWidth > window.innerWidth) {
+          updatedColumns = [
+            updatedColumns[0],
+            { ...gu.EXPANDER_CFG },
+            ...updatedColumns.filter((colCfg) => !gu.isIndex(colCfg.name)),
+          ];
+        } else {
+          updatedColumns = updatedColumns.filter((colCfg) => colCfg.name !== gu.EXPANDER_CFG.name);
+        }
+
+        setColumns(updatedColumns);
         setTriggerResize(refresh ?? updatedTriggerResize);
       }
     });

@@ -1,21 +1,22 @@
+import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 
-import { ActionType, CloseChartAction } from '../redux/actions/AppActions';
+import { AppActions } from '../redux/actions/AppActions';
 import { closeChart } from '../redux/actions/charts';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { selectChartData } from '../redux/selectors';
 import { CopyRangeToClipboardPopupData } from '../redux/state/AppState';
 
 require('./Confirmation.css');
 
 export const CopyRangeToClipboard: React.FC = () => {
-  const chartData = useSelector(selectChartData) as CopyRangeToClipboardPopupData;
-  const dispatch = useDispatch();
+  const chartData = useAppSelector(selectChartData) as CopyRangeToClipboardPopupData;
+  const dispatch = useAppDispatch();
   const [includeHeaders, setIncludeHeaders] = React.useState<boolean>(false);
   const [finalText, setFinalText] = React.useState<string>(chartData.text);
   const textArea = React.useRef<HTMLTextAreaElement>(null);
 
-  const outerOnClose = (): CloseChartAction => dispatch(closeChart());
+  const outerOnClose = (): PayloadAction<void> => dispatch(closeChart());
 
   React.useEffect(() => {
     const { text, headers } = chartData;
@@ -23,7 +24,16 @@ export const CopyRangeToClipboard: React.FC = () => {
   }, [includeHeaders]);
 
   const onClose = (): void => {
-    dispatch({ type: ActionType.SET_RANGE_STATE });
+    dispatch(
+      AppActions.SetRangeStateAction({
+        rowRange: null,
+        columnRange: null,
+        rangeSelect: null,
+        ctrlRows: null,
+        ctrlCols: null,
+        selectedRow: null,
+      }),
+    );
     outerOnClose();
   };
 

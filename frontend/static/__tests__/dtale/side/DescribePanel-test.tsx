@@ -25,7 +25,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('DescribePanel', () => {
   let wrapper: RenderResult;
@@ -118,7 +118,7 @@ describe('DescribePanel', () => {
       });
       expect(mockDispatch).toHaveBeenCalledWith({
         type: ActionType.DATA_VIEWER_UPDATE,
-        update: {
+        payload: {
           type: DataViewerUpdateType.TOGGLE_COLUMNS,
           columns: {
             col1: true,

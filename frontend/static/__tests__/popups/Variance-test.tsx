@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 
 import * as chartUtils from '../../chartUtils';
 import Variance from '../../popups/variance/Variance';
-import { ActionType } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import { VariancePopupData } from '../../redux/state/AppState';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, CreateChartSpy, getLastChart, mockChartJS } from '../test-utils';
@@ -58,7 +58,7 @@ describe('Variance tests', () => {
   const updateProps = async (newProps: any): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ dataId: newProps.dataId ?? props.dataId, settings: '' }, store);
-    store.dispatch({ type: ActionType.OPEN_CHART, chartData: newProps.chartData ?? props.chartData });
+    store.dispatch(AppActions.OpenChartAction(newProps.chartData ?? props.chartData));
     result = await act(
       () =>
         render(

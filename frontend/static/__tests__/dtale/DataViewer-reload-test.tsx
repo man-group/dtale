@@ -6,7 +6,7 @@ import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
 import * as serverState from '../../dtale/serverStateManagement';
-import { ActionType } from '../../redux/actions/AppActions';
+import { AppActions } from '../../redux/actions/AppActions';
 import * as DataRepository from '../../repository/DataRepository';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
@@ -17,7 +17,7 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-const useDispatchMock = useDispatch as jest.Mock;
+const useDispatchMock = useDispatch as any as jest.Mock;
 
 describe('DataViewer tests', () => {
   let container: HTMLElement;
@@ -79,16 +79,10 @@ describe('DataViewer tests', () => {
   it('DataViewer: reloading data', async () => {
     await buildContainer();
     await act(() => {
-      store.dispatch({
-        type: ActionType.UPDATE_SETTINGS,
-        settings: { ...store.getState().settings, idx: 1 },
-      });
+      store.dispatch(AppActions.UpdateSettingsAction({ ...store.getState().settings, idx: 1 }));
     });
     await act(() => {
-      store.dispatch({
-        type: ActionType.UPDATE_SETTINGS,
-        settings: { ...store.getState().settings, idx: 2 },
-      });
+      store.dispatch(AppActions.UpdateSettingsAction({ ...store.getState().settings, idx: 2 }));
     });
     expect(loadDataSpy.mock.calls).toEqual([
       ['1', { ids: '["0-55"]' }],

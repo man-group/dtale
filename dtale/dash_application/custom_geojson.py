@@ -161,9 +161,11 @@ def build_modal(map_type, loc_mode):
             ),
         ],
         className="col-auto",
-        style={}
-        if map_type == "choropleth" and loc_mode == "geojson-id"
-        else {"display": "none"},
+        style=(
+            {}
+            if map_type == "choropleth" and loc_mode == "geojson-id"
+            else {"display": "none"}
+        ),
         id="custom-geojson-input",
     )
 

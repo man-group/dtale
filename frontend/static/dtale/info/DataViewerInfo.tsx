@@ -1,12 +1,10 @@
-import { createSelector } from '@reduxjs/toolkit';
+import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
-import { AnyAction } from 'redux';
 
-import { OpenChartAction } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/selectors';
 import { InstanceSettings, Popups, PopupType } from '../../redux/state/AppState';
 import { ColumnDef, DataViewerPropagateState } from '../DataViewerState';
@@ -76,11 +74,11 @@ const selectResult = createSelector(
 );
 
 const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ columns, error, propagateState, t }) => {
-  const reduxState = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const openChart = (chartData: Popups): OpenChartAction => dispatch(chartActions.openChart(chartData));
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
+  const reduxState = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const openChart = (chartData: Popups): PayloadAction<Popups> => dispatch(chartActions.openChart(chartData));
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
 
   const [menuOpen, setMenuOpen] = React.useState<InfoMenuType>();
   const sortRef = React.useRef<HTMLDivElement>(null);
@@ -131,10 +129,8 @@ const DataViewerInfo: React.FC<DataViewerInfoProps & WithTranslation> = ({ colum
       sortText = `${reduxState.sortInfo.length} ${t('Sorts')}`;
     }
     const clickHandler = buildMenuHandler(InfoMenuType.SORT, setMenuOpen, sortRef);
-    const dropSort =
-      (dropCol: string): (() => AnyAction) =>
-      (): AnyAction =>
-        updateSettings({ sortInfo: reduxState.sortInfo?.filter((s) => s[0] !== dropCol) ?? [] });
+    const dropSort = (dropCol: string) => () =>
+      updateSettings({ sortInfo: reduxState.sortInfo?.filter((s) => s[0] !== dropCol) ?? [] });
     return (
       <React.Fragment>
         {label}

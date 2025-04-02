@@ -1,7 +1,6 @@
 import json
 
 import dash_bootstrap_components as dbc
-import dash_colorscales as dcs
 import dash_daq as daq
 import os
 import plotly
@@ -9,6 +8,7 @@ from pkg_resources import parse_version
 from six import PY3
 
 from dtale.dash_application import dcc, html
+import dtale.dash_application.components as dash_components
 import dtale.dash_application.custom_geojson as custom_geojson
 import dtale.dash_application.extended_aggregations as extended_aggregations
 import dtale.global_state as global_state
@@ -102,9 +102,9 @@ def base_layout(app_root, **kwargs):
             ).format(
                 id=id,
                 label=label,
-                target="_self"
-                if os.environ.get("VSCODE_PID") is not None
-                else "_blank",
+                target=(
+                    "_self" if os.environ.get("VSCODE_PID") is not None else "_blank"
+                ),
             )
         )
     language = global_state.get_app_settings()["language"]
@@ -488,9 +488,9 @@ def build_proj_hover(proj):
             html.Div(
                 build_proj_hover_children(proj),
                 className="ml-3 hoverable",
-                style=dict(display="none")
-                if proj is None
-                else dict(borderBottom="none"),
+                style=(
+                    dict(display="none") if proj is None else dict(borderBottom="none")
+                ),
                 id="proj-hover",
             ),
         ],
@@ -611,9 +611,11 @@ def build_loc_mode_hover(loc_mode):
             html.Div(
                 build_loc_mode_hover_children(loc_mode),
                 className="ml-3 hoverable",
-                style=dict(display="none")
-                if loc_mode is None
-                else dict(borderBottom="none"),
+                style=(
+                    dict(display="none")
+                    if loc_mode is None
+                    else dict(borderBottom="none")
+                ),
                 id="loc-mode-hover",
             ),
         ],
@@ -927,9 +929,11 @@ def bootstrap_checkbox_prop():
 def build_dropna(dropna, prop=None):
     if PY3:
         checkbox_kwargs = dict(
-            id="{}-dropna-checkbox".format(prop)
-            if prop is not None
-            else "dropna-checkbox",
+            id=(
+                "{}-dropna-checkbox".format(prop)
+                if prop is not None
+                else "dropna-checkbox"
+            ),
             style=dict(width="inherit"),
         )
         checkbox_kwargs[bootstrap_checkbox_prop()] = True if dropna is None else dropna
@@ -942,9 +946,11 @@ def build_dropna(dropna, prop=None):
     return build_input(
         text("Dropna"),
         dcc.Input(
-            id="{}-dropna-checkbox".format(prop)
-            if prop is not None
-            else "dropna-checkbox",
+            id=(
+                "{}-dropna-checkbox".format(prop)
+                if prop is not None
+                else "dropna-checkbox"
+            ),
             type="hidden",
             value=True if dropna is None else dropna,
         ),
@@ -1252,10 +1258,12 @@ def bar_input_style(**inputs):
 
 def colorscale_input_style(**inputs):
     return dict(
-        display="block"
-        if inputs.get("chart_type")
-        in ["heatmap", "maps", "3d_scatter", "surface", "clustergram"]
-        else "none"
+        display=(
+            "block"
+            if inputs.get("chart_type")
+            in ["heatmap", "maps", "3d_scatter", "surface", "clustergram"]
+            else "none"
+        )
     )
 
 
@@ -1419,7 +1427,7 @@ def build_slider_counts(df, data_id, query_value):
 
 
 def collapse_btn_text(is_open, label):
-    return "{} {}".format("\u25BC" if is_open else "\u25B6", label)
+    return "{} {}".format("\u25bc" if is_open else "\u25b6", label)
 
 
 def charts_layout(df, settings, **inputs):
@@ -1458,6 +1466,9 @@ def charts_layout(df, settings, **inputs):
     scatter_input = dict(display="block" if chart_type == "scatter" else "none")
     bar_style, barsort_input_style = bar_input_style(**inputs)
     animate_style, animate_by_style, animate_opts = animate_styles(df, **inputs)
+    custom_filtering = global_state.load_flag(
+        inputs["data_id"], "enable_custom_filters", False
+    )
 
     options = build_input_options(df, **inputs)
     (
@@ -1544,7 +1555,7 @@ def charts_layout(df, settings, **inputs):
         return {} if show else {"display": "none"}
 
     body_items = [
-        dcc.Store(id="query-data", data=inputs.get("query")),
+        dcc.Store(id="query-data", data=query_value),
         dcc.Store(
             id="input-data",
             data={
@@ -1625,6 +1636,8 @@ def charts_layout(df, settings, **inputs):
         dcc.Store(id="last-chart-input-data", data=inputs),
         dcc.Store(id="load-clicks", data=0),
         dcc.Store(id="save-clicks", data=0),
+        dcc.Store(id="y-all-clicks", data=0),
+        dcc.Store(id="z-all-clicks", data=0),
         dcc.Input(id="chart-code", type="hidden"),
         html.Div(
             [
@@ -1699,27 +1712,35 @@ def charts_layout(df, settings, **inputs):
             ),
             className="row pt-3 pb-3 charts-filters",
         ),
-        html.Div(
+        (
             html.Div(
-                [
-                    html.Div(
-                        [
-                            query_label,
-                            dcc.Input(
-                                id="query-input",
-                                type="text",
-                                placeholder=query_placeholder,
-                                className="form-control",
-                                value=query_value,
-                                style={"lineHeight": "inherit"},
-                            ),
-                        ],
-                        className="input-group mr-3",
-                    )
-                ],
-                className="col",
-            ),
-            className="row pt-3 pb-3 charts-filters",
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                query_label,
+                                dcc.Input(
+                                    id="query-input",
+                                    type="text",
+                                    placeholder=query_placeholder,
+                                    className="form-control",
+                                    value=query_value,
+                                    style={
+                                        "lineHeight": "inherit",
+                                        "display": (
+                                            "inherit" if custom_filtering else "none"
+                                        ),
+                                    },
+                                    disabled=not custom_filtering,
+                                ),
+                            ],
+                            className="input-group mr-3",
+                        )
+                    ],
+                    className="col",
+                ),
+                className="row pt-3 pb-3 charts-filters",
+            )
         ),
         html.Div(
             html.Div(
@@ -1746,9 +1767,11 @@ def charts_layout(df, settings, **inputs):
                                 options=stratified_groups,
                                 value=stratified_group,
                                 clearable=False,
-                                style={}
-                                if load_type == "stratified"
-                                else {"display": "none"},
+                                style=(
+                                    {}
+                                    if load_type == "stratified"
+                                    else {"display": "none"}
+                                ),
                             ),
                             dcc.Slider(
                                 id="load-input",
@@ -1837,14 +1860,35 @@ def charts_layout(df, settings, **inputs):
                                 ),
                                 build_input(
                                     text("Y"),
-                                    dcc.Dropdown(
-                                        id="y-multi-dropdown",
-                                        options=y_multi_options,
-                                        multi=True,
-                                        placeholder=text("Select Column(s)"),
-                                        style=dict(width="inherit"),
-                                        value=y if show_input("y", "multi") else None,
-                                    ),
+                                    [
+                                        dcc.Dropdown(
+                                            id="y-multi-dropdown",
+                                            options=y_multi_options,
+                                            multi=True,
+                                            placeholder=text("Select Column(s)"),
+                                            style=dict(width="inherit"),
+                                            value=(
+                                                y if show_input("y", "multi") else None
+                                            ),
+                                        ),
+                                        dbc.Button(
+                                            html.I(
+                                                className="fa-solid fa-check-double"
+                                            ),
+                                            id="y-select-all-btn",
+                                            className="ml-3",
+                                            color="secondary",
+                                            style=dict(
+                                                height="24px",
+                                                padding=".25rem .2rem",
+                                                marginTop="auto",
+                                                marginBottom="auto",
+                                            ),
+                                        ),
+                                        dbc.Tooltip(
+                                            "Select All Y", target="y-select-all-btn"
+                                        ),
+                                    ],
                                     className="col",
                                     id="y-multi-input",
                                     style=show_style(show_input("y", "multi")),
@@ -1859,9 +1903,9 @@ def charts_layout(df, settings, **inputs):
                                         options=y_single_options,
                                         placeholder=text("Select Column"),
                                         style=dict(width="inherit"),
-                                        value=y[0]
-                                        if show_input("y") and len(y)
-                                        else None,
+                                        value=(
+                                            y[0] if show_input("y") and len(y) else None
+                                        ),
                                     ),
                                     className="col",
                                     label_class="input-group-addon d-block pt-1 pb-0",
@@ -1898,11 +1942,14 @@ def charts_layout(df, settings, **inputs):
                                 build_dropna(dropna),
                             ],
                             id="standard-inputs",
-                            style={}
-                            if not show_map
-                            and not show_candlestick
-                            and chart_type not in ["treemap", "funnel", "clustergram"]
-                            else {"display": "none"},
+                            style=(
+                                {}
+                                if not show_map
+                                and not show_candlestick
+                                and chart_type
+                                not in ["treemap", "funnel", "clustergram"]
+                                else {"display": "none"}
+                            ),
                             className="row p-0 charts-filters",
                         ),
                         html.Div(
@@ -2297,9 +2344,9 @@ def charts_layout(df, settings, **inputs):
                             ],
                             className="row pt-3 pb-3 charts-filters",
                             id="charts-filters-div",
-                            style={"display": "none"}
-                            if chart_type == "histogram"
-                            else {},
+                            style=(
+                                {"display": "none"} if chart_type == "histogram" else {}
+                            ),
                         ),
                     ],
                     id="main-inputs",
@@ -2562,7 +2609,7 @@ def charts_layout(df, settings, **inputs):
                 ),
                 build_input(
                     text("Colorscale"),
-                    dcs.DashColorscales(
+                    dash_components.DashColorscales(
                         id="colorscale-picker",
                         colorscale=inputs.get("colorscale") or default_cscale,
                     ),

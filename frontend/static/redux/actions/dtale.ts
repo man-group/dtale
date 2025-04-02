@@ -1,149 +1,141 @@
-import { AnyAction, Store } from 'redux';
+import { PayloadAction, Store } from '@reduxjs/toolkit';
 
 import * as serverState from '../../dtale/serverStateManagement';
-import { AppState, QueryEngine, SidePanelType } from '../state/AppState';
-
+import { SidePanelActionProps } from '../actions/AppActions';
+import { AppDispatch } from '../helpers';
+import { AppStoreState, AppThunk } from '../reducers/app';
 import {
-  ActionType,
-  AppActions,
-  InitAction,
-  SetQueryEngineAction,
-  SidePanelAction,
-  ToggleColumnAction,
-  UpdateShowAllHeatmapColumnsAction,
-  UpdateXarrayDimAction,
-} from './AppActions';
+  DataViewerUpdateType,
+  InstanceSettings,
+  QueryEngine,
+  SidePanelType,
+  UpdateMaxHeightDataViewerUpdate,
+  UpdateMaxWidthDataViewerUpdate,
+} from '../state/AppState';
 
-export const init = (): InitAction => ({ type: ActionType.INIT_PARAMS });
+import { AppActions } from './AppActions';
 
-export const loadBackgroundMode = (store: Store<AppState, AnyAction>): void => {
+export const init = (): PayloadAction<void> => AppActions.InitAction();
+
+export const loadBackgroundMode = (store: Store<AppStoreState>): void => {
   const { settings } = store.getState();
-  store.dispatch({
-    type: ActionType.UPDATE_SETTINGS,
-    settings: { backgroundMode: settings.backgroundMode ?? (!!settings.rangeHighlight?.length ? 'range' : undefined) },
-  });
+  store.dispatch(
+    AppActions.UpdateSettingsAction({
+      backgroundMode: settings.backgroundMode ?? (!!settings.rangeHighlight?.length ? 'range' : undefined),
+    } as Partial<InstanceSettings>),
+  );
 };
 
-export const loadHideShutdown = (store: Store<AppState, AnyAction>): void => {
+export const loadHideShutdown = (store: Store<AppStoreState>): void => {
   const { settings, hideShutdown } = store.getState();
-  store.dispatch({
-    type: ActionType.UPDATE_HIDE_SHUTDOWN,
-    value: hideShutdown ?? settings.hide_shutdown ?? hideShutdown,
-  });
+  store.dispatch(AppActions.UpdateHideShutdown(hideShutdown ?? settings.hide_shutdown ?? hideShutdown));
 };
 
-export const loadAllowCellEdits = (store: Store<AppState, AnyAction>): void => {
+export const loadAllowCellEdits = (store: Store<AppStoreState>): void => {
   const { settings, allowCellEdits } = store.getState();
-  store.dispatch({ type: ActionType.UPDATE_ALLOW_CELL_EDITS, value: settings.allow_cell_edits ?? allowCellEdits });
+  store.dispatch(AppActions.UpdateAllowCellEdits(settings.allow_cell_edits ?? allowCellEdits));
 };
 
-export const loadHideHeaderEditor = (store: Store<AppState, AnyAction>): void => {
+export const loadHideHeaderEditor = (store: Store<AppStoreState>): void => {
   const { settings, hideHeaderEditor } = store.getState();
-  store.dispatch({
-    type: ActionType.UPDATE_HIDE_HEADER_EDITOR,
-    value: hideHeaderEditor ?? settings.hide_header_editor ?? hideHeaderEditor,
-  });
+  store.dispatch(
+    AppActions.UpdateHideHeaderEditor(hideHeaderEditor ?? settings.hide_header_editor ?? hideHeaderEditor),
+  );
 };
 
-export const loadLockHeaderMenu = (store: Store<AppState, AnyAction>): void => {
+export const loadLockHeaderMenu = (store: Store<AppStoreState>): void => {
   const { settings, lockHeaderMenu } = store.getState();
-  store.dispatch({
-    type: ActionType.UPDATE_LOCK_HEADER_MENU,
-    value: lockHeaderMenu ?? settings.lock_header_menu ?? lockHeaderMenu,
-  });
+  store.dispatch(AppActions.UpdateLockHeaderMenu(lockHeaderMenu ?? settings.lock_header_menu ?? lockHeaderMenu));
 };
 
-export const loadHideHeaderMenu = (store: Store<AppState, AnyAction>): void => {
+export const loadHideHeaderMenu = (store: Store<AppStoreState>): void => {
   const { settings, hideHeaderMenu } = store.getState();
-  store.dispatch({
-    type: ActionType.UPDATE_HIDE_HEADER_MENU,
-    value: hideHeaderMenu ?? settings.hide_header_menu ?? hideHeaderMenu,
-  });
+  store.dispatch(AppActions.UpdateHideHeaderMenu(hideHeaderMenu ?? settings.hide_header_menu ?? hideHeaderMenu));
 };
 
-export const loadHideMainMenu = (store: Store<AppState, AnyAction>): void => {
+export const loadHideMainMenu = (store: Store<AppStoreState>): void => {
   const { settings, hideMainMenu } = store.getState();
-  store.dispatch({
-    type: ActionType.UPDATE_HIDE_MAIN_MENU,
-    value: hideMainMenu ?? settings.hide_main_menu ?? hideMainMenu,
-  });
+  store.dispatch(AppActions.UpdateHideMainMenu(hideMainMenu ?? settings.hide_main_menu ?? hideMainMenu));
 };
 
-export const loadHideColumnMenus = (store: Store<AppState, AnyAction>): void => {
+export const loadHideColumnMenus = (store: Store<AppStoreState>): void => {
   const { settings, hideColumnMenus } = store.getState();
-  store.dispatch({
-    type: ActionType.UPDATE_HIDE_COLUMN_MENUS,
-    value: hideColumnMenus ?? settings.hide_column_menus ?? hideColumnMenus,
-  });
+  store.dispatch(AppActions.UpdateHideColumnMenus(hideColumnMenus ?? settings.hide_column_menus ?? hideColumnMenus));
 };
 
-export const loadEnableCustomFilters = (store: Store<AppState, AnyAction>): void => {
+export const loadHideRowExpanders = (store: Store<AppStoreState>): void => {
+  const { settings, hideRowExpanders } = store.getState();
+  store.dispatch(
+    AppActions.UpdateHideRowExpanders(hideRowExpanders ?? settings.hide_row_expanders ?? hideRowExpanders),
+  );
+};
+
+export const loadEnableCustomFilters = (store: Store<AppStoreState>): void => {
   const { settings, enableCustomFilters } = store.getState();
-  store.dispatch({
-    type: ActionType.UPDATE_ENABLE_CUSTOM_FILTERS,
-    value: enableCustomFilters ?? settings.enable_custom_filters ?? enableCustomFilters,
-  });
+  store.dispatch(
+    AppActions.UpdateEnableCustomFilters(enableCustomFilters ?? settings.enable_custom_filters ?? enableCustomFilters),
+  );
 };
 
-export const openCustomFilter = (): SidePanelAction => ({
-  type: ActionType.SHOW_SIDE_PANEL,
-  view: SidePanelType.FILTER,
-});
+export const openCustomFilter = (): PayloadAction<SidePanelActionProps> =>
+  AppActions.ShowSidePanelAction({ view: SidePanelType.FILTER });
 
-export const openPredefinedFilters = (): SidePanelAction => ({
-  type: ActionType.SHOW_SIDE_PANEL,
-  view: SidePanelType.PREDEFINED_FILTERS,
-});
+export const openPredefinedFilters = (): PayloadAction<SidePanelActionProps> =>
+  AppActions.ShowSidePanelAction({
+    view: SidePanelType.PREDEFINED_FILTERS,
+  });
 
-export const toggleColumnMenu = (colName: string, headerRef: HTMLDivElement): ToggleColumnAction => ({
-  type: ActionType.TOGGLE_COLUMN_MENU,
-  colName,
-  headerRef,
-});
+export const toggleColumnMenu = (
+  colName: string,
+  headerRef: HTMLElement,
+): PayloadAction<{
+  colName?: string;
+  headerRef?: HTMLElement;
+}> =>
+  AppActions.ToggleColumnMenuAction({
+    colName,
+    headerRef,
+  });
 
 export const hideColumnMenu =
-  (colName: string): AppActions<void> =>
-  (dispatch, getState) => {
+  (colName: string): AppThunk =>
+  (dispatch: AppDispatch, getState: () => AppStoreState) => {
     const { selectedCol } = getState();
     // when clicking another header cell it calls this after the fact and thus causes the user to click again to show it
     if (selectedCol === colName) {
-      dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName });
+      dispatch(AppActions.HideColumnMenuAction({ colName }));
     }
   };
 
-export const closeColumnMenu = (): AppActions<void> => (dispatch, getState) =>
-  dispatch({ type: ActionType.HIDE_COLUMN_MENU, colName: getState().selectedCol });
+export const closeColumnMenu = (): AppThunk => (dispatch: AppDispatch, getState: () => AppStoreState) =>
+  dispatch(AppActions.HideColumnMenuAction({ colName: getState().selectedCol ?? undefined }));
 
-export const updateXArrayDimAction = (xarrayDim: Record<string, boolean>): UpdateXarrayDimAction => ({
-  type: ActionType.UPDATE_XARRAY_DIM,
-  xarrayDim,
-});
+export const updateXArrayDimAction = (xarrayDim: Record<string, any>): PayloadAction<Record<string, any>> =>
+  AppActions.UpdateXarrayDimAction(xarrayDim);
 
 export const updateXArrayDim =
-  (xarrayDim: Record<string, boolean>, callback: () => void): AppActions<void> =>
-  (dispatch) => {
+  (xarrayDim: Record<string, boolean>, callback: () => void): AppThunk =>
+  (dispatch: AppDispatch) => {
     dispatch(updateXArrayDimAction(xarrayDim));
     callback();
   };
 
 export const convertToXArray =
-  (callback: () => void): AppActions<void> =>
-  (dispatch) => {
-    dispatch({ type: ActionType.CONVERT_TO_XARRAY });
+  (callback: () => void): AppThunk =>
+  (dispatch: AppDispatch) => {
+    dispatch(AppActions.ConvertToXarrayAction());
     callback();
   };
 
-export const setQueryEngine = (engine: QueryEngine): SetQueryEngineAction => ({
-  type: ActionType.SET_QUERY_ENGINE,
-  engine,
-});
+export const setQueryEngine = (engine: QueryEngine): PayloadAction<QueryEngine> =>
+  AppActions.SetQueryEngineAction(engine);
 
 export const isPopup = (): boolean => !!window.location.pathname?.startsWith('/dtale/popup');
 
 export const isJSON = (str: string): boolean => {
   try {
     JSON.parse(str);
-  } catch (e) {
+  } catch {
     return false;
   }
   return true;
@@ -170,8 +162,8 @@ export const getParams = (): Record<string, string | string[]> => {
 };
 
 export const updateFilteredRanges =
-  (query: string): AppActions<Promise<void>> =>
-  async (dispatch, getState) => {
+  (query: string): AppThunk =>
+  async (dispatch: AppDispatch, getState: () => AppStoreState) => {
     const { dataId, filteredRanges, isArcticDB, columnCount } = getState();
     if (!!isArcticDB && (isArcticDB >= 1_000_000 || columnCount > 100)) {
       return;
@@ -179,35 +171,54 @@ export const updateFilteredRanges =
     const currQuery = filteredRanges?.query ?? '';
     if (currQuery !== query) {
       const ranges = await serverState.loadFilteredRanges(dataId!);
-      dispatch({ type: ActionType.UPDATE_FILTERED_RANGES, ranges });
+      if (ranges?.ranges) {
+        dispatch(AppActions.UpdateFilteredRangesAction(ranges.ranges));
+      }
     }
   };
 
 export const updateMaxWidth =
-  (width: number): AppActions<void> =>
+  (width: number): AppThunk =>
   (dispatch) => {
-    dispatch({ type: ActionType.UPDATE_MAX_WIDTH, width });
-    dispatch({ type: ActionType.DATA_VIEWER_UPDATE, update: { type: 'update-max-width', width } });
+    dispatch(AppActions.UpdateMaxColumnWidthAction(width));
+    dispatch(
+      AppActions.DataViewerUpdateAction({
+        type: DataViewerUpdateType.UPDATE_MAX_WIDTH,
+        width,
+      } as UpdateMaxWidthDataViewerUpdate),
+    );
   };
 
-export const clearMaxWidth = (): AppActions<void> => (dispatch) => {
-  dispatch({ type: ActionType.CLEAR_MAX_WIDTH });
-  dispatch({ type: ActionType.DATA_VIEWER_UPDATE, update: { type: 'update-max-width', width: null } });
+export const clearMaxWidth = (): AppThunk => (dispatch) => {
+  dispatch(AppActions.ClearMaxWidthAction());
+  dispatch(
+    AppActions.DataViewerUpdateAction({
+      type: DataViewerUpdateType.UPDATE_MAX_WIDTH,
+    } as UpdateMaxWidthDataViewerUpdate),
+  );
 };
 
 export const updateMaxHeight =
-  (height: number): AppActions<void> =>
+  (height: number): AppThunk =>
   (dispatch) => {
-    dispatch({ type: ActionType.UPDATE_MAX_HEIGHT, height });
-    dispatch({ type: ActionType.DATA_VIEWER_UPDATE, update: { type: 'update-max-height', height } });
+    dispatch(AppActions.UpdateMaxRowHeightAction(height));
+    dispatch(
+      AppActions.DataViewerUpdateAction({
+        type: DataViewerUpdateType.UPDATE_MAX_HEIGHT,
+        height,
+      } as UpdateMaxHeightDataViewerUpdate),
+    );
   };
 
-export const clearMaxHeight = (): AppActions<void> => (dispatch) => {
-  dispatch({ type: ActionType.CLEAR_MAX_HEIGHT });
-  dispatch({ type: ActionType.DATA_VIEWER_UPDATE, update: { type: 'update-max-height', height: null } });
+export const clearMaxHeight = (): AppThunk => (dispatch) => {
+  dispatch(AppActions.ClearMaxHeightAction());
+  dispatch(
+    AppActions.DataViewerUpdateAction({
+      type: DataViewerUpdateType.UPDATE_MAX_HEIGHT,
+      height: null,
+    } as UpdateMaxHeightDataViewerUpdate),
+  );
 };
 
-export const updateShowAllHeatmapColumns = (showAllHeatmapColumns: boolean): UpdateShowAllHeatmapColumnsAction => ({
-  type: ActionType.UPDATE_SHOW_ALL_HEATMAP_COLUMNS,
-  showAllHeatmapColumns,
-});
+export const updateShowAllHeatmapColumns = (showAllHeatmapColumns: boolean): PayloadAction<boolean> =>
+  AppActions.UpdateShowAllHeatmapColumnsAction(showAllHeatmapColumns);

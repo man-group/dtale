@@ -1,12 +1,14 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
-import { shallowEqual, useSelector } from 'react-redux';
+import { shallowEqual } from 'react-redux';
 
 import { usePrevious } from '../../customHooks';
-import { AppState, MenuTooltipProps } from '../../redux/state/AppState';
+import { useAppSelector } from '../../redux/hooks';
+import { AppStoreState } from '../../redux/reducers/app';
+import { MenuTooltipProps } from '../../redux/state/AppState';
 
-const selectMenuPinned = (state: AppState): boolean => state.menuPinned;
-const selectMenuTooltip = (state: AppState): MenuTooltipProps => state.menuTooltip;
+const selectMenuPinned = (state: AppStoreState): boolean => state.menuPinned;
+const selectMenuTooltip = (state: AppStoreState): MenuTooltipProps => state.menuTooltip;
 const selectMenuTooltipElement = createSelector([selectMenuTooltip], (menuTooltip) => menuTooltip.element);
 const selectMenuTooltipContent = createSelector([selectMenuTooltip], (menuTooltip) => menuTooltip.content);
 const selectMenuTooltipVisible = createSelector([selectMenuTooltip], (menuTooltip) => menuTooltip.visible);
@@ -29,7 +31,7 @@ const selectMenuTooltipProps = createSelector(
 );
 
 export const MenuTooltip: React.FC = () => {
-  const { menuPinned, elementRect, content, visible } = useSelector(selectMenuTooltipProps, shallowEqual);
+  const { menuPinned, elementRect, content, visible } = useAppSelector(selectMenuTooltipProps, shallowEqual);
   const [style, setStyle] = React.useState<React.CSSProperties>({ display: 'none' });
   const [bottom, setBottom] = React.useState(false);
   const [right, setRight] = React.useState(false);

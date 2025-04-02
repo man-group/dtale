@@ -1,9 +1,9 @@
 import { createSelector } from '@reduxjs/toolkit';
 import React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
+import { useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId } from '../../redux/selectors';
 import { PPSPopupData } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -23,7 +23,7 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 }));
 
 const PredictivePowerScore: React.FC<WithTranslation> = ({ t }) => {
-  const { dataId, chartData } = useSelector(selectResult);
+  const { dataId, chartData } = useAppSelector(selectResult);
   const [correlations, setCorrelations] = React.useState<PPSGridState>();
   const [error, setError] = React.useState<JSX.Element>();
   const [selectedCols, setSelectedCols] = React.useState<string[]>([]);

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import ButtonToggle from '../../ButtonToggle';
+import { useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
 import { SortDir } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -18,7 +18,7 @@ interface DetailSequentialDiffsProps {
 }
 
 const DetailsSequentialDiffs: React.FC<DetailSequentialDiffsProps & WithTranslation> = ({ data, column, t }) => {
-  const dataId = useSelector(selectDataId);
+  const dataId = useAppSelector(selectDataId);
   const sortOptions = React.useMemo(
     () => [
       { label: t('None'), value: undefined },

@@ -2,12 +2,11 @@ import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { RGBColor, SketchPicker } from 'react-color';
 import { WithTranslation, withTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 import reactCSS from 'reactcss';
-import { AnyAction } from 'redux';
 
 import * as serverState from '../dtale/serverStateManagement';
 import * as settingsActions from '../redux/actions/settings';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { selectChartData, selectDataId } from '../redux/selectors';
 import {
   BaseOption,
@@ -128,10 +127,10 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 }));
 
 const RangeHighlight: React.FC<WithTranslation> = ({ t }) => {
-  const { chartData, dataId } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const updateSettings = (updatedSettings: Partial<InstanceSettings>): AnyAction =>
-    dispatch(settingsActions.updateSettings(updatedSettings) as any as AnyAction);
+  const { chartData, dataId } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const updateSettings = (updatedSettings: Partial<InstanceSettings>): void =>
+    dispatch(settingsActions.updateSettings(updatedSettings));
 
   const allOption = React.useMemo(() => buildAllOption(t), [t]);
   const [ranges, setRanges] = React.useState<RangeHighlightConfig>(
@@ -209,7 +208,9 @@ const RangeHighlight: React.FC<WithTranslation> = ({ t }) => {
             <label className="col-md-4 col-form-label text-right">
               <i
                 className={`ico-check-box${active ? '' : '-outline-blank'} pointer mr-3 float-left`}
-                onClick={() => updateHighlights(key, { active: !active })}
+                onClick={() =>
+                  updateHighlights(key, { active: !active, ...(!active ? { color: color ?? BASE_COLOR } : {}) })
+                }
               />
               {t(label, { ns: 'column_filter' })}
             </label>

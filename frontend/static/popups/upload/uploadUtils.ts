@@ -1,4 +1,4 @@
-import { buildForwardURL } from '../reshape/Reshape';
+import { buildForwardURL } from '../reshape/utils';
 
 export const jumpToDataset = async (
   dataId: string,

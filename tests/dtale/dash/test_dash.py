@@ -3,8 +3,10 @@ import json
 import mock
 import numpy as np
 import pandas as pd
+import platform
 import pytest
 import dtale.global_state as global_state
+from pkg_resources import parse_version
 from six import PY3
 
 
@@ -53,6 +55,31 @@ def print_traceback(resp, chart_key="chart-content", return_output=True):
     print(output)
 
 
+def create_outputs(output_str):
+    outputs = output_str.lstrip("..").rstrip("..").split("...")
+    if not len(outputs):
+        return None
+
+    def _format(output):
+        id, prop = output.split(".")
+        return {"id": id, "property": prop}
+
+    output_cfgs = [_format(output_str) for output_str in outputs]
+    if len(output_cfgs) == 1:
+        return output_cfgs[0]
+    return output_cfgs
+
+
+def clean_params(params_cfg):
+    if "output" in params_cfg:
+        outputs = create_outputs(params_cfg["output"])
+        if len(outputs):
+            return dict_merge(
+                params_cfg, dict(outputs=create_outputs(params_cfg["output"]))
+            )
+    return params_cfg
+
+
 @pytest.mark.unit
 def test_display_page(unittest):
     import dtale.views as views
@@ -62,15 +89,20 @@ def test_display_page(unittest):
         df, _ = views.format_data(df)
         build_data_inst({c.port: df})
         pathname = path_builder(c.port)
-        params = {
-            "output": "popup-content.children",
-            "changedPropIds": ["url.modified_timestamp"],
-            "inputs": [pathname, {"id": "url", "property": "search", "value": None}],
-        }
+        params = clean_params(
+            {
+                "output": "popup-content.children",
+                "changedPropIds": ["url.modified_timestamp"],
+                "inputs": [
+                    pathname,
+                    {"id": "url", "property": "search", "value": None},
+                ],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         component_defs = resp_data["popup-content"]["children"]["props"]["children"]
-        x_dd = component_defs[21]["props"]["children"][0]
+        x_dd = component_defs[23]["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
         x_dd = x_dd["props"]["children"][0]
@@ -88,16 +120,18 @@ def test_query_changes():
     with app.test_client() as c:
         df, _ = views.format_data(df)
         build_data_inst({c.port: df})
-        params = {
-            "output": "..query-data.data...query-input.style...query-input.title...load-input.marks..",
-            "changedPropIds": ["query-input.value"],
-            "inputs": [{"id": "query-input", "property": "value", "value": "d"}],
-            "state": [
-                {"id": "query-data", "property": "data"},
-                {"id": "load-input", "property": "marks"},
-                {"id": "data-tabs", "property": "value", "value": c.port},
-            ],
-        }
+        params = clean_params(
+            {
+                "output": "..query-data.data...query-input.style...query-input.title...load-input.marks..",
+                "changedPropIds": ["query-input.value"],
+                "inputs": [{"id": "query-input", "property": "value", "value": "d"}],
+                "state": [
+                    {"id": "query-data", "property": "data"},
+                    {"id": "load-input", "property": "marks"},
+                    {"id": "data-tabs", "property": "value", "value": c.port},
+                ],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         assert resp_data["query-data"]["data"] is None
@@ -110,46 +144,76 @@ def test_query_changes():
 
 
 @pytest.mark.unit
-def test_update_data_selection():
+def test_update_data_selection(unittest):
     with app.test_client() as c:
-        params = {
-            "output": (
-                "..x-dropdown.value...y-multi-dropdown.value...y-single-dropdown.value."
-                "..z-dropdown.value...group-dropdown.value...query-input.value.."
-            ),
-            "changedPropIds": ["data-tabs.value"],
-            "inputs": [{"id": "chart-tabs", "property": "value", "value": "1"}],
-            "state": [
-                {"id": "input-data", "property": "data", "value": {"data_id": "1"}}
-            ],
-        }
+        params = clean_params(
+            {
+                "output": (
+                    "..x-dropdown.value...y-multi-dropdown.value...y-single-dropdown.value."
+                    "..z-dropdown.value...group-dropdown.value...query-input.value...y-all-clicks.data.."
+                ),
+                "changedPropIds": ["data-tabs.value"],
+                "inputs": [
+                    {"id": "chart-tabs", "property": "value", "value": "1"},
+                    {"id": "y-select-all-btn", "property": "n_clicks", "value": 0},
+                ],
+                "state": [
+                    {"id": "input-data", "property": "data", "value": {"data_id": "1"}},
+                    {"id": "y-all-clicks", "property": "data", "value": 0},
+                    {"id": "x-dropdown", "property": "value", "value": []},
+                    {"id": "y-single-dropdown", "property": "value", "value": None},
+                    {"id": "z-dropdown", "property": "value", "value": None},
+                    {"id": "group-dropdown", "property": "value", "value": None},
+                    {"id": "query-input", "property": "value", "value": ""},
+                    {
+                        "id": "y-multi-dropdown",
+                        "property": "options",
+                        "value": [{"value": "foo"}],
+                    },
+                ],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         assert response.status_code == 204
         params["state"][0]["value"]["data_id"] = "2"
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.get_json()
-        assert all(v["value"] is None for v in response["response"].values())
+        assert all(
+            v.get("value", v.get("data")) is None for v in response["response"].values()
+        )
+
+        params["state"][0]["value"]["data_id"] = "1"
+        params["inputs"][1]["value"] = 1
+        response = c.post("/dtale/charts/_dash-update-component", json=params)
+        response = response.get_json()
+        unittest.assertEqual(response["response"]["y-multi-dropdown"]["value"], ["foo"])
 
 
 @pytest.mark.unit
 def test_collapse_data_input():
     with app.test_client() as c:
-        params = {
-            "output": "..collapse-data.is_open...collapse-data-btn.children..",
-            "changedPropIds": ["collapse-data-btn.n_clicks"],
-            "inputs": [{"id": "collapse-data-btn", "property": "n_clicks", "value": 1}],
-            "state": [{"id": "collapse-data", "property": "is_open", "value": False}],
-        }
+        params = clean_params(
+            {
+                "output": "..collapse-data.is_open...collapse-data-btn.children..",
+                "changedPropIds": ["collapse-data-btn.n_clicks"],
+                "inputs": [
+                    {"id": "collapse-data-btn", "property": "n_clicks", "value": 1}
+                ],
+                "state": [
+                    {"id": "collapse-data", "property": "is_open", "value": False}
+                ],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
         assert response["collapse-data"]["is_open"]
-        assert response["collapse-data-btn"]["children"] == "\u25BC Data Selection"
+        assert response["collapse-data-btn"]["children"] == "\u25bc Data Selection"
 
         params["state"][0]["value"] = True
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
         assert not response["collapse-data"]["is_open"]
-        assert response["collapse-data-btn"]["children"] == "\u25B6 Data Selection"
+        assert response["collapse-data-btn"]["children"] == "\u25b6 Data Selection"
 
         params["inputs"][0]["value"] = 0
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -160,26 +224,28 @@ def test_collapse_data_input():
 @pytest.mark.unit
 def test_collapse_cleaners_input():
     with app.test_client() as c:
-        params = {
-            "output": "..collapse-cleaners.is_open...collapse-cleaners-btn.children..",
-            "changedPropIds": ["collapse-cleaners-btn.n_clicks"],
-            "inputs": [
-                {"id": "collapse-cleaners-btn", "property": "n_clicks", "value": 1}
-            ],
-            "state": [
-                {"id": "collapse-cleaners", "property": "is_open", "value": False}
-            ],
-        }
+        params = clean_params(
+            {
+                "output": "..collapse-cleaners.is_open...collapse-cleaners-btn.children..",
+                "changedPropIds": ["collapse-cleaners-btn.n_clicks"],
+                "inputs": [
+                    {"id": "collapse-cleaners-btn", "property": "n_clicks", "value": 1}
+                ],
+                "state": [
+                    {"id": "collapse-cleaners", "property": "is_open", "value": False}
+                ],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
         assert response["collapse-cleaners"]["is_open"]
-        assert response["collapse-cleaners-btn"]["children"] == "\u25BC Cleaners"
+        assert response["collapse-cleaners-btn"]["children"] == "\u25bc Cleaners"
 
         params["state"][0]["value"] = True
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         response = response.json["response"]
         assert not response["collapse-cleaners"]["is_open"]
-        assert response["collapse-cleaners-btn"]["children"] == "\u25B6 Cleaners"
+        assert response["collapse-cleaners-btn"]["children"] == "\u25b6 Cleaners"
 
         params["inputs"][0]["value"] = 0
         response = c.post("/dtale/charts/_dash-update-component", json=params)
@@ -203,50 +269,52 @@ def test_input_changes(unittest):
         df, _ = views.format_data(df)
         build_data_inst({c.port: df})
         pathname = path_builder(c.port)
-        params = {
-            "output": (
-                "..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options."
-                "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options...yaxis-dropdown.options."
-                "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...treemap-inputs.style."
-                "..funnel-inputs.style...clustergram-inputs.style...pareto-inputs.style...histogram-inputs.style."
-                "..colorscale-input.style...drilldown-input.style...lock-zoom-btn.style."
-                "..open-extended-agg-modal.style...selected-cleaners.children...charts-filters-div.style."
-                "..stratified-group-dropdown.style.."
-            ),
-            "changedPropIds": ["chart-tabs.value"],
-            "inputs": [
-                ts_builder("query-data"),
-                ts_builder("extended-aggregations"),
-                {"id": "chart-tabs", "property": "value", "value": "line"},
-                {"id": "x-dropdown", "property": "value"},
-                {"id": "y-multi-dropdown", "property": "value"},
-                {"id": "y-single-dropdown", "property": "value"},
-                {"id": "z-dropdown", "property": "value"},
-                {"id": "group-dropdown", "property": "value", "value": "foo"},
-                {"id": "group-type", "property": "value"},
-                {
-                    "id": "group-val-dropdown",
-                    "property": "value",
-                    "value": [json.dumps(dict(foo="bar"))],
-                },
-                {"id": "bins-val-input", "property": "value"},
-                {"id": "bins-type", "property": "value"},
-                {"id": "agg-dropdown", "property": "value"},
-                {"id": "window-input", "property": "value"},
-                {"id": "rolling-comp-dropdown", "property": "value"},
-                {"id": "load-input", "property": "value"},
-                {"id": "load-type-dropdown", "property": "value"},
-                {"id": "cleaners-dropdown", "property": "value"},
-                {"id": "dropna-checkbox", "property": "value"},
-                {"id": "stratified-group-dropdown", "property": "value"},
-            ],
-            "state": [
-                pathname,
-                {"id": "query-data", "property": "data"},
-                {"id": "data-tabs", "property": "value", "value": c.port},
-                {"id": "extended-aggregations", "property": "data"},
-            ],
-        }
+        params = clean_params(
+            {
+                "output": (
+                    "..input-data.data...x-dropdown.options...y-single-dropdown.options...y-multi-dropdown.options."
+                    "..z-dropdown.options...group-dropdown.options...barsort-dropdown.options...yaxis-dropdown.options."
+                    "..standard-inputs.style...map-inputs.style...candlestick-inputs.style...treemap-inputs.style."
+                    "..funnel-inputs.style...clustergram-inputs.style...pareto-inputs.style...histogram-inputs.style."
+                    "..colorscale-input.style...drilldown-input.style...lock-zoom-btn.style."
+                    "..open-extended-agg-modal.style...selected-cleaners.children...charts-filters-div.style."
+                    "..stratified-group-dropdown.style.."
+                ),
+                "changedPropIds": ["chart-tabs.value"],
+                "inputs": [
+                    ts_builder("query-data"),
+                    ts_builder("extended-aggregations"),
+                    {"id": "chart-tabs", "property": "value", "value": "line"},
+                    {"id": "x-dropdown", "property": "value"},
+                    {"id": "y-multi-dropdown", "property": "value"},
+                    {"id": "y-single-dropdown", "property": "value"},
+                    {"id": "z-dropdown", "property": "value"},
+                    {"id": "group-dropdown", "property": "value", "value": "foo"},
+                    {"id": "group-type", "property": "value"},
+                    {
+                        "id": "group-val-dropdown",
+                        "property": "value",
+                        "value": [json.dumps(dict(foo="bar"))],
+                    },
+                    {"id": "bins-val-input", "property": "value"},
+                    {"id": "bins-type", "property": "value"},
+                    {"id": "agg-dropdown", "property": "value"},
+                    {"id": "window-input", "property": "value"},
+                    {"id": "rolling-comp-dropdown", "property": "value"},
+                    {"id": "load-input", "property": "value"},
+                    {"id": "load-type-dropdown", "property": "value"},
+                    {"id": "cleaners-dropdown", "property": "value"},
+                    {"id": "dropna-checkbox", "property": "value"},
+                    {"id": "stratified-group-dropdown", "property": "value"},
+                ],
+                "state": [
+                    pathname,
+                    {"id": "query-data", "property": "data"},
+                    {"id": "data-tabs", "property": "value", "value": c.port},
+                    {"id": "extended-aggregations", "property": "data"},
+                ],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()
         unittest.assertEqual(
@@ -321,36 +389,38 @@ def test_map_data(unittest):
     with app.test_client() as c:
         df, _ = views.format_data(df)
         build_data_inst({c.port: df})
-        params = {
-            "output": (
-                "..map-input-data.data...map-loc-dropdown.options...map-lat-dropdown.options..."
-                "map-lon-dropdown.options...map-val-dropdown.options...map-loc-mode-input.style..."
-                "map-loc-input.style...map-lat-input.style...map-lon-input.style...map-scope-input.style..."
-                "map-mapbox-style-input.style...map-proj-input.style...proj-hover.style...proj-hover.children..."
-                "loc-mode-hover.style...loc-mode-hover.children...custom-geojson-input.style.."
-            ),
-            "changedPropIds": ["map-type-tabs.value"],
-            "inputs": [
-                {"id": "map-type-tabs", "property": "value", "value": "scattergeo"},
-                {"id": "map-loc-mode-dropdown", "property": "value", "value": None},
-                {"id": "map-loc-dropdown", "property": "value", "value": None},
-                {"id": "map-lat-dropdown", "property": "value", "value": None},
-                {"id": "map-lon-dropdown", "property": "value", "value": None},
-                {"id": "map-val-dropdown", "property": "value", "value": None},
-                {"id": "map-scope-dropdown", "property": "value", "value": "world"},
-                {
-                    "id": "map-mapbox-style-dropdown",
-                    "property": "value",
-                    "value": "open-street-map",
-                },
-                {"id": "map-proj-dropdown", "property": "value", "value": None},
-                {"id": "map-group-dropdown", "property": "value", "value": None},
-                {"id": "map-dropna-checkbox", "property": "value", "value": True},
-                {"id": "geojson-dropdown", "property": "value", "value": None},
-                {"id": "featureidkey-dropdown", "property": "value", "value": None},
-            ],
-            "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
-        }
+        params = clean_params(
+            {
+                "output": (
+                    "..map-input-data.data...map-loc-dropdown.options...map-lat-dropdown.options..."
+                    "map-lon-dropdown.options...map-val-dropdown.options...map-loc-mode-input.style..."
+                    "map-loc-input.style...map-lat-input.style...map-lon-input.style...map-scope-input.style..."
+                    "map-mapbox-style-input.style...map-proj-input.style...proj-hover.style...proj-hover.children..."
+                    "loc-mode-hover.style...loc-mode-hover.children...custom-geojson-input.style.."
+                ),
+                "changedPropIds": ["map-type-tabs.value"],
+                "inputs": [
+                    {"id": "map-type-tabs", "property": "value", "value": "scattergeo"},
+                    {"id": "map-loc-mode-dropdown", "property": "value", "value": None},
+                    {"id": "map-loc-dropdown", "property": "value", "value": None},
+                    {"id": "map-lat-dropdown", "property": "value", "value": None},
+                    {"id": "map-lon-dropdown", "property": "value", "value": None},
+                    {"id": "map-val-dropdown", "property": "value", "value": None},
+                    {"id": "map-scope-dropdown", "property": "value", "value": "world"},
+                    {
+                        "id": "map-mapbox-style-dropdown",
+                        "property": "value",
+                        "value": "open-street-map",
+                    },
+                    {"id": "map-proj-dropdown", "property": "value", "value": None},
+                    {"id": "map-group-dropdown", "property": "value", "value": None},
+                    {"id": "map-dropna-checkbox", "property": "value", "value": True},
+                    {"id": "geojson-dropdown", "property": "value", "value": None},
+                    {"id": "featureidkey-dropdown", "property": "value", "value": None},
+                ],
+                "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         unittest.assertEqual(
@@ -417,33 +487,47 @@ def test_group_values(unittest):
         df, _ = views.format_data(df)
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
-        params = {
-            "output": "..group-val-dropdown.options...group-val-dropdown.value..",
-            "changedPropIds": ["group-dropdown.value"],
-            "inputs": [
-                {"id": "chart-tabs", "property": "value", "value": None},
-                {"id": "group-dropdown", "property": "value", "value": None},
-                {"id": "map-group-dropdown", "property": "value", "value": None},
-                {
-                    "id": "candlestick-group-dropdown",
-                    "property": "value",
-                    "value": None,
-                },
-                {"id": "treemap-group-dropdown", "property": "value", "value": None},
-                {"id": "funnel-group-dropdown", "property": "value", "value": None},
-                {
-                    "id": "clustergram-group-dropdown",
-                    "property": "value",
-                    "value": None,
-                },
-                {"id": "pareto-group-dropdown", "property": "value", "value": None},
-                {"id": "histogram-group-dropdown", "property": "value", "value": None},
-            ],
-            "state": [
-                {"id": "input-data", "property": "data", "value": {"data_id": c.port}},
-                {"id": "group-val-dropdown", "property": "value", "value": None},
-            ],
-        }
+        params = clean_params(
+            {
+                "output": "..group-val-dropdown.options...group-val-dropdown.value..",
+                "changedPropIds": ["group-dropdown.value"],
+                "inputs": [
+                    {"id": "chart-tabs", "property": "value", "value": None},
+                    {"id": "group-dropdown", "property": "value", "value": None},
+                    {"id": "map-group-dropdown", "property": "value", "value": None},
+                    {
+                        "id": "candlestick-group-dropdown",
+                        "property": "value",
+                        "value": None,
+                    },
+                    {
+                        "id": "treemap-group-dropdown",
+                        "property": "value",
+                        "value": None,
+                    },
+                    {"id": "funnel-group-dropdown", "property": "value", "value": None},
+                    {
+                        "id": "clustergram-group-dropdown",
+                        "property": "value",
+                        "value": None,
+                    },
+                    {"id": "pareto-group-dropdown", "property": "value", "value": None},
+                    {
+                        "id": "histogram-group-dropdown",
+                        "property": "value",
+                        "value": None,
+                    },
+                ],
+                "state": [
+                    {
+                        "id": "input-data",
+                        "property": "data",
+                        "value": {"data_id": c.port},
+                    },
+                    {"id": "group-val-dropdown", "property": "value", "value": None},
+                ],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         unittest.assertEqual(
             response.get_json()["response"],
@@ -511,37 +595,39 @@ def test_main_input_styling(unittest):
         df, _ = views.format_data(df)
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
-        params = {
-            "output": (
-                "..group-type-input.style...group-val-input.style...bins-input.style...main-inputs.className..."
-                "group-inputs-row.style.."
-            ),
-            "changedPropIds": ["input-data.modified_timestamp"],
-            "inputs": [
-                ts_builder("input-data"),
-                ts_builder("map-input-data"),
-                ts_builder("candlestick-input-data"),
-                ts_builder("treemap-input-data"),
-                ts_builder("funnel-input-data"),
-                ts_builder("clustergram-input-data"),
-                ts_builder("pareto-input-data"),
-                ts_builder("histogram-input-data"),
-            ],
-            "state": [
-                {
-                    "id": "input-data",
-                    "property": "data",
-                    "value": {"chart_type": "maps", "data_id": c.port},
-                },
-                {"id": "map-input-data", "property": "data", "value": {}},
-                {"id": "candlestick-input-data", "property": "data", "value": {}},
-                {"id": "treemap-input-data", "property": "data", "value": {}},
-                {"id": "funnel-input-data", "property": "data", "value": {}},
-                {"id": "clustergram-input-data", "property": "data", "value": {}},
-                {"id": "pareto-input-data", "property": "data", "value": {}},
-                {"id": "histogram-input-data", "property": "data", "value": {}},
-            ],
-        }
+        params = clean_params(
+            {
+                "output": (
+                    "..group-type-input.style...group-val-input.style...bins-input.style...main-inputs.className..."
+                    "group-inputs-row.style.."
+                ),
+                "changedPropIds": ["input-data.modified_timestamp"],
+                "inputs": [
+                    ts_builder("input-data"),
+                    ts_builder("map-input-data"),
+                    ts_builder("candlestick-input-data"),
+                    ts_builder("treemap-input-data"),
+                    ts_builder("funnel-input-data"),
+                    ts_builder("clustergram-input-data"),
+                    ts_builder("pareto-input-data"),
+                    ts_builder("histogram-input-data"),
+                ],
+                "state": [
+                    {
+                        "id": "input-data",
+                        "property": "data",
+                        "value": {"chart_type": "maps", "data_id": c.port},
+                    },
+                    {"id": "map-input-data", "property": "data", "value": {}},
+                    {"id": "candlestick-input-data", "property": "data", "value": {}},
+                    {"id": "treemap-input-data", "property": "data", "value": {}},
+                    {"id": "funnel-input-data", "property": "data", "value": {}},
+                    {"id": "clustergram-input-data", "property": "data", "value": {}},
+                    {"id": "pareto-input-data", "property": "data", "value": {}},
+                    {"id": "histogram-input-data", "property": "data", "value": {}},
+                ],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         unittest.assertEqual(
             response.get_json()["response"],
@@ -635,12 +721,14 @@ def test_chart_type_changes():
                 "rolling_comp": None,
             },
         }
-        params = {
-            "output": fig_data_outputs,
-            "changedPropIds": ["input-data.modified_timestamp"],
-            "inputs": [ts_builder()],
-            "state": [inputs, path_builder(c.port)],
-        }
+        params = clean_params(
+            {
+                "output": fig_data_outputs,
+                "changedPropIds": ["input-data.modified_timestamp"],
+                "inputs": [ts_builder()],
+                "state": [inputs, path_builder(c.port)],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         for id in [
@@ -656,12 +744,14 @@ def test_chart_type_changes():
 
         inputs["value"]["chart_type"] = "bar"
         inputs["value"]["y"] = ["b", "c"]
-        params = {
-            "output": fig_data_outputs,
-            "changedPropIds": ["input-data.modified_timestamp"],
-            "inputs": [ts_builder()],
-            "state": [inputs, path_builder(c.port)],
-        }
+        params = clean_params(
+            {
+                "output": fig_data_outputs,
+                "changedPropIds": ["input-data.modified_timestamp"],
+                "inputs": [ts_builder()],
+                "state": [inputs, path_builder(c.port)],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         assert resp_data["barmode-input"]["style"]["display"] == "block"
@@ -670,12 +760,14 @@ def test_chart_type_changes():
         inputs["value"]["chart_type"] = "line"
         inputs["value"]["y"] = ["b"]
         inputs["value"]["group"] = ["c"]
-        params = {
-            "output": fig_data_outputs,
-            "changedPropIds": ["input-data.modified_timestamp"],
-            "inputs": [ts_builder()],
-            "state": [inputs, path_builder(c.port)],
-        }
+        params = clean_params(
+            {
+                "output": fig_data_outputs,
+                "changedPropIds": ["input-data.modified_timestamp"],
+                "inputs": [ts_builder()],
+                "state": [inputs, path_builder(c.port)],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         assert resp_data["cpg-input"]["style"]["display"] == "block"
@@ -683,12 +775,14 @@ def test_chart_type_changes():
         inputs["value"]["chart_type"] = "heatmap"
         inputs["value"]["group"] = None
         inputs["value"]["z"] = "c"
-        params = {
-            "output": fig_data_outputs,
-            "changedPropIds": ["input-data.modified_timestamp"],
-            "inputs": [ts_builder()],
-            "state": [inputs, path_builder(c.port)],
-        }
+        params = clean_params(
+            {
+                "output": fig_data_outputs,
+                "changedPropIds": ["input-data.modified_timestamp"],
+                "inputs": [ts_builder()],
+                "state": [inputs, path_builder(c.port)],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         assert resp_data["z-input"]["style"]["display"] == "block"
@@ -697,30 +791,32 @@ def test_chart_type_changes():
 @pytest.mark.unit
 def test_yaxis_changes(unittest):
     with app.test_client() as c:
-        params = dict(
-            output=(
-                "..yaxis-min-input.value...yaxis-max-input.value...yaxis-dropdown.style...yaxis-min-label.style..."
-                "yaxis-min-input.style...yaxis-max-label.style...yaxis-max-input.style...yaxis-type-div.style.."
-            ),
-            changedPropIds=["yaxis-dropdown.value"],
-            inputs=[
-                {"id": "yaxis-type", "property": "value", "value": "default"},
-                {"id": "yaxis-dropdown", "property": "value"},
-            ],
-            state=[
-                dict(
-                    id="input-data",
-                    property="data",
-                    value=dict(chart_type="line", x="a", y=["b"]),
+        params = clean_params(
+            dict(
+                output=(
+                    "..yaxis-min-input.value...yaxis-max-input.value...yaxis-dropdown.style...yaxis-min-label.style..."
+                    "yaxis-min-input.style...yaxis-max-label.style...yaxis-max-input.style...yaxis-type-div.style.."
                 ),
-                dict(id="yaxis-data", property="data", value=dict(yaxis={})),
-                dict(
-                    id="range-data",
-                    property="data",
-                    value=dict(min={"b": 4, "c": 5}, max={"b": 6, "c": 7}),
-                ),
-                dict(id="extended-aggregations", property="data"),
-            ],
+                changedPropIds=["yaxis-dropdown.value"],
+                inputs=[
+                    {"id": "yaxis-type", "property": "value", "value": "default"},
+                    {"id": "yaxis-dropdown", "property": "value"},
+                ],
+                state=[
+                    dict(
+                        id="input-data",
+                        property="data",
+                        value=dict(chart_type="line", x="a", y=["b"]),
+                    ),
+                    dict(id="yaxis-data", property="data", value=dict(yaxis={})),
+                    dict(
+                        id="range-data",
+                        property="data",
+                        value=dict(min={"b": 4, "c": 5}, max={"b": 6, "c": 7}),
+                    ),
+                    dict(id="extended-aggregations", property="data"),
+                ],
+            )
         )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()
@@ -858,22 +954,24 @@ def test_yaxis_changes(unittest):
 @pytest.mark.unit
 def test_chart_input_updates(unittest):
     with app.test_client() as c:
-        params = {
-            "output": "chart-input-data.data",
-            "changedPropIds": ["cpg-toggle.on"],
-            "inputs": [
-                {"id": "cpg-toggle", "property": "on", "value": False},
-                {"id": "cpy-toggle", "property": "on", "value": False},
-                {"id": "barmode-dropdown", "property": "value", "value": "group"},
-                {"id": "barsort-dropdown", "property": "value"},
-                {"id": "top-bars", "property": "value"},
-                {"id": "colorscale-dropdown", "property": "value"},
-                {"id": "animate-toggle", "property": "on"},
-                {"id": "animate-by-dropdown", "property": "value"},
-                {"id": "trendline-dropdown", "property": "value"},
-                {"id": "yaxis-scale", "property": "value"},
-            ],
-        }
+        params = clean_params(
+            {
+                "output": "chart-input-data.data",
+                "changedPropIds": ["cpg-toggle.on"],
+                "inputs": [
+                    {"id": "cpg-toggle", "property": "on", "value": False},
+                    {"id": "cpy-toggle", "property": "on", "value": False},
+                    {"id": "barmode-dropdown", "property": "value", "value": "group"},
+                    {"id": "barsort-dropdown", "property": "value"},
+                    {"id": "top-bars", "property": "value"},
+                    {"id": "colorscale-dropdown", "property": "value"},
+                    {"id": "animate-toggle", "property": "on"},
+                    {"id": "animate-by-dropdown", "property": "value"},
+                    {"id": "trendline-dropdown", "property": "value"},
+                    {"id": "yaxis-scale", "property": "value"},
+                ],
+            }
+        )
 
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()
@@ -907,34 +1005,36 @@ def test_yaxis_data(unittest):
             "window": None,
             "rolling_comp": None,
         }
-        params = {
-            "output": "yaxis-data.data",
-            "changedPropIds": ["yaxis-min-input.value"],
-            "inputs": [
-                {"id": "yaxis-type", "property": "value", "value": "single"},
-                {"id": "yaxis-min-input", "property": "value", "value": -1.52},
-                {"id": "yaxis-max-input", "property": "value", "value": 0.42},
-            ],
-            "state": [
-                {"id": "yaxis-dropdown", "property": "value", "value": "Col1"},
-                {
-                    "id": "yaxis-dropdown",
-                    "property": "options",
-                    "value": [{"value": "Col1"}, {"value": "Col2"}],
-                },
-                {"id": "yaxis-data", "property": "data", "value": {}},
-                {
-                    "id": "range-data",
-                    "property": "data",
-                    "value": {
-                        "min": {"Col1": -0.52, "Col2": -1},
-                        "max": {"Col1": 0.42, "Col2": 3},
+        params = clean_params(
+            {
+                "output": "yaxis-data.data",
+                "changedPropIds": ["yaxis-min-input.value"],
+                "inputs": [
+                    {"id": "yaxis-type", "property": "value", "value": "single"},
+                    {"id": "yaxis-min-input", "property": "value", "value": -1.52},
+                    {"id": "yaxis-max-input", "property": "value", "value": 0.42},
+                ],
+                "state": [
+                    {"id": "yaxis-dropdown", "property": "value", "value": "Col1"},
+                    {
+                        "id": "yaxis-dropdown",
+                        "property": "options",
+                        "value": [{"value": "Col1"}, {"value": "Col2"}],
                     },
-                },
-                {"id": "input-data", "property": "data", "value": inputs},
-                {"id": "extended-aggregations", "property": "data"},
-            ],
-        }
+                    {"id": "yaxis-data", "property": "data", "value": {}},
+                    {
+                        "id": "range-data",
+                        "property": "data",
+                        "value": {
+                            "min": {"Col1": -0.52, "Col2": -1},
+                            "max": {"Col1": 0.42, "Col2": 3},
+                        },
+                    },
+                    {"id": "input-data", "property": "data", "value": inputs},
+                    {"id": "extended-aggregations", "property": "data"},
+                ],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()
         unittest.assertEqual(
@@ -977,12 +1077,14 @@ def test_yaxis_data(unittest):
 
 
 def build_dash_request(output, changed_prop_id, inputs, state):
-    return {
-        "output": output,
-        "changedPropIds": make_list(changed_prop_id),
-        "inputs": make_list(inputs),
-        "state": make_list(state),
-    }
+    return clean_params(
+        {
+            "output": output,
+            "changedPropIds": make_list(changed_prop_id),
+            "inputs": make_list(inputs),
+            "state": make_list(state),
+        }
+    )
 
 
 def build_chart_params(
@@ -1325,18 +1427,20 @@ def test_chart_building_bar_and_popup(unittest):
         [pathname_val, search_val] = url.split("?")
         response = c.post(
             "/dtale/charts/_dash-update-component",
-            json={
-                "output": "popup-content.children",
-                "changedPropIds": ["url.modified_timestamp"],
-                "inputs": [
-                    {"id": "url", "property": "pathname", "value": pathname_val},
-                    {
-                        "id": "url",
-                        "property": "search",
-                        "value": "?{}".format(search_val),
-                    },
-                ],
-            },
+            json=clean_params(
+                {
+                    "output": "popup-content.children",
+                    "changedPropIds": ["url.modified_timestamp"],
+                    "inputs": [
+                        {"id": "url", "property": "pathname", "value": pathname_val},
+                        {
+                            "id": "url",
+                            "property": "search",
+                            "value": "?{}".format(search_val),
+                        },
+                    ],
+                },
+            ),
         )
         assert response.status_code == 200
 
@@ -2016,44 +2120,50 @@ def test_candlestick_data(candlestick_data, unittest):
     with app.test_client() as c:
         df, _ = views.format_data(candlestick_data)
         build_data_inst({c.port: df})
-        params = {
-            "output": (
-                "..candlestick-input-data.data...candlestick-x-dropdown.options."
-                "..candlestick-open-dropdown.options...candlestick-close-dropdown.options."
-                "..candlestick-high-dropdown.options...candlestick-low-dropdown.options.."
-            ),
-            "changedPropIds": ["candlestick-x-dropdown.value"],
-            "inputs": [
-                {"id": "candlestick-x-dropdown", "property": "value", "value": "x"},
-                {
-                    "id": "candlestick-open-dropdown",
-                    "property": "value",
-                    "value": "open",
-                },
-                {
-                    "id": "candlestick-close-dropdown",
-                    "property": "value",
-                    "value": "close",
-                },
-                {
-                    "id": "candlestick-high-dropdown",
-                    "property": "value",
-                    "value": "high",
-                },
-                {"id": "candlestick-low-dropdown", "property": "value", "value": "low"},
-                {
-                    "id": "candlestick-group-dropdown",
-                    "property": "value",
-                    "value": ["symbol"],
-                },
-                {
-                    "id": "candlestick-dropna-checkbox",
-                    "property": "value",
-                    "value": True,
-                },
-            ],
-            "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
-        }
+        params = clean_params(
+            {
+                "output": (
+                    "..candlestick-input-data.data...candlestick-x-dropdown.options."
+                    "..candlestick-open-dropdown.options...candlestick-close-dropdown.options."
+                    "..candlestick-high-dropdown.options...candlestick-low-dropdown.options.."
+                ),
+                "changedPropIds": ["candlestick-x-dropdown.value"],
+                "inputs": [
+                    {"id": "candlestick-x-dropdown", "property": "value", "value": "x"},
+                    {
+                        "id": "candlestick-open-dropdown",
+                        "property": "value",
+                        "value": "open",
+                    },
+                    {
+                        "id": "candlestick-close-dropdown",
+                        "property": "value",
+                        "value": "close",
+                    },
+                    {
+                        "id": "candlestick-high-dropdown",
+                        "property": "value",
+                        "value": "high",
+                    },
+                    {
+                        "id": "candlestick-low-dropdown",
+                        "property": "value",
+                        "value": "low",
+                    },
+                    {
+                        "id": "candlestick-group-dropdown",
+                        "property": "value",
+                        "value": ["symbol"],
+                    },
+                    {
+                        "id": "candlestick-dropna-checkbox",
+                        "property": "value",
+                        "value": True,
+                    },
+                ],
+                "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         unittest.assertEqual(
@@ -2113,27 +2223,37 @@ def test_treemap_data(treemap_data, unittest):
     with app.test_client() as c:
         df, _ = views.format_data(treemap_data)
         build_data_inst({c.port: df})
-        params = {
-            "output": (
-                "..treemap-input-data.data...treemap-value-dropdown.options...treemap-label-dropdown.options.."
-            ),
-            "changedPropIds": ["treemap-value-dropdown.value"],
-            "inputs": [
-                {
-                    "id": "treemap-value-dropdown",
-                    "property": "value",
-                    "value": "volume",
-                },
-                {"id": "treemap-label-dropdown", "property": "value", "value": "label"},
-                {
-                    "id": "treemap-group-dropdown",
-                    "property": "value",
-                    "value": ["group"],
-                },
-                {"id": "treemap-dropna-checkbox", "property": "value", "value": True},
-            ],
-            "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
-        }
+        params = clean_params(
+            {
+                "output": (
+                    "..treemap-input-data.data...treemap-value-dropdown.options...treemap-label-dropdown.options.."
+                ),
+                "changedPropIds": ["treemap-value-dropdown.value"],
+                "inputs": [
+                    {
+                        "id": "treemap-value-dropdown",
+                        "property": "value",
+                        "value": "volume",
+                    },
+                    {
+                        "id": "treemap-label-dropdown",
+                        "property": "value",
+                        "value": "label",
+                    },
+                    {
+                        "id": "treemap-group-dropdown",
+                        "property": "value",
+                        "value": ["group"],
+                    },
+                    {
+                        "id": "treemap-dropna-checkbox",
+                        "property": "value",
+                        "value": True,
+                    },
+                ],
+                "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         unittest.assertEqual(
@@ -2265,25 +2385,39 @@ def test_funnel_data(treemap_data, unittest):
     with app.test_client() as c:
         df, _ = views.format_data(treemap_data)
         build_data_inst({c.port: df})
-        params = {
-            "output": (
-                "..funnel-input-data.data...funnel-value-dropdown.options...funnel-label-dropdown.options."
-                "..funnel-stack-input.style.."
-            ),
-            "changedPropIds": ["funnel-value-dropdown.value"],
-            "inputs": [
-                {"id": "funnel-value-dropdown", "property": "value", "value": "volume"},
-                {"id": "funnel-label-dropdown", "property": "value", "value": "label"},
-                {
-                    "id": "funnel-group-dropdown",
-                    "property": "value",
-                    "value": ["group"],
-                },
-                {"id": "funnel-dropna-checkbox", "property": "value", "value": True},
-                {"id": "funnel-stack-toggle", "property": "on", "value": False},
-            ],
-            "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
-        }
+        params = clean_params(
+            {
+                "output": (
+                    "..funnel-input-data.data...funnel-value-dropdown.options...funnel-label-dropdown.options."
+                    "..funnel-stack-input.style.."
+                ),
+                "changedPropIds": ["funnel-value-dropdown.value"],
+                "inputs": [
+                    {
+                        "id": "funnel-value-dropdown",
+                        "property": "value",
+                        "value": "volume",
+                    },
+                    {
+                        "id": "funnel-label-dropdown",
+                        "property": "value",
+                        "value": "label",
+                    },
+                    {
+                        "id": "funnel-group-dropdown",
+                        "property": "value",
+                        "value": ["group"],
+                    },
+                    {
+                        "id": "funnel-dropna-checkbox",
+                        "property": "value",
+                        "value": True,
+                    },
+                    {"id": "funnel-stack-toggle", "property": "on", "value": False},
+                ],
+                "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         unittest.assertEqual(
@@ -2305,36 +2439,38 @@ def test_clustergram_data(clustergram_data, unittest):
     with app.test_client() as c:
         df, _ = views.format_data(clustergram_data)
         build_data_inst({c.port: df})
-        params = {
-            "output": (
-                "..clustergram-input-data.data...clustergram-value-dropdown.options."
-                "..clustergram-label-dropdown.options.."
-            ),
-            "changedPropIds": ["clustergram-value-dropdown.value"],
-            "inputs": [
-                {
-                    "id": "clustergram-value-dropdown",
-                    "property": "value",
-                    "value": ["mpg", "cyl"],
-                },
-                {
-                    "id": "clustergram-label-dropdown",
-                    "property": "value",
-                    "value": "model",
-                },
-                {
-                    "id": "clustergram-group-dropdown",
-                    "property": "value",
-                    "value": None,
-                },
-                {
-                    "id": "clustergram-dropna-checkbox",
-                    "property": "value",
-                    "value": True,
-                },
-            ],
-            "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
-        }
+        params = clean_params(
+            {
+                "output": (
+                    "..clustergram-input-data.data...clustergram-value-dropdown.options."
+                    "..clustergram-label-dropdown.options.."
+                ),
+                "changedPropIds": ["clustergram-value-dropdown.value"],
+                "inputs": [
+                    {
+                        "id": "clustergram-value-dropdown",
+                        "property": "value",
+                        "value": ["mpg", "cyl"],
+                    },
+                    {
+                        "id": "clustergram-label-dropdown",
+                        "property": "value",
+                        "value": "model",
+                    },
+                    {
+                        "id": "clustergram-group-dropdown",
+                        "property": "value",
+                        "value": None,
+                    },
+                    {
+                        "id": "clustergram-dropna-checkbox",
+                        "property": "value",
+                        "value": True,
+                    },
+                ],
+                "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         unittest.assertEqual(
@@ -2354,23 +2490,37 @@ def test_pareto_data(pareto_data, unittest):
     with app.test_client() as c:
         df, _ = views.format_data(pareto_data)
         build_data_inst({c.port: df})
-        params = {
-            "output": (
-                "..pareto-input-data.data...pareto-x-dropdown.options...pareto-bars-dropdown.options."
-                "..pareto-line-dropdown.options.."
-            ),
-            "changedPropIds": ["pareto-x-dropdown.value"],
-            "inputs": [
-                {"id": "pareto-x-dropdown", "property": "value", "value": "desc"},
-                {"id": "pareto-bars-dropdown", "property": "value", "value": "count"},
-                {"id": "pareto-line-dropdown", "property": "value", "value": "cum_pct"},
-                {"id": "pareto-sort-dropdown", "property": "value", "value": None},
-                {"id": "pareto-dir-dropdown", "property": "value", "value": "DESC"},
-                {"id": "pareto-group-dropdown", "property": "value", "value": None},
-                {"id": "pareto-dropna-checkbox", "property": "value", "value": True},
-            ],
-            "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
-        }
+        params = clean_params(
+            {
+                "output": (
+                    "..pareto-input-data.data...pareto-x-dropdown.options...pareto-bars-dropdown.options."
+                    "..pareto-line-dropdown.options.."
+                ),
+                "changedPropIds": ["pareto-x-dropdown.value"],
+                "inputs": [
+                    {"id": "pareto-x-dropdown", "property": "value", "value": "desc"},
+                    {
+                        "id": "pareto-bars-dropdown",
+                        "property": "value",
+                        "value": "count",
+                    },
+                    {
+                        "id": "pareto-line-dropdown",
+                        "property": "value",
+                        "value": "cum_pct",
+                    },
+                    {"id": "pareto-sort-dropdown", "property": "value", "value": None},
+                    {"id": "pareto-dir-dropdown", "property": "value", "value": "DESC"},
+                    {"id": "pareto-group-dropdown", "property": "value", "value": None},
+                    {
+                        "id": "pareto-dropna-checkbox",
+                        "property": "value",
+                        "value": True,
+                    },
+                ],
+                "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         unittest.assertEqual(
@@ -2423,17 +2573,27 @@ def test_histogram_data(test_data, unittest):
     with app.test_client() as c:
         df, _ = views.format_data(test_data)
         build_data_inst({c.port: df})
-        params = {
-            "output": "..histogram-input-data.data...histogram-col-dropdown.options...histogram-bins-div.style..",
-            "changedPropIds": ["histogram-col-dropdown.value"],
-            "inputs": [
-                {"id": "histogram-col-dropdown", "property": "value", "value": "foo"},
-                {"id": "histogram-type-tabs", "property": "value", "value": "bins"},
-                {"id": "histogram-bins-input", "property": "value", "value": "5"},
-                {"id": "histogram-group-dropdown", "property": "value", "value": None},
-            ],
-            "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
-        }
+        params = clean_params(
+            {
+                "output": "..histogram-input-data.data...histogram-col-dropdown.options...histogram-bins-div.style..",
+                "changedPropIds": ["histogram-col-dropdown.value"],
+                "inputs": [
+                    {
+                        "id": "histogram-col-dropdown",
+                        "property": "value",
+                        "value": "foo",
+                    },
+                    {"id": "histogram-type-tabs", "property": "value", "value": "bins"},
+                    {"id": "histogram-bins-input", "property": "value", "value": "5"},
+                    {
+                        "id": "histogram-group-dropdown",
+                        "property": "value",
+                        "value": None,
+                    },
+                ],
+                "state": [{"id": "data-tabs", "property": "value", "value": c.port}],
+            }
+        )
         response = c.post("/dtale/charts/_dash-update-component", json=params)
         resp_data = response.get_json()["response"]
         unittest.assertEqual(
@@ -2530,7 +2690,10 @@ def test_chart_building_funnel(treemap_data):
         assert "found no data" in exception
 
 
-@pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
+@pytest.mark.skipif(
+    not PY3 or parse_version(platform.python_version()) >= parse_version("3.9.0"),
+    reason="requires 3.0.0 <= python < 3.9.0",
+)
 def test_chart_building_clustergram(clustergram_data):
     pytest.importorskip("dash_bio")
 

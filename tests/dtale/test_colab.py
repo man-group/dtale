@@ -76,4 +76,4 @@ def test_failing_show_colab():
         )
         stack.enter_context(mock.patch("requests.get", mock.Mock()))
         instance = show(data=pd.DataFrame([1, 2, 3]))
-        assert "http://localhost:40000" == instance._url
+        assert "http://0.0.0.0:40000" == instance._url

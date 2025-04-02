@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { useSelector } from 'react-redux';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import AsyncValueSelect from '../../filters/AsyncValueSelect';
+import { useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
 import { BaseOption } from '../../redux/state/AppState';
 import { RemovableError } from '../../RemovableError';
@@ -12,7 +12,7 @@ import { LabeledSelect } from '../create/LabeledSelect';
 import { jumpToDataset } from '../upload/uploadUtils';
 
 const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
-  const dataId = useSelector(selectDataId);
+  const dataId = useAppSelector(selectDataId);
   const currentSymbol = React.useMemo(() => {
     const dataIdSegs = decodeURIComponent(decodeURIComponent(dataId)).split('|');
     return dataIdSegs[dataIdSegs.length - 1];

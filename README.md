@@ -162,6 +162,12 @@ tmp['d'] = 4
 # FYI: this will clear any front-end settings you have at the time for this process (filter, sorts, formatting)
 d.data = tmp
 
+# Get raw dataframe w/ any sorting or edits made through the UI
+d.data
+
+# Get raw dataframe similar to '.data' along with any filters applied using the UI
+d.view_data
+
 # Shutting down D-Tale process
 d.kill()
 
@@ -325,7 +331,7 @@ If this does not work for you try using `USE_NGROK` which is described in the ne
 
 This is yet another hosted notebook site and thanks to the work of [flask_ngrok](https://github.com/gstaff/flask-ngrok) users can run D-Tale within their notebooks.
 
-**DISCLAIMER:** It is import that you set `USE_NGROK` to true when using D-Tale within this service.  Here is an example:
+**DISCLAIMER:** It is import that you set `USE_NGROK` to true when using D-Tale within this service.  Please make sure to run `pip install flask-ngrok` before running this example. Here is an example:
 
 ```python
 import pandas as pd
@@ -1352,6 +1358,19 @@ Here's the options at you disposal:
   * pandas.util.testing.makeTimeDataFrame
 
 
+**Starting with version 3.9.0 web uploads will be turned off by default.
+Web uploads are vulnerable to blind server side request forgery, please only use in trusted environments.**
+
+**You can turn this feature on by doing one of the following:**
+ - **add `enable_web_uploads=True` to your `dtale.show` call**
+ - **add `enable_web_uploads = False` to the [app] section of your dtale.ini config file ([more info](https://github.com/man-group/dtale/blob/master/docs/CONFIGURATION.md))**
+ - **run this code before calling dtale.show:**
+```python
+import dtale.global_state as global_state
+global_state.set_app_settings(dict(enable_web_uploads=True))
+```
+
+
 #### Instances
 This will give you information about other D-Tale instances are running under your current Python process.
 
@@ -1766,15 +1785,18 @@ Have a look at the [detailed documentation](https://dtale.readthedocs.io).
   * dash_daq
   * Flask
   * Flask-Compress
-  * flask-ngrok
   * Pandas
   * plotly
   * scikit-learn
   * scipy
   * xarray
   * arctic [extra]
+  * dash-bio [extra]
+  * flask-ngrok [extra]
   * redis [extra]
   * rpy2 [extra]
+  * streamlit [extra]
+  * swifter [extra]
 * Front-end
   * react-virtualized
   * chart.js

@@ -1,15 +1,12 @@
-import { Action, AnyAction } from 'redux';
-import { ThunkAction } from 'redux-thunk';
-
+import { createActionWithPayload } from '../helpers';
 import {
-  AppState,
   DataViewerUpdate,
   FilteredRanges,
   InstanceSettings,
   Popups,
   QueryEngine,
   RangeState,
-  RibbonDropdownType,
+  RibbonDropdownProps,
   SidePanelType,
   ThemeType,
 } from '../state/AppState';
@@ -63,253 +60,76 @@ export enum ActionType {
   UPDATE_HIDE_HEADER_MENU = 'update-hide-header-menu',
   UPDATE_HIDE_MAIN_MENU = 'update-hide-main-menu',
   UPDATE_HIDE_COLUMN_MENUS = 'update-hide-column-menus',
+  UPDATE_HIDE_ROW_EXPANDERS = 'update-hide-row-expanders',
   UPDATE_ENABLE_CUSTOM_FILTERS = 'update-enable-custom-filters',
+  UPDATE_COLUMN_AGGREGATIONS = 'update-column-aggregations',
 }
 
-/** Action fired when a range is selected */
-export type SetRangeStateAction = Action<typeof ActionType.SET_RANGE_STATE> & RangeState;
-
-/** Action fired when application initially loads */
-export type InitAction = Action<typeof ActionType.INIT_PARAMS>;
-
-/** Action fired when user cancels a cell edit */
-export type ClearEditAction = Action<typeof ActionType.CLEAR_EDIT>;
-
-/** Action fired when user wants to convert their data to XArray */
-export type ConvertToXarrayAction = Action<typeof ActionType.CONVERT_TO_XARRAY>;
-
-/** Action fired to hide menu item tooltips */
-export type HideMenuTooltipAction = Action<typeof ActionType.HIDE_MENU_TOOLTIP>;
-
-/** Action fired to show the ribbon menu */
-export type ShowRibbonMenuAction = Action<typeof ActionType.SHOW_RIBBON_MENU>;
-
-/** Action fired to hide the ribbon menu */
-export type HideRibbonMenuAction = Action<typeof ActionType.HIDE_RIBBON_MENU>;
-
-/** Action fired to hide the side panel */
-export type HideSidePanelAction = Action<typeof ActionType.HIDE_SIDE_PANEL>;
-
-/** Action fired to clear any executed data viewer updates */
-export type ClearDataViewerUpdateAction = Action<typeof ActionType.CLEAR_DATA_VIEWER_UPDATE>;
-
-/** Action fired to stop resizing columns */
-export type StopResizeAction = Action<typeof ActionType.STOP_RESIZE>;
-
-/** Action fired to close a popup */
-export type CloseChartAction = Action<typeof ActionType.CLOSE_CHART>;
-
-/** Action fired when a dataset is being loaded */
-export type LoadingDatasetsAction = Action<typeof ActionType.LOADING_DATASETS>;
-
-/** Action fired when clearing max width setting */
-export type ClearMaxWidthAction = Action<typeof ActionType.CLEAR_MAX_WIDTH>;
-
-/** Action fired when clearing max height setting */
-export type ClearMaxHeightAction = Action<typeof ActionType.CLEAR_MAX_HEIGHT>;
-
-/** Action fired when toggling the state of the main menu being pinned or not */
-export type ToggleMenuPinnedAction = Action<typeof ActionType.TOGGLE_MENU_PINNED>;
-
-/** Action fired when D-Tale is loaded in "preview" mode */
-export interface LoadPreviewAction extends Action<typeof ActionType.LOAD_PREVIEW> {
-  dataId: string;
-}
-
-/** Action fired when a user edits a cell */
-export interface EditedCellAction extends Action<typeof ActionType.EDIT_CELL> {
-  editedCell?: string;
-}
-
-/** Action fired for sizing the height of textarea for cell editing */
-export interface EditedTextAreaHeightAction extends Action<typeof ActionType.EDITED_CELL_TEXTAREA_HEIGHT> {
-  height: number;
-}
-
-/** Action fired for toggling the display of a column menu */
-export interface ToggleColumnAction extends Action<typeof ActionType.TOGGLE_COLUMN_MENU | ActionType.HIDE_COLUMN_MENU> {
-  colName?: string;
-  headerRef?: HTMLDivElement;
-}
-
-/** Action fired for toggling the display of the main menu */
-export type ToggleMenuAction = Action<typeof ActionType.OPEN_MENU | ActionType.CLOSE_MENU>;
-
-/** Action fired for opening the formatting menu */
-export interface OpenFormattingAction extends Action<typeof ActionType.OPEN_FORMATTING> {
-  selectedCol: string;
-}
-
-/** Action fired for closing the formatting menu */
-export type CloseFormattingAction = Action<typeof ActionType.CLOSE_FORMATTING>;
-
-/** Action fired when updating xarray dimensions */
-export interface UpdateXarrayDimAction extends Action<typeof ActionType.UPDATE_XARRAY_DIM> {
-  xarrayDim: Record<string, boolean>;
-}
-
-/** Action fired when updating filtered ranges */
-export interface UpdateFilteredRangesAction extends Action<typeof ActionType.UPDATE_FILTERED_RANGES> {
-  ranges: FilteredRanges;
-}
-
-/** Action fired when updating instance settings */
-export interface UpdateSettingsAction extends Action<typeof ActionType.UPDATE_SETTINGS> {
-  settings: Partial<InstanceSettings>;
-}
-
-/** Action fired when showing a main menu tooltip */
-export interface ShowMenuTooltipAction extends Action<typeof ActionType.SHOW_MENU_TOOLTIP> {
-  element: HTMLElement;
-  content: React.ReactNode;
-}
-
-/** Action fired when opening a ribbon dropdown */
-export interface OpenRibbonDropdownAction extends Action<typeof ActionType.OPEN_RIBBON_DROPDOWN> {
-  element: HTMLDivElement;
-  name: RibbonDropdownType;
-}
-
-/** Action fired when showing or updating the width of the side panel */
-export interface SidePanelAction
-  extends Action<typeof ActionType.SHOW_SIDE_PANEL | ActionType.UPDATE_SIDE_PANEL_WIDTH> {
+/** Side panel action properties */
+export interface SidePanelActionProps {
   view?: SidePanelType;
   column?: string;
   offset?: number;
 }
 
-/** Action fired when executing a data viewer update */
-export interface DataViewerUpdateAction extends Action<typeof ActionType.DATA_VIEWER_UPDATE> {
-  update: DataViewerUpdate;
-}
-
-/** Action fired when dragging/resizing a column */
-export interface DragResizeAction extends Action<typeof ActionType.DRAG_RESIZE> {
-  x: number;
-}
-
-/** Action fired when setting a theme */
-export interface SetThemeAction extends Action<typeof ActionType.SET_THEME> {
-  theme: ThemeType;
-}
-
-/** Action fired when setting a language */
-export interface SetLanguageAction extends Action<typeof ActionType.SET_LANGUAGE> {
-  language: string;
-}
-
-/** Action fired when updating the maximum column width */
-export interface UpdateMaxColumnWidthAction extends Action<typeof ActionType.UPDATE_MAX_WIDTH> {
-  width: number;
-}
-
-/** Action fired when updating the maximum row height */
-export interface UpdateMaxRowHeightAction extends Action<typeof ActionType.UPDATE_MAX_HEIGHT> {
-  height: number;
-}
-
-/** Action fired when setting the query engine for custom filters */
-export interface SetQueryEngineAction extends Action<typeof ActionType.SET_QUERY_ENGINE> {
-  engine: QueryEngine;
-}
-
-/** Action fired when updating whether to show all columns when in "heatmap" mode */
-export interface UpdateShowAllHeatmapColumnsAction extends Action<typeof ActionType.UPDATE_SHOW_ALL_HEATMAP_COLUMNS> {
-  showAllHeatmapColumns: boolean;
-}
-
-/** Action fired when opening a chart popup */
-export interface OpenChartAction extends Action<typeof ActionType.OPEN_CHART> {
-  chartData: Popups;
-}
-
-/** Action fired when updating the hide_shutdown flag */
-export interface UpdateHideShutdown extends Action<typeof ActionType.UPDATE_HIDE_SHUTDOWN> {
-  value: boolean;
-}
-
-/** Action fired when updating the allow_cell_edits flag */
-export interface UpdateAllowCellEdits extends Action<typeof ActionType.UPDATE_ALLOW_CELL_EDITS> {
-  value: boolean | string[];
-}
-
-/** Action fired when updating the hide_header_editor flag */
-export interface UpdateHideHeaderEditor extends Action<typeof ActionType.UPDATE_HIDE_HEADER_EDITOR> {
-  value: boolean;
-}
-
-/** Action fired when updating the lock_header_menu flag */
-export interface UpdateLockHeaderMenu extends Action<typeof ActionType.UPDATE_LOCK_HEADER_MENU> {
-  value: boolean;
-}
-
-/** Action fired when updating the hide_header_menu flag */
-export interface UpdateHideHeaderMenu extends Action<typeof ActionType.UPDATE_HIDE_HEADER_MENU> {
-  value: boolean;
-}
-
-/** Action fired when updating the hide_main_menu flag */
-export interface UpdateHideMainMenu extends Action<typeof ActionType.UPDATE_HIDE_MAIN_MENU> {
-  value: boolean;
-}
-
-/** Action fired when updating the hide_column_menus flag */
-export interface UpdateHideColumnMenus extends Action<typeof ActionType.UPDATE_HIDE_COLUMN_MENUS> {
-  value: boolean;
-}
-
-/** Action fired when updating the enable_custom_filters flag */
-export interface UpdateEnableCustomFilters extends Action<typeof ActionType.UPDATE_ENABLE_CUSTOM_FILTERS> {
-  value: boolean;
-}
-
-/** Type definition encompassing all application actions */
-export type AppActionTypes =
-  | InitAction
-  | ClearEditAction
-  | ConvertToXarrayAction
-  | HideMenuTooltipAction
-  | ShowRibbonMenuAction
-  | HideRibbonMenuAction
-  | HideSidePanelAction
-  | ClearDataViewerUpdateAction
-  | StopResizeAction
-  | CloseChartAction
-  | LoadingDatasetsAction
-  | ClearMaxWidthAction
-  | ClearMaxHeightAction
-  | ToggleMenuPinnedAction
-  | LoadPreviewAction
-  | EditedCellAction
-  | EditedTextAreaHeightAction
-  | ToggleColumnAction
-  | ToggleMenuAction
-  | OpenFormattingAction
-  | CloseFormattingAction
-  | UpdateXarrayDimAction
-  | UpdateFilteredRangesAction
-  | UpdateSettingsAction
-  | ShowMenuTooltipAction
-  | OpenRibbonDropdownAction
-  | SidePanelAction
-  | DataViewerUpdateAction
-  | DragResizeAction
-  | SetThemeAction
-  | SetLanguageAction
-  | UpdateMaxColumnWidthAction
-  | UpdateMaxRowHeightAction
-  | SetQueryEngineAction
-  | UpdateShowAllHeatmapColumnsAction
-  | OpenChartAction
-  | SetRangeStateAction
-  | UpdateHideShutdown
-  | UpdateAllowCellEdits
-  | UpdateHideHeaderEditor
-  | UpdateLockHeaderMenu
-  | UpdateHideHeaderMenu
-  | UpdateHideMainMenu
-  | UpdateHideColumnMenus
-  | UpdateEnableCustomFilters;
-
-/** Type definition for redux application actions */
-export type AppActions<R> = ThunkAction<R, AppState, Record<string, unknown>, AnyAction>;
+export const AppActions = {
+  SetRangeStateAction: createActionWithPayload<RangeState>(ActionType.SET_RANGE_STATE),
+  InitAction: createActionWithPayload(ActionType.INIT_PARAMS),
+  ClearEditAction: createActionWithPayload(ActionType.CLEAR_EDIT),
+  ConvertToXarrayAction: createActionWithPayload(ActionType.CONVERT_TO_XARRAY),
+  HideMenuTooltipAction: createActionWithPayload(ActionType.HIDE_MENU_TOOLTIP),
+  ShowRibbonMenuAction: createActionWithPayload(ActionType.SHOW_RIBBON_MENU),
+  HideRibbonMenuAction: createActionWithPayload(ActionType.HIDE_RIBBON_MENU),
+  HideSidePanelAction: createActionWithPayload(ActionType.HIDE_SIDE_PANEL),
+  ClearDataViewerUpdateAction: createActionWithPayload(ActionType.CLEAR_DATA_VIEWER_UPDATE),
+  StopResizeAction: createActionWithPayload(ActionType.STOP_RESIZE),
+  CloseChartAction: createActionWithPayload(ActionType.CLOSE_CHART),
+  LoadingDatasetsAction: createActionWithPayload(ActionType.LOADING_DATASETS),
+  ClearMaxWidthAction: createActionWithPayload(ActionType.CLEAR_MAX_WIDTH),
+  ClearMaxHeightAction: createActionWithPayload(ActionType.CLEAR_MAX_HEIGHT),
+  ToggleMenuPinnedAction: createActionWithPayload(ActionType.TOGGLE_MENU_PINNED),
+  LoadPreviewAction: createActionWithPayload<string>(ActionType.LOAD_PREVIEW),
+  EditedCellAction: createActionWithPayload<string | undefined>(ActionType.EDIT_CELL),
+  EditedTextAreaHeightAction: createActionWithPayload<number>(ActionType.EDITED_CELL_TEXTAREA_HEIGHT),
+  ToggleColumnMenuAction: createActionWithPayload<{
+    colName?: string;
+    headerRef?: HTMLElement;
+  }>(ActionType.TOGGLE_COLUMN_MENU),
+  HideColumnMenuAction: createActionWithPayload<{
+    colName?: string;
+    headerRef?: HTMLElement;
+  }>(ActionType.HIDE_COLUMN_MENU),
+  OpenMenuAction: createActionWithPayload(ActionType.OPEN_MENU),
+  CloseMenuAction: createActionWithPayload(ActionType.CLOSE_MENU),
+  UpdateColumnAggregations: createActionWithPayload<{ colName?: string }>(ActionType.UPDATE_COLUMN_AGGREGATIONS),
+  OpenFormattingAction: createActionWithPayload<string>(ActionType.OPEN_FORMATTING),
+  CloseFormattingAction: createActionWithPayload(ActionType.CLOSE_FORMATTING),
+  UpdateXarrayDimAction: createActionWithPayload<Record<string, any>>(ActionType.UPDATE_XARRAY_DIM),
+  UpdateFilteredRangesAction: createActionWithPayload<FilteredRanges>(ActionType.UPDATE_FILTERED_RANGES),
+  UpdateSettingsAction: createActionWithPayload<Partial<InstanceSettings>>(ActionType.UPDATE_SETTINGS),
+  ShowMenuTooltipAction: createActionWithPayload<{
+    element: HTMLElement;
+    content: React.ReactNode;
+  }>(ActionType.SHOW_MENU_TOOLTIP),
+  OpenRibbonDropdownAction: createActionWithPayload<RibbonDropdownProps>(ActionType.OPEN_RIBBON_DROPDOWN),
+  ShowSidePanelAction: createActionWithPayload<SidePanelActionProps>(ActionType.SHOW_SIDE_PANEL),
+  UpdateSidePanelWidthAction: createActionWithPayload<SidePanelActionProps>(ActionType.UPDATE_SIDE_PANEL_WIDTH),
+  DataViewerUpdateAction: createActionWithPayload<DataViewerUpdate>(ActionType.DATA_VIEWER_UPDATE),
+  DragResizeAction: createActionWithPayload<number>(ActionType.DRAG_RESIZE),
+  SetThemeAction: createActionWithPayload<ThemeType>(ActionType.SET_THEME),
+  SetLanguageAction: createActionWithPayload<string>(ActionType.SET_LANGUAGE),
+  UpdateMaxColumnWidthAction: createActionWithPayload<number>(ActionType.UPDATE_MAX_WIDTH),
+  UpdateMaxRowHeightAction: createActionWithPayload<number>(ActionType.UPDATE_MAX_HEIGHT),
+  SetQueryEngineAction: createActionWithPayload<QueryEngine>(ActionType.SET_QUERY_ENGINE),
+  UpdateShowAllHeatmapColumnsAction: createActionWithPayload<boolean>(ActionType.UPDATE_SHOW_ALL_HEATMAP_COLUMNS),
+  OpenChartAction: createActionWithPayload<Popups>(ActionType.OPEN_CHART),
+  UpdateHideShutdown: createActionWithPayload<boolean>(ActionType.UPDATE_HIDE_SHUTDOWN),
+  UpdateAllowCellEdits: createActionWithPayload<boolean | string[]>(ActionType.UPDATE_ALLOW_CELL_EDITS),
+  UpdateHideHeaderEditor: createActionWithPayload<boolean>(ActionType.UPDATE_HIDE_HEADER_EDITOR),
+  UpdateLockHeaderMenu: createActionWithPayload<boolean>(ActionType.UPDATE_LOCK_HEADER_MENU),
+  UpdateHideHeaderMenu: createActionWithPayload<boolean>(ActionType.UPDATE_HIDE_HEADER_MENU),
+  UpdateHideMainMenu: createActionWithPayload<boolean>(ActionType.UPDATE_HIDE_MAIN_MENU),
+  UpdateHideColumnMenus: createActionWithPayload<boolean>(ActionType.UPDATE_HIDE_COLUMN_MENUS),
+  UpdateHideRowExpanders: createActionWithPayload<boolean>(ActionType.UPDATE_HIDE_ROW_EXPANDERS),
+  UpdateEnableCustomFilters: createActionWithPayload<boolean>(ActionType.UPDATE_ENABLE_CUSTOM_FILTERS),
+};

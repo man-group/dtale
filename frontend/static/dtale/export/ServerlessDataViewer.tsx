@@ -1,6 +1,5 @@
 import { createSelector } from '@reduxjs/toolkit';
 import * as React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import {
   AutoSizer as _AutoSizer,
   MultiGrid as _MultiGrid,
@@ -8,10 +7,10 @@ import {
   GridCellProps,
   MultiGridProps,
 } from 'react-virtualized';
-import { AnyAction } from 'redux';
 
 import { usePrevious } from '../../customHooks';
 import * as actions from '../../redux/actions/dtale';
+import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import * as selectors from '../../redux/selectors';
 import { DataResponseContent } from '../../repository/DataRepository';
 import * as bu from '../backgroundUtils';
@@ -74,10 +73,9 @@ export const ServerlessDataViewer: React.FC<ServerlessDataViewerProps> = ({ resp
     maxRowHeight,
     editedTextAreaHeight,
     verticalHeaders,
-  } = useSelector(selectResult);
-  const dispatch = useDispatch();
-  const updateFilteredRanges = (query: string): AnyAction =>
-    dispatch(actions.updateFilteredRanges(query) as any as AnyAction);
+  } = useAppSelector(selectResult);
+  const dispatch = useAppDispatch();
+  const updateFilteredRanges = (query: string): void => dispatch(actions.updateFilteredRanges(query));
 
   const [rowCount, setRowCount] = React.useState(0);
   const [data, setData] = React.useState<DataViewerData>({});
@@ -113,7 +111,7 @@ export const ServerlessDataViewer: React.FC<ServerlessDataViewerProps> = ({ resp
       let updatedColumns = [...columns];
       updatedColumns = response.columns.map((c: ColumnDef) => ({
         ...c,
-        locked: c.name === gu.IDX || (settings?.locked ?? []).includes(c.name),
+        locked: gu.isIndex(c.name) || (settings?.locked ?? []).includes(c.name),
         ...gu.calcColWidth(c, updatedData, updatedRowCount, settings.sortInfo, settings.backgroundMode, maxColumnWidth),
       }));
       if (settings.backgroundMode === 'outliers') {

@@ -6,7 +6,8 @@ import { Provider } from 'react-redux';
 import * as chartUtils from '../../../chartUtils';
 import * as menuUtils from '../../../menuUtils';
 import Charts from '../../../popups/charts/Charts';
-import { ActionType } from '../../../redux/actions/AppActions';
+import { AppActions } from '../../../redux/actions/AppActions';
+import { PopupType } from '../../../redux/state/AppState';
 import * as ChartsRepository from '../../../repository/ChartsRepository';
 import DimensionsHelper from '../../DimensionsHelper';
 import { mockColumnDef } from '../../mocks/MockColumnDef';
@@ -105,7 +106,7 @@ export class Spies {
   public async setupCharts(): Promise<Element> {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '' }, store);
-    store.dispatch({ type: ActionType.OPEN_CHART, chartData: { visible: true, x: 'col4', y: ['col1'] } });
+    store.dispatch(AppActions.OpenChartAction({ type: PopupType.CHARTS, visible: true, x: 'col4', y: ['col1'] }));
     this.result = await act(
       () =>
         render(
@@ -117,7 +118,7 @@ export class Spies {
           },
         ).container,
     );
-    return this.result;
+    return this.result!;
   }
 
   /**

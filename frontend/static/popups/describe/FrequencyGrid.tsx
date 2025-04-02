@@ -86,7 +86,7 @@ const FrequencyGrid: React.FC<FrequencyGridProps & WithTranslation> = ({ t, fetc
   const filteredData = React.useMemo(() => {
     const filterVal = filters[selectedCol];
     if (filterVal) {
-      return frequencyGridRows.filter((row) => row[selectedCol].toLowerCase().startsWith(filterVal.toLowerCase()));
+      return frequencyGridRows.filter((row) => `${row[selectedCol]}`.toLowerCase().startsWith(filterVal.toLowerCase()));
     }
     return frequencyGridRows;
   }, [frequencyGridRows, filters]);

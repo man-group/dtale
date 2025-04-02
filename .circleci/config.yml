@@ -70,7 +70,7 @@ python_variables: &python_variables
   CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
   CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
   CODECOV_TOKEN: b0d35139-0a75-427a-907b-2c78a762f8f0
-  VERSION: 3.7.0
+  VERSION: 3.17.0
   PANDOC_RELEASES_URL: https://github.com/jgm/pandoc/releases
 python_formatting: &python_formatting
     parallelism: 1
@@ -153,21 +153,9 @@ python: &python
           command: |
             virtualenv ci
             . ci/bin/activate
-            # xlrd & xarray do not load correctly from "python setup.py develop"
-            # possibly switch this script to use "pip install -r requirements.txt"
-            pip install xlrd
-            pip install xarray
-            if [ "${CIRCLE_JOB}" == "build_3_10" ]; then
-              pip install pybind11
-              pip install -r requirements.txt
-            fi
-            # dash>=2.0.0 has a dependency on typing_extensions>=3.6.4 and for some reason circleci allows you to
-            # download versions greater than 4.1.1 which aren't compatible with python 3.6
-            if [ "${CIRCLE_JOB}" == "build_3_6" ]; then
-              pip install typing_extensions==4.1.1
-              pip install soupsieve==2.3.2
-            fi
+            pip install -r requirements.txt
             python setup.py develop
+            pip install matplotlib --force-reinstall
       - run:
           name: Print environment
           command: |
@@ -191,10 +179,14 @@ python: &python
           command: |
             set -e
             . ci/bin/activate
+            if [ "${CIRCLE_JOB}" == "build_2_7" ]; then
+              pip install backports.functools-lru-cache==1.6.6
+            fi
             if [ "${CIRCLE_JOB}" != "build_2_7" ]; then
               pip install -e ".[arcticdb]"
             fi
             pip install -e ".[dash-bio]"
+            pip install -e ".[ngrok]"
             pip install -e ".[redis]"
             pip install -e ".[r]"
             pip install -e ".[tests]"
@@ -237,14 +229,13 @@ python: &python
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
               set -e
               . ci/bin/activate
-              pip install pypandoc
-              pip install docutils
-              pip install Pygments
+              pip install -r requirements-docs.txt
               grep version setup.py | grep -q $VERSION || (echo "ERROR: Version number not found in setup.py: $VERSION"; exit 1)
               grep -q $VERSION CHANGES.md || (echo "ERROR: Version number not found in CHANGES.md: $VERSION"; exit 1)
               grep -q $VERSION docker/dtale.env || (echo "ERROR: Version number not found in docker/dtale.env: $VERSION"; exit 1)
               grep -q $VERSION docs/source/conf.py || (echo "ERROR: Version number not found in docs/source/conf.py: $VERSION"; exit 1)
-              grep -q $VERSION frontend/package.json || (echo "ERROR: Version number not found in package.json: $VERSION"; exit 1)
+              grep -q $VERSION frontend/package.json || (echo "ERROR: Version number not found in frontend/package.json: $VERSION"; exit 1)
+              grep -q $VERSION dash-components/package.json || (echo "ERROR: Version number not found in dash-components/package.json: $VERSION"; exit 1)
               python setup.py --long-description > ../README.rst
               # pandoc --from=markdown --to=rst --output=../README.rst README.md
               cat ../README.rst | rst2html.py 1> ../README.html 2> ../log
@@ -272,7 +263,7 @@ jobs:
   build_JS:
     working_directory: /mnt/ramdisk
     docker:
-      - image: cimg/node:19.0.1
+      - image: cimg/node:20.10.0
     <<: *javascript
   check_python_formatting:
     working_directory: ~/man-group/dtale_python_formatting
