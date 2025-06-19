@@ -6,7 +6,7 @@
   "Equal Frequency": "等频",
   "the bins are of equal sized ranges": "分箱具有相等大小的范围",
   "the bins contain an equal amount of values": "分箱包含相等数量的值",
-  "auto_load_msg": "默认情况下，图表构建器会在每次更改图表设置时尝试构建图表。如果您关闭"自动加载"，则可以随意更改设置而不会触发图表构建。要在关闭"自动加载"的情况下触发图表构建，您必须点击"加载"按钮。",
+  "auto_load_msg": "默认情况下，图表构建器会在每次更改图表设置时尝试构建图表。如果您关闭\"自动加载\"，则可以随意更改设置而不会触发图表构建。要在关闭\"自动加载\"的情况下触发图表构建，您必须点击\"加载\"按钮。",
   "Projection": "投影",
   "To access additional styles enter a token here...": "要访问其他样式，请在此处输入令牌...",
   "Change your token here...": "在此处更改您的令牌...",
