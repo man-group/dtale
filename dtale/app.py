@@ -619,8 +619,6 @@ def find_free_port():
 
 
 def build_startup_url_and_app_root(app_root=None):
-    global ACTIVE_HOST, ACTIVE_PORT, SSL_CONTEXT, JUPYTER_SERVER_PROXY, USE_COLAB
-
     if USE_COLAB:
         colab_host = use_colab(ACTIVE_PORT)
         if colab_host:
@@ -746,7 +744,7 @@ def show(data=None, data_loader=None, name=None, context_vars=None, **options):
 
         ..link displayed in logging can be copied and pasted into any browser
     """
-    global ACTIVE_HOST, ACTIVE_PORT, SSL_CONTEXT, USE_COLAB, USE_NGROK
+    global ACTIVE_HOST, ACTIVE_PORT, SSL_CONTEXT
 
     if name:
         if global_state.get_data_id_by_name(name):

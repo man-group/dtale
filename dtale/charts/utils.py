@@ -65,8 +65,6 @@ CHART_POINTS_LIMIT = (
 
 
 def get_mapbox_token():
-    global MAPBOX_TOKEN
-
     return MAPBOX_TOKEN
 
 

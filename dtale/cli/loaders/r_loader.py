@@ -31,7 +31,6 @@ def loader_func(**kwargs):
     except ImportError:
         raise ImportError("In order to use the R loader you must install rpy2!")
 
-    pandas2ri.activate()
     base = importr("base")
     path = kwargs.pop("path")
     base.load(path)

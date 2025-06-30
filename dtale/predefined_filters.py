@@ -46,8 +46,6 @@ class PredefinedFilter(object):
 
 
 def get_filters():
-    global PREDEFINED_FILTERS
-
     return PREDEFINED_FILTERS
 
 
@@ -81,8 +79,6 @@ def add_filters(filters):
 
 
 def init_filters():
-    global PREDEFINED_FILTERS
-
     return {
         f.name: (
             dict(value=f.default, active=f.active)
