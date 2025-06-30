@@ -20,8 +20,6 @@ def load_config_state(path):
 
 
 def get_config():
-    global LOADED_CONFIG
-
     if LOADED_CONFIG:
         return LOADED_CONFIG
     ini_path = os.path.expandvars(

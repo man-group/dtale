@@ -590,13 +590,10 @@ def update_settings(data_id, settings):
 
 
 def get_app_settings():
-    global APP_SETTINGS
     return APP_SETTINGS
 
 
 def set_app_settings(settings):
-    global APP_SETTINGS
-
     for prop, val in settings.items():
         APP_SETTINGS[prop] = val
 
@@ -642,25 +639,19 @@ def set_app_settings(settings):
 
 
 def get_auth_settings():
-    global AUTH_SETTINGS
     return AUTH_SETTINGS
 
 
 def set_auth_settings(settings):
-    global AUTH_SETTINGS
-
     for prop, val in settings.items():
         AUTH_SETTINGS[prop] = val
 
 
 def get_chart_settings():
-    global CHART_SETTINGS
     return CHART_SETTINGS
 
 
 def set_chart_settings(settings):
-    global CHART_SETTINGS
-
     for prop, val in settings.items():
         CHART_SETTINGS[prop] = val
 

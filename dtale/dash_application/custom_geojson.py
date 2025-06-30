@@ -15,16 +15,12 @@ CUSTOM_GEOJSON = []
 
 
 def get_custom_geojson(geojson_id=None):
-    global CUSTOM_GEOJSON
-
     if geojson_id is None:
         return CUSTOM_GEOJSON
     return next((ct for ct in CUSTOM_GEOJSON if ct["key"] == geojson_id), None)
 
 
 def add_custom_geojson(geojson_key, geojson):
-    global CUSTOM_GEOJSON
-
     suffix = 0
     while get_custom_geojson("{}{}".format(geojson_key, suffix or "")):
         suffix += 1

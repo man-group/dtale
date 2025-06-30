@@ -103,8 +103,6 @@ def build_loaders():
     configuration which can be referenced from the command line.
 
     """
-    global LOADERS
-
     custom_loader_path = os.environ.get("DTALE_CLI_LOADERS")
     if custom_loader_path is not None:
         custom_loader_func = custom_module_loader()
