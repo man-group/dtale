@@ -931,6 +931,7 @@ def startup(
     is_proxy=None,
     vertical_headers=False,
     hide_shutdown=None,
+    theme=None,
     column_edit_options=None,
     auto_hide_empty_columns=False,
     highlight_filter=False,
@@ -1063,6 +1064,7 @@ def startup(
             is_proxy=is_proxy,
             vertical_headers=vertical_headers,
             hide_shutdown=hide_shutdown,
+            theme=theme,
             column_edit_options=column_edit_options,
             auto_hide_empty_columns=auto_hide_empty_columns,
             highlight_filter=highlight_filter,
@@ -1139,6 +1141,7 @@ def startup(
                 is_proxy=is_proxy,
                 vertical_headers=vertical_headers,
                 hide_shutdown=hide_shutdown,
+                theme=theme,
                 column_edit_options=column_edit_options,
                 auto_hide_empty_columns=auto_hide_empty_columns,
                 highlight_filter=highlight_filter,
@@ -1209,6 +1212,8 @@ def startup(
             base_settings["nanDisplay"] = nan_display
         if hide_shutdown is not None:
             base_settings["hide_shutdown"] = hide_shutdown
+        if theme is not None:
+            base_settings["theme"] = theme
         if hide_header_editor is not None:
             base_settings["hide_header_editor"] = hide_header_editor
         if lock_header_menu is not None:
@@ -1326,6 +1331,7 @@ def base_render_template(template, data_id, **kwargs):
     hide_row_expanders = global_state.load_flag(data_id, "hide_row_expanders", False)
     main_title = global_state.load_flag(data_id, "main_title", None)
     main_title_font = global_state.load_flag(data_id, "main_title_font", None)
+    theme = global_state.load_flag(data_id, "theme", "light")
     enable_custom_filters = global_state.load_flag(
         data_id, "enable_custom_filters", False
     )
@@ -1344,6 +1350,7 @@ def base_render_template(template, data_id, **kwargs):
         github_fork=github_fork,
         main_title=main_title,
         main_title_font=main_title_font,
+        theme=theme,
     )
     is_arcticdb = 0
     arctic_conn = ""
