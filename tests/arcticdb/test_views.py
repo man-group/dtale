@@ -1,10 +1,10 @@
 import json
 import mock
 import pytest
-from pkg_resources import parse_version
 
 import dtale.global_state as global_state
 from dtale.app import build_app
+from dtale.utils import parse_version
 from tests import ExitStack
 
 

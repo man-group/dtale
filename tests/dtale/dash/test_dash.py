@@ -6,7 +6,6 @@ import pandas as pd
 import platform
 import pytest
 import dtale.global_state as global_state
-from pkg_resources import parse_version
 from six import PY3
 
 
@@ -21,7 +20,7 @@ from dtale.dash_application.charts import (
 )
 from dtale.dash_application.components import Wordcloud
 from dtale.dash_application.layout.layout import REDS, update_label_for_freq_and_agg
-from dtale.utils import dict_merge, make_list
+from dtale.utils import dict_merge, make_list, parse_version
 from tests import ExitStack
 from tests.dtale import build_data_inst
 from tests.dtale.test_charts import build_col_def

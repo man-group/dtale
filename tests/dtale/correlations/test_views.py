@@ -4,12 +4,11 @@ import json
 import platform
 import pytest
 
-from pkg_resources import parse_version
-
 import dtale.global_state as global_state
 import dtale.pandas_util as pandas_util
 
 from dtale.charts.utils import CHART_POINTS_LIMIT
+from dtale.utils import parse_version
 
 from tests.dtale.test_views import app, build_ts_data
 from tests.dtale import build_data_inst, build_settings, build_dtypes
