@@ -223,6 +223,7 @@ def build_show_options(options=None):
         background_mode=None,
         range_highlights=None,
         vertical_headers=False,
+        theme=None,
         hide_shutdown=None,
         column_edit_options=None,
         auto_hide_empty_columns=False,
