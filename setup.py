@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import logging
-import sys
-
 from setuptools import find_packages, setup
-from setuptools.command.test import test as TestCommand
 
 
 def read_file(path):
@@ -25,49 +21,6 @@ try:
     long_description = pypandoc_func("DESCRIPTION.md", "rst")
 except (IOError, ImportError, OSError):
     long_description = read_file("DESCRIPTION.md")
-
-
-class PyTest(TestCommand):
-    user_options = [("pytest-args=", "a", "Arguments to pass to py.test")]
-
-    def initialize_options(self):
-        TestCommand.initialize_options(self)
-        self.pytest_args = []
-
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        logging.basicConfig(
-            format="%(asctime)s %(levelname)s %(name)s %(message)s", level="DEBUG"
-        )
-
-        # import here, cause outside the eggs aren't loaded
-        import pytest
-        import six
-
-        args = (
-            [self.pytest_args]
-            if isinstance(self.pytest_args, six.string_types)
-            else list(self.pytest_args)
-        )
-        args.extend(
-            [
-                "--cov",
-                "dtale",
-                "--cov-report",
-                "xml",
-                "--cov-report",
-                "html",
-                "--junitxml",
-                "junit.xml",
-                "-v",
-            ]
-        )
-        errno = pytest.main(args)
-        sys.exit(errno)
 
 
 setup(
@@ -111,7 +64,6 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
-    cmdclass={"test": PyTest},
     packages=find_packages(exclude=["tests*", "script*"]),
     package_data={
         "dtale": [
@@ -125,6 +77,7 @@ setup(
             "static/maps/*",
             "templates/**/*",
             "templates/**/**/*",
+            "translations/*",
         ]
     },
     entry_points={
