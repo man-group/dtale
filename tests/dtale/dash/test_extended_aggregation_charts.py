@@ -1,10 +1,10 @@
 import pandas as pd
 import pytest
-from pkg_resources import parse_version
 
 import dtale.global_state as global_state
 
 from dtale.app import build_app
+from dtale.utils import parse_version
 
 from tests.dtale import build_data_inst
 from tests.dtale.dash.test_dash import build_chart_params, clean_params, get_url_parser

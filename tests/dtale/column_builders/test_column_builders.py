@@ -3,12 +3,12 @@ import pandas as pd
 import pytest
 import sklearn as skl
 from numpy.random import randn
-from pkg_resources import parse_version
 from six import PY3
 
 import dtale.pandas_util as pandas_util
 
 from dtale.column_builders import ColumnBuilder, ZERO_STD_ERROR
+from dtale.utils import parse_version
 from tests.dtale import build_data_inst
 
 

@@ -1,7 +1,9 @@
 import pandas as pd
 
 from logging import getLogger
-from pkg_resources import parse_version
+
+from dtale.utils import parse_version
+
 
 logger = getLogger(__name__)
 

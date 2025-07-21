@@ -1,8 +1,8 @@
 import pandas as pd
-from pkg_resources import parse_version
 
 from dtale.app import show
 from dtale.cli.clickutils import get_loader_options, handle_path, loader_prop_keys
+from dtale.utils import parse_version
 
 """
   IMPORTANT!!! These global variables are required for building any customized CLI loader.

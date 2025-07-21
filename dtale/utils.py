@@ -15,7 +15,7 @@ from flask import jsonify as _jsonify
 
 import numpy as np
 import pandas as pd
-from pkg_resources import parse_version
+from packaging.version import Version as parse_version
 from past.utils import old_div
 from six import BytesIO, PY3, StringIO
 

@@ -9,14 +9,13 @@ import pandas as pd
 import platform
 import pytest
 from pandas.tseries.offsets import Day
-from pkg_resources import parse_version
 from six import PY3
 
 import dtale.pandas_util as pandas_util
 
 from dtale.app import build_app
 from dtale.pandas_util import check_pandas_version
-from dtale.utils import DuplicateDataError
+from dtale.utils import DuplicateDataError, parse_version
 from tests import ExitStack, pdt
 from tests.dtale import build_data_inst, build_settings, build_dtypes
 from tests.dtale.test_charts import build_col_def

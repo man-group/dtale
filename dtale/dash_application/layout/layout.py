@@ -4,7 +4,6 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 import os
 import plotly
-from pkg_resources import parse_version
 from six import PY3
 
 from dtale.dash_application import dcc, html
@@ -44,6 +43,7 @@ from dtale.utils import (
     get_dtypes,
     is_app_root_defined,
     make_list,
+    parse_version,
 )
 
 
