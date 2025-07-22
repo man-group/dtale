@@ -85,6 +85,8 @@ def test_startup(unittest):
         enable_web_uploads=True,
         main_title="test_title",
         main_title_font="test_title_font",
+        theme="dark",
+        nan_display="N/A",
     )
 
     pdt.assert_frame_equal(instance.data, test_data.reset_index())
@@ -112,6 +114,8 @@ def test_startup(unittest):
             highlightFilter=False,
             main_title="test_title",
             main_title_font="test_title_font",
+            theme="dark",
+            nanDisplay="N/A",
         ),
         "should lock index columns",
     )
@@ -141,6 +145,8 @@ def test_startup(unittest):
             highlightFilter=False,
             main_title="test_title",
             main_title_font="test_title_font",
+            theme="dark",
+            nanDisplay="N/A",
         ),
         "should hide header editor",
     )
