@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.18.0 (2025-3-20)
+* [#912](https://github.com/man-group/dtale/issues/912): translation files not being included in bundle
+* [#910](https://github.com/man-group/dtale/issues/910): updates to where 'parse_version' comes from
+* [#909](https://github.com/man-group/dtale/issues/909): allow 'theme' to be set from dtale.show
+
 ### 3.17.0 (2025-3-20)
 * [#905](https://github.com/man-group/dtale/issues/905): updates for dash 3.0.0
 * [#902](https://github.com/man-group/dtale/issues/902): fix text wrapping on row detail popup
