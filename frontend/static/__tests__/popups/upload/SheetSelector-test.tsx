@@ -55,6 +55,6 @@ describe('SheetSelector', () => {
     await act(async () => {
       await fireEvent.click(screen.getByText('Clear Sheets'));
     });
-    expect(setSheets).toBeCalledWith([]);
+    expect(setSheets).toHaveBeenCalledWith([]);
   });
 });

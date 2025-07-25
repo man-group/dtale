@@ -1,6 +1,7 @@
 import { PayloadAction, Store } from '@reduxjs/toolkit';
 
 import * as serverState from '../../dtale/serverStateManagement';
+import { getLocation } from '../../location';
 import { SidePanelActionProps } from '../actions/AppActions';
 import { AppDispatch } from '../helpers';
 import { AppStoreState, AppThunk } from '../reducers/app';
@@ -130,7 +131,7 @@ export const convertToXArray =
 export const setQueryEngine = (engine: QueryEngine): PayloadAction<QueryEngine> =>
   AppActions.SetQueryEngineAction(engine);
 
-export const isPopup = (): boolean => !!window.location.pathname?.startsWith('/dtale/popup');
+export const isPopup = (): boolean => !!getLocation().pathname?.startsWith('/dtale/popup');
 
 export const isJSON = (str: string): boolean => {
   try {
@@ -142,7 +143,7 @@ export const isJSON = (str: string): boolean => {
 };
 
 export const getParams = (): Record<string, string | string[]> => {
-  const search = location.search.substring(1);
+  const search = getLocation().search.substring(1);
   if (!search) {
     return {};
   }

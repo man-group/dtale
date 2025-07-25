@@ -70,7 +70,9 @@ describe('NumericFormatting', () => {
     await act(async () => {
       await fireEvent.click(spies.body().querySelectorAll('div.form-group')[5].getElementsByTagName('button')[0]);
     });
-    expect(spies.body().getElementsByTagName('small')[0].getElementsByTagName('span')[0]).toHaveStyle({ color: 'red' });
+    expect(spies.body().getElementsByTagName('small')[0].getElementsByTagName('span')[0]).toHaveStyle({
+      color: 'rgb(255, 0, 0)',
+    });
     await toggleFormatting(1);
     await toggleFormatting(2);
     await toggleFormatting(3);

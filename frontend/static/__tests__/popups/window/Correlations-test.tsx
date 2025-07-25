@@ -1,4 +1,4 @@
-import { act, createEvent, fireEvent, queryAllByRole, render, screen } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen } from '@testing-library/react';
 import axios from 'axios';
 import * as React from 'react';
 import { Provider } from 'react-redux';
@@ -85,7 +85,7 @@ describe('Correlations tests', () => {
 
   it('Correlations rendering data and filtering it', async () => {
     await buildResult({ col1: 'col1', col2: 'col3' });
-    expect(queryAllByRole(screen.queryAllByRole('grid')[0], 'rowgroup')).toHaveLength(1);
+    expect(screen.queryAllByRole('grid')[3].textContent).toBe('-0.10');
     expect(screen.queryAllByRole('grid')[1].getElementsByClassName('headerCell')).toHaveLength(1);
   });
 

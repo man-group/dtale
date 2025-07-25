@@ -13,6 +13,7 @@ jest.mock('../../../dtale/menu/MaxDimensionOption', () => {
 
 import * as menuFuncs from '../../../dtale/menu/dataViewerMenuUtils';
 import RibbonDropdown, { RibbonDropdownProps } from '../../../dtale/ribbon/RibbonDropdown';
+import * as windowUtils from '../../../location';
 import { ActionType, AppActions } from '../../../redux/actions/AppActions';
 import { RibbonDropdownType, SidePanelType } from '../../../redux/state/AppState';
 import * as InstanceRepository from '../../../repository/InstanceRepository';
@@ -73,7 +74,6 @@ describe('RibbonDropdown', () => {
     delete (window as any).location;
     delete (window as any).open;
     window.open = jest.fn();
-    (window as any).location = { reload: jest.fn() };
     cleanupSpy = jest.spyOn(InstanceRepository, 'cleanupInstance');
     cleanupSpy.mockResolvedValue({ success: true });
     const loadProcessKeysSpy = jest.spyOn(InstanceRepository, 'loadProcessKeys');
@@ -89,7 +89,7 @@ describe('RibbonDropdown', () => {
 
   afterAll(() => {
     dimensions.afterAll();
-    window.location = location;
+    window.location = location as any;
     window.open = open;
     jest.restoreAllMocks();
   });
@@ -124,12 +124,14 @@ describe('RibbonDropdown', () => {
   });
 
   it('can clear current data', async () => {
+    const reloadSpy = jest.fn();
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({ reload: reloadSpy, pathname: '/dtale/iframe/1' } as any);
     await setupElementAndDropdown(RibbonDropdownType.MAIN);
     await act(async () => {
       fireEvent.click(screen.queryAllByTestId('menu-item')[5]);
     });
-    expect(cleanupSpy).toBeCalledWith('1');
-    expect(window.location.reload).toHaveBeenCalledTimes(1);
+    expect(cleanupSpy).toHaveBeenCalledWith('1');
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
   });
 
   it('can clear other data', async () => {
@@ -137,7 +139,7 @@ describe('RibbonDropdown', () => {
     await act(async () => {
       fireEvent.click(screen.queryAllByTestId('data-menu-item-cleanup')[0]);
     });
-    expect(cleanupSpy).toBeCalledWith('2');
+    expect(cleanupSpy).toHaveBeenCalledWith('2');
     expect(screen.queryAllByTestId('data-menu-item')).toHaveLength(0);
   });
 

@@ -93,7 +93,7 @@ describe('DataViewer tests', () => {
       const anchors = details().getElementsByTagName('a');
       fireEvent.click(anchors[anchors.length - 1]);
     });
-    expect(dtypesGrid().querySelectorAll("div[role='row']").length).toBe(5);
+    expect(dtypesGrid().querySelectorAll('div.ReactVirtualized__Table__row')).toHaveLength(4);
     const headers = (): HTMLCollectionOf<Element> => document.body.getElementsByClassName('headerCell');
     const header = (name: string): Element => [...headers()].find((h) => h.textContent === name)!;
     expect(header('#').getElementsByTagName('path')[0]?.getAttribute('d')).toBe(ASC_PATH);
@@ -128,7 +128,7 @@ describe('DataViewer tests', () => {
       const input = headers()[2].getElementsByTagName('input')[0];
       fireEvent.change(input, { target: { value: '1' } });
     });
-    expect(dtypesGrid().querySelectorAll("div[role='row']")).toHaveLength(2);
+    expect(dtypesGrid().querySelectorAll('div.ReactVirtualized__Table__row')).toHaveLength(1);
     await act(async () => {
       fireEvent.click(dtypesGrid().querySelector("div[title='col1']")!);
     });
@@ -146,7 +146,7 @@ describe('DataViewer tests', () => {
     await act(async () => {
       fireEvent.click(document.body.getElementsByClassName('modal-footer')[0].getElementsByTagName('button')[0]);
     });
-    expect(postSpy).toBeCalledTimes(1);
+    expect(postSpy).toHaveBeenCalledTimes(1);
     const firstPostCall = postSpy.mock.calls[0];
     expect(firstPostCall[0]).toBe('/dtale/update-visibility/1');
     expect((firstPostCall[1] as any).visibility).toBe('{"col1":false,"col2":true,"col3":true,"col4":true}');

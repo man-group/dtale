@@ -2,6 +2,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
+import { getLocation } from '../../location';
 import { AppActions } from '../../redux/actions/AppActions';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectIFrame } from '../../redux/selectors';
@@ -33,9 +34,9 @@ const DataMenuItem: React.FC<DataMenuItemProps & WithTranslation> = ({ id, name,
   };
 
   const viewData = (): void => {
-    const currentHost = window.location.origin;
+    const currentHost = getLocation().origin;
     const newLoc = `${currentHost}/dtale/${iframe ? 'iframe' : 'main'}/${id}`;
-    window.location.assign(newLoc);
+    getLocation().assign(newLoc);
   };
 
   return (

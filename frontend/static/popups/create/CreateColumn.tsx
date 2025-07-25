@@ -4,6 +4,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef, DataViewerPropagateState } from '../../dtale/DataViewerState';
+import { getLocation, getOpenerLocation } from '../../location';
 import { closeChart } from '../../redux/actions/charts';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
@@ -108,11 +109,11 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
         setLoadingColumn(false);
         return;
       }
-      if (window.location.pathname.startsWith('/dtale/popup/build')) {
-        window.opener.location.reload();
+      if (getLocation().pathname.startsWith('/dtale/popup/build')) {
+        getOpenerLocation().reload();
         window.close();
       } else if (route === 'reshape') {
-        const newLoc = buildForwardURL(window.location.href, response?.data_id!);
+        const newLoc = buildForwardURL(getLocation().href, response?.data_id!);
         onClose();
         window.open(newLoc, '_blank');
         return;
@@ -206,7 +207,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
     if (code[type]) {
       const codeArr = Array.isArray(code[type]) ? code[type] : [code[type]];
       const isWindow =
-        codeArr.length > 2 && window.location.pathname.includes(`/dtale/popup/${type.split('_').join('-')}`);
+        codeArr.length > 2 && getLocation().pathname.includes(`/dtale/popup/${type.split('_').join('-')}`);
       return <CodeSnippet code={codeArr} isWindow={isWindow} />;
     }
     return null;

@@ -85,8 +85,8 @@ describe('DataViewer tests', () => {
     });
     expect(document.getElementById('copy-range-to-clipboard')).toBeDefined();
     expect(store.getState().chartData.text).toBe(TEXT);
-    expect(buildCopyColumnsSpy).toBeCalledTimes(1);
-    expect(buildCopyColumnsSpy).toBeCalledWith('1', ['col1', 'col2']);
+    expect(buildCopyColumnsSpy).toHaveBeenCalledTimes(1);
+    expect(buildCopyColumnsSpy).toHaveBeenCalledWith('1', ['col1', 'col2']);
 
     await act(async () => {
       fireEvent.click(document.getElementsByClassName('modal-footer')[0].getElementsByTagName('button')[0]);

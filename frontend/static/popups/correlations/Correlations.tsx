@@ -5,6 +5,7 @@ import * as React from 'react';
 import { Bouncer } from '../../Bouncer';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import * as chartUtils from '../../chartUtils';
+import { getLocation, getOpenerLocation } from '../../location';
 import * as actions from '../../redux/actions/dtale';
 import { buildURL } from '../../redux/actions/url-utils';
 import { useAppSelector } from '../../redux/hooks';
@@ -167,10 +168,10 @@ export const Correlations: React.FC = () => {
         updatedQuery.push(`index == ${index}`);
         CustomFilterRepository.save(dataId, updatedQuery.join(' and ')).then(() => {
           if (actions.isPopup()) {
-            (global.window as any).opener.location.reload();
+            getOpenerLocation().reload();
             return;
           }
-          (global.window as any).location.reload();
+          getLocation().reload();
         });
       }
     }

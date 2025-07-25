@@ -1,5 +1,6 @@
 import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
+import * as windowUtils from '../../../location';
 import { OutputType } from '../../../popups/create/CreateColumnState';
 import { ReshapeTransposeConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
 import { validateTransposeCfg } from '../../../popups/reshape/Transpose';
@@ -11,17 +12,19 @@ describe('Transpose', () => {
   const { location, open, opener } = window;
   const spies = new TestSupport.Spies();
   let result: RenderResult;
+  const reloadSpy = jest.fn();
+  const assignSpy = jest.fn();
 
   beforeAll(() => {
     delete (window as any).location;
     delete (window as any).open;
     delete (window as any).opener;
-    (window as any).location = {
-      reload: jest.fn(),
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
+      reload: reloadSpy,
       pathname: '/dtale/column/1',
       href: '/dtale/main/1',
-      assign: jest.fn(),
-    };
+      assign: assignSpy,
+    } as any);
     window.open = jest.fn();
     window.opener = { code_popup: { code: 'test code', title: 'Test' } };
   });
@@ -35,7 +38,7 @@ describe('Transpose', () => {
   afterEach(() => spies.afterEach());
 
   afterAll(() => {
-    window.location = location;
+    window.location = location as any;
     window.open = open;
     window.opener = opener;
     spies.afterAll();
@@ -55,7 +58,7 @@ describe('Transpose', () => {
       type: ReshapeType.TRANSPOSE,
       output: OutputType.OVERRIDE,
     });
-    expect(window.location.assign).toHaveBeenCalledWith('/dtale/main/2');
+    expect(assignSpy).toHaveBeenCalledWith('/dtale/main/2');
   });
 
   it('handles errors', async () => {

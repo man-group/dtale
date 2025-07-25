@@ -143,7 +143,7 @@ describe('DtaleHotkeys tests', () => {
     await fireEvent.keyDown(container, { keyCode: 17, ctrlKey: true });
     await fireEvent.keyUp(container, { key: 'c' });
     await fireEvent.keyUp(container, { keyCode: 17, ctrlKey: false });
-    expect(axios.post).toBeCalledWith('/dtale/build-column-copy/1', { columns: `["foo"]` });
+    expect(axios.post).toHaveBeenCalledWith('/dtale/build-column-copy/1', { columns: `["foo"]` });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: ActionType.OPEN_CHART,
       payload: expect.objectContaining({
@@ -161,7 +161,7 @@ describe('DtaleHotkeys tests', () => {
     await fireEvent.keyDown(container, { keyCode: 17, ctrlKey: true });
     await fireEvent.keyUp(container, { key: 'c' });
     await fireEvent.keyUp(container, { keyCode: 17, ctrlKey: false });
-    expect(axios.post).toBeCalledWith('/dtale/build-row-copy/1', { rows: '[0]', columns: `["foo"]` });
+    expect(axios.post).toHaveBeenCalledWith('/dtale/build-row-copy/1', { rows: '[0]', columns: `["foo"]` });
     expect(mockDispatch).toHaveBeenLastCalledWith({
       type: ActionType.OPEN_CHART,
       payload: expect.objectContaining({

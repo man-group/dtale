@@ -2,6 +2,7 @@ import { createSelector, PayloadAction } from '@reduxjs/toolkit';
 import * as React from 'react';
 import { WithTranslation, withTranslation } from 'react-i18next';
 
+import { getLocation } from '../../location';
 import { AppActions, SidePanelActionProps } from '../../redux/actions/AppActions';
 import * as chartActions from '../../redux/actions/charts';
 import * as settingsActions from '../../redux/actions/settings';
@@ -159,7 +160,7 @@ const RibbonDropdown: React.FC<RibbonDropdownProps & WithTranslation> = ({ colum
 
   const cleanupThis = (): void => {
     cleanup(dataId);
-    window.location.reload();
+    getLocation().reload();
   };
 
   const hideWrapper =

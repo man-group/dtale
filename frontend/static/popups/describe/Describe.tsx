@@ -5,6 +5,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
+import { getOpenerLocation } from '../../location';
 import { useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId } from '../../redux/selectors';
 import { DescribePopupData } from '../../redux/state/AppState';
@@ -58,7 +59,7 @@ const Describe: React.FC<WithTranslation> = ({ t }) => {
 
   const save = async (): Promise<void> => {
     await serverState.updateVisibility(dataId, visibility);
-    window.opener.location.reload();
+    getOpenerLocation().reload();
     window.close();
   };
 

@@ -1,4 +1,5 @@
 import { createSelector } from '@reduxjs/toolkit';
+import chroma from 'chroma-js';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 import { WithTranslation, withTranslation } from 'react-i18next';
@@ -97,7 +98,7 @@ interface CorrelationsGridProps {
   window?: number;
   minPeriods?: number;
   gridCode?: string;
-  colorScale?: chroma.Scale<chroma.Color>;
+  colorScale?: chroma.Scale;
   close?: JSX.Element;
   isPPS?: boolean;
   strings: string[];

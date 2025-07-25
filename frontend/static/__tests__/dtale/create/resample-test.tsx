@@ -1,5 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react';
 
+import * as windowUtils from '../../../location';
 import { CreateColumnType, OutputType, SaveAs } from '../../../popups/create/CreateColumnState';
 import { selectOption } from '../../test-utils';
 
@@ -12,7 +13,9 @@ describe('CreateResample', () => {
 
   beforeAll(() => {
     delete (window as any).location;
-    (window as any).location = { href: 'http://localhost:8080/dtale/main/1', pathname: '/dtale/1' };
+    jest
+      .spyOn(windowUtils, 'getLocation')
+      .mockReturnValue({ href: 'http://localhost:8080/dtale/main/1', pathname: '/dtale/1' } as any);
     delete (window as any).open;
     window.open = jest.fn();
   });
@@ -27,7 +30,7 @@ describe('CreateResample', () => {
 
   afterAll(() => {
     spies.afterAll();
-    window.location = location;
+    window.location = location as any;
     window.open = open;
   });
 

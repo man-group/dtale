@@ -1,5 +1,6 @@
 import { PayloadAction } from '@reduxjs/toolkit';
 
+import { getLocation } from '../../location';
 import { buildClickHandler } from '../../menuUtils';
 import { cleanupEndpoint } from '../../redux/actions/url-utils';
 import { InstanceSettings, Popups, PopupType, SortDef, SortDir } from '../../redux/state/AppState';
@@ -59,7 +60,7 @@ export const fullPath = (path: string, dataId?: string): string => {
 export const open = (path: string, dataId?: string, height = 450, width = 500, isVSCode = false): void => {
   const url = fullPath(path, dataId);
   if (isVSCode) {
-    window.location.assign(url);
+    getLocation().assign(url);
   } else {
     window.open(url, '_blank', `titlebar=1,location=1,status=1,width=${width},height=${height}`);
   }
@@ -128,7 +129,7 @@ export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
   const openTab = (path: string): void => {
     const url = fullPath(path, dataId);
     if (isVSCode) {
-      window.location.assign(url);
+      getLocation().assign(url);
     } else {
       window.open(url, '_blank');
     }
@@ -161,8 +162,8 @@ export const buildHotkeyHandlers = (props: HotkeyProps): HotKeyOutput => {
     CHARTS: openCharts,
     CODE: openCodeExport,
     ABOUT: () => openChart({ type: PopupType.ABOUT, size: 'sm', backdrop: true, visible: true }),
-    LOGOUT: () => (window.location.pathname = fullPath('/logout')),
-    SHUTDOWN: () => (window.location.pathname = fullPath('/shutdown')),
+    LOGOUT: () => (getLocation().pathname = fullPath('/logout')),
+    SHUTDOWN: () => (getLocation().pathname = fullPath('/shutdown')),
     RAW_PANDAS: openPopupTab('raw-pandas'),
   };
 };

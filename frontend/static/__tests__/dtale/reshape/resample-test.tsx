@@ -1,5 +1,6 @@
 import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
+import * as windowUtils from '../../../location';
 import { OutputType, ResampleConfig } from '../../../popups/create/CreateColumnState';
 import { validateResampleCfg } from '../../../popups/reshape/Resample';
 import { ReshapeType } from '../../../popups/reshape/ReshapeState';
@@ -11,23 +12,31 @@ describe('Resample', () => {
   const { location, open, close, opener } = window;
   const spies = new TestSupport.Spies();
   let result: RenderResult;
+  const reloadSpy = jest.fn();
+  const assignSpy = jest.fn();
+  const openerAssignSpy = jest.fn();
 
   beforeAll(() => {
     delete (window as any).location;
     delete (window as any).open;
     delete (window as any).opener;
-    (window as any).location = {
-      reload: jest.fn(),
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
+      reload: reloadSpy,
       pathname: '/dtale/popup/reshape',
       href: '/dtale/popup/reshape',
-      assign: jest.fn(),
-    };
+      assign: assignSpy,
+    } as any);
+
     window.open = jest.fn();
     window.close = jest.fn();
     window.opener = {
       code_popup: { code: 'test code', title: 'Test' },
-      location: { assign: jest.fn(), href: '/dtale/iframe/1' },
+      location: {},
     };
+    jest.spyOn(windowUtils, 'getOpenerLocation').mockReturnValue({
+      assign: openerAssignSpy,
+      href: '/dtale/iframe/1',
+    } as any);
   });
 
   beforeEach(async () => {
@@ -39,7 +48,7 @@ describe('Resample', () => {
   afterEach(() => spies.afterEach());
 
   afterAll(() => {
-    window.location = location;
+    window.location = location as any;
     window.open = open;
     window.close = close;
     window.opener = opener;
@@ -68,7 +77,7 @@ describe('Resample', () => {
       type: ReshapeType.RESAMPLE,
       output: OutputType.OVERRIDE,
     });
-    expect(window.opener.location.assign).toHaveBeenCalledWith('/dtale/iframe/2');
+    expect(openerAssignSpy).toHaveBeenCalledWith('/dtale/iframe/2');
     expect(window.close).toHaveBeenCalled();
   });
 

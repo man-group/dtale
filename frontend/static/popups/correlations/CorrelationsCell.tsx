@@ -19,7 +19,7 @@ interface CorrelationsCellProps {
   buildScatter: (selectedCols: string[]) => void;
   col2?: BaseOption<string>;
   selectedCols: string[];
-  colorScale: chroma.Scale<chroma.Color>;
+  colorScale: chroma.Scale;
   currSort?: SortDef;
   updateSort: (col: string) => void;
 }

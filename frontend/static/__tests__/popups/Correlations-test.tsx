@@ -1,4 +1,4 @@
-import { act, fireEvent, getByText, queryAllByRole, render, screen } from '@testing-library/react';
+import { act, fireEvent, getByText, render, screen } from '@testing-library/react';
 import axios from 'axios';
 import { Chart, ChartEvent } from 'chart.js';
 import * as React from 'react';
@@ -71,7 +71,7 @@ describe('Correlations tests', () => {
     dimensions.afterAll();
     window.open = open;
     window.opener = opener;
-    window.location = location;
+    window.location = location as any;
   });
 
   const buildResult = async (overrides?: Partial<CorrelationsPopupData>): Promise<void> => {
@@ -108,7 +108,7 @@ describe('Correlations tests', () => {
 
   it('Correlations rendering data and filtering it', async () => {
     await buildResult({ col1: 'col1', col2: 'col3' });
-    expect(queryAllByRole(screen.queryAllByRole('grid')[0], 'rowgroup')).toHaveLength(1);
+    expect(screen.queryAllByRole('grid')[3].textContent).toBe('-0.10');
     expect(screen.queryAllByRole('grid')[1].getElementsByClassName('headerCell')).toHaveLength(1);
   });
 

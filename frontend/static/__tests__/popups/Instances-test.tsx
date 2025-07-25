@@ -8,6 +8,7 @@ jest.mock('../../popups/merge/DataPreview', () => {
   return { DataPreview: createMockComponent('DataPreview', () => <div data-testid="data-preview" />) };
 });
 
+import * as windowUtils from '../../location';
 import Instances from '../../popups/instances/Instances';
 import * as GenericRepository from '../../repository/GenericRepository';
 import * as InstanceRepository from '../../repository/InstanceRepository';
@@ -28,14 +29,14 @@ describe('Instances tests', () => {
     dimensions.beforeAll();
 
     delete (window as any).location;
-    (window as any).location = {
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
       href: 'http://localhost:8080',
       hostname: 'localhost',
       port: '8080',
       origin: 'http://localhost:8080',
       assign: assignSpy,
       pathname: '/dtale/main/1',
-    };
+    } as any);
   });
 
   beforeEach(() => {
@@ -48,7 +49,7 @@ describe('Instances tests', () => {
   afterAll(() => {
     dimensions.afterAll();
     assignSpy.mockRestore();
-    window.location = location;
+    window.location = location as any;
   });
 
   const buildResult = async (overrides?: Record<string, string>): Promise<Element> => {

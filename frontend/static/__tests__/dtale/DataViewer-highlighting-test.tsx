@@ -80,9 +80,8 @@ describe('DataViewer highlighting tests', () => {
     });
     expect(store.getState().settings.backgroundMode).toBe(undefined);
     expect(screen.queryAllByTestId('header-cell')).toHaveLength(4);
-    expect(
-      [...dataViewer().getElementsByClassName('cell')].filter((c) => window.getComputedStyle(c).background),
-    ).toHaveLength(0);
+    const cells = [...dataViewer().getElementsByClassName('cell')];
+    expect(cells.filter((c) => window.getComputedStyle(c).background !== 'rgba(0, 0, 0, 0)')).toHaveLength(0);
   });
 
   it('DataViewer: dtype highlighting', async () => {

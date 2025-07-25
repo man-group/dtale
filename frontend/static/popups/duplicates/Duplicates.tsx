@@ -5,6 +5,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
+import { getLocation, getOpenerLocation } from '../../location';
 import { useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId } from '../../redux/selectors';
 import { DuplicatesPopupData } from '../../redux/state/AppState';
@@ -90,12 +91,12 @@ const Duplicates: React.FC<WithTranslation> = ({ t }) => {
         return;
       }
       if (response) {
-        if (window.location.pathname.startsWith('/dtale/popup/duplicates')) {
-          window.opener.location.assign(buildForwardURL(window.opener.location.href, response.data_id));
+        if (getLocation().pathname.startsWith('/dtale/popup/duplicates')) {
+          getOpenerLocation().assign(buildForwardURL(getOpenerLocation().href, response.data_id));
           window.close();
           return;
         }
-        window.location.assign(buildForwardURL(window.location.href, response.data_id));
+        getLocation().assign(buildForwardURL(getLocation().href, response.data_id));
       }
     });
   };

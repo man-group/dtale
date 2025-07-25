@@ -5,6 +5,7 @@ import { Store } from 'redux';
 import { default as configureStore } from 'redux-mock-store';
 
 import DataMenuItem, { DataMenuItemProps } from '../../../dtale/ribbon/DataMenuItem';
+import * as windowUtils from '../../../location';
 import { ActionType } from '../../../redux/actions/AppActions';
 
 jest.mock('react-redux', () => ({
@@ -21,14 +22,12 @@ describe('DataMenuItem', () => {
   const mockStore = configureStore();
   let store: Store;
   const mockDispatch = jest.fn();
+  const assignSpy = jest.fn();
 
   beforeEach(async () => {
     useDispatchMock.mockImplementation(() => mockDispatch);
     delete (window as any).location;
-    (window as any).location = {
-      assign: jest.fn(),
-      origin: 'origin',
-    };
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({ assign: assignSpy, origin: 'origin' } as any);
     props = {
       id: '1',
       name: 'foo',
@@ -47,7 +46,7 @@ describe('DataMenuItem', () => {
   afterEach(jest.resetAllMocks);
 
   afterAll(() => {
-    window.location = location;
+    window.location = location as any;
     jest.restoreAllMocks();
   });
 
@@ -79,7 +78,7 @@ describe('DataMenuItem', () => {
     await act(() => {
       fireEvent.click(wrapper.container.getElementsByTagName('button')[0]);
     });
-    expect(window.location.assign).toHaveBeenCalledWith('origin/dtale/main/1');
+    expect(assignSpy).toHaveBeenCalledWith('origin/dtale/main/1');
     expect(mockDispatch).toHaveBeenLastCalledWith({ type: ActionType.HIDE_RIBBON_MENU });
   });
 

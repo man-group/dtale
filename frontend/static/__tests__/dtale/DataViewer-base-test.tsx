@@ -32,7 +32,7 @@ describe('DataViewer tests', () => {
 
   afterAll(() => {
     dimensions.afterAll();
-    window.location = location;
+    window.location = location as any;
     jest.restoreAllMocks();
   });
 

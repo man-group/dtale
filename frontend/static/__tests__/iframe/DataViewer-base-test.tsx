@@ -5,6 +5,7 @@ import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
+import * as windowUtils from '../../location';
 import { AppActions } from '../../redux/actions/AppActions';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
@@ -61,7 +62,7 @@ describe('DataViewer iframe tests', () => {
 
   afterAll(() => {
     dimensions.afterAll();
-    window.location = location;
+    window.location = location as any;
     window.open = open;
     window.top = top;
     window.self = self;
@@ -154,6 +155,8 @@ describe('DataViewer iframe tests', () => {
   });
 
   it('handles main menu functions', async () => {
+    const locationMock = { reload: jest.fn(), pathname: '' };
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue(locationMock as any);
     await openColMenu(2);
     await clickColMenuButton('Describe(Column Analysis)');
     expect(openSpy.mock.calls[0][0]).toBe('/dtale/popup/describe/1?selectedCol=col3');
@@ -172,16 +175,16 @@ describe('DataViewer iframe tests', () => {
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/popup/instances/1');
     await clickMainMenuButton('Refresh Widths');
     await clickMainMenuButton('Reload Data');
-    expect(window.location.reload).toHaveBeenCalled();
+    expect(locationMock.reload).toHaveBeenCalled();
     await clickMainMenuButton('Shutdown');
-    expect(window.location.pathname).not.toBeNull();
+    expect(locationMock.pathname).not.toBeNull();
     await openColMenu(2);
     await clickColMenuButton('Formats');
     expect(getByTestId(document.body, 'formatting-body')).toBeDefined();
   });
 
   it('opens in a new tab', async () => {
-    (window as any).location = { reload: jest.fn(), pathname: '/dtale/iframe/1' };
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({ reload: jest.fn(), pathname: '/dtale/iframe/1' } as any);
     await clickMainMenuButton('Open In New Tab');
     expect(openSpy.mock.calls[openSpy.mock.calls.length - 1][0]).toBe('/dtale/main/1');
   });

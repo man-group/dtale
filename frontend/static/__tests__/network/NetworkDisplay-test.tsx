@@ -2,8 +2,8 @@ import { act, fireEvent, getByText, render, screen } from '@testing-library/reac
 import axios from 'axios';
 import * as React from 'react';
 import { Provider } from 'react-redux';
-import { DataSet } from 'vis-data/standalone/umd/vis-data.min';
-import { Edge, Node, Options } from 'vis-network/standalone/umd/vis-network.min';
+import { DataSet } from 'vis-data';
+import { Edge, Node, Options } from 'vis-network';
 
 import { NetworkClickParameters } from '../../network/NetworkState';
 import { mockColumnDef } from '../mocks/MockColumnDef';
@@ -72,8 +72,8 @@ describe('NetworkDisplay test', () => {
       value: { getRandomValues: (arr: []) => crypto.randomBytes(arr.length) },
     });
 
-    jest.mock('vis-data/standalone/umd/vis-data.min', () => ({ DataSet: MockDataSet }));
-    jest.mock('vis-network/standalone/umd/vis-network.min', () => ({ Network: MockNetwork }));
+    jest.mock('vis-data', () => ({ DataSet: MockDataSet }));
+    jest.mock('vis-network', () => ({ Network: MockNetwork }));
   });
 
   afterAll(jest.restoreAllMocks);

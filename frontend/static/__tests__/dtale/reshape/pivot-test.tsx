@@ -1,5 +1,6 @@
 import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 
+import * as windowUtils from '../../../location';
 import { OutputType } from '../../../popups/create/CreateColumnState';
 import { validatePivotCfg } from '../../../popups/reshape/Pivot';
 import { ReshapePivotConfig, ReshapeType } from '../../../popups/reshape/ReshapeState';
@@ -11,22 +12,24 @@ describe('Pivot', () => {
   const { location, open, opener } = window;
   const spies = new TestSupport.Spies();
   let result: RenderResult;
+  const reloadSpy = jest.fn();
+  const assignSpy = jest.fn();
 
   beforeAll(() => {
     delete (window as any).location;
     delete (window as any).open;
     delete (window as any).opener;
-    (window as any).location = {
-      reload: jest.fn(),
-      pathname: '/dtale/column/1',
-      href: '/dtale/main/1',
-      assign: jest.fn(),
-    };
     window.open = jest.fn();
     window.opener = { code_popup: { code: 'test code', title: 'Test' } };
   });
 
   beforeEach(async () => {
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
+      reload: reloadSpy,
+      pathname: '/dtale/column/1',
+      href: '/dtale/main/1',
+      assign: assignSpy,
+    } as any);
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
     await spies.clickBuilder('Pivot');
@@ -35,7 +38,7 @@ describe('Pivot', () => {
   afterEach(() => spies.afterEach());
 
   afterAll(() => {
-    window.location = location;
+    window.location = location as any;
     window.open = open;
     window.opener = opener;
     spies.afterAll();
@@ -63,7 +66,7 @@ describe('Pivot', () => {
       type: ReshapeType.PIVOT,
       output: OutputType.OVERRIDE,
     });
-    expect(window.location.assign).toHaveBeenCalledWith('/dtale/main/2');
+    expect(assignSpy).toHaveBeenCalledWith('/dtale/main/2');
   });
 
   it('handles errors', async () => {

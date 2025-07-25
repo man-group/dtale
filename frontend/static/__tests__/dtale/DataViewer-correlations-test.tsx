@@ -15,6 +15,7 @@ jest.mock('../../dtale/side/SidePanelButtons', () => {
 
 import * as chartUtils from '../../chartUtils';
 import { SORT_CHARS } from '../../dtale/Header';
+import * as windowUtils from '../../location';
 import { Correlations } from '../../popups/correlations/Correlations';
 import { AppStoreState } from '../../redux/reducers/app';
 import DimensionsHelper from '../DimensionsHelper';
@@ -67,7 +68,7 @@ describe('DataViewer tests', () => {
   afterAll(() => {
     jest.restoreAllMocks();
     dimensions.afterAll();
-    window.location = location;
+    window.location = location as any;
   });
 
   const corrGrid = (): Element => container.getElementsByClassName('correlations-grid')[0];
@@ -101,6 +102,9 @@ describe('DataViewer tests', () => {
   });
 
   it('DataViewer: correlations', async () => {
+    const reloadSpy = jest.fn();
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({ reload: reloadSpy } as any);
+
     await buildResult({ dataId: '1' });
     Object.defineProperty(global.document, 'queryCommandSupported', {
       value: () => true,
@@ -137,7 +141,7 @@ describe('DataViewer tests', () => {
         new MockChart({} as HTMLCanvasElement, scatterChart) as any as Chart,
       );
     });
-    expect(window.location.reload).toHaveBeenCalled();
+    expect(reloadSpy).toHaveBeenCalled();
   });
 
   it('sorts correlations correctly', async () => {
