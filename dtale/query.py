@@ -4,7 +4,18 @@ import dtale.global_state as global_state
 
 from dtale.pandas_util import check_pandas_version
 from dtale.utils import format_data, get_bool_arg
+import re
 
+def validate_query(query):
+    """
+    Ensures that the query string only contains safe and expected expressions.
+    Raises a ValueError if the query is considered unsafe.
+    """
+    # Define a regular expression to allow only safe characters and patterns
+    allowed_pattern = re.compile(r'^[\w\s\(\)\[\]\.\'\"<>=!&|+-/*,`]*$')
+    if not allowed_pattern.match(query):
+        raise ValueError("Unsafe query detected. Query contains invalid characters or patterns.")
+    return query
 
 def build_col_key(col):
     # Use backticks for pandas >= 0.25 to handle column names with spaces or protected words
@@ -154,13 +165,14 @@ def run_query(
                 engine=engine,
             ).index
         )
+        # Validate the query before using it
+        validated_query = validate_query(query if is_pandas25 else query.replace("`", ""))
     else:
         df = df.query(
-            query if is_pandas25 else query.replace("`", ""),
+            validated_query,
             local_dict=context_vars or {},
             engine=engine,
         )
-
     if not len(df) and not ignore_empty:
         raise Exception('query "{}" found no data, please alter'.format(query))
 
