@@ -1,12 +1,18 @@
 import * as React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
+import { getLocation } from '../../location';
+
 import { MenuItem } from './MenuItem';
 
 const NewTabOption: React.FC<WithTranslation> = ({ t }) => (
   <React.Fragment>
     {global.top !== global.self && (
-      <MenuItem onClick={() => window.open(window.location.pathname?.replace('/iframe/', '/main/'), '_blank')}>
+      <MenuItem
+        onClick={() => {
+          window.open(getLocation().pathname?.replace('/iframe/', '/main/') ?? '', '_blank');
+        }}
+      >
         <span className="toggler-action">
           <button className="btn btn-plain">
             <i className="ico-open-in-new" />

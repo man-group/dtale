@@ -2,8 +2,8 @@ import * as React from 'react';
 import { GlobalHotKeys } from 'react-hotkeys';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { connect } from 'react-redux';
-import { DataSet } from 'vis-data/standalone/umd/vis-data.min';
-import { Edge, Network, Node, Options } from 'vis-network/standalone/umd/vis-network.min';
+import { DataSet } from 'vis-data';
+import { Edge, Network, Node, Options } from 'vis-network';
 
 import { BouncerWrapper } from '../BouncerWrapper';
 import ColumnSelect from '../popups/create/ColumnSelect';

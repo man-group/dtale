@@ -3,8 +3,9 @@ import * as React from 'react';
 import * as ReactDOMClient from 'react-dom/client';
 
 import App from './app';
+import { getLocation } from './location';
 
-let pathname = window.location.pathname;
+let pathname = getLocation().pathname;
 if ((window as any).resourceBaseUrl) {
   pathname = pathname.replace((window as any).resourceBaseUrl, '');
 }

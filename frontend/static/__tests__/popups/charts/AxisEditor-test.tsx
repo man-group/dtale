@@ -52,7 +52,7 @@ describe('ChartLabel tests', () => {
     await act(async () => {
       openMenuSpy.mock.calls[openMenuSpy.mock.calls.length - 1][1]();
     });
-    expect(updateAxis).toBeCalledWith({ min: { y: 3 }, max: { y: 4 } });
+    expect(updateAxis).toHaveBeenCalledWith({ min: { y: 3 }, max: { y: 4 } });
     await act(async () => {
       await fireEvent.change(inputs[inputs.length - 1], { target: { value: 'a' } });
     });

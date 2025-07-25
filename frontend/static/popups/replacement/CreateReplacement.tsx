@@ -6,6 +6,7 @@ import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { ColumnType, findColType, getDtype } from '../../dtale/gridUtils';
+import { getLocation, getOpenerLocation } from '../../location';
 import { closeChart } from '../../redux/actions/charts';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectChartData, selectDataId } from '../../redux/selectors';
@@ -141,8 +142,8 @@ const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
         setError(<RemovableError {...response} />);
         return;
       }
-      if (window.location.pathname.startsWith('/dtale/popup/build')) {
-        window.opener.location.reload();
+      if (getLocation().pathname.startsWith('/dtale/popup/build')) {
+        getOpenerLocation().reload();
         window.close();
       } else {
         chartData.propagateState({ refresh: true }, onClose);
@@ -218,7 +219,7 @@ const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
     if (type && code[type]) {
       const codeArr = Array.isArray(code[type]) ? code[type] : [code[type]];
       const isWindow =
-        codeArr?.length > 2 && window.location.pathname.includes(`/dtale/popup/${type.split('_').join('-')}`);
+        codeArr?.length > 2 && getLocation().pathname.includes(`/dtale/popup/${type.split('_').join('-')}`);
       return <CodeSnippet code={codeArr} isWindow={isWindow} />;
     }
     return null;

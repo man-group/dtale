@@ -80,7 +80,7 @@ describe('MaxWidthOption tests', () => {
     await act(async () => {
       fireEvent.keyDown(input, { keyCode: 13 });
     });
-    expect(udpateMaxColumnWidthSpy).toBeCalledTimes(1);
+    expect(udpateMaxColumnWidthSpy).toHaveBeenCalledTimes(1);
     expect(store.getState().maxColumnWidth).toBe(150);
   });
 
@@ -97,7 +97,7 @@ describe('MaxWidthOption tests', () => {
       await fireEvent.mouseUp(thumb);
     });
     expect(result.getElementsByTagName('input')[0].value).toBe('150');
-    expect(udpateMaxColumnWidthSpy).toBeCalledTimes(1);
+    expect(udpateMaxColumnWidthSpy).toHaveBeenCalledTimes(1);
     expect(store.getState().maxColumnWidth).toBe(150);
   });
 
@@ -107,12 +107,12 @@ describe('MaxWidthOption tests', () => {
       fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
     expect(result.getElementsByTagName('input')[0].value).toBe('100');
-    expect(udpateMaxColumnWidthSpy).toBeCalledTimes(1);
+    expect(udpateMaxColumnWidthSpy).toHaveBeenCalledTimes(1);
     expect(store.getState().maxColumnWidth).toBe(100);
     await act(async () => {
       fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
     });
-    expect(udpateMaxColumnWidthSpy).toBeCalledTimes(2);
+    expect(udpateMaxColumnWidthSpy).toHaveBeenCalledTimes(2);
     expect(udpateMaxColumnWidthSpy.mock.calls[1][0]).toBe(undefined);
     expect(store.getState().maxColumnWidth).toBe(null);
   });

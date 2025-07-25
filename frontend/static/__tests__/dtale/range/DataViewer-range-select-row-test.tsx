@@ -84,7 +84,7 @@ describe('DataViewer tests', () => {
     });
     const copyRange = document.getElementById('copy-range-to-clipboard')!;
     expect(copyRange.getElementsByTagName('pre')[0].textContent).toBe(TEXT);
-    expect(buildCopyRowsSpy).toBeCalledTimes(1);
-    expect(buildCopyRowsSpy).toBeCalledWith('1', ['col1', 'col2', 'col3', 'col4'], { start: '1', end: '2' });
+    expect(buildCopyRowsSpy).toHaveBeenCalledTimes(1);
+    expect(buildCopyRowsSpy).toHaveBeenCalledWith('1', ['col1', 'col2', 'col3', 'col4'], { start: '1', end: '2' });
   });
 });

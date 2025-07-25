@@ -30,7 +30,7 @@ describe('Upload', () => {
 
   afterAll(() => {
     spies.afterAll();
-    window.location = location;
+    window.location = location as any;
     window.close = close;
     window.open = open;
     window.opener = opener;

@@ -264,19 +264,51 @@ interface MouseEventWithOffsets extends MouseEventInit {
 
 /** Fake mouse event class */
 export class FakeMouseEvent extends MouseEvent {
+  private overrides?: Record<string, number>;
+
   /** @override */
   constructor(type: string, values: MouseEventWithOffsets) {
     const { pageX, pageY, offsetX, offsetY, x, y, ...mouseValues } = values;
     super(type, mouseValues);
 
-    Object.assign(this, {
+    this.overrides = {
       offsetX: offsetX || 0,
       offsetY: offsetY || 0,
       pageX: pageX || 0,
       pageY: pageY || 0,
       x: x || 0,
       y: y || 0,
-    });
+    };
+  }
+
+  /** @override */
+  public get offsetX(): number {
+    return this.overrides?.offsetX ?? 0;
+  }
+
+  /** @override */
+  public get offsetY(): number {
+    return this.overrides?.offsetY ?? 0;
+  }
+
+  /** @override */
+  public get pageX(): number {
+    return this.overrides?.pageX ?? 0;
+  }
+
+  /** @override */
+  public get pageY(): number {
+    return this.overrides?.pageY ?? 0;
+  }
+
+  /** @override */
+  public get x(): number {
+    return this.overrides?.x ?? 0;
+  }
+
+  /** @override */
+  public get y(): number {
+    return this.overrides?.y ?? 0;
   }
 }
 

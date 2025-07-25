@@ -1,25 +1,34 @@
 import { act, fireEvent, getByTestId, screen } from '@testing-library/react';
 
+import * as windowUtils from '../../../location';
+
 import * as TestSupport from './Upload.test.support';
 
 describe('Upload', () => {
   const { close, location, open, opener } = window;
   const spies = new TestSupport.Spies();
+  const reloadSpy = jest.fn();
+  const assignSpy = jest.fn();
+  const openerAssignSpy = jest.fn();
 
   beforeEach(async () => {
     delete (window as any).location;
     delete (window as any).close;
     delete (window as any).open;
     delete window.opener;
-    (window as any).location = {
-      reload: jest.fn(),
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
+      reload: reloadSpy,
       pathname: '/dtale/column/1',
       href: '',
-      assign: jest.fn(),
-    };
+      assign: assignSpy,
+    } as any);
     window.close = jest.fn();
     window.open = jest.fn();
-    window.opener = { location: { assign: jest.fn(), pathname: '/dtale/column/1' } };
+    window.opener = { location: {} };
+    jest.spyOn(windowUtils, 'getOpenerLocation').mockReturnValue({
+      assign: openerAssignSpy,
+      pathname: '/dtale/column/1',
+    } as any);
     spies.setupMockImplementations();
     await spies.setupWrapper();
   });
@@ -28,7 +37,7 @@ describe('Upload', () => {
 
   afterAll(() => {
     spies.afterAll();
-    window.location = location;
+    window.location = location as any;
     window.close = close;
     window.open = open;
     window.opener = opener;
@@ -63,7 +72,7 @@ describe('Upload', () => {
       expect(read.result).toBe('data:application/octet-stream;base64,dGVzdA==');
     };
     expect((firstData as any).entries().next().value[0]).toBe('test.csv');
-    expect(window.location.assign).toBeCalledWith('/2');
+    expect(assignSpy).toHaveBeenCalledWith('/2');
   });
 
   it('handles upload error', async () => {
@@ -76,7 +85,9 @@ describe('Upload', () => {
   });
 
   it('DataViewer: upload window', async () => {
-    window.location.pathname = '/dtale/popup/upload';
+    jest
+      .spyOn(windowUtils, 'getLocation')
+      .mockReturnValue({ pathname: '/dtale/popup/upload', href: '', reload: reloadSpy, assign: assignSpy } as any);
     await fireUpload();
     await act(async () => {
       fireEvent.click(screen.getByTestId('csv-options').getElementsByClassName('ico-check-box')[0]);
@@ -96,8 +107,8 @@ describe('Upload', () => {
     expect(firstData.get('header')).toBe('false');
     expect(firstData.get('separatorType')).toBe('custom');
     expect(firstData.get('separator')).toBe('=');
-    expect(window.close).toBeCalledTimes(1);
-    expect(window.opener.location.assign).toBeCalledWith('/2');
+    expect(window.close).toHaveBeenCalledTimes(1);
+    expect(openerAssignSpy).toHaveBeenCalledWith('/2');
   });
 
   it('DataViewer: upload from web', async () => {
@@ -117,7 +128,7 @@ describe('Upload', () => {
     await act(async () => {
       fireEvent.click(upload().getElementsByClassName('row')[1].getElementsByTagName('button')[0]);
     });
-    expect(window.location.assign).toBeCalledWith('/2');
+    expect(assignSpy).toHaveBeenCalledWith('/2');
   });
 
   it('DataViewer: upload dataset', async () => {
@@ -125,11 +136,11 @@ describe('Upload', () => {
       const formGroups = upload().getElementsByClassName('form-group');
       fireEvent.click(formGroups[formGroups.length - 1].getElementsByTagName('button')[0]);
     });
-    expect(window.location.assign).toBeCalledWith('/2');
+    expect(assignSpy).toHaveBeenCalledWith('/2');
   });
 
   it('DataViewer: cancel CSV upload', async () => {
-    window.location.pathname = '/dtale/popup/upload';
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({ pathname: '/dtale/popup/upload' } as any);
     await fireUpload();
     await act(async () => {
       await fireEvent.click(getByTestId(document.body, 'csv-options-cancel'));

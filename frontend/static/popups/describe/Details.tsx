@@ -8,6 +8,7 @@ import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
 import { ColumnType, findColType, noFilters } from '../../dtale/gridUtils';
 import { JSAnchor } from '../../JSAnchor';
+import { getOpenerLocation } from '../../location';
 import * as actions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
@@ -175,7 +176,7 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
         if (response && !response?.error) {
           updateSettings({ outlierFilters: response.outlierFilters });
           if (actions.isPopup()) {
-            window.opener.location.reload();
+            getOpenerLocation().reload();
           }
         }
       });

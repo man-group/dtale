@@ -52,12 +52,12 @@ describe('HideRowExpanders tests', () => {
     await act(async () => {
       await fireEvent.click(result.getElementsByClassName('ico-check-box-outline-blank')[0]);
     });
-    expect(updateSettingsSpy).toBeCalledTimes(1);
+    expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
     expect(store.getState().settings).toEqual(expect.objectContaining({ hide_row_expanders: true }));
     await act(async () => {
       await fireEvent.click(result.getElementsByClassName('ico-check-box')[0]);
     });
-    expect(updateSettingsSpy).toBeCalledTimes(2);
+    expect(updateSettingsSpy).toHaveBeenCalledTimes(2);
     expect(updateSettingsSpy.mock.calls[1][0]).toEqual({
       hide_row_expanders: false,
     });

@@ -5,6 +5,7 @@ import { WithTranslation, withTranslation } from 'react-i18next';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnFilter, OutlierFilter } from '../../dtale/DataViewerState';
 import * as serverState from '../../dtale/serverStateManagement';
+import { getLocation, getOpenerLocation } from '../../location';
 import { closeChart } from '../../redux/actions/charts';
 import * as dtaleActions from '../../redux/actions/dtale';
 import * as settingsActions from '../../redux/actions/settings';
@@ -71,8 +72,8 @@ const FilterPopup: React.FC<WithTranslation> = ({ t }) => {
       setError(<RemovableError {...response} onRemove={() => setError(undefined)} />);
       return;
     }
-    if (window.location.pathname.startsWith('/dtale/popup/filter')) {
-      window.opener.location.reload();
+    if (getLocation().pathname.startsWith('/dtale/popup/filter')) {
+      getOpenerLocation().reload();
       window.close();
     } else {
       updateSettings({ query }, onClose);
@@ -81,8 +82,8 @@ const FilterPopup: React.FC<WithTranslation> = ({ t }) => {
 
   const saveHighlightFilter = async (updatedHighlightFilter: boolean): Promise<void> => {
     await serverState.updateSettings({ highlightFilter: updatedHighlightFilter }, dataId);
-    if (window.location.pathname.startsWith('/dtale/popup/filter')) {
-      window.opener.location.reload();
+    if (getLocation().pathname.startsWith('/dtale/popup/filter')) {
+      getOpenerLocation().reload();
     } else {
       updateSettings({ highlightFilter: updatedHighlightFilter }, () => setHighlightFilter(updatedHighlightFilter));
     }
@@ -100,8 +101,8 @@ const FilterPopup: React.FC<WithTranslation> = ({ t }) => {
     );
     const updatedSettings = { [prop]: updatedFilters };
     await serverState.updateSettings(updatedSettings, dataId);
-    if (window.location.pathname.startsWith('/dtale/popup/filter')) {
-      window.opener.location.reload();
+    if (getLocation().pathname.startsWith('/dtale/popup/filter')) {
+      getOpenerLocation().reload();
     } else {
       updateSettings(updatedSettings, () => setter(updatedFilters));
     }
@@ -109,8 +110,8 @@ const FilterPopup: React.FC<WithTranslation> = ({ t }) => {
 
   const clear = async (): Promise<void> => {
     await serverState.updateSettings({ query: '' }, dataId);
-    if (window.location.pathname.startsWith('/dtale/popup/filter')) {
-      window.opener.location.reload();
+    if (getLocation().pathname.startsWith('/dtale/popup/filter')) {
+      getOpenerLocation().reload();
       window.close();
     } else {
       updateSettings({ query: '' }, onClose);

@@ -13,6 +13,7 @@ import {
 
 import { Bouncer } from '../../Bouncer';
 import * as gu from '../../dtale/gridUtils';
+import { getLocation, getOpenerLocation } from '../../location';
 import { useAppSelector } from '../../redux/hooks';
 import { selectDataId, selectIFrame } from '../../redux/selectors';
 import { RemovableError } from '../../RemovableError';
@@ -92,13 +93,13 @@ const Instances: React.FC<WithTranslation> = ({ t }) => {
                   if (rowData.data_id === dataId) {
                     return;
                   }
-                  const newLoc = `${window.location.origin}/dtale/${iframe ? 'iframe' : 'main'}/${rowData.data_id}`;
-                  if (window.location.pathname.startsWith('/dtale/popup/instances')) {
-                    window.opener.location.assign(newLoc);
+                  const newLoc = `${getLocation().origin}/dtale/${iframe ? 'iframe' : 'main'}/${rowData.data_id}`;
+                  if (getLocation().pathname.startsWith('/dtale/popup/instances')) {
+                    getOpenerLocation().assign(newLoc);
                     window.close();
                     return;
                   }
-                  window.location.assign(newLoc);
+                  getLocation().assign(newLoc);
                 }}
                 className="instances"
                 headerClassName="headerCell"

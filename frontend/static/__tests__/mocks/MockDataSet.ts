@@ -1,4 +1,4 @@
-import { Node } from 'vis-network/standalone/umd/vis-network.min';
+import { Node } from 'vis-network';
 
 /** Mock vis-network DataSet */
 export class MockDataSet {

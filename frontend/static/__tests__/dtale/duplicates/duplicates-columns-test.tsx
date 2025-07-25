@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 
+import * as windowUtils from '../../../location';
 import Duplicates from '../../../popups/duplicates/Duplicates';
 import { DuplicatesActionType, DuplicatesConfigType, KeepType } from '../../../popups/duplicates/DuplicatesState';
 import { AppActions } from '../../../redux/actions/AppActions';
@@ -15,17 +16,19 @@ describe('Duplicates', () => {
   const { location, open, opener } = window;
   let result: Element;
   let dupesSpy: jest.SpyInstance;
+  const reloadSpy = jest.fn();
+  const assignSpy = jest.fn();
 
   beforeAll(() => {
     delete (window as any).location;
     delete (window as any).open;
     delete window.opener;
-    (window as any).location = {
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
       href: 'http://localhost:8080/dtale/main/1',
-      reload: jest.fn(),
+      reload: reloadSpy,
       pathname: '/dtale/column/1',
-      assign: jest.fn(),
-    };
+      assign: assignSpy,
+    } as any);
     window.open = jest.fn();
     window.opener = { code_popup: { code: 'test code', title: 'Test' } };
   });
@@ -96,7 +99,7 @@ describe('Duplicates', () => {
   afterEach(jest.restoreAllMocks);
 
   afterAll(() => {
-    window.location = location;
+    window.location = location as any;
     window.open = open;
     window.opener = opener;
   });
@@ -124,7 +127,7 @@ describe('Duplicates', () => {
       await act(async () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
-      expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
+      expect(assignSpy).toHaveBeenCalledWith('http://localhost:8080/dtale/main/1');
     });
 
     it('handles no duplicates', async () => {
@@ -158,7 +161,7 @@ describe('Duplicates', () => {
       await act(async () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
-      expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
+      expect(assignSpy).toHaveBeenCalledWith('http://localhost:8080/dtale/main/1');
     });
 
     it('handles no duplicates', async () => {
@@ -195,7 +198,7 @@ describe('Duplicates', () => {
       await act(async () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
-      expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
+      expect(assignSpy).toHaveBeenCalledWith('http://localhost:8080/dtale/main/1');
     });
 
     it('handles no duplicate rows', async () => {
@@ -232,7 +235,7 @@ describe('Duplicates', () => {
       await act(async () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
-      expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
+      expect(assignSpy).toHaveBeenCalledWith('http://localhost:8080/dtale/main/1');
     });
 
     it('handles duplicates w/ select all', async () => {
@@ -249,7 +252,7 @@ describe('Duplicates', () => {
       await act(async () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
-      expect(window.location.assign).toBeCalledWith('http://localhost:8080/dtale/main/1');
+      expect(assignSpy).toHaveBeenCalledWith('http://localhost:8080/dtale/main/1');
       expect(dupesSpy).toHaveBeenCalledWith('1', {
         action: DuplicatesActionType.EXECUTE,
         cfg: { filter: undefined, group: ['bar', 'baz', 'biz', 'foo'] },

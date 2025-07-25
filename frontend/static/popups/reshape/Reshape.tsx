@@ -5,6 +5,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import { BouncerWrapper } from '../../BouncerWrapper';
 import ButtonToggle from '../../ButtonToggle';
 import { ColumnDef } from '../../dtale/DataViewerState';
+import { getLocation, getOpenerLocation } from '../../location';
 import { closeChart } from '../../redux/actions/charts';
 import { useAppDispatch, useAppSelector } from '../../redux/hooks';
 import { selectDataId } from '../../redux/selectors';
@@ -80,18 +81,18 @@ const Reshape: React.FC<WithTranslation> = ({ t }) => {
         return;
       }
       if (response) {
-        if (window.location.pathname.startsWith('/dtale/popup/reshape')) {
-          window.opener.location.assign(buildForwardURL(window.opener.location.href, response.data_id));
+        if (getLocation().pathname.startsWith('/dtale/popup/reshape')) {
+          getOpenerLocation().assign(buildForwardURL(getOpenerLocation().href, response.data_id));
           window.close();
           return;
         }
-        const newLoc = buildForwardURL(window.location.href, response.data_id);
+        const newLoc = buildForwardURL(getLocation().href, response.data_id);
         if (output === 'new') {
           onClose();
           window.open(newLoc, '_blank');
           return;
         }
-        window.location.assign(newLoc);
+        getLocation().assign(newLoc);
       }
     });
   };

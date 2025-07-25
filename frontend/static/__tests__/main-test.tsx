@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as React from 'react';
 
 import App from '../app';
+import * as windowUtils from '../location';
 
 import reduxUtils from './redux-test-utils';
 import { buildInnerHTML } from './test-utils';
@@ -101,6 +102,7 @@ jest.mock('../i18n', () => ({}));
 
 describe('main tests', () => {
   const { location, open, top, self, opener } = window;
+  const reloadSpy = jest.fn();
 
   beforeEach(() => {
     jest.resetModules();
@@ -110,6 +112,10 @@ describe('main tests', () => {
       const { createMockComponent } = require('./mocks/createMockComponent');
       return { DateInput: createMockComponent('DateInput') };
     });
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
+      reload: reloadSpy,
+      pathname: '/dtale/iframe/1',
+    } as any);
   });
 
   beforeAll(() => {
@@ -118,7 +124,6 @@ describe('main tests', () => {
     delete (window as any).top;
     delete (window as any).self;
     delete window.opener;
-    (window as any).location = { reload: jest.fn(), pathname: '/dtale/iframe/1' };
     window.open = jest.fn();
     (window as any).top = { location: { href: 'http://test.com' } };
     (window as any).self = { location: { href: 'http://test/dtale/iframe' } };
@@ -126,20 +131,25 @@ describe('main tests', () => {
   });
 
   afterAll(() => {
-    window.location = location;
+    window.location = location as any;
     window.open = open;
     (window as any).top = top;
     (window as any).self = self;
     window.opener = opener;
+    jest.restoreAllMocks();
   });
 
-  afterEach(jest.restoreAllMocks);
+  afterEach(jest.resetAllMocks);
 
   const testMain = (mainName: string, search = '?', fname = 'main'): HTMLElement => {
-    (window as any).location = { pathname: `/dtale/${mainName}/1`, search };
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
+      reload: reloadSpy,
+      pathname: `/dtale/${mainName}/1`,
+      search,
+    } as any);
     buildInnerHTML();
 
-    return render(<App pathname={window.location.pathname} />).container;
+    return render(<App pathname={`/dtale/${mainName}/1`} />).container;
   };
 
   it('base_styles.js loading', () => {

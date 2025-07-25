@@ -1,6 +1,7 @@
 import { act, fireEvent, RenderResult, screen } from '@testing-library/react';
 import selectEvent from 'react-select-event';
 
+import * as windowUtils from '../../../location';
 import { OutputType } from '../../../popups/create/CreateColumnState';
 import { AggregationOperationType, ReshapeType } from '../../../popups/reshape/ReshapeState';
 import { ActionType } from '../../../redux/actions/AppActions';
@@ -12,22 +13,24 @@ describe('Aggregate', () => {
   const { location, open, opener } = window;
   const spies = new TestSupport.Spies();
   let result: RenderResult;
+  const reloadSpy = jest.fn();
+  const assignSpy = jest.fn();
 
   beforeAll(() => {
     delete (window as any).location;
     delete (window as any).open;
     delete (window as any).opener;
-    (window as any).location = {
-      reload: jest.fn(),
-      pathname: '/dtale/column/1',
-      href: '/dtale/main/1',
-      assign: jest.fn(),
-    };
     window.open = jest.fn();
     window.opener = { code_popup: { code: 'test code', title: 'Test' } };
   });
 
   beforeEach(async () => {
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
+      reload: reloadSpy,
+      pathname: '/dtale/column/1',
+      href: '/dtale/main/1',
+      assign: assignSpy,
+    } as any);
     spies.setupMockImplementations();
     result = await spies.setupWrapper();
     await spies.clickBuilder('GroupBy');
@@ -36,7 +39,7 @@ describe('Aggregate', () => {
   afterEach(() => spies.afterEach());
 
   afterAll(() => {
-    window.location = location;
+    window.location = location as any;
     window.open = open;
     window.opener = opener;
     spies.afterAll();
@@ -65,7 +68,7 @@ describe('Aggregate', () => {
       type: ReshapeType.AGGREGATE,
       output: OutputType.OVERRIDE,
     });
-    expect(window.location.assign).toHaveBeenCalledWith('/dtale/main/2');
+    expect(assignSpy).toHaveBeenCalledWith('/dtale/main/2');
 
     await act(async () => {
       fireEvent.click(screen.getByText('New Instance'));
@@ -142,7 +145,7 @@ describe('Aggregate', () => {
       type: ReshapeType.AGGREGATE,
       output: OutputType.OVERRIDE,
     });
-    expect(window.location.assign).toHaveBeenCalledWith('/dtale/main/2');
+    expect(assignSpy).toHaveBeenCalledWith('/dtale/main/2');
   });
 
   it("reshapes data using aggregate 'By Function' w/ Counts & Percentages", async () => {
@@ -168,7 +171,7 @@ describe('Aggregate', () => {
       type: ReshapeType.AGGREGATE,
       output: OutputType.OVERRIDE,
     });
-    expect(window.location.assign).toHaveBeenCalledWith('/dtale/main/2');
+    expect(assignSpy).toHaveBeenCalledWith('/dtale/main/2');
   });
 
   it('handles errors', async () => {

@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { Store } from 'redux';
 
 import * as serverState from '../../../dtale/serverStateManagement';
+import * as windowUtils from '../../../location';
 import FilterPopup from '../../../popups/filter/FilterPopup';
 import { AppActions } from '../../../redux/actions/AppActions';
 import * as chartActions from '../../../redux/actions/charts';
@@ -125,24 +126,24 @@ describe('FilterPopup', () => {
 
   describe('new window', () => {
     const { location, close, opener } = window;
+    const reloadSpy = jest.fn();
+
+    beforeEach(() => {
+      jest.spyOn(windowUtils, 'getLocation').mockReturnValue({ pathname: '/dtale/popup/filter' } as any);
+      jest.spyOn(windowUtils, 'getOpenerLocation').mockReturnValue({ reload: reloadSpy } as any);
+    });
 
     beforeAll(() => {
       delete (window as any).location;
       delete (window as any).close;
       delete window.opener;
-      (window as any).location = { pathname: '/dtale/popup/filter' };
       window.close = jest.fn();
-      window.opener = {
-        location: {
-          reload: jest.fn(),
-        },
-      };
     });
 
     afterEach(jest.resetAllMocks);
 
     afterAll(() => {
-      window.location = location;
+      window.location = location as any;
       window.close = close;
       window.opener = opener;
     });
@@ -152,7 +153,7 @@ describe('FilterPopup', () => {
         await fireEvent.click(screen.queryAllByTestId('structured-filters')[0].querySelector('.ico-cancel')!);
       });
       expect(updateSettingsSpy).toHaveBeenCalledTimes(1);
-      expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
+      expect(reloadSpy).toHaveBeenCalledTimes(1);
     });
 
     it('saves filter', async () => {
@@ -160,13 +161,13 @@ describe('FilterPopup', () => {
         await fireEvent.change(wrapper.getElementsByTagName('textarea')[0], { target: { value: 'foo == foo' } });
       });
       await clickFilterBtn('Apply');
-      expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
+      expect(reloadSpy).toHaveBeenCalledTimes(1);
       expect(window.close).toHaveBeenCalledTimes(1);
     });
 
     it('clears filter', async () => {
       await clickFilterBtn('Clear');
-      expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
+      expect(reloadSpy).toHaveBeenCalledTimes(1);
       expect(window.close).toHaveBeenCalledTimes(1);
     });
 
@@ -175,7 +176,7 @@ describe('FilterPopup', () => {
         await fireEvent.click(screen.getByText('Highlight Filtered Rows').parentElement?.getElementsByTagName('i')[0]!);
       });
       expect(updateSettingsSpy).toHaveBeenLastCalledWith({ highlightFilter: true }, '1');
-      expect(window.opener.location.reload).toHaveBeenCalledTimes(1);
+      expect(reloadSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

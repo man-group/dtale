@@ -183,6 +183,7 @@ python: &python
               pip install backports.functools-lru-cache==1.6.6
             fi
             if [ "${CIRCLE_JOB}" != "build_2_7" ]; then
+              pip cache purge
               pip install -e ".[arcticdb]"
             fi
             pip install -e ".[dash-bio]"
@@ -263,7 +264,7 @@ jobs:
   build_JS:
     working_directory: /mnt/ramdisk
     docker:
-      - image: cimg/node:20.10.0
+      - image: cimg/node:20.18.2
     <<: *javascript
   check_python_formatting:
     working_directory: ~/man-group/dtale_python_formatting
