@@ -1,6 +1,9 @@
 ## Changelog
 
-### 3.18.0 (2025-3-20)
+### 3.18.1 (2025-7-28)
+* [#916](https://github.com/man-group/dtale/issues/916): removed pkg_resources imports
+
+### 3.18.0 (2025-7-22)
 * [#912](https://github.com/man-group/dtale/issues/912): translation files not being included in bundle
 * [#910](https://github.com/man-group/dtale/issues/910): updates to where 'parse_version' comes from
 * [#909](https://github.com/man-group/dtale/issues/909): allow 'theme' to be set from dtale.show
