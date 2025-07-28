@@ -61,6 +61,7 @@ openpyxl<=2.6.4; python_version < '3.0'
 openpyxl!=3.2.0b1; python_version >= '3.0'
 packaging
 pandas
+pkginfo
 plotly<=4.14.3; python_version < '3.6'
 plotly; python_version >= '3.6'
 pyparsing<=2.4.7; python_version == '2.7'

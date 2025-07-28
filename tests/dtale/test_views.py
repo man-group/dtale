@@ -2111,7 +2111,7 @@ def test_code_export():
 def test_version_info():
     with app.test_client() as c:
         with mock.patch(
-            "dtale.cli.clickutils.pkg_resources.get_distribution",
+            "dtale.cli.clickutils.Installed",
             mock.Mock(side_effect=Exception("blah")),
         ):
             response = c.get("version-info")

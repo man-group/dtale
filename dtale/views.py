@@ -39,7 +39,7 @@ import dtale.pandas_util as pandas_util
 import dtale.predefined_filters as predefined_filters
 from dtale import dtale
 from dtale.charts.utils import build_base_chart, CHART_POINTS_LIMIT
-from dtale.cli.clickutils import retrieve_meta_info_and_version
+from dtale.cli.clickutils import retrieve_version
 from dtale.column_analysis import ColumnAnalysis
 from dtale.column_builders import ColumnBuilder, printable
 from dtale.column_filters import ColumnFilter
@@ -1319,7 +1319,7 @@ def base_render_template(template, data_id, **kwargs):
         return redirect(current_app.url_for("missing_js"))
     curr_settings = global_state.get_settings(data_id) or {}
     curr_app_settings = global_state.get_app_settings()
-    _, version = retrieve_meta_info_and_version("dtale")
+    version = retrieve_version("dtale")
     hide_shutdown = global_state.load_flag(data_id, "hide_shutdown", False)
     allow_cell_edits = global_state.load_flag(data_id, "allow_cell_edits", True)
     github_fork = global_state.load_flag(data_id, "github_fork", False)

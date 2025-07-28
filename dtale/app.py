@@ -36,7 +36,7 @@ import dtale.auth as auth
 import dtale.global_state as global_state
 import dtale.config as dtale_config
 from dtale import dtale
-from dtale.cli.clickutils import retrieve_meta_info_and_version, setup_logging
+from dtale.cli.clickutils import retrieve_version, setup_logging
 from dtale.dash_application import views as dash_views
 from dtale.utils import (
     DuplicateDataError,
@@ -507,7 +507,7 @@ def build_app(
 
         :return: text/html version information
         """
-        _, version = retrieve_meta_info_and_version("dtale")
+        version = retrieve_version("dtale")
         return str(version)
 
     @app.route("/health")

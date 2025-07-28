@@ -29,11 +29,11 @@ with warnings.catch_warnings():
     # flake8: NOQA
     from dtale.app import show, get_instance, instances, offline_chart  # isort:skip
     from dtale.cli.loaders import LOADERS  # isort:skip
-    from dtale.cli.clickutils import retrieve_meta_info_and_version
+    from dtale.cli.clickutils import retrieve_version
     from dtale.global_state import update_id  # isort:skip
 
     for loader_name, loader in LOADERS.items():
         if hasattr(loader, "show_loader"):
             globals()["show_{}".format(loader_name)] = loader.show_loader
 
-    __version__ = retrieve_meta_info_and_version("dtale")[1]
+    __version__ = retrieve_version("dtale")

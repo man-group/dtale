@@ -6,7 +6,7 @@ from builtins import str
 from datetime import datetime
 
 import click
-import pkg_resources
+from pkginfo import Installed
 from six import PY3, BytesIO, StringIO, string_types
 
 from dtale.utils import make_list
@@ -151,21 +151,14 @@ def get_named_options(names, options):
     return {k: v for k, v in options.items() if k in names}
 
 
-def retrieve_meta_info_and_version(name):
+def retrieve_version(name):
     """
-    Retrieves meta information and versioning of specific package name
+    Retrieves versioning of specific package name
     """
     try:
-        dist = pkg_resources.get_distribution(name)
+        return Installed(name).version
     except BaseException:
-        return None, "unknown"
-    try:
-        for line in dist._get_metadata(dist.PKG_INFO):
-            if line.startswith("Description:"):
-                return line[len("Description:") :].strip(), dist.version
-    except BaseException:
-        pass
-    return None, dist.version
+        return "unknown"
 
 
 def get_args(click_wrapper):
@@ -207,8 +200,7 @@ def run(click_wrapper):
     try:
         try:
             dtale_name = "dtale"
-            bld_info, ver_info = retrieve_meta_info_and_version(dtale_name)
-            logger.debug("{} bld: {}".format(dtale_name, bld_info))
+            ver_info = retrieve_version(dtale_name)
             logger.debug("{} ver: {}".format(dtale_name, ver_info))
         except BaseException:
             logger.debug("failure to retrieve metadata for: {}".format(dtale_name))

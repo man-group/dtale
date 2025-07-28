@@ -7,7 +7,7 @@ import pytest
 from dtale.cli.clickutils import (
     get_loader_options,
     loader_options,
-    retrieve_meta_info_and_version,
+    retrieve_version,
     setup_logging,
 )
 from tests import ExitStack
@@ -109,17 +109,10 @@ def test_get_loader_options():
 
 
 @pytest.mark.unit
-def test_retrieve_meta_info_and_version():
+def test_retrieve_version():
     class MockDist(object):
-        def __init__(self):
+        def __init__(self, name):
             self.version = "1.0.0"
 
-        def _get_metadata(self, pkg_info):
-            raise Exception()
-
-    with mock.patch(
-        "pkg_resources.get_distribution", mock.Mock(return_value=MockDist())
-    ):
-        meta_info, version = retrieve_meta_info_and_version("foo")
-        assert meta_info is None
-        assert version == "1.0.0"
+    with mock.patch("dtale.cli.clickutils.Installed", MockDist):
+        assert retrieve_version("foo") == "1.0.0"
