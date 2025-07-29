@@ -50,18 +50,22 @@ describe('LibrarySymbolSelector tests', () => {
 
   beforeEach(async () => {
     (axios.get as any).mockImplementation((url: string) => {
+      const params = parseUrlParams(url);
       if (url.startsWith('/dtale/arcticdb/libraries')) {
         return Promise.resolve({ data: { libraries: LIBS } });
-      } else if (url.startsWith('/dtale/arcticdb/foo/symbols')) {
-        return Promise.resolve({ data: { symbols: SYMBOLS.foo } });
-      } else if (url.startsWith('/dtale/arcticdb/bar/symbols')) {
-        return Promise.resolve({ data: { symbols: SYMBOLS.bar, async: true } });
-      } else if (url.startsWith('/dtale/arcticdb/bar/async-symbols')) {
-        return Promise.resolve({ data: [{ label: 'bar4', value: 'bar4' }] });
-      } else if (url.startsWith('/dtale/arcticdb/baz/symbols')) {
-        return Promise.resolve({ data: { symbols: SYMBOLS.baz } });
+      } else if (url.startsWith('/dtale/arcticdb/symbols')) {
+        if (params.library === 'foo') {
+          return Promise.resolve({ data: { symbols: SYMBOLS.foo } });
+        } else if (params.library === 'bar') {
+          return Promise.resolve({ data: { symbols: SYMBOLS.bar, async: true } });
+        } else if (params.library === 'baz') {
+          return Promise.resolve({ data: { symbols: SYMBOLS.baz } });
+        }
+      } else if (url.startsWith('/dtale/arcticdb/async-symbols')) {
+        if (params.library === 'bar') {
+          return Promise.resolve({ data: [{ label: 'bar4', value: 'bar4' }] });
+        }
       } else if (url.startsWith('/dtale/arcticdb/load-description')) {
-        const params = parseUrlParams(url);
         return Promise.resolve({
           data: {
             description: 'Test Description',

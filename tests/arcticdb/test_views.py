@@ -368,7 +368,7 @@ def test_get_arcticdb_symbols(unittest, arcticdb_path, arcticdb):
     global_state.use_arcticdb_store(uri=arcticdb_path, library="dtale")
 
     with app.test_client() as c:
-        response = c.get("/dtale/arcticdb/dtale/symbols")
+        response = c.get("/dtale/arcticdb/symbols", query_string=dict(library="dtale"))
         response_data = response.get_json()
         unittest.assertEqual(
             sorted(response_data["symbols"]), ["df1", "large_df", "slashed/df1"]
@@ -377,7 +377,8 @@ def test_get_arcticdb_symbols(unittest, arcticdb_path, arcticdb):
     with mock.patch("dtale.global_state.store.load_symbols") as load_symbols_mock:
         with app.test_client() as c:
             response = c.get(
-                "/dtale/arcticdb/dtale/symbols", query_string=dict(refresh="true")
+                "/dtale/arcticdb/symbols",
+                query_string=dict(library="dtale", refresh="true"),
             )
             response_data = response.get_json()
             unittest.assertEqual(
@@ -399,7 +400,9 @@ def test_get_arcticdb_symbols(unittest, arcticdb_path, arcticdb):
         )
 
         with app.test_client() as c:
-            response = c.get("/dtale/arcticdb/large_lib/symbols")
+            response = c.get(
+                "/dtale/arcticdb/symbols", query_string=dict(library="large_lib")
+            )
             response_data = response.get_json()
             unittest.assertEqual(
                 response_data["symbols"],
@@ -415,7 +418,8 @@ def test_get_arcticdb_async_symbols(unittest, arcticdb_path, arcticdb):
 
     with app.test_client() as c:
         response = c.get(
-            "/dtale/arcticdb/dtale/async-symbols", query_string=dict(input="df")
+            "/dtale/arcticdb/async-symbols",
+            query_string=dict(library="dtale", input="df"),
         )
         response_data = response.get_json()
         unittest.assertEqual(response_data, [{"label": "df1", "value": "df1"}])

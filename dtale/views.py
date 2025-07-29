@@ -89,6 +89,7 @@ from dtale.utils import (
     get_json_arg,
     get_str_arg,
     get_url_quote,
+    get_url_unquote,
     grid_columns,
     grid_formatter,
     json_date,
@@ -4415,9 +4416,10 @@ def get_async_arcticdb_libraries():
     return jsonify(vals)
 
 
-@dtale.route("/arcticdb/<library>/symbols")
+@dtale.route("/arcticdb/symbols")
 @exception_decorator
-def get_arcticdb_symbols(library):
+def get_arcticdb_symbols():
+    library = get_url_unquote()(get_str_arg(request, "library"))
     if get_bool_arg(request, "refresh") or library not in global_state.store._symbols:
         global_state.store.load_symbols(library)
 
@@ -4429,9 +4431,10 @@ def get_arcticdb_symbols(library):
     return jsonify({"success": True, "symbols": symbols, "async": is_async})
 
 
-@dtale.route("/arcticdb/<library>/async-symbols")
+@dtale.route("/arcticdb/async-symbols")
 @exception_decorator
-def get_async_arcticdb_symbols(library):
+def get_async_arcticdb_symbols():
+    library = get_url_unquote()(get_str_arg(request, "library"))
     symbols = global_state.store._symbols[library]
     input = get_str_arg(request, "input")
     vals = list(
