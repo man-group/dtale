@@ -128,7 +128,7 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
               onChange={(selected) => setLibrary(selected as BaseOption<string>)}
             >
               <div className="col-md-1 pl-0 mt-3">
-                <i className="ico-refresh" onClick={() => loadLibraries(true)} />
+                <i className="ico-refresh pointer" onClick={() => loadLibraries(true)} />
               </div>
             </LabeledSelect>
           )}
@@ -154,7 +154,7 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
                 />
               </div>
               <div className="col-md-1 pl-0 mt-3">
-                <i className="ico-refresh" onClick={() => loadLibraries(true)} />
+                <i className="ico-refresh pointer" onClick={() => loadLibraries(true)} />
               </div>
             </div>
           )}
@@ -167,7 +167,7 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
                 onChange={(selected) => setSymbol(selected as BaseOption<string>)}
               >
                 <div className="col-md-1 pl-0 mt-3">
-                  <i className="ico-refresh" onClick={() => loadSymbols(library!.value, true)} />
+                  <i className="ico-refresh pointer" onClick={() => loadSymbols(library!.value, true)} />
                 </div>
               </LabeledSelect>
             )}
@@ -187,7 +187,7 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
                   />
                 </div>
                 <div className="col-md-1 pl-0 mt-3">
-                  <i className="ico-refresh" onClick={() => loadSymbols(library!.value, true)} />
+                  <i className="ico-refresh pointer" onClick={() => loadSymbols(library!.value, true)} />
                 </div>
               </div>
             )}

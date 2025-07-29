@@ -1438,7 +1438,7 @@ def test_chart_building_bar_and_popup(unittest):
                             "value": "?{}".format(search_val),
                         },
                     ],
-                },
+                }
             ),
         )
         assert response.status_code == 200

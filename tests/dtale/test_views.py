@@ -2111,8 +2111,7 @@ def test_code_export():
 def test_version_info():
     with app.test_client() as c:
         with mock.patch(
-            "dtale.cli.clickutils.Installed",
-            mock.Mock(side_effect=Exception("blah")),
+            "dtale.cli.clickutils.Installed", mock.Mock(side_effect=Exception("blah"))
         ):
             response = c.get("version-info")
             assert "unknown" in str(response.data)
@@ -3482,8 +3481,7 @@ def test_instance_data(unittest):
         c.get(
             "/dtale/save-column-filter/{}".format(c.port),
             query_string=dict(
-                col="b",
-                cfg=json.dumps({"type": "int", "operand": ">=", "value": "5"}),
+                col="b", cfg=json.dumps({"type": "int", "operand": ">=", "value": "5"})
             ),
         )
 

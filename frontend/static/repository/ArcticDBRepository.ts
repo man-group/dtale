@@ -61,7 +61,7 @@ export async function asyncLibraries(input?: string): Promise<AsyncColumnFilterD
  */
 export async function symbols(library: string, refresh?: boolean): Promise<SymbolsResponse | undefined> {
   return await GenericRepository.getDataFromService<SymbolsResponse>(
-    buildURLString(`/dtale/arcticdb/${library}/symbols`, { refresh: `${refresh}` }),
+    buildURLString(`/dtale/arcticdb/symbols`, { library, refresh: `${refresh ?? ''}` }),
   );
 }
 
@@ -77,7 +77,7 @@ export async function asyncSymbols(
   input?: string,
 ): Promise<AsyncColumnFilterDataResponse<string> | undefined> {
   return await GenericRepository.getDataFromService<AsyncColumnFilterDataResponse<string>>(
-    buildURLString(`/dtale/arcticdb/${library}/async-symbols`, { input: input ?? '' }),
+    buildURLString(`/dtale/arcticdb/async-symbols`, { library, input: input ?? '' }),
   );
 }
 
