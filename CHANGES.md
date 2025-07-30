@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.18.2 (2025-7-28)
+* [#920](https://github.com/man-group/dtale/issues/920): support for arcticdb libraries with '/' character in name
+
 ### 3.18.1 (2025-7-28)
 * [#916](https://github.com/man-group/dtale/issues/916): removed pkg_resources imports
 
