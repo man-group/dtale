@@ -102,7 +102,8 @@ console.error = (...args) => {
     typeof args[0] === 'string' &&
     (args[0].startsWith("Warning: It looks like you're using the wrong act()") ||
       firstArg.startsWith('Warning: The current testing environment is not configured to support act') ||
-      firstArg.startsWith('Warning: You seem to have overlapping act() calls'))
+      firstArg.startsWith('Warning: You seem to have overlapping act() calls') ||
+      firstArg.startsWith('The current testing environment is not configured to support act(...)'))
   ) {
     return;
   }

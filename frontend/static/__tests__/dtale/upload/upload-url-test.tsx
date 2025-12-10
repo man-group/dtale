@@ -1,24 +1,24 @@
 import { screen } from '@testing-library/react';
 
+import * as windowUtils from '../../../location';
 import { DISABLED_URL_UPLOADS_MSG } from '../../../popups/upload/Upload';
 
 import * as TestSupport from './Upload.test.support';
 
 describe('Upload', () => {
-  const { close, location, open, opener } = window;
+  const { close, open, opener } = window;
   const spies = new TestSupport.Spies();
 
   beforeEach(async () => {
-    delete (window as any).location;
     delete (window as any).close;
     delete (window as any).open;
     delete window.opener;
-    (window as any).location = {
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
       reload: jest.fn(),
       pathname: '/dtale/column/1',
       href: '',
       assign: jest.fn(),
-    };
+    } as any);
     window.close = jest.fn();
     window.open = jest.fn();
     window.opener = { location: { assign: jest.fn(), pathname: '/dtale/column/1' } };
@@ -30,7 +30,6 @@ describe('Upload', () => {
 
   afterAll(() => {
     spies.afterAll();
-    window.location = location as any;
     window.close = close;
     window.open = open;
     window.opener = opener;

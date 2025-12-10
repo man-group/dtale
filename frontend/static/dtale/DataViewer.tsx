@@ -126,7 +126,7 @@ export const DataViewer: React.FC = () => {
   const [triggerResize, setTriggerResize] = React.useState(false);
   const [min, setMin] = React.useState<number>();
   const [max, setMax] = React.useState<number>();
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
 
   const gridRef = React.useRef<_MultiGrid>(null);
   const onRowsRendered = React.useRef<{ func?: (params: IndexRange) => void }>({});

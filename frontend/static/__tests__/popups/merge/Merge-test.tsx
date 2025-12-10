@@ -11,6 +11,7 @@ jest.mock('../../../dtale/DataViewer', () => {
   };
 });
 
+import * as windowUtils from '../../../location';
 import MergeDatasets from '../../../popups/merge/MergeDatasets';
 import * as mergeActions from '../../../redux/actions/merge';
 import * as GenericRepository from '../../../repository/GenericRepository';
@@ -19,22 +20,21 @@ import { PROCESSES, default as reduxUtils } from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
 describe('MergeDatasets', () => {
-  const { close, location, open, opener } = window;
+  const { close, open, opener } = window;
   let store: Store;
   let postSpy: jest.SpyInstance;
   let webUploadSpy: jest.SpyInstance;
 
   beforeEach(async () => {
-    delete (window as any).location;
     delete (window as any).close;
     delete (window as any).open;
     delete window.opener;
-    (window as any).location = {
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
       reload: jest.fn(),
       pathname: '/dtale/merge',
       href: '',
       assign: jest.fn(),
-    };
+    } as any);
     window.close = jest.fn();
     window.open = jest.fn();
     window.opener = { location: { assign: jest.fn(), pathname: '/dtale/merge' } };
@@ -75,7 +75,6 @@ describe('MergeDatasets', () => {
 
   afterAll(() => {
     jest.restoreAllMocks();
-    window.location = location as any;
     window.close = close;
     window.open = open;
     window.opener = opener;

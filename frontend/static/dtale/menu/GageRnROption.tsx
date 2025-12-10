@@ -8,7 +8,7 @@ const GageRnROption: React.FC<MenuOptionProps & WithTranslation> = ({ open, t })
   <MenuItem description={t('menu_description:gage_rnr')} onClick={open}>
     <span className="toggler-action">
       <button className="btn btn-plain">
-        <i className="fas fa-tachometer-alt ml-2 mr-4" />
+        <i className="fas fa-tachometer-alt ml-2 mr-2" />
         <span className="font-weight-bold">{t('gage_rnr', { ns: 'menu' })}</span>
       </button>
     </span>

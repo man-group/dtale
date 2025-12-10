@@ -74,7 +74,7 @@ const ColumnAnalysisFilters: React.FC<ColumnAnalysisFiltersProps & WithTranslati
     buildChart();
   }, [cols, code, dtype, type, top, bins, ordinalCol, ordinalAgg, categoryCol, categoryAgg, latCol, lonCol]);
 
-  const buildChartTypeToggle = (): JSX.Element => {
+  const buildChartTypeToggle = (): React.JSX.Element => {
     const colType = gu.findColType(dtype);
     const translatedTitles = titles(t);
     let options = [{ label: translatedTitles.histogram, value: AnalysisType.HISTOGRAM }];
@@ -111,7 +111,7 @@ const ColumnAnalysisFilters: React.FC<ColumnAnalysisFiltersProps & WithTranslati
     return <ButtonToggle options={options} update={update} defaultValue={type} />;
   };
 
-  const buildFilter = (setter: (value: string) => void, defaultValue?: string): JSX.Element => {
+  const buildFilter = (setter: (value: string) => void, defaultValue?: string): React.JSX.Element => {
     return (
       <TextEnterFilter
         {...{

@@ -35,7 +35,6 @@ describe('DataViewer tests', () => {
   let createChartSpy: CreateChartSpy;
   const mockStore = configureStore();
 
-  const { location } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -45,8 +44,6 @@ describe('DataViewer tests', () => {
 
   beforeAll(() => {
     dimensions.beforeAll();
-    delete (window as any).location;
-    (window as any).location = { reload: jest.fn() };
     mockChartJS();
   });
 
@@ -68,7 +65,6 @@ describe('DataViewer tests', () => {
   afterAll(() => {
     jest.restoreAllMocks();
     dimensions.afterAll();
-    window.location = location as any;
   });
 
   const corrGrid = (): Element => container.getElementsByClassName('correlations-grid')[0];

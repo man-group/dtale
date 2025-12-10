@@ -27,7 +27,7 @@ export const Rename: React.FC<RenameProps & WithTranslation> = ({ propagateState
   const dispatch = useAppDispatch();
 
   const [name, setName] = React.useState<string>(chartData.selectedCol);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const { selectedCol, columns } = chartData;
 
   React.useEffect(() => {

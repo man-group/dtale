@@ -47,8 +47,8 @@ interface BuilderInput {
 
 /** Popup builder output */
 interface BuilderOutput {
-  title?: JSX.Element;
-  body?: JSX.Element;
+  title?: React.JSX.Element;
+  body?: React.JSX.Element;
 }
 
 const buildFilter = (props: BuilderInput): BuilderOutput => {

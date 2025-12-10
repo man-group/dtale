@@ -7,7 +7,7 @@ import { PPSInfo } from '../../repository/CorrelationsRepository';
 export const displayScore = (pps: PPSInfo): string =>
   pps?.is_valid_score === true ? numeral(pps.ppscore).format('0.00') : 'N/A';
 
-const buildSpan = (text: string): JSX.Element => <span className="font-weight-bold">{text}</span>;
+const buildSpan = (text: string): React.JSX.Element => <span className="font-weight-bold">{text}</span>;
 
 /** Component properties for PPSDetails */
 interface PPSDetailsProps {

@@ -12,7 +12,7 @@ import { JSAnchor } from '../JSAnchor';
 
 require('./CodePopup.css');
 
-export const renderCodePopupAnchor = (code: string, title: string): JSX.Element => {
+export const renderCodePopupAnchor = (code: string, title: string): React.JSX.Element => {
   const onClick = (): void => {
     (window as any).code_popup = { code, title };
     menuFuncs.open('/dtale/code-popup', undefined, 450, 700);
@@ -33,7 +33,7 @@ interface CodePopupProps {
 const CodePopup: React.FC<CodePopupProps & WithTranslation> = ({ code, t }) => {
   const renderCopyToClipboard = (): React.ReactNode => {
     if (canCopy()) {
-      const buttonBuilder = (props: ButtonBuilderProps): JSX.Element => (
+      const buttonBuilder = (props: ButtonBuilderProps): React.JSX.Element => (
         <button className="btn btn-primary" {...props}>
           <i className="far fa-copy pr-3" />
           <span>{t('Copy')}</span>

@@ -95,7 +95,7 @@ export type ReplacementConfig =
 
 /** Replacement creation updatable properties */
 export interface ReplacementUpdateProps {
-  error?: JSX.Element;
+  error?: React.JSX.Element;
   code?: CreateColumnCodeSnippet;
   cfg?: ReplacementConfig;
 }

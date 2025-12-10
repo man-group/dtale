@@ -19,7 +19,7 @@ export const BinsTester: React.FC<BinsTesterProps> = ({ cfg, valid }) => {
   const dataId = useAppSelector(selectDataId);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [data, setData] = React.useState<CreateColumnRepository.TestBinsResponse>();
-  const loadedCfg = React.useRef<string>();
+  const loadedCfg = React.useRef<string>('');
 
   React.useEffect(() => {
     if (valid) {

@@ -25,8 +25,8 @@ import PPSCollapsible from './PPSCollapsible';
 /** State properties for Correlations */
 export interface CorrelationsState {
   chart?: chartUtils.ChartObj;
-  error?: JSX.Element;
-  scatterError?: JSX.Element;
+  error?: React.JSX.Element;
+  scatterError?: React.JSX.Element;
   correlations?: CorrelationsRepository.CorrelationGridRow[];
   selectedCols: string[];
   tsUrl?: string;
@@ -72,12 +72,12 @@ export const Correlations: React.FC = () => {
   const { dataId, chartData } = useAppSelector(selectResult);
   const scatterBouncer = React.useRef<HTMLDivElement>(null);
   const scatterCanvas = React.useRef<HTMLCanvasElement>(null);
-  const chartRef = React.useRef<chartUtils.ChartObj>();
+  const chartRef = React.useRef<chartUtils.ChartObj | undefined>(undefined);
 
   const [correlations, setCorrelations] = React.useState<CorrelationsGridState>();
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [scatterData, setScatterData] = React.useState<CorrelationsRepository.ScatterResponse>();
-  const [scatterError, setScatterError] = React.useState<JSX.Element>();
+  const [scatterError, setScatterError] = React.useState<React.JSX.Element>();
   const [selectedCols, setSelectedCols] = React.useState<string[]>([]);
   const [tsUrl, setTsUrl] = React.useState<string>();
   const [tsCode, setTsCode] = React.useState<string>();
@@ -200,7 +200,7 @@ export const Correlations: React.FC = () => {
       setScatterUrl(updatedScatterUrl);
       setTsCode(updatedTsCode);
       if (response?.error) {
-        setScatterError(<RemovableError {...response} />);
+        setScatterError(<RemovableError error={response.error} traceback={response.traceback} />);
         return;
       }
       if (response) {

@@ -80,7 +80,7 @@ const ActionConfig: React.FC<WithTranslation> = ({ t }) => {
 
   const [example, setExample] = React.useState(false);
 
-  const renderMerge = (): JSX.Element => {
+  const renderMerge = (): React.JSX.Element => {
     const { how, sort, indicator } = mergeConfig;
     return (
       <React.Fragment>
@@ -130,7 +130,7 @@ const ActionConfig: React.FC<WithTranslation> = ({ t }) => {
     );
   };
 
-  const renderStack = (): JSX.Element => {
+  const renderStack = (): React.JSX.Element => {
     const { ignoreIndex } = stackConfig;
     return (
       <React.Fragment>

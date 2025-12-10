@@ -34,7 +34,7 @@ enum DeepDataView {
 export interface DetailsProps {
   selected: ColumnDef;
   dtypes: ColumnDef[];
-  close?: JSX.Element;
+  close?: React.JSX.Element;
 }
 
 const selectResult = createSelector(
@@ -56,7 +56,7 @@ const Details: React.FC<DetailsProps & WithTranslation> = ({ selected, dtypes, c
     const { query, columnFilters, outlierFilters, predefinedFilters } = settings;
     return !noFilters({ query, columnFilters, outlierFilters, predefinedFilters });
   }, [settings]);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [details, setDetails] = React.useState<DetailData>();
   const [loadingDetails, setLoadingDetails] = React.useState(false);
   const [code, setCode] = React.useState<string>();

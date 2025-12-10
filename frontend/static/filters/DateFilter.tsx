@@ -32,11 +32,11 @@ export const DateFilter: React.FC<DateFilterProps & WithTranslation> = ({
   const [end, setEnd] = React.useState<Date | undefined>(initialEnd ? moment(initialEnd).toDate() : undefined);
   const [triggerSave, setTriggerSave] = React.useState<boolean>(false);
 
-  const startInput = React.useRef<HTMLInputElement>(null);
-  const endInput = React.useRef<HTMLInputElement>(null);
+  const startInput = React.useRef<HTMLInputElement | null>(null);
+  const endInput = React.useRef<HTMLInputElement | null>(null);
 
   const updateDate = (
-    inputRef: React.RefObject<HTMLInputElement>,
+    inputRef: React.RefObject<HTMLInputElement | null>,
     value: Date | undefined,
     setter: (v: Date | undefined) => void,
   ): void => {

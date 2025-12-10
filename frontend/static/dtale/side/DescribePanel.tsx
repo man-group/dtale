@@ -36,7 +36,7 @@ const DescribePanel: React.FC<WithTranslation> = ({ t }) => {
     dispatch(AppActions.DataViewerUpdateAction({ type: DataViewerUpdateType.TOGGLE_COLUMNS, columns }));
 
   const [loadingDtypes, setLoadingDtypes] = React.useState(true);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [dtypes, setDtypes] = React.useState<ColumnDef[]>([]);
   const [dtypeLoad, setDtypeLoad] = React.useState<Date>();
   const [visibility, setVisibility] = React.useState<Record<string, boolean>>({});

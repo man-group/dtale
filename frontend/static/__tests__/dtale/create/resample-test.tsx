@@ -7,12 +7,11 @@ import { selectOption } from '../../test-utils';
 import * as TestSupport from './CreateColumn.test.support';
 
 describe('CreateResample', () => {
-  const { location, open } = window;
+  const { open } = window;
   const spies = new TestSupport.Spies();
   let result: Element;
 
   beforeAll(() => {
-    delete (window as any).location;
     jest
       .spyOn(windowUtils, 'getLocation')
       .mockReturnValue({ href: 'http://localhost:8080/dtale/main/1', pathname: '/dtale/1' } as any);
@@ -30,7 +29,6 @@ describe('CreateResample', () => {
 
   afterAll(() => {
     spies.afterAll();
-    window.location = location as any;
     window.open = open;
   });
 

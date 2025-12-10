@@ -80,7 +80,9 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
 
   const [drag, setDrag] = React.useState(false);
   const [colWidth, setColWidth] = React.useState<number>();
-  const headerRef = React.useRef<HTMLDivElement>(null);
+  const headerRef = React.useRef<HTMLDivElement | null>(null);
+  const dragRef = React.useRef<HTMLDivElement | null>(null);
+
   const [colCfg, colName] = React.useMemo(() => {
     const cfg = gu.getCol(columnIndex, columns, settings.backgroundMode);
     return [cfg, cfg?.name ?? ''];
@@ -148,8 +150,11 @@ const Header: React.FC<HeaderProps & WithTranslation> = ({
         onDrag={(e, { deltaX }) => cancelEvents(e, () => resizeCol(e, deltaX))}
         onStop={(e) => cancelEvents(e, resizeStop)}
         position={{ x: 0, y: 0 }}
+        nodeRef={dragRef as React.RefObject<HTMLElement>}
       >
-        <div className="DragHandleIcon">⋮</div>
+        <div className="DragHandleIcon" ref={dragRef}>
+          ⋮
+        </div>
       </Draggable>
     </div>
   );

@@ -14,7 +14,7 @@ import { buildInnerHTML, clickMainMenuButton } from '../test-utils';
 import { clickColMenuButton, clickColMenuSubButton, openColMenu, validateHeaders } from './iframe-utils';
 
 describe('DataViewer iframe tests', () => {
-  const { location, open, top, self } = window;
+  const { open, top, self } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -27,11 +27,9 @@ describe('DataViewer iframe tests', () => {
 
   beforeAll(() => {
     dimensions.beforeAll();
-    delete (window as any).location;
     delete (window as any).open;
     delete (window as any).top;
     delete (window as any).self;
-    (window as any).location = { reload: jest.fn(), pathname: '' };
     window.open = openSpy;
     (window as any).top = { location: { href: 'http://test.com' } };
     (window as any).self = { location: { href: 'http://test/dtale/iframe' } };
@@ -62,7 +60,6 @@ describe('DataViewer iframe tests', () => {
 
   afterAll(() => {
     dimensions.afterAll();
-    window.location = location as any;
     window.open = open;
     window.top = top;
     window.self = self;

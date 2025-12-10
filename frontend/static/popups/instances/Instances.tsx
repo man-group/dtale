@@ -34,7 +34,7 @@ const selectResult = createSelector([selectDataId, selectIFrame], (dataId, ifram
 const Instances: React.FC<WithTranslation> = ({ t }) => {
   const { dataId, iframe } = useAppSelector(selectResult);
   const [instances, setInstances] = React.useState<InstanceRepository.Instance[]>([]);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [loadingInstances, setLoadingInstances] = React.useState(true);
   const [preview, setPreview] = React.useState<InstanceRepository.Instance>();
 

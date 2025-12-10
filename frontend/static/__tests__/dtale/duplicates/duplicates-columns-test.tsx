@@ -13,27 +13,26 @@ import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML, parseUrlParams, selectOption } from '../../test-utils';
 
 describe('Duplicates', () => {
-  const { location, open, opener } = window;
+  const { open, opener } = window;
   let result: Element;
   let dupesSpy: jest.SpyInstance;
   const reloadSpy = jest.fn();
   const assignSpy = jest.fn();
 
   beforeAll(() => {
-    delete (window as any).location;
     delete (window as any).open;
     delete window.opener;
+    window.open = jest.fn();
+    window.opener = { code_popup: { code: 'test code', title: 'Test' } };
+  });
+
+  beforeEach(async () => {
     jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
       href: 'http://localhost:8080/dtale/main/1',
       reload: reloadSpy,
       pathname: '/dtale/column/1',
       assign: assignSpy,
     } as any);
-    window.open = jest.fn();
-    window.opener = { code_popup: { code: 'test code', title: 'Test' } };
-  });
-
-  beforeEach(async () => {
     dupesSpy = jest.spyOn(DuplicatesRepository, 'run');
     (axios.get as any).mockImplementation(async (url: string) => {
       if (url.startsWith('/dtale/duplicates')) {
@@ -99,7 +98,6 @@ describe('Duplicates', () => {
   afterEach(jest.restoreAllMocks);
 
   afterAll(() => {
-    window.location = location as any;
     window.open = open;
     window.opener = opener;
   });

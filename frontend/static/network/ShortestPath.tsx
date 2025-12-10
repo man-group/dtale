@@ -29,7 +29,7 @@ const ShortestPath: React.FC<ShortestPathProps & WithTranslation> = ({
 }) => {
   const dataId = useAppSelector(selectDataId);
   const [shortestPath, setShortestPath] = React.useState<string[]>();
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [start, setStart] = React.useState<string>();
   const [end, setEnd] = React.useState<string>();
 

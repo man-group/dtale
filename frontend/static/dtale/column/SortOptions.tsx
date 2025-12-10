@@ -18,7 +18,7 @@ const SortOptions: React.FC<SortOptionsProps & WithTranslation> = ({ sortInfo, s
     dispatch(settingsActions.updateSettings(updatedSettings));
   const currDir = sortInfo?.find(([col, _dir]) => selectedCol === col)?.[1];
 
-  const renderBtn = (active: boolean, label: string, dir?: SortDir): JSX.Element => {
+  const renderBtn = (active: boolean, label: string, dir?: SortDir): React.JSX.Element => {
     return (
       <button
         style={active ? {} : { color: '#565b68' }}

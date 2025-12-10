@@ -20,7 +20,7 @@ const DtaleInput: React.FC<DtaleInputProps> = ({ type = 'text', value, setter, i
 
 /** Component properties for LabeledInput */
 interface LabeledInputProps extends DtaleInputProps {
-  label: string | null | JSX.Element;
+  label: string | null | React.JSX.Element;
   subLabel?: string | null;
   labelWidth?: number;
   inputWidth?: number;

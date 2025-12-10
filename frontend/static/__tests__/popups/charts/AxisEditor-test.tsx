@@ -12,7 +12,7 @@ describe('ChartLabel tests', () => {
     [
       open: (e: React.MouseEvent) => void,
       close: () => void,
-      toggleRef?: React.RefObject<HTMLElement>,
+      toggleRef?: React.RefObject<HTMLElement | null>,
       clickFilters?: (e: MouseEvent) => boolean,
     ]
   >;

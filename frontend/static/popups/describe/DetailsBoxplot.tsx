@@ -29,7 +29,7 @@ interface DetailsBoxplotProps {
 }
 
 const DetailsBoxplot: React.FC<DetailsBoxplotProps & WithTranslation> = ({ details, column, t }) => {
-  const boxplot = React.useRef<chartUtils.ChartObj>();
+  const boxplot = React.useRef<chartUtils.ChartObj | undefined>(undefined);
 
   const createBoxplot = (): void => {
     const builder = (ctx: HTMLCanvasElement): chartUtils.ChartObj | undefined => {

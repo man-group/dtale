@@ -21,7 +21,7 @@ export default class FilterSelect<T> extends React.Component<FilterSelectProps<T
   }
 
   /** @override */
-  public render(): JSX.Element {
+  public render(): React.JSX.Element {
     const { value, isClearable, options, noOptionsMessage } = this.props;
     const props = {
       className: 'Select is-clearable is-searchable Select--single',

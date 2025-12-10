@@ -1,4 +1,4 @@
-import { act, fireEvent, getByRole, render, screen } from '@testing-library/react';
+import { act, fireEvent, getByRole, render, RenderOptions, screen } from '@testing-library/react';
 import * as React from 'react';
 import { Provider, useDispatch } from 'react-redux';
 
@@ -38,16 +38,13 @@ describe('ExportOption', () => {
     store.dispatch(
       AppActions.OpenChartAction({ visible: true, rows: 50, ...overrides?.chartData, type: PopupType.EXPORT }),
     );
-    await act(
-      () =>
-        render(
-          <Provider store={store}>
-            <Popup propagateState={jest.fn()} />
-          </Provider>,
-          {
-            container: document.getElementById('content') ?? undefined,
-          },
-        ).container,
+    await act(async () =>
+      render(
+        <Provider store={store}>
+          <Popup propagateState={jest.fn()} />
+        </Provider>,
+        { container: document.getElementById('content') ?? undefined } as RenderOptions,
+      ),
     );
   };
 

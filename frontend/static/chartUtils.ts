@@ -200,7 +200,7 @@ export interface LinePoint {
 function drawLine(
   chart: Chart<'line', number[], unknown>,
   point: TooltipItem<'line'>,
-  colorBuilder: (val: number) => string,
+  colorBuilder: (val: number | null) => string,
 ): void {
   const { ctx } = chart;
   const x = point.element.x;
@@ -234,7 +234,7 @@ export const lineHoverPlugin = (colorScale: chroma.Scale): Plugin<'line'> => ({
   afterDraw: (chart: Chart<'line', number[], unknown>): void => {
     const dataPoints = chart.tooltip?.dataPoints;
     if (dataPoints?.length) {
-      drawLine(chart, dataPoints[0], (val: number): string => colorScale(val).hex());
+      drawLine(chart, dataPoints[0], (val: number | null): string => colorScale(val).hex());
       return;
     }
   },
@@ -301,7 +301,8 @@ export function buildTicks(prop: string, dataSpec: Partial<DataSpec>, pad = fals
   return range;
 }
 
-const formatNumber = (val: number, digits: number): string => `${parseFloat(val.toFixed(digits))}`;
+const formatNumber = (val: number | null, digits: number): string =>
+  val === null ? '' : `${parseFloat(val.toFixed(digits))}`;
 
 /** Type definition for input data for chart.js charts */
 export type InputData = Record<string, Record<string, Array<string | number>>>;

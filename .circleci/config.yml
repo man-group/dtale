@@ -63,9 +63,9 @@ javascript: &javascript
             - dtale/static/dash
       # Save test results
       - store_test_results:
-          path: /tmp/circleci-test-results
+          path: /tmp/circleci-test-results/js_junit.xml
       - store_artifacts:
-          path: /tmp/circleci-test-results
+          path: /tmp/circleci-test-results/duplicates.xml
 python_variables: &python_variables
   CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
   CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
@@ -264,7 +264,7 @@ jobs:
   build_JS:
     working_directory: /mnt/ramdisk
     docker:
-      - image: cimg/node:20.18.2
+      - image: cimg/node:24.4.0
     <<: *javascript
   check_python_formatting:
     working_directory: ~/man-group/dtale_python_formatting

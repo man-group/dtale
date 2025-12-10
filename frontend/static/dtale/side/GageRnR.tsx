@@ -44,7 +44,7 @@ const GageRnR: React.FC<WithTranslation> = ({ t }) => {
   const hideSidePanel = (): PayloadAction<void> => dispatch(AppActions.HideSidePanelAction());
   const hasFilters = React.useMemo(() => !gu.noFilters(settings), [settings]);
   const [loadingDtypes, setLoadingDtypes] = React.useState(true);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [dtypes, setDtypes] = React.useState<ColumnDef[]>([]);
   const [state, setState] = React.useState<GageRnrState>({ filtered: !hasFilters });
   const [loadingReport, setLoadingReport] = React.useState(false);

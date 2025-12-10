@@ -207,7 +207,7 @@ const DataViewerMenu: React.FC<DataViewerMenuProps & WithTranslation> = ({ t, co
           <MenuItem description={t('menu_description:widths')} onClick={refreshWidths}>
             <span className="toggler-action">
               <button className="btn btn-plain">
-                <i className="fas fa-columns ml-2 mr-4" />
+                <i className="fas fa-columns ml-2 mr-2" />
                 <span className="font-weight-bold">{t('Refresh Widths', { ns: 'menu' })}</span>
               </button>
             </span>

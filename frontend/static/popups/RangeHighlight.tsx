@@ -103,8 +103,8 @@ export const rgbaStr = (color: RGBColor): string => `rgba(${color.r},${color.g},
  * @param range range highlight modes
  * @return JSX elements
  */
-function rangeAsStr(range: RangeHighlightModes): JSX.Element[] {
-  const subRanges: JSX.Element[] = [];
+function rangeAsStr(range: RangeHighlightModes): React.JSX.Element[] {
+  const subRanges: React.JSX.Element[] = [];
   MODES.forEach(([label, key, _filter]) => {
     const { active, value, color } = range[key];
     if (active) {

@@ -102,7 +102,7 @@ export const ColumnFilter: React.FC<ColumnFilterProps & WithTranslation> = ({
     updateSettings({ columnFilters: response?.currFilters ?? {} });
   };
 
-  const renderIcon = (showIcon = true): JSX.Element => {
+  const renderIcon = (showIcon = true): React.JSX.Element => {
     const openFilter = menuFuncs.openPopup(
       { type: PopupType.FILTER, title: 'Filter', visible: true },
       dataId,

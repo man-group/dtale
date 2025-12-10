@@ -13,7 +13,7 @@ import { dataLoader } from './columnAnalysisUtils';
 import ColumnAnalysisFilters from './filters/ColumnAnalysisFilters';
 import { analysisAggs } from './filters/Constants';
 
-require('./ColumnAnalysis.css');
+import './ColumnAnalysis.css';
 
 /** Component properties for ColumnAnalysis */
 interface ColumnAnalysisProps {
@@ -27,7 +27,7 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 
 const ColumnAnalysis: React.FC<ColumnAnalysisProps & WithTranslation> = ({ height, t }) => {
   const { chartData, dataId } = useAppSelector(selectResult);
-  const chartRef = React.useRef<chartUtils.ChartObj | undefined>();
+  const chartRef = React.useRef<chartUtils.ChartObj | undefined>(undefined);
   const [defaultCategoryAgg, defaultOrdinalAgg] = React.useMemo(() => {
     const aggs = analysisAggs(t);
     return [aggs.find((option) => option.value === 'mean')!, aggs.find((option) => option.value === 'sum')!];

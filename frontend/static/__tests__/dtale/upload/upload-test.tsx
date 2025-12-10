@@ -5,14 +5,13 @@ import * as windowUtils from '../../../location';
 import * as TestSupport from './Upload.test.support';
 
 describe('Upload', () => {
-  const { close, location, open, opener } = window;
+  const { close, open, opener } = window;
   const spies = new TestSupport.Spies();
   const reloadSpy = jest.fn();
   const assignSpy = jest.fn();
   const openerAssignSpy = jest.fn();
 
   beforeEach(async () => {
-    delete (window as any).location;
     delete (window as any).close;
     delete (window as any).open;
     delete window.opener;
@@ -37,7 +36,6 @@ describe('Upload', () => {
 
   afterAll(() => {
     spies.afterAll();
-    window.location = location as any;
     window.close = close;
     window.open = open;
     window.opener = opener;

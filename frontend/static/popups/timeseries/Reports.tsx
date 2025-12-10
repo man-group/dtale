@@ -63,7 +63,7 @@ const Reports: React.FC<WithTranslation> = ({ t }) => {
     {} as Record<TimeseriesAnalysisType, string>,
   );
   const [loadingColumns, setLoadingColumns] = React.useState(true);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
   const [url, setUrl] = React.useState<string>();
   const [multiChart, setMultiChart] = React.useState(false);
@@ -124,7 +124,7 @@ const Reports: React.FC<WithTranslation> = ({ t }) => {
 
   React.useEffect(() => run(), [baseCfg, cfg, type]);
 
-  const renderBody = (): JSX.Element => {
+  const renderBody = (): React.JSX.Element => {
     const updateState = <T,>(updates: T): void => setCfg({ ...cfg, [type]: { ...updates } });
     let body: React.ReactNode = null;
     let configHandler: (

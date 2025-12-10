@@ -23,8 +23,8 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 const VarianceChart: React.FC<VarianceChartProps & WithTranslation> = ({ height = 400, filtered, t }) => {
   const { dataId, chartData } = useAppSelector(selectResult);
   const [bins, setBins] = React.useState(20);
-  const [error, setError] = React.useState<JSX.Element>();
-  const [chart, setChart] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
+  const [chart, setChart] = React.useState<React.JSX.Element>();
 
   const createChart = async (): Promise<void> => {
     const propagateState = (state: Partial<AnalysisState>): void => {

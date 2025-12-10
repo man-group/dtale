@@ -60,7 +60,7 @@ const CorrelationAnalysis: React.FC<WithTranslation> = ({ t }) => {
   const hideSidePanel = (): PayloadAction<void> => dispatch(AppActions.HideSidePanelAction());
 
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [currSort, setCurrSort] = React.useState<SortDef>();
   const [selections, setSelections] = React.useState<Record<string, boolean>>({});
   const [threshold, setThreshold] = React.useState(0.5);

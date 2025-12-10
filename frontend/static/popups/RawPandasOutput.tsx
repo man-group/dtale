@@ -16,7 +16,7 @@ const FUNC_LABELS: Record<FuncType, string> = {
 export const RawPandasOutput: React.FC = () => {
   const dataId = useAppSelector(selectDataId);
   const [funcType, setFuncType] = React.useState<FuncType>(FuncType.INFO);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [output, setOutput] = React.useState<string>();
   const [loadingOutput, setLoadingOutput] = React.useState(false);
   const [fontSize, setFontSize] = React.useState(11);

@@ -16,7 +16,7 @@ import { default as GeoFilters, hasCoords, loadCoordVals } from './GeoFilters';
 import OrdinalInputs from './OrdinalInputs';
 import TextEnterFilter from './TextEnterFilter';
 
-const wrapFilterMarkup = (filterMarkup: JSX.Element): JSX.Element => (
+const wrapFilterMarkup = (filterMarkup: React.JSX.Element): React.JSX.Element => (
   <div className="form-group row small-gutters mb-3 mt-3">
     <div className="row m-0">{filterMarkup}</div>
   </div>
@@ -178,7 +178,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     return () => document.removeEventListener('keydown', keyPress);
   }, [chartOpts, type]);
 
-  const buildChartTypeToggle = (): JSX.Element => {
+  const buildChartTypeToggle = (): React.JSX.Element => {
     return (
       <React.Fragment>
         <ButtonToggle options={chartOpts} update={(value?: AnalysisType) => setType(value!)} defaultValue={type} />
@@ -192,7 +192,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     prop: string,
     defaultValue?: string,
     disabled = false,
-  ): JSX.Element => {
+  ): React.JSX.Element => {
     return (
       <TextEnterFilter
         {...{
@@ -207,7 +207,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     );
   };
 
-  const targetSelect = (): JSX.Element => (
+  const targetSelect = (): React.JSX.Element => (
     <React.Fragment key="target">
       <div className="col-auto text-center pr-4">
         <div>
@@ -231,7 +231,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     </React.Fragment>
   );
 
-  const splitsSelect = (): JSX.Element => (
+  const splitsSelect = (): React.JSX.Element => (
     <React.Fragment key="target">
       <div className="col-auto text-center pr-4">
         <div>
@@ -256,7 +256,7 @@ const DescribeFilters: React.FC<DescribeFiltersProps & WithTranslation> = ({
     </React.Fragment>
   );
 
-  const densityToggle = (): JSX.Element => (
+  const densityToggle = (): React.JSX.Element => (
     <ButtonToggle
       options={[
         { label: 'Frequency', value: false },

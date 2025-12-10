@@ -43,7 +43,7 @@ const Charts: React.FC<WithTranslation> = ({ t }) => {
   });
   const [url, setUrl] = React.useState<string>();
   const [query, setQuery] = React.useState<string | undefined>(chartData.query);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
 
   const generateChartState = (): void => {
     const { x, y, group, aggregation, rollingWindow, rollingComputation } = state;
@@ -102,7 +102,7 @@ const Charts: React.FC<WithTranslation> = ({ t }) => {
     value?: BaseOption<string> | Array<BaseOption<string>>,
     otherProps: Array<BaseOption<string> | Array<BaseOption<string>> | undefined> = [],
     isMulti = false,
-  ): JSX.Element => {
+  ): React.JSX.Element => {
     const finalOptions = constructColumnOptionsFilteredByOtherValues(columns ?? [], otherProps);
     return (
       <div className="input-group mr-3">

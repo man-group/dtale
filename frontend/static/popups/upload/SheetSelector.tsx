@@ -20,7 +20,7 @@ interface SheetSelectorProps {
 
 const SheetSelector: React.FC<SheetSelectorProps & WithTranslation> = ({ mergeRefresher, t, ...props }) => {
   const [sheets, setSheets] = React.useState([...(props.sheets ?? [])]);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [minHeight, setMinHeight] = React.useState<number>();
   const [minWidth, setMinWidth] = React.useState<number>();
 

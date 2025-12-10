@@ -48,7 +48,7 @@ const FilterPopup: React.FC<WithTranslation> = ({ t }) => {
   const [contextVars, setContextVars] = React.useState<Array<{ name: string; value: string }>>([]);
   const [columnFilters, setColumnFilters] = React.useState<Record<string, ColumnFilter>>({});
   const [outlierFilters, setOutlierFilters] = React.useState<Record<string, OutlierFilter>>({});
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
 
   React.useEffect(() => {
     CustomFilterRepository.loadInfo(dataId).then((response) => {

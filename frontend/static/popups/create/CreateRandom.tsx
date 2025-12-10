@@ -101,7 +101,11 @@ const CreateRandom: React.FC<BaseCreateComponentProps & WithTranslation> = ({
     updateState(updatedState);
   }, [type, low, high, length, chars, choices, start, end, businessDay, timestamps]);
 
-  const buildDateInput = (setter: (value?: string) => void, defaultValue: string, value?: string): JSX.Element => (
+  const buildDateInput = (
+    setter: (value?: string) => void,
+    defaultValue: string,
+    value?: string,
+  ): React.JSX.Element => (
     <div className="col-md-3 text-left">
       <DateInput
         formatDate={dateFormatter}
@@ -118,7 +122,7 @@ const CreateRandom: React.FC<BaseCreateComponentProps & WithTranslation> = ({
     </div>
   );
 
-  const renderDateInputs = (): JSX.Element => (
+  const renderDateInputs = (): React.JSX.Element => (
     <React.Fragment>
       <div className="form-group row mb-0" data-testid="date-inputs">
         <label className="col-md-3 col-form-label text-right">{t('Range')}</label>

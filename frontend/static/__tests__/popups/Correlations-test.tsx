@@ -13,6 +13,7 @@ jest.mock('../../dtale/side/SidePanelButtons', () => {
 });
 
 import * as chartUtils from '../../chartUtils';
+import * as windowUtils from '../../location';
 import { Correlations } from '../../popups/correlations/Correlations';
 import { percent } from '../../popups/correlations/correlationsUtils';
 import { AppActions } from '../../redux/actions/AppActions';
@@ -30,7 +31,7 @@ const chartData: CorrelationsPopupData = {
 };
 
 describe('Correlations tests', () => {
-  const { location, opener, open } = window;
+  const { opener, open } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -46,12 +47,13 @@ describe('Correlations tests', () => {
     window.open = openSpy;
     delete window.opener;
     window.opener = { location: { reload: jest.fn() } };
-    delete (window as any).location;
-    (window as any).location = { pathname: '/dtale/popup' };
     mockChartJS();
   });
 
   beforeEach(async () => {
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
+      pathname: '/dtale/popup',
+    } as any);
     createChartSpy = jest.spyOn(chartUtils, 'createChart');
     (axios.get as any).mockImplementation((url: string) => {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
@@ -71,7 +73,6 @@ describe('Correlations tests', () => {
     dimensions.afterAll();
     window.open = open;
     window.opener = opener;
-    window.location = location as any;
   });
 
   const buildResult = async (overrides?: Partial<CorrelationsPopupData>): Promise<void> => {
