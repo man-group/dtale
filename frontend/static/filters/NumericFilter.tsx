@@ -133,7 +133,11 @@ export const NumericFilter: React.FC<NumericFilterProps & WithTranslation> = ({
     save();
   }, [operand, debouncedSelected, debouncedMinimum, debouncedMaximum, debouncedValue]);
 
-  const createValueInput = (setter: (inputVal: string) => void, label: string, inputValue?: string): JSX.Element => (
+  const createValueInput = (
+    setter: (inputVal: string) => void,
+    label: string,
+    inputValue?: string,
+  ): React.JSX.Element => (
     <div className="row pt-3">
       <div className="col-auto m-auto">
         <input

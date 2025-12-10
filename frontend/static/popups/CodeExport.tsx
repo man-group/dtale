@@ -9,7 +9,7 @@ import CodePopup from './CodePopup';
 
 export const CodeExport: React.FC = () => {
   const dataId = useAppSelector(selectDataId);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [code, setCode] = React.useState<string>();
 
   React.useEffect(() => {

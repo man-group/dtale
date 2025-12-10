@@ -66,7 +66,7 @@ const MissingNoCharts: React.FC<WithTranslation> = ({ t }) => {
     [t],
   );
 
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [chartType, setChartType] = React.useState(MissingNoChart.HEATMAP);
   const [freq, setFreq] = React.useState(freqOptions.find((f) => f.value === 'BQ')!);
   const [dateCol, setDateCol] = React.useState<BaseOption<string>>();

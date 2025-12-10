@@ -38,7 +38,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({ gridPanel }) => {
   const updatePanelWidth = (offsetUpdate?: number): PayloadAction<SidePanelActionProps> =>
     dispatch(AppActions.UpdateSidePanelWidthAction({ offset: offsetUpdate }));
   const [offset, setOffset] = React.useState<number>();
-  const panel = React.useRef<HTMLDivElement>(null);
+  const panel = React.useRef<HTMLDivElement | null>(null);
+  const dragRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => setOffset(0), [view]);
 
@@ -79,8 +80,11 @@ export const SidePanel: React.FC<SidePanelProps> = ({ gridPanel }) => {
           onDrag={(_e, { deltaX }) => resize(deltaX)}
           onStop={stopResize}
           position={{ x: 0, y: 0 }}
+          nodeRef={dragRef as React.RefObject<HTMLElement>}
         >
-          <div className="PanelDragHandleIcon">⋮</div>
+          <div className="PanelDragHandleIcon" ref={dragRef}>
+            ⋮
+          </div>
         </Draggable>
       )}
       {visible && <GlobalHotKeys keyMap={{ CLOSE_PANEL: 'esc' }} handlers={{ CLOSE_PANEL: hideSidePanel }} />}

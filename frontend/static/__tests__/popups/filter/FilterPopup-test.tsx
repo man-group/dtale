@@ -125,7 +125,7 @@ describe('FilterPopup', () => {
   });
 
   describe('new window', () => {
-    const { location, close, opener } = window;
+    const { close, opener } = window;
     const reloadSpy = jest.fn();
 
     beforeEach(() => {
@@ -134,7 +134,6 @@ describe('FilterPopup', () => {
     });
 
     beforeAll(() => {
-      delete (window as any).location;
       delete (window as any).close;
       delete window.opener;
       window.close = jest.fn();
@@ -143,7 +142,6 @@ describe('FilterPopup', () => {
     afterEach(jest.resetAllMocks);
 
     afterAll(() => {
-      window.location = location as any;
       window.close = close;
       window.opener = opener;
     });

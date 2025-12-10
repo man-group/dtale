@@ -36,7 +36,7 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 
 const Duplicates: React.FC<WithTranslation> = ({ t }) => {
   const { dataId, chartData } = useAppSelector(selectResult);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [loadingColumns, setLoadingColumns] = React.useState(true);
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
   const [type, setType] = React.useState(

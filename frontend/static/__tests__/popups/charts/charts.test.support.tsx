@@ -7,7 +7,7 @@ import * as chartUtils from '../../../chartUtils';
 import * as menuUtils from '../../../menuUtils';
 import Charts from '../../../popups/charts/Charts';
 import { AppActions } from '../../../redux/actions/AppActions';
-import { PopupType } from '../../../redux/state/AppState';
+import { BaseOption, PopupType } from '../../../redux/state/AppState';
 import * as ChartsRepository from '../../../repository/ChartsRepository';
 import DimensionsHelper from '../../DimensionsHelper';
 import { mockColumnDef } from '../../mocks/MockColumnDef';
@@ -29,11 +29,14 @@ export class Spies {
     [
       open: (e: React.MouseEvent) => void,
       close: () => void,
-      toggleRef?: React.RefObject<HTMLElement>,
+      toggleRef?: React.RefObject<HTMLElement | null>,
       clickFilters?: (e: MouseEvent) => boolean,
     ]
   >;
-  public chartsRepositorySpy: jest.SpyInstance;
+  public chartsRepositorySpy: jest.SpyInstance<
+    Promise<ChartsRepository.ChartsResponse | undefined>,
+    [url: string, chartType?: BaseOption<string>]
+  >;
   private result?: Element;
 
   private dimensions = new DimensionsHelper({

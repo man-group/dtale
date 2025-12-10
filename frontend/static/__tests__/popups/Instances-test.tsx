@@ -18,7 +18,6 @@ import { buildInnerHTML } from '../test-utils';
 
 describe('Instances tests', () => {
   const assignSpy = jest.fn();
-  const { location } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -27,8 +26,6 @@ describe('Instances tests', () => {
 
   beforeAll(() => {
     dimensions.beforeAll();
-
-    delete (window as any).location;
     jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
       href: 'http://localhost:8080',
       hostname: 'localhost',
@@ -49,7 +46,6 @@ describe('Instances tests', () => {
   afterAll(() => {
     dimensions.afterAll();
     assignSpy.mockRestore();
-    window.location = location as any;
   });
 
   const buildResult = async (overrides?: Record<string, string>): Promise<Element> => {

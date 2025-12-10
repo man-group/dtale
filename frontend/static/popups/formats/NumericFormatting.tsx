@@ -110,7 +110,7 @@ const NumericFormatting: React.FC<BaseFormattingComponentProps & WithTranslation
     updateState(updatedFmt);
   }, [state]);
 
-  const buildSimpleToggle = (prop: string, label: string, defaultValue: boolean): JSX.Element => {
+  const buildSimpleToggle = (prop: string, label: string, defaultValue: boolean): React.JSX.Element => {
     return (
       <div className="form-group row">
         <label className="col-md-4 col-form-label text-right">{t(label)}</label>

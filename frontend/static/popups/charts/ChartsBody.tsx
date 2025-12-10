@@ -46,10 +46,10 @@ const ChartsBody: React.FC<ChartsBodyProps & WithTranslation> = ({ t, ...props }
     props.x ? { ...props.x } : undefined,
   );
   const [data, setData] = React.useState<chartUtils.DataSpec>();
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [zoomed, setZoomed] = React.useState<string>();
 
-  const charts = React.useRef<Array<chartUtils.ChartObj | undefined>>();
+  const charts = React.useRef<Array<chartUtils.ChartObj | undefined> | undefined>(undefined);
 
   const chartTypes = React.useMemo((): string[] => {
     const types = ['line', 'bar', 'stacked'];
@@ -381,7 +381,7 @@ const ChartsBody: React.FC<ChartsBodyProps & WithTranslation> = ({ t, ...props }
     return null;
   };
 
-  const renderChartMarkup = (): JSX.Element => {
+  const renderChartMarkup = (): React.JSX.Element => {
     if (chartType?.value === 'wordcloud') {
       return (
         <WordcloudBody data={data} y={props.y} group={props.group} chartType={chartType} height={props.height ?? 400} />

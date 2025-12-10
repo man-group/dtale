@@ -99,7 +99,7 @@ interface CorrelationsGridProps {
   minPeriods?: number;
   gridCode?: string;
   colorScale?: chroma.Scale;
-  close?: JSX.Element;
+  close?: React.JSX.Element;
   isPPS?: boolean;
   strings: string[];
   encodeStrings: boolean;
@@ -127,6 +127,7 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
   const [height, setHeight] = React.useState<number>(300);
   const [sort, setSort] = React.useState<SortDef>();
   const [data, setData] = React.useState<CorrelationGridRow[]>(props.correlations);
+  const dragRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     setData(filterData(col1, col2, props.correlations, sort));
@@ -138,7 +139,7 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
     setData(sortData(props.correlations, updatedSort));
   };
 
-  const cellRenderer = (cellProps: GridCellProps): JSX.Element => (
+  const cellRenderer = (cellProps: GridCellProps): React.JSX.Element => (
     <CorrelationsCell
       {...cellProps}
       updateSort={updateSort}
@@ -158,7 +159,7 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
     value: BaseOption<string> | undefined,
     setter: (selected?: BaseOption<string>) => void,
     otherValue?: BaseOption<string>,
-  ): JSX.Element => {
+  ): React.JSX.Element => {
     const finalOptions = otherValue
       ? columnOptions.filter((option) => option.value !== otherValue.value)
       : columnOptions;
@@ -258,8 +259,11 @@ const CorrelationsGrid: React.FC<CorrelationsGridProps & WithTranslation> = ({ c
               defaultClassNameDragging="CorrDragHandleActive"
               onDrag={(_e, { deltaY }) => setHeight(Math.max(height + deltaY, 300))}
               position={{ x: 0, y: 0 }}
+              nodeRef={dragRef as React.RefObject<HTMLElement>}
             >
-              <div className="CorrDragHandleIcon">...</div>
+              <div className="CorrDragHandleIcon" ref={dragRef}>
+                ...
+              </div>
             </Draggable>
           </>
         )}

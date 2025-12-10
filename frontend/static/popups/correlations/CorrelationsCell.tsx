@@ -39,7 +39,7 @@ export const CorrelationsCell: React.FC<CorrelationsCellProps & GridCellProps> =
   currSort,
   updateSort,
 }) => {
-  const renderHeader = (title: string, sortable = false): JSX.Element => {
+  const renderHeader = (title: string, sortable = false): React.JSX.Element => {
     const props: React.HTMLAttributes<HTMLDivElement> = title.length >= MAX_LABEL_LEN ? { title } : {};
     if (sortable) {
       props.onClick = () => updateSort(title);

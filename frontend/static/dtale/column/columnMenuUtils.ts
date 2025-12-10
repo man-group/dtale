@@ -15,7 +15,7 @@ export const buildCaretClass = (caretPct = 90): void => {
 
 export const positionMenu = (
   selectedToggle: HTMLElement,
-  menuDiv: React.RefObject<HTMLDivElement>,
+  menuDiv: React.RefObject<HTMLDivElement | null>,
   isPreview = false,
   dropRibbon = false,
 ): React.CSSProperties => {

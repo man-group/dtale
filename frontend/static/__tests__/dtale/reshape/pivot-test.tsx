@@ -9,14 +9,13 @@ import { selectOption } from '../../test-utils';
 import * as TestSupport from './Reshape.test.support';
 
 describe('Pivot', () => {
-  const { location, open, opener } = window;
+  const { open, opener } = window;
   const spies = new TestSupport.Spies();
   let result: RenderResult;
   const reloadSpy = jest.fn();
   const assignSpy = jest.fn();
 
   beforeAll(() => {
-    delete (window as any).location;
     delete (window as any).open;
     delete (window as any).opener;
     window.open = jest.fn();
@@ -38,7 +37,6 @@ describe('Pivot', () => {
   afterEach(() => spies.afterEach());
 
   afterAll(() => {
-    window.location = location as any;
     window.open = open;
     window.opener = opener;
     spies.afterAll();

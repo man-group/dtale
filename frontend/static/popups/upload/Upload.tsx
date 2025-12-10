@@ -46,7 +46,7 @@ const Upload: React.FC<UploadProps & WithTranslation> = ({ mergeRefresher, t }) 
   const [datasetDescription, setDatasetDescription] = React.useState<string>();
   const [loading, setLoading] = React.useState(false);
   const [loadingURL, setLoadingURL] = React.useState(false);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [sheets, setSheets] = React.useState<Sheet[]>();
   const [csvProps, setCsvProps] = React.useState<CSVProps>({ show: false });
 

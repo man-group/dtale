@@ -13,7 +13,7 @@ const buildState = (y: Array<BaseOption<string>>, data: DataSpec): Record<string
   );
 };
 
-require('./AxisEditor.css');
+import './AxisEditor.css';
 
 /** Component properties for AxisEditor */
 export interface AxisEditorProps {
@@ -25,7 +25,7 @@ export interface AxisEditorProps {
 const AxisEditor: React.FC<AxisEditorProps & WithTranslation> = ({ data, y, updateAxis, t }) => {
   const [open, setOpen] = React.useState<boolean>(false);
   const [state, setState] = React.useState<Record<string, string | undefined>>(buildState(y, data));
-  const menuRef = React.useRef<HTMLSpanElement>(null);
+  const menuRef = React.useRef<HTMLSpanElement | null>(null);
 
   React.useEffect(() => {
     setState(buildState(y, data));

@@ -9,7 +9,7 @@ import { selectOption } from '../../test-utils';
 import * as TestSupport from './Reshape.test.support';
 
 describe('Resample', () => {
-  const { location, open, close, opener } = window;
+  const { open, close, opener } = window;
   const spies = new TestSupport.Spies();
   let result: RenderResult;
   const reloadSpy = jest.fn();
@@ -17,7 +17,6 @@ describe('Resample', () => {
   const openerAssignSpy = jest.fn();
 
   beforeAll(() => {
-    delete (window as any).location;
     delete (window as any).open;
     delete (window as any).opener;
     jest.spyOn(windowUtils, 'getLocation').mockReturnValue({
@@ -48,7 +47,6 @@ describe('Resample', () => {
   afterEach(() => spies.afterEach());
 
   afterAll(() => {
-    window.location = location as any;
     window.open = open;
     window.close = close;
     window.opener = opener;

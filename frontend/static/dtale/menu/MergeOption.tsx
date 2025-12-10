@@ -8,7 +8,7 @@ const MergeOption: React.FC<MenuOptionProps & WithTranslation> = ({ open, t }) =
   <MenuItem description={t('menu_description:merge')} onClick={open}>
     <span className="toggler-action">
       <button className="btn btn-plain">
-        <i className="fas fa-object-group pl-3 pr-3" />
+        <i className="fas fa-object-group ml-2 mr-2" />
         <span className="font-weight-bold">{t('Merge & Stack', { ns: 'menu' })}</span>
       </button>
     </span>

@@ -47,11 +47,11 @@ interface StyledState {
   valueNow: number;
 }
 
-export const Thumb = (props: StyledDivProps, state: StyledState): JSX.Element => (
+export const Thumb = (props: StyledDivProps, state: StyledState): React.JSX.Element => (
   <StyledThumb {...props}>{state.valueNow}</StyledThumb>
 );
 
-export const ExportThumb = (props: StyledDivProps, state: StyledState): JSX.Element => (
+export const ExportThumb = (props: StyledDivProps, state: StyledState): React.JSX.Element => (
   <StyledExportThumb {...props}>{state.valueNow}</StyledExportThumb>
 );
 
@@ -65,7 +65,7 @@ export const StyledTrack = styled.div<StyledState>`
 /** Component properties for styled track */
 type StyledTrackProps = StyledDivProps & StyledState;
 
-export const Track = (props: StyledTrackProps, state: StyledState): JSX.Element => (
+export const Track = (props: StyledTrackProps, state: StyledState): React.JSX.Element => (
   <StyledTrack {...props} index={state.index} />
 );
 
@@ -79,6 +79,6 @@ export const SingleStyledTrack = styled.div<StyledState>`
 /** Component properties for single styled track */
 type SingleStyledTrackProps = StyledDivProps & StyledState;
 
-export const SingleTrack = (props: SingleStyledTrackProps, state: StyledState): JSX.Element => (
+export const SingleTrack = (props: SingleStyledTrackProps, state: StyledState): React.JSX.Element => (
   <SingleStyledTrack {...props} index={state.index} />
 );

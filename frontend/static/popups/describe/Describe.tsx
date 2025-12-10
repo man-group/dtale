@@ -25,7 +25,7 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 const Describe: React.FC<WithTranslation> = ({ t }) => {
   const { dataId, chartData } = useAppSelector(selectResult);
   const [loadingDtypes, setLoadingDtypes] = React.useState(true);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [dtypes, setDtypes] = React.useState<ColumnDef[]>();
   const [selected, setSelected] = React.useState<ColumnDef>();
   const [visibility, setVisibility] = React.useState<VisibilityState>({} as VisibilityState);

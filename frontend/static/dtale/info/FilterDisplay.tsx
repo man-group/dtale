@@ -105,7 +105,7 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
     dispatch(settingsActions.updateSettings(updatedSettings));
   const showSidePanel = (view: SidePanelType): PayloadAction<SidePanelActionProps> =>
     dispatch(AppActions.ShowSidePanelAction({ view }));
-  const filterRef = React.useRef<HTMLDivElement>(null);
+  const filterRef = React.useRef<HTMLDivElement | null>(null);
 
   const dropFilter =
     (dropCol: string): (() => Promise<void>) =>
@@ -120,7 +120,7 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
       updateSettings(updatedSettings);
     };
 
-  const displayPredefined = (): JSX.Element => (
+  const displayPredefined = (): React.JSX.Element => (
     <React.Fragment>
       {Object.entries(gu.filterPredefined(reduxState.predefinedFilters)).map(([name, value]) => {
         const displayValue = predefinedFilterStr(reduxState.predefinedFilterConfigs, name, value.value);

@@ -33,7 +33,7 @@ const Panel: React.FC<WithTranslation> = ({ t }) => {
 
   const [filters, setFilters] = React.useState<PredefinedFilter[]>([]);
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
 
   React.useEffect(() => {
     DtypesRepository.loadDtypes(dataId).then((response) => {

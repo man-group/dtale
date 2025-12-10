@@ -110,8 +110,8 @@ export interface AnalysisParams {
 
 /** State properties of ColumnAnalysis */
 export interface AnalysisState extends AnalysisParams {
-  chart?: JSX.Element;
-  error?: JSX.Element;
+  chart?: React.JSX.Element;
+  error?: React.JSX.Element;
   code?: string;
   chartParams?: AnalysisParams;
   dtype?: string;

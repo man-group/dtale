@@ -114,7 +114,7 @@ const DtypesGrid: React.FC<DtypesGridProps & WithTranslation> = ({
     setData(dtypes.map((col, index) => ({ ...col, selected: selected ? selected.index === col.index : index === 0 })));
   }, [dtypes]);
 
-  const headerRenderer = (props: TableHeaderProps): JSX.Element => {
+  const headerRenderer = (props: TableHeaderProps): React.JSX.Element => {
     const { dataKey, label } = props;
     if (dataKey === 'visible') {
       const onClick = (e: React.MouseEvent): void => {

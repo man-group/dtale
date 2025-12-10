@@ -25,7 +25,7 @@ const LibrarySymbolSelector: React.FC<WithTranslation> = ({ t }) => {
   const [symbols, setSymbols] = React.useState<ArcticDBRepository.SymbolsResponse>();
   const [loadingSymbols, setLoadingSymbols] = React.useState(false);
   const [loadingSymbol, setLoadingSymbol] = React.useState(false);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [loadingDescription, setLoadingDescription] = React.useState(false);
   const [description, setDescription] = React.useState<ArcticDBRepository.LoadDescriptionResponse>();
 

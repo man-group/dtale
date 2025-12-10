@@ -1,16 +1,6 @@
 import * as windowUtils from '../../location';
 
 describe('dtale tests', () => {
-  const { location } = window;
-
-  beforeAll(() => {
-    delete (window as any).location;
-  });
-
-  afterAll(() => {
-    window.location = location as any;
-  });
-
   it('dtale: testing getParams', () => {
     const actions = require('../../redux/actions/dtale');
     jest

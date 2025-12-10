@@ -28,7 +28,7 @@ export const ColumnAnalysisChart: React.FC<ColumnAnalysisChartProps> = ({
 }) => {
   const id = `chart${new Date().getTime()}`;
   const [chart, setChart] = React.useState<chartUtils.ChartObj>();
-  const dataTime = React.useRef<number>();
+  const dataTime = React.useRef<number | undefined>(undefined);
 
   const createAnalysisChart = (): void => {
     dataTime.current = fetchedChartData.timestamp;

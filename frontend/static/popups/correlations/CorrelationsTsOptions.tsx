@@ -38,7 +38,7 @@ const CorrelationsTsOptions: React.FC<CorrelationsTsOptionsProps & WithTranslati
     buildTs({ selectedDate: evt.target.value, rolling, useRolling });
   };
 
-  const renderDescription = (): JSX.Element => {
+  const renderDescription = (): React.JSX.Element => {
     let description = `${t('Timeseries of Pearson Correlation for')} ${selectedCols[0]} ${t('vs.')} ${selectedCols[1]}`;
     if (props.rolling) {
       description = `${t('Rolling Pearson Correlation (window')}: ${props.window})${t(' for ')}${selectedCols[0]} ${t(
@@ -76,7 +76,7 @@ const CorrelationsTsOptions: React.FC<CorrelationsTsOptionsProps & WithTranslati
     }
   };
 
-  const renderRollingWindow = (): JSX.Element => (
+  const renderRollingWindow = (): React.JSX.Element => (
     <React.Fragment>
       {!props.rolling && (
         <React.Fragment>

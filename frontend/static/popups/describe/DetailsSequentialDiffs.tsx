@@ -32,7 +32,7 @@ const DetailsSequentialDiffs: React.FC<DetailSequentialDiffsProps & WithTranslat
   const [sortedDiffs, setSortedDiffs] = React.useState<Record<SortDir, SequentialDiffs>>(
     {} as Record<SortDir, SequentialDiffs>,
   );
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
 
   React.useEffect(() => {
     setSort(undefined);

@@ -30,7 +30,7 @@ const Variance: React.FC<WithTranslation> = ({ t }) => {
   }, [settings]);
   const [filtered, setFiltered] = React.useState(preExistingFilters);
   const [loadingVariance, setLoadingVariance] = React.useState(true);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [varianceData, setVarianceData] = React.useState<VarianceRepository.VarianceResponse>();
 
   const loadVariance = (): void => {
@@ -53,7 +53,7 @@ const Variance: React.FC<WithTranslation> = ({ t }) => {
     loadVariance();
   }, [filtered]);
 
-  const renderCheck2 = (): JSX.Element => {
+  const renderCheck2 = (): React.JSX.Element => {
     if (!varianceData?.check2) {
       return <li>{t('Check 2')}: N/A</li>;
     }

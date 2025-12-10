@@ -96,8 +96,7 @@ export interface ToggleColumnsDataViewerUpdate extends BaseDataViewerUpdateProps
 }
 
 /** Update maximum width DataViewer update */
-export interface UpdateMaxWidthDataViewerUpdate
-  extends BaseDataViewerUpdateProps<DataViewerUpdateType.UPDATE_MAX_WIDTH> {
+export interface UpdateMaxWidthDataViewerUpdate extends BaseDataViewerUpdateProps<DataViewerUpdateType.UPDATE_MAX_WIDTH> {
   width?: number;
 }
 

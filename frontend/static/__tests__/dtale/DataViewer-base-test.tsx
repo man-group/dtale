@@ -4,13 +4,13 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
+import * as windowUtils from '../../location';
 import DimensionsHelper from '../DimensionsHelper';
 import { validateHeaders } from '../iframe/iframe-utils';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML, clickMainMenuButton, mockChartJS, PREDEFINED_FILTERS } from '../test-utils';
 
 describe('DataViewer tests', () => {
-  const { location } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -19,9 +19,6 @@ describe('DataViewer tests', () => {
   beforeAll(() => {
     dimensions.beforeAll();
     mockChartJS();
-
-    delete (window as any).location;
-    (window as any).location = { pathname: '' };
   });
 
   beforeEach(() => {
@@ -32,11 +29,12 @@ describe('DataViewer tests', () => {
 
   afterAll(() => {
     dimensions.afterAll();
-    window.location = location as any;
     jest.restoreAllMocks();
   });
 
   it('DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...', async () => {
+    const locationMock = { reload: jest.fn(), pathname: '' };
+    jest.spyOn(windowUtils, 'getLocation').mockReturnValue(locationMock as any);
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: '', predefinedFilters: PREDEFINED_FILTERS }, store);
     const container = await act(
@@ -68,7 +66,7 @@ describe('DataViewer tests', () => {
     ]);
     await clickMainMenuButton('Refresh Widths');
     await clickMainMenuButton('Shutdown');
-    expect(window.location.pathname).not.toBeNull();
+    expect(locationMock.pathname).not.toBeNull();
   });
 
   it('DataViewer: available menu items when arcticDB is used', async () => {

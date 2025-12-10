@@ -74,7 +74,7 @@ const CreateReplacement: React.FC<WithTranslation> = ({ t }) => {
   const [code, setCode] = React.useState<Record<ReplacementType, string>>({} as Record<ReplacementType, string>);
   const [loadingColumns, setLoadingColumns] = React.useState(true);
   const [loadingReplacement, setLoadingReplacement] = React.useState(false);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
   const [colType, setColType] = React.useState<string>();
   const [typeOpts, setTypeOpts] = React.useState<Array<BaseOption<ReplacementType>>>([]);

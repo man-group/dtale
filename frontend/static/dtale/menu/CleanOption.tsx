@@ -8,7 +8,7 @@ const CleanOption: React.FC<MenuOptionProps & WithTranslation> = ({ open, t }) =
   <MenuItem description={t('builders:cleaning')} onClick={open}>
     <span className="toggler-action">
       <button className="btn btn-plain">
-        <i className="fas fa-pump-soap ml-3 mr-4" />
+        <i className="fas fa-pump-soap ml-3" />
         <span className="font-weight-bold">{t('Clean Column', { ns: 'menu' })}</span>
       </button>
     </span>

@@ -44,7 +44,7 @@ const LABELS: AnalysisLabel[] = [
   ['avg_weight', 'Average Edge Weight'],
 ];
 
-const buildStat = (t: TFunction, label: string, value?: number | string): JSX.Element => (
+const buildStat = (t: TFunction, label: string, value?: number | string): React.JSX.Element => (
   <React.Fragment>
     {value !== undefined && (
       <div>
@@ -69,7 +69,7 @@ const NetworkAnalysis: React.FC<NetworkAnalysisProps & WithTranslation> = ({ to,
   const dataId = useAppSelector(selectDataId);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [analysis, setAnalysis] = React.useState<FullAnalysis>();
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
 
   const loadAnalysis = async (): Promise<void> => {
     const params = buildParams(to, from, weight);
@@ -86,7 +86,7 @@ const NetworkAnalysis: React.FC<NetworkAnalysisProps & WithTranslation> = ({ to,
     }
   };
 
-  const renderAnalysis = (): JSX.Element => (
+  const renderAnalysis = (): React.JSX.Element => (
     <BouncerWrapper showBouncer={loading}>
       {error ?? null}
       {analysis && (

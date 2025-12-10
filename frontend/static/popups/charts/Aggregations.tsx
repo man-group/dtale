@@ -46,7 +46,7 @@ const Aggregations: React.FC<AggregationsProps & WithTranslation> = ({
   const [rollingComputation, setRollingComputation] = React.useState<BaseOption<string>>();
   const [rollingWindow, setRollingWindow] = React.useState<string>('4');
 
-  const renderRolling = (): JSX.Element => {
+  const renderRolling = (): React.JSX.Element => {
     if (aggregation?.value === 'rolling') {
       return (
         <React.Fragment>

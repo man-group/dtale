@@ -40,7 +40,7 @@ const XArrayDimensions: React.FC<XArrayDimensionsProps & WithTranslation> = ({ p
   const [dimensionData, setDimensionData] = React.useState<Array<{ value: any }>>();
   const [loadingCoordinates, setLoadingCoordinates] = React.useState<boolean>(true);
   const [loadingDimension, setLoadingDimension] = React.useState<boolean>(false);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
 
   React.useEffect(() => {
     (async () => {

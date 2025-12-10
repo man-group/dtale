@@ -58,7 +58,7 @@ const FilterDisplay: React.FC<FilterDisplayProps & WithTranslation> = ({ menuOpe
   const reduxState = useAppSelector(selectResult);
   const filterRef = React.useRef<HTMLDivElement>(null);
 
-  const displayPredefined = (): JSX.Element => (
+  const displayPredefined = (): React.JSX.Element => (
     <React.Fragment>
       {Object.entries(gu.filterPredefined(reduxState.predefinedFilters)).map(([name, value]) => {
         const displayValue = predefinedFilterStr(reduxState.predefinedFilterConfigs, name, value.value);

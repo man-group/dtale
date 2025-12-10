@@ -101,7 +101,7 @@ require('react');
 jest.mock('../i18n', () => ({}));
 
 describe('main tests', () => {
-  const { location, open, top, self, opener } = window;
+  const { open, top, self, opener } = window;
   const reloadSpy = jest.fn();
 
   beforeEach(() => {
@@ -119,7 +119,6 @@ describe('main tests', () => {
   });
 
   beforeAll(() => {
-    delete (window as any).location;
     delete (window as any).open;
     delete (window as any).top;
     delete (window as any).self;
@@ -131,7 +130,6 @@ describe('main tests', () => {
   });
 
   afterAll(() => {
-    window.location = location as any;
     window.open = open;
     (window as any).top = top;
     (window as any).self = self;

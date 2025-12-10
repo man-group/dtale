@@ -267,13 +267,13 @@ export function createChart(
   return chartUtils.createChart(ctx, chartCfg);
 }
 
-const emptyVal = (val: string): JSX.Element => (
+const emptyVal = (val: string): React.JSX.Element => (
   <div style={{ height: 400 }} className="missing-category">
     {`Please select a ${val}.`}
   </div>
 );
 
-export const isPlotly = (type: AnalysisType): boolean => ['geolocation', 'qq'].includes(type);
+export const isPlotly = (type?: AnalysisType): boolean => AnalysisType.GEOLOCATION === type || AnalysisType.QQ === type;
 
 /**
  * Chart loader for column analysis

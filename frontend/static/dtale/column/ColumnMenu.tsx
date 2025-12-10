@@ -97,7 +97,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
   const showSidePanel = (column: string, view: SidePanelType): PayloadAction<SidePanelActionProps> =>
     dispatch(AppActions.ShowSidePanelAction({ view, column }));
 
-  const divRef = React.useRef<HTMLDivElement>(null);
+  const divRef = React.useRef<HTMLDivElement | null>(null);
   const [style, setStyle] = React.useState<React.CSSProperties>({ minWidth: '14em' });
 
   React.useEffect(() => {
@@ -186,7 +186,7 @@ const ColumnMenu: React.FC<ColumnMenuProps & WithTranslation> = ({
     func: (selectedCol: string, props: serverState.ColumnOperationProps) => () => void,
     hint: string,
     icnStyle?: React.CSSProperties,
-  ): JSX.Element => (
+  ): React.JSX.Element => (
     <button
       style={{ color: '#565b68', width: '2em', ...icnStyle }}
       className={`btn btn-primary font-weight-bold`}

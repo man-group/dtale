@@ -17,7 +17,7 @@ require('../info/DataViewerInfo.scss');
 /** Component properties for DataViewerInfo */
 export interface DataViewerInfoProps {
   columns: ColumnDef[];
-  error?: JSX.Element;
+  error?: React.JSX.Element;
   propagateState: DataViewerPropagateState;
 }
 

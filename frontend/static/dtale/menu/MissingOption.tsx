@@ -8,7 +8,7 @@ const MissingOption: React.FC<MenuOptionProps & WithTranslation> = ({ open, t })
   <MenuItem description={t('menu_description:missingno')} onClick={open}>
     <span className="toggler-action">
       <button className="btn btn-plain">
-        <i className="fas fa-chart-area ml-2 mr-4" />
+        <i className="fas fa-chart-area ml-2 mr-2" />
         <span className="font-weight-bold">{t('Missing Analysis', { ns: 'menu' })}</span>
       </button>
     </span>

@@ -25,7 +25,7 @@ const selectResult = createSelector([selectDataId, selectChartData], (dataId, ch
 const PredictivePowerScore: React.FC<WithTranslation> = ({ t }) => {
   const { dataId, chartData } = useAppSelector(selectResult);
   const [correlations, setCorrelations] = React.useState<PPSGridState>();
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [selectedCols, setSelectedCols] = React.useState<string[]>([]);
   const [loadingPps, setLoadingPps] = React.useState<boolean>(true);
   const [encodeStrings, setEncodeStrings] = React.useState<boolean>(false);

@@ -36,7 +36,7 @@ describe('RibbonDropdown', () => {
   let props: RibbonDropdownProps;
   let cleanupSpy: jest.SpyInstance;
   const processes = [{ id: '2', name: 'foo' }, { id: '3' }];
-  const { location, open } = window;
+  const { open } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
@@ -71,7 +71,6 @@ describe('RibbonDropdown', () => {
   beforeEach(() => {
     useDispatchMock.mockImplementation(() => mockDispatch);
     dimensions.beforeAll();
-    delete (window as any).location;
     delete (window as any).open;
     window.open = jest.fn();
     cleanupSpy = jest.spyOn(InstanceRepository, 'cleanupInstance');
@@ -89,7 +88,6 @@ describe('RibbonDropdown', () => {
 
   afterAll(() => {
     dimensions.afterAll();
-    window.location = location as any;
     window.open = open;
     jest.restoreAllMocks();
   });

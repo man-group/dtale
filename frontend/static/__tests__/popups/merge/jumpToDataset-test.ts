@@ -1,10 +1,9 @@
 import * as windowUtils from '../../../location';
 
 describe('jumpToDataset', () => {
-  const { close, location, opener } = window;
+  const { close, opener } = window;
 
   beforeEach(() => {
-    delete (window as any).location;
     delete window.opener;
     delete (window as any).close;
   });
@@ -16,7 +15,6 @@ describe('jumpToDataset', () => {
   afterEach(() => {
     window.opener = opener;
     window.close = close;
-    window.location = location as any;
     jest.resetAllMocks();
   });
 

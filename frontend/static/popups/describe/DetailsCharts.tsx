@@ -28,13 +28,13 @@ export const DetailsCharts: React.FC<DetailsChartsProps> = ({ details, detailCod
   const [cols, setCols] = React.useState([...props.cols]);
   const [dtype, setDtype] = React.useState(props.dtype);
   const [type, setType] = React.useState(AnalysisType.BOXPLOT);
-  const [chart, setChart] = React.useState<JSX.Element>();
+  const [chart, setChart] = React.useState<React.JSX.Element>();
   const [code, setCode] = React.useState<string>();
   const [query, setQuery] = React.useState<string>();
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [chartParams, setChartParams] = React.useState<AnalysisState>();
   const [top, setTop] = React.useState<number>();
-  const chartRef = React.useRef<ChartObj>();
+  const chartRef = React.useRef<ChartObj | undefined>(undefined);
 
   const buildChart = async (currentParams?: AnalysisParams): Promise<void> => {
     const finalParams = currentParams || chartParams;

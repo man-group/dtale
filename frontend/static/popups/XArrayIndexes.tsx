@@ -29,7 +29,7 @@ const XArrayIndexes: React.FC<XArrayIndexesProps & WithTranslation> = ({ propaga
   const [index, setIndex] = React.useState<Array<{ value: string }>>(
     chartData.columns.filter((column) => column.locked).map((column) => ({ value: column.name })),
   );
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
 
   const convert = async (): Promise<void> => {
     const columns = chartData.columns ?? [];

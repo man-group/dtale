@@ -8,7 +8,7 @@ import { buildInnerHTML } from './test-utils';
 describe('CopyToClipboard tests', () => {
   const buildMock = (): HTMLElement => {
     buildInnerHTML();
-    const buttonBuilder = (props: ButtonBuilderProps): JSX.Element => (
+    const buttonBuilder = (props: ButtonBuilderProps): React.JSX.Element => (
       <div id="clicker" {...props}>
         Hello
       </div>

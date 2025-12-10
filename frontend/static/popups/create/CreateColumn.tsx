@@ -44,7 +44,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
   const onClose = (): PayloadAction<void> => dispatch(closeChart());
 
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [type, setType] = React.useState<CreateColumnType>(prePopulated?.type ?? CreateColumnType.NUMERIC);
   const [typeGroup, setTypeGroup] = React.useState<CreateColumnTypeGroup>(CreateColumnTypeGroup.AGGREGATING_COLUMNS);
   const [saveAs, setSaveAs] = React.useState<SaveAs>(prePopulated?.saveAs ?? SaveAs.NEW);
@@ -132,7 +132,7 @@ const CreateColumn: React.FC<CreateColumnProps & WithTranslation> = ({ prePopula
     setSaveAs(state.saveAs ?? saveAs);
   };
 
-  const renderBody = (): JSX.Element => {
+  const renderBody = (): React.JSX.Element => {
     const nameInput = createUtils.renderNameInput(cfg);
     const body = createUtils.getBody(type, columns, namePopulated, prePopulated, updateState);
     return (

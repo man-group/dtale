@@ -20,7 +20,7 @@ export interface ButtonBuilderProps {
 /** Component properties for CopyToClipboard */
 interface CopyToClipboardProps {
   text?: string;
-  buttonBuilder: (props: ButtonBuilderProps) => JSX.Element;
+  buttonBuilder: (props: ButtonBuilderProps) => React.JSX.Element;
   tooltipPosition?: string;
 }
 

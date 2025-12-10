@@ -30,7 +30,7 @@ const Reshape: React.FC<WithTranslation> = ({ t }) => {
   const onClose = (): PayloadAction<void> => dispatch(closeChart());
 
   const [columns, setColumns] = React.useState<ColumnDef[]>([]);
-  const [error, setError] = React.useState<JSX.Element>();
+  const [error, setError] = React.useState<React.JSX.Element>();
   const [type, setType] = React.useState(ReshapeType.PIVOT);
   const [output, setOutput] = React.useState(OutputType.NEW);
   const [cfg, setCfg] = React.useState<ReshapeConfigTypes>({});

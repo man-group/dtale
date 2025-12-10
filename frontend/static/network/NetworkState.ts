@@ -55,7 +55,7 @@ export interface BaseNetworkDisplayState {
 
 /** State properties for NetworkDisplay */
 export interface NetworkDisplayState extends BaseNetworkDisplayState {
-  error?: JSX.Element;
+  error?: React.JSX.Element;
   loadingDtypes: boolean;
   dtypes?: ColumnDef[];
   loadingData: boolean;

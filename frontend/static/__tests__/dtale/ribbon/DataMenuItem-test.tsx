@@ -18,7 +18,6 @@ const useDispatchMock = useDispatch as any as jest.Mock;
 describe('DataMenuItem', () => {
   let wrapper: RenderResult;
   let props: DataMenuItemProps;
-  const { location } = window;
   const mockStore = configureStore();
   let store: Store;
   const mockDispatch = jest.fn();
@@ -26,7 +25,6 @@ describe('DataMenuItem', () => {
 
   beforeEach(async () => {
     useDispatchMock.mockImplementation(() => mockDispatch);
-    delete (window as any).location;
     jest.spyOn(windowUtils, 'getLocation').mockReturnValue({ assign: assignSpy, origin: 'origin' } as any);
     props = {
       id: '1',
@@ -46,7 +44,6 @@ describe('DataMenuItem', () => {
   afterEach(jest.resetAllMocks);
 
   afterAll(() => {
-    window.location = location as any;
     jest.restoreAllMocks();
   });
 

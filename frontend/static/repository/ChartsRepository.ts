@@ -10,7 +10,7 @@ export const buildUrl = (dataId: string, params: Record<string, string>): string
   buildURLString(`${CHARTS_URL}${dataId}`, params);
 
 /** Axios response for loading chart data */
-type ChartsResponse = DataSpec & GenericRepository.BaseResponse;
+export type ChartsResponse = DataSpec & GenericRepository.BaseResponse;
 
 /**
  * Load information related to charts.
