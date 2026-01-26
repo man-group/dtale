@@ -122,6 +122,7 @@ def test_show_json():
             class MockRequest(object):
                 def __init__(self):
                     self.text = json_txt.encode() if PY3 else json_txt
+
                     self.status_code = 200
 
                 def json(self):

@@ -19,6 +19,8 @@ from packaging.version import Version as parse_version
 from past.utils import old_div
 from six import BytesIO, PY3, StringIO
 
+import dtale.pandas_util as pandas_util
+
 logger = getLogger(__name__)
 
 
@@ -903,13 +905,15 @@ def format_data(data, inplace=False, drop_index=False):
                 unique_count(data[col])
             except TypeError:
                 # convert any columns with complex data structures (list, dict, etc...) to strings
-                data.loc[:, col] = data[col].astype("str")
+                pandas_util.assign_col_data(data, col, data[col].astype("str"))
         elif dtype.startswith("period") and not all_null:
             # convert any pandas period_range columns to timestamps
-            data.loc[:, col] = data[col].apply(lambda x: x.to_timestamp())
+            pandas_util.assign_col_data(
+                data, col, data[col].apply(lambda x: x.to_timestamp())
+            )
         elif dtype.startswith("datetime") and not all_null:
             # remove timezone information for filtering purposes
-            data.loc[:, col] = data[col].dt.tz_localize(None)
+            pandas_util.assign_col_data(data, col, data[col].dt.tz_localize(None))
 
     return data, index
 

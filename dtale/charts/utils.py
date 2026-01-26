@@ -2,6 +2,7 @@ import copy
 
 import numpy as np
 import pandas as pd
+from pandas.tseries.offsets import Day
 
 import dtale.global_state as global_state
 import dtale.pandas_util as pandas_util
@@ -290,7 +291,21 @@ def group_filter_handler(col_def, group_val, group_classifier):
             "{}: {}".format(col_def, group_val),
         )
     if group_classifier == "D":
-        group_val = convert_date_val_to_date(group_val).strftime("%Y%m%d")
+        group_val_base = convert_date_val_to_date(group_val).strftime("%Y%m%d")
+        if pandas_util.is_pandas3():
+            group_val_start = (convert_date_val_to_date(group_val) - Day()).strftime(
+                "%Y%m%d"
+            )
+            group_val_end = (convert_date_val_to_date(group_val) + Day()).strftime(
+                "%Y%m%d"
+            )
+            return (
+                "{col} > '{start}' and {col} < '{end}'".format(
+                    col=build_col_key(col_def), start=group_val_start, end=group_val_end
+                ),
+                "{}: {}".format(col_def, group_val_base),
+            )
+        group_val = group_val_base
     return (
         "{col} == '{val}'".format(col=build_col_key(col_def), val=group_val),
         "{}: {}".format(col_def, group_val),
@@ -739,16 +754,15 @@ def build_base_chart(
                 cleaned_col, cleaned_code = handle_cleaners(
                     data[col], ",".join(cleaners)
                 )
-                data.loc[:, col] = cleaned_col
+                pandas_util.assign_col_data(data, col, cleaned_col)
                 code += cleaned_code
                 code.append("chart_data.loc[:, '{}'] = s".format(col))
 
     x_col = str("x")
     if x is None:
         x = x_col
-        data.loc[:, x_col] = range(
-            1, len(data) + 1
-        )  # sequential integers: 1, 2, ..., N
+        sequential_ints = range(1, len(data) + 1)  # sequential integers: 1, 2, ..., N
+        pandas_util.assign_col_data(data, x_col, sequential_ints)
     y_cols = make_list(y)
 
     z_col = kwargs.get("z")
@@ -768,8 +782,11 @@ def build_base_chart(
                         if pandas_util.check_pandas_version("0.23.0")
                         else {}
                     )
-                    data.loc[:, col] = pd.qcut(data[col], q=bins_val, **kwargs).astype(
-                        "str"
+
+                    pandas_util.assign_col_data(
+                        data,
+                        col,
+                        pd.qcut(data[col], q=bins_val, **kwargs).astype("str"),
                     )
                     kwargs_str = (
                         ', duplicates="drop"'
@@ -794,9 +811,11 @@ def build_base_chart(
                         if pandas_util.check_pandas_version("0.23.0")
                         else {}
                     )
-                    data.loc[:, col] = pd.cut(
-                        data[col], bins=equal_freq_bins, **kwargs
-                    ).astype("str")
+                    pandas_util.assign_col_data(
+                        data,
+                        col,
+                        pd.cut(data[col], bins=equal_freq_bins, **kwargs).astype("str"),
+                    )
                     cut_kwargs_str = (
                         ', duplicates="drop"'
                         if pandas_util.check_pandas_version("0.23.0")
@@ -955,7 +974,7 @@ def build_base_chart(
     for col in z_cols or y_cols:
         classifier = classify_type(find_dtype(data[col]))
         if classifier == "B":
-            data.loc[:, col] = data[col].astype("int")
+            pandas_util.assign_col_data(data, col, data[col].astype("int"))
 
     if agg is not None or len(extended_aggregation):
         data, agg_code, final_cols = build_agg_data(

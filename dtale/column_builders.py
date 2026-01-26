@@ -513,7 +513,7 @@ class TypeConversionColumnBuilder(object):
                 date_kwargs = {}
                 if self.cfg.get("fmt"):
                     date_kwargs["format"] = self.cfg["fmt"]
-                else:
+                elif not pandas_util.is_pandas3():
                     date_kwargs["infer_datetime_format"] = True
                 return pd.Series(
                     pd.to_datetime(s, **date_kwargs), name=self.name, index=s.index
@@ -632,11 +632,12 @@ class TypeConversionColumnBuilder(object):
         classifier = classify_type(from_type)
         if classifier == "S":  # date, int, float, bool, category
             if to_type == "date":
+                date_kwargs = ""
                 if self.cfg.get("fmt"):
-                    date_kwargs = "format='{}'".format(self.cfg["fmt"])
-                else:
-                    date_kwargs = "infer_datetime_format=True"
-                code = "pd.Series(pd.to_datetime({s}, {kwargs}), name='{name}', index={s}.index)"
+                    date_kwargs += ", format='{}'".format(self.cfg["fmt"])
+                elif not pandas_util.is_pandas3():
+                    date_kwargs += ", infer_datetime_format=True"
+                code = "pd.Series(pd.to_datetime({s}{kwargs}), name='{name}', index={s}.index)"
                 return self._wrap_code(
                     code.format(s=s, name=self.name, kwargs=date_kwargs)
                 )
@@ -1110,7 +1111,7 @@ class EncoderColumnBuilder(object):
                 n = int(self.cfg.get("n"))
                 features = (
                     FeatureHasher(n_features=n, input_type="string")
-                    .transform(data[[col]].astype("str").values)
+                    .transform(data[[col]].fillna("nan").astype("str").values)
                     .toarray()
                 )
                 features = pd.DataFrame(features, index=data.index)
@@ -1151,7 +1152,7 @@ class EncoderColumnBuilder(object):
             return (
                 "\nfrom sklearn.feature_extraction import FeatureHasher\n"
                 "hasher = FeatureHasher(n_features={n}, input_type='string')\n"
-                "features = hasher.transform(data['{col}'].astype('str')).toarray()\n"
+                "features = hasher.transform(data['{col}'].fillna('nan').astype('str')).toarray()\n"
                 "features = pd.DataFrame(features, index=df.index)\n"
                 "features.columns = ['{col}_' + col2 for col2 in features.columns]\n"
                 "for i in range(len(features.columns)):\n"
@@ -1570,7 +1571,10 @@ class CumsumColumnBuilder(object):
             s = data.groupby(group)[cols]
         else:
             s = data[cols]
-        s = s.cumsum(axis=0)
+        kwargs = {}
+        if not pandas_util.is_pandas3():
+            kwargs["axis"] = 0
+        s = s.cumsum(**kwargs)
         s.columns = ["{}{}".format(col, self.name) for col in s.columns]
         return pd.DataFrame(s, index=data.index)
 

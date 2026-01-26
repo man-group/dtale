@@ -2,7 +2,7 @@ import pandas as pd
 
 import dtale.global_state as global_state
 
-from dtale.pandas_util import check_pandas_version
+from dtale.pandas_util import check_pandas_version, is_pandas3
 from dtale.utils import format_data, get_bool_arg
 
 
@@ -129,6 +129,13 @@ def run_query(
                 num_rows = int((df.shape[0] * sampling_rate) // 1)
                 num_classes = len(df[stratified_group].unique())
                 num_rows_per_class = int(max(1, ((num_rows / num_classes) // 1)))
+                if is_pandas3():
+                    return (
+                        df.groupby(stratified_group)
+                        .apply(lambda x: x.sample(min(len(x), num_rows_per_class)))
+                        .reset_index(-1, drop=True)
+                        .reset_index()
+                    )
                 return df.groupby(stratified_group, group_keys=False).apply(
                     lambda x: x.sample(min(len(x), num_rows_per_class))
                 )

@@ -7,7 +7,7 @@ import numpy as np
 import sys
 
 import dtale.ppscore as pps
-from dtale.pandas_util import check_pandas_version
+from dtale.pandas_util import check_pandas_version, is_pandas3
 
 
 @pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python 3.6 or higher")
@@ -46,9 +46,10 @@ def test__determine_case_and_prepare_df():
     df["x"] = 1  # x is irrelevant for this test
     df["constant"] = 1
     df["Pclass_category"] = df["Pclass_integer"].astype("category")
-    df["Pclass_datetime"] = pd.to_datetime(
-        df["Pclass_integer"], infer_datetime_format=True
-    )
+    dt_kwargs = {"infer_datetime_format": True}
+    if is_pandas3():
+        dt_kwargs = {}
+    df["Pclass_datetime"] = pd.to_datetime(df["Pclass_integer"], **dt_kwargs)
     df["Survived_boolean"] = df["Survived_integer"].astype(bool)
     df["Cabin_string"] = pd.Series(
         df["Cabin"].apply(str),
@@ -321,7 +322,10 @@ def test_matrix():
         os.path.join(os.path.dirname(__file__), "..", "..", "data/titanic.csv")
     )
     df = df[["Age", "Survived"]]
-    df["Age_datetime"] = pd.to_datetime(df["Age"], infer_datetime_format=True)
+    dt_kwargs = {"infer_datetime_format": True}
+    if is_pandas3():
+        dt_kwargs = {}
+    df["Age_datetime"] = pd.to_datetime(df["Age"], **dt_kwargs)
     subset_df = df[["Survived", "Age_datetime"]]
 
     # check input types
