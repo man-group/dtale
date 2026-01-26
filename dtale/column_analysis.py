@@ -176,8 +176,10 @@ class HistogramAnalysis(object):
 
     def build(self, parent):
         if parent.classifier == "D":
-            parent.data.loc[:, parent.selected_col] = apply(
-                parent.data[parent.selected_col], json_timestamp
+            pandas_util.assign_col_data(
+                parent.data,
+                parent.selected_col,
+                apply(parent.data[parent.selected_col], json_timestamp),
             )
         kde_code = []
         if self.target is None:
@@ -192,7 +194,7 @@ class HistogramAnalysis(object):
         else:
             bin_vals = pd.cut(parent.data[parent.selected_col], bins=self.bins)
             labels = ["{}".format(c) for c in bin_vals.dtype.categories]
-            parent.data.loc[:, "bin"] = bin_vals.astype("str")
+            pandas_util.assign_col_data(parent.data, "bin", bin_vals.astype("str"))
             return_data = {"targets": [], "labels": labels}
             target_dtype = find_dtype(parent.data[self.target])
             target_formatter = find_dtype_formatter(target_dtype)
@@ -392,14 +394,15 @@ class CategoryAnalysis(object):
 
 
 def build_hist(s, code, df_var="chart"):
-    code.append("{} = pd.value_counts(s).to_frame(name='data')".format(df_var))
+    df = s.value_counts()
+    code.append("{} = s.value_counts().to_frame(name='data')".format(df_var))
+    df = df.to_frame(name="data")
+    df["percent"] = (df["data"] / df["data"].sum()) * 100
     code.append(
         "{df_var}['percent'] = ({df_var}['data'] / {df_var}['data'].sum()) * 100".format(
             df_var=df_var
         )
     )
-    df = pd.value_counts(s).to_frame(name="data")
-    df["percent"] = (df["data"] / df["data"].sum()) * 100
     return df
 
 
@@ -503,11 +506,13 @@ class ValueCountAnalysis(object):
 
 class WordValueCountAnalysis(ValueCountAnalysis):
     def build_hist(self, s, code):
-        code.append("chart = pd.value_counts(s.str.split(expand=True).stack())")
+        code.append("chart = s.str.split(expand=True).stack().value_counts()")
         code.append("chart = chart.to_frame(name='data').sort_index()")
         code.append("chart['percent'] = (chart['data'] / chart['data'].sum()) * 100")
         df = (
-            pd.value_counts(s.str.split(expand=True).stack())
+            s.str.split(expand=True)
+            .stack()
+            .value_counts()
             .to_frame(name="data")
             .sort_index()
         )

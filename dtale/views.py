@@ -1922,18 +1922,12 @@ def build_column(data_id):
         new_col_data = builder.build_column()
         new_cols = []
         if isinstance(new_col_data, pd.Series):
-            if pandas_util.is_pandas2():
-                data[name] = new_col_data
-            else:
-                data.loc[:, name] = new_col_data
+            pandas_util.assign_col_data(data, name, new_col_data)
             new_cols.append(name)
         else:
             for i in range(len(new_col_data.columns)):
                 new_col = new_col_data.iloc[:, i]
-                if pandas_util.is_pandas2():
-                    data[str(new_col.name)] = new_col
-                else:
-                    data.loc[:, str(new_col.name)] = new_col
+                pandas_util.assign_col_data(data, str(new_col.name), new_col)
 
         new_types = {}
         data_ranges = {}
@@ -2067,13 +2061,13 @@ def build_replacement(data_id):
     curr_dtypes = global_state.get_dtypes(data_id)
 
     if name is not None:
-        data.loc[:, name] = output
+        pandas_util.assign_col_data(data, name, output)
         dtype_f = dtype_formatter(
             data, {name: dtype}, _build_data_ranges(data, name, dtype)
         )
         curr_dtypes.append(dtype_f(len(curr_dtypes), name))
     else:
-        data.loc[:, col] = output
+        pandas_util.assign_col_data(data, col, output)
         dtype_f = dtype_formatter(
             data, {col: dtype}, _build_data_ranges(data, col, dtype)
         )
@@ -2689,7 +2683,14 @@ def edit_cell(data_id):
             updated = pd.Timedelta(updated)
         else:
             if dtype.startswith("category") and updated not in data[column].unique():
-                if pandas_util.is_pandas2():
+                if pandas_util.is_pandas3():
+                    data[column] = data[column].cat.add_categories(updated)
+                    code.append(
+                        "data['{column}'] = data['{column}'].cat.add_categories('{updated}')".format(
+                            column=column, updated=updated
+                        )
+                    )
+                elif pandas_util.is_pandas2():
                     data.loc[:, column] = pd.Categorical(
                         data[column],
                         categories=data[column].cat.add_categories(updated),
@@ -3460,7 +3461,7 @@ def get_ppscore_matrix(df):
         )
 
         # additional PPS display
-        pps_data.loc[:, "model"] = pps_data["model"].astype("str")
+        pandas_util.assign_col_data(pps_data, "model", pps_data["model"].astype("str"))
         pps_data = format_grid(pps_data)
         pps_data = pps_data["results"]
         return data, pps_data
@@ -4134,7 +4135,10 @@ def network_data(data_id):
     if weight:
         edge_cols.append(weight)
 
-    edges = df[[to_col, from_col]].applymap(nodes.get)
+    if pandas_util.check_pandas_version("2.1.0"):
+        edges = df[[to_col, from_col]].map(nodes.get)
+    else:
+        edges = df[[to_col, from_col]].applymap(nodes.get)
     edges.columns = ["to", "from"]
     if weight:
         edges.loc[:, "value"] = df[weight]

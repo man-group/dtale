@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 from six import PY3
+from dtale.pandas_util import is_pandas3
 from tests.dtale.test_views import app, URL
 
 
@@ -51,7 +52,11 @@ def test_view(unittest):
         response_data = resp.json
         expected = [
             {"count": 3, "dtype": "str64" if PY3 else "string16", "name": "location"},
-            {"count": 731, "dtype": "datetime64[ns]", "name": "time"},
+            {
+                "count": 731,
+                "dtype": "datetime64[{}]".format("us" if is_pandas3() else "ns"),
+                "name": "time",
+            },
         ]
         unittest.assertEqual(
             sorted(response_data["data"], key=lambda c: c["name"]), expected

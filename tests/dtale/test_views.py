@@ -351,7 +351,7 @@ def test_startup(unittest):
     )
     unittest.assertEqual(
         list(instance.data.dtypes.apply(lambda x: x.name).values),
-        ["object", "category"],
+        ["str" if pandas_util.is_pandas3() else "object", "category"],
     )
 
     many_cols = pd.DataFrame({"sec{}".format(v): [1] for v in range(500)})
@@ -1068,7 +1068,9 @@ def test_build_column():
             == "20200131"
         )
         assert global_state.get_dtypes(c.port)[-1]["name"] == "month_end"
-        assert global_state.get_dtypes(c.port)[-1]["dtype"] == "datetime64[ns]"
+        assert global_state.get_dtypes(c.port)[-1]["dtype"] == "datetime64[{}]".format(
+            "us" if pandas_util.is_pandas3() else "ns"
+        )
 
         for conv in [
             "month_start",
@@ -1191,7 +1193,7 @@ def test_build_column_bins():
         )
         assert global_state.get_data(c.port)["cut"].values[0] is not None
         assert global_state.get_dtypes(c.port)[-1]["name"] == "cut"
-        assert global_state.get_dtypes(c.port)[-1]["dtype"] == "string"
+        assert global_state.get_dtypes(c.port)[-1]["dtype"].startswith("str")
 
         cfg = dict(col="a", operation="cut", bins=4, labels="foo,bar,biz,baz")
         resp = c.get(
@@ -1212,7 +1214,11 @@ def test_build_column_bins():
             "baz",
         ]
         assert global_state.get_dtypes(c.port)[-1]["name"] == "cut2"
-        assert global_state.get_dtypes(c.port)[-1]["dtype"] == "string"
+        assert (
+            global_state.get_dtypes(c.port)[-1]["dtype"] == "str"
+            if pandas_util.is_pandas3()
+            else "string"
+        )
 
         cfg = dict(col="a", operation="qcut", bins=4)
         resp = c.get(
@@ -1228,7 +1234,11 @@ def test_build_column_bins():
         )
         assert global_state.get_data(c.port)["qcut"].values[0] is not None
         assert global_state.get_dtypes(c.port)[-1]["name"] == "qcut"
-        assert global_state.get_dtypes(c.port)[-1]["dtype"] == "string"
+        assert (
+            global_state.get_dtypes(c.port)[-1]["dtype"] == "str"
+            if pandas_util.is_pandas3()
+            else "string"
+        )
 
         cfg = dict(col="a", operation="qcut", bins=4, labels="foo,bar,biz,baz")
         resp = c.get(
@@ -1249,7 +1259,11 @@ def test_build_column_bins():
             "baz",
         ]
         assert global_state.get_dtypes(c.port)[-1]["name"] == "qcut2"
-        assert global_state.get_dtypes(c.port)[-1]["dtype"] == "string"
+        assert (
+            global_state.get_dtypes(c.port)[-1]["dtype"] == "str"
+            if pandas_util.is_pandas3()
+            else "string"
+        )
 
 
 @pytest.mark.unit
@@ -1269,24 +1283,25 @@ def test_cleanup_error(unittest):
 def test_dtypes(test_data):
     from dtale.views import build_dtypes_state, format_data
 
-    test_data = test_data.copy()
-    test_data.loc[:, "mixed_col"] = 1
-    test_data.loc[0, "mixed_col"] = "x"
+    if not pandas_util.is_pandas3():
+        test_data = test_data.copy()
+        test_data.loc[:, "mixed_col"] = 1
+        test_data.loc[0, "mixed_col"] = "x"
 
-    with app.test_client() as c:
-        with ExitStack():
-            build_data_inst({c.port: test_data})
-            build_dtypes({c.port: build_dtypes_state(test_data)})
-            response = c.get("/dtale/dtypes/{}".format(c.port))
-            response_data = response.get_json()
-            assert response_data["success"]
-
-            for col in test_data.columns:
-                response = c.get(
-                    "/dtale/describe/{}".format(c.port), query_string=dict(col=col)
-                )
+        with app.test_client() as c:
+            with ExitStack():
+                build_data_inst({c.port: test_data})
+                build_dtypes({c.port: build_dtypes_state(test_data)})
+                response = c.get("/dtale/dtypes/{}".format(c.port))
                 response_data = response.get_json()
                 assert response_data["success"]
+
+                for col in test_data.columns:
+                    response = c.get(
+                        "/dtale/describe/{}".format(c.port), query_string=dict(col=col)
+                    )
+                    response_data = response.get_json()
+                    assert response_data["success"]
 
     lots_of_groups = pd.DataFrame([dict(a=i, b=1) for i in range(150)])
     with app.test_client() as c:
@@ -1433,9 +1448,12 @@ def test_test_filter(test_data):
         response_data = response.get_json()
         assert response_data["success"]
 
+        query = "date == '20000101'"
+        if pandas_util.is_pandas3():
+            query = "date > '19991231' and date < '20000102'"
         response = c.get(
             "/dtale/test-filter/{}".format(c.port),
-            query_string=dict(query="date == '20000101'"),
+            query_string=dict(query=query),
         )
         response_data = response.get_json()
         assert response_data["success"]
@@ -1528,15 +1546,17 @@ def test_get_data(unittest, test_data):
             columns=[
                 dict(dtype="int64", name="dtale_index", visible=True),
                 dict(
-                    dtype="datetime64[ns]",
+                    dtype="datetime64[{}]".format(
+                        "us" if pandas_util.is_pandas3() else "ns"
+                    ),
                     name="date",
                     index=0,
                     visible=True,
                     hasMissing=0,
                     hasOutliers=0,
                     unique_ct=1,
-                    kurt=0,
-                    skew=0,
+                    kurt=0.0 if pandas_util.is_pandas3() else 0,
+                    skew=0.0 if pandas_util.is_pandas3() else 0,
                 ),
                 dict(
                     dtype="int64",
@@ -1551,7 +1571,7 @@ def test_get_data(unittest, test_data):
                     outlierRange={"lower": -24.5, "upper": 73.5},
                     unique_ct=50,
                     kurt=-1.2,
-                    skew=0,
+                    skew=0.0 if pandas_util.is_pandas3() else 0,
                     coord=None,
                 ),
                 dict(
@@ -1566,8 +1586,8 @@ def test_get_data(unittest, test_data):
                     lowVariance=False,
                     outlierRange={"lower": 1.0, "upper": 1.0},
                     unique_ct=1,
-                    kurt=0,
-                    skew=0,
+                    kurt=0.0 if pandas_util.is_pandas3() else 0,
+                    skew=0.0 if pandas_util.is_pandas3() else 0,
                     coord=None,
                 ),
                 dict(
@@ -1582,12 +1602,12 @@ def test_get_data(unittest, test_data):
                     lowVariance=False,
                     outlierRange={"lower": 1.5, "upper": 1.5},
                     unique_ct=1,
-                    kurt=0,
-                    skew=0,
+                    kurt=0.0 if pandas_util.is_pandas3() else 0,
+                    skew=0.0 if pandas_util.is_pandas3() else 0,
                     coord=None,
                 ),
                 dict(
-                    dtype="string",
+                    dtype="str" if pandas_util.is_pandas3() else "string",
                     name="baz",
                     index=4,
                     visible=True,

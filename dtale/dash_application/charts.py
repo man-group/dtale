@@ -1937,6 +1937,8 @@ def heatmap_builder(data_id, export=False, **inputs):
             if agg == "corr":
                 data = data.dropna()
                 data = data.set_index([x, y]).unstack().corr()
+                if pandas_util.is_pandas3() and data.isna().all().all():
+                    raise Exception("No data returned for this computation!")
                 data = data.stack().reset_index(0, drop=True)
                 code.append(
                     (

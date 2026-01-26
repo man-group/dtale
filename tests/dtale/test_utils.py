@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 from six import PY3
 
+from dtale.pandas_util import is_pandas3
 import dtale.utils as utils
 from tests import ExitStack
 
@@ -148,9 +149,12 @@ def test_format_grid(unittest):
             "results": [{"a": 1, "c": 3.5, "b": "foo", "d": "2019-01-01"}],
             "columns": [
                 {"dtype": "int64", "name": "a"},
-                {"dtype": "string", "name": "b"},
+                {"dtype": "str" if is_pandas3() else "string", "name": "b"},
                 {"dtype": "float64", "name": "c"},
-                {"dtype": "datetime64[ns]", "name": "d"},
+                {
+                    "dtype": "datetime64[{}]".format("us" if is_pandas3() else "ns"),
+                    "name": "d",
+                },
             ],
         },
         "should format dataframe correctly",

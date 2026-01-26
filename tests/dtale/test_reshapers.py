@@ -1,9 +1,11 @@
 import json
 import pandas as pd
+from pandas.tseries.offsets import Day
 import numpy as np
 import pytest
 
 import dtale.global_state as global_state
+from dtale.pandas_util import is_pandas3
 
 from tests.dtale import build_data_inst, build_settings, build_dtypes
 from tests.dtale.test_views import app
@@ -282,7 +284,16 @@ def test_transpose(custom_data, unittest):
         assert "error" in response_data
 
         min_date = custom_data["date"].min().strftime("%Y-%m-%d")
-        global_state.set_settings(c.port, dict(query="date == '{}'".format(min_date)))
+        if is_pandas3():
+            start = (custom_data["date"].min() - Day()).strftime("%Y-%m-%d")
+            end = (custom_data["date"].min() + Day()).strftime("%Y-%m-%d")
+            global_state.set_settings(
+                c.port, dict(query="date > '{}' and date < '{}'".format(start, end))
+            )
+        else:
+            global_state.set_settings(
+                c.port, dict(query="date == '{}'".format(min_date))
+            )
         reshape_cfg = dict(index=["date", "security_id"], columns=["Col0"])
         resp = c.get(
             "/dtale/reshape/{}".format(c.port),

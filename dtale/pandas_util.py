@@ -33,6 +33,10 @@ def is_pandas2():
     return check_pandas_version("2.0.0")
 
 
+def is_pandas3():
+    return check_pandas_version("3.0.0")
+
+
 def run_function(obj, calc_name):
     try:
         if hasattr(obj, calc_name):
@@ -40,3 +44,10 @@ def run_function(obj, calc_name):
     except BaseException as ex:
         logger.debug("Could not execute {} function: {}".format(calc_name, ex))
     return None
+
+
+def assign_col_data(df, col, updates):
+    if is_pandas2():
+        df[col] = updates
+    else:
+        df.loc[:, col] = updates

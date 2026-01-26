@@ -2,6 +2,7 @@ import mock
 import pytest
 
 import dtale.charts.utils as chart_utils
+from dtale.pandas_util import is_pandas3
 from tests import ExitStack
 from tests.dtale.test_charts import build_col_def
 
@@ -56,14 +57,11 @@ def test_convert_date_val_to_date():
 
 @pytest.mark.unit
 def test_group_filter_handler():
-    assert (
-        chart_utils.group_filter_handler("date", "2020-01-01", "D")[0]
-        == "`date` == '20200101'"
-    )
-    assert (
-        chart_utils.group_filter_handler("date", 1577854800000, "D")[0]
-        == "`date` == '20200101'"
-    )
+    expected = "`date` == '20200101'"
+    if is_pandas3():
+        expected = "`date` > '20191231' and `date` < '20200102'"
+    assert chart_utils.group_filter_handler("date", "2020-01-01", "D")[0] == expected
+    assert chart_utils.group_filter_handler("date", 1577854800000, "D")[0] == expected
 
 
 @pytest.mark.unit

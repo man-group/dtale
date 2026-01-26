@@ -8,6 +8,7 @@ from six import PY3
 
 from dtale.column_replacements import ColumnReplacement
 from dtale.utils import parse_version
+from dtale.pandas_util import is_pandas3
 from tests.dtale.test_views import app
 from tests.dtale import build_data_inst, build_dtypes
 
@@ -239,7 +240,10 @@ def test_view(unittest):
         unittest.assertEqual(list(data[c.port]["e2"].values), ["a", "for test", "b"])
         dtypes = global_state.get_dtypes(c.port)
         assert dtypes[-1]["name"] == "e2"
-        assert dtypes[-1]["dtype"] == "string" if PY3 else "mixed"
+        if is_pandas3():
+            assert dtypes[-1]["dtype"] == "str"
+        else:
+            assert dtypes[-1]["dtype"] == "string" if PY3 else "mixed"
         assert not dtypes[-1]["hasMissing"]
 
         del params["name"]

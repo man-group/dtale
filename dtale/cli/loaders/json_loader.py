@@ -1,7 +1,9 @@
+from io import StringIO
 import pandas as pd
 
 from dtale.app import show
 from dtale.cli.clickutils import get_loader_options, handle_path, loader_prop_keys
+from dtale.pandas_util import is_pandas3
 from dtale.utils import parse_version
 
 """
@@ -33,7 +35,11 @@ def loader_func(**kwargs):
     normalize = kwargs.pop("normalize", False)
 
     def resp_handler(resp):
-        return resp.json() if normalize else resp.text.decode("utf-8")
+        if normalize:
+            return resp.json()
+        if is_pandas3():
+            return StringIO(resp.text.decode("utf-8"))
+        return resp.text.decode("utf-8")
 
     path = handle_path(kwargs.pop("path"), kwargs, resp_handler=resp_handler)
     if normalize:

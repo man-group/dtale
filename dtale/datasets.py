@@ -7,6 +7,8 @@ from datetime import datetime
 
 from six import BytesIO
 
+import dtale.pandas_util as pandas_util
+
 
 def covid():
     from dtale.cli.loaders.csv_loader import loader_func as load_csv
@@ -85,8 +87,14 @@ def movies():
         )
     )
     movies = pd.read_csv(movies)
-    movies.loc[:, "year"] = (
-        movies["year"].where(~(movies["year"] == "TV Movie 2019"), "2019").astype("int")
+    pandas_util.assign_col_data(
+        movies,
+        "year",
+        (
+            movies["year"]
+            .where(~(movies["year"] == "TV Movie 2019"), "2019")
+            .astype("int")
+        ),
     )
     return movies, None
 

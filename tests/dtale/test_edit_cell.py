@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from dtale.pandas_util import is_pandas3
 from tests.dtale import build_data_inst, build_settings, build_dtypes
 from tests.dtale.test_views import app
 
@@ -208,7 +209,10 @@ def test_edit_filtered_string():
             query_string=dict(col="b", rowIndex=0, updated=""),
         )
         assert "error" not in resp.json
-        assert data[c.port]["b"].values[-1] is None
+        if is_pandas3():
+            assert pd.isna(data[c.port]["b"].values[-1])
+        else:
+            assert data[c.port]["b"].values[-1] is None
 
 
 @pytest.mark.unit
