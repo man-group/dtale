@@ -7,7 +7,6 @@ from dtale.app import build_app
 from dtale.utils import parse_version
 from tests import ExitStack
 
-
 URL = "http://localhost:40000"
 app = build_app(url=URL)
 
