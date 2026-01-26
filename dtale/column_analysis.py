@@ -29,7 +29,6 @@ from dtale.utils import (
     make_list,
 )
 
-
 LINE_CFG = "line={'shape': 'spline', 'smoothing': 0.3}, mode='lines'"
 
 

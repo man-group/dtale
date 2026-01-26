@@ -16,7 +16,6 @@ from pandas.api.types import (
     is_timedelta64_dtype,
 )
 
-
 NOT_SUPPORTED_ANYMORE = "NOT_SUPPORTED_ANYMORE"
 TO_BE_CALCULATED = -1
 

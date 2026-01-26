@@ -2,7 +2,6 @@ import os
 import platform
 import subprocess
 
-
 _system = platform.system()
 IS_WINDOWS = _system == "Windows"
 IS_DARWIN = _system == "Darwin"

@@ -20,7 +20,6 @@ from tests import ExitStack, pdt
 from tests.dtale import build_data_inst, build_settings, build_dtypes
 from tests.dtale.test_charts import build_col_def
 
-
 URL = "http://localhost:40000"
 app = build_app(url=URL)
 

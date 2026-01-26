@@ -71,7 +71,7 @@ def test_find_free_port():
 
     class MockSocket(object):
         def bind(self, addr):
-            (host, port) = addr
+            host, port = addr
             if port == 40000:
                 raise Exception("cannot connect!")
             return 1

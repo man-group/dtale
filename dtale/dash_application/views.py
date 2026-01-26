@@ -715,7 +715,7 @@ def init_callbacks(dash_app):
         if group is not None:
             pareto_data["pareto_group"] = group
         df = global_state.get_data(data_id)
-        (x_options, bars_options, line_options, _sort_options) = build_pareto_options(
+        x_options, bars_options, line_options, _sort_options = build_pareto_options(
             df, x=pareto_x, bars=pareto_bars, line=pareto_line
         )
 

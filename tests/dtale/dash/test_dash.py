@@ -26,7 +26,6 @@ from tests.dtale import build_data_inst
 from tests.dtale.test_charts import build_col_def
 from tests.dtale.test_views import URL
 
-
 app = build_app(url=URL)
 
 

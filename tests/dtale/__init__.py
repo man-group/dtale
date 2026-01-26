@@ -1,6 +1,5 @@
 import dtale.global_state as global_state
 
-
 """
 helper functions for tests
 """

@@ -83,9 +83,7 @@ def base_layout(app_root, **kwargs):
         <script type="text/javascript">
             window.resourceBaseUrl = '{app_root}';
         </script>
-        """.format(
-            app_root=app_root
-        )
+        """.format(app_root=app_root)
         favicon_path = "{}/dtale/static/images/favicon.png".format(app_root)
     grid_links = []
     for id in global_state.keys():

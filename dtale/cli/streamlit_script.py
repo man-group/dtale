@@ -14,7 +14,6 @@ from tornado.web import FallbackHandler
 from dtale.app import build_app
 from dtale.cli.clickutils import run
 
-
 orig_start_listening = streamlit_server.start_listening
 
 

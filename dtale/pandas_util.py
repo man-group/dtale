@@ -4,7 +4,6 @@ from logging import getLogger
 
 from dtale.utils import parse_version
 
-
 logger = getLogger(__name__)
 
 
