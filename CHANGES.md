@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.19.0 (2026-1-27)
+* [#926](https://github.com/man-group/dtale/issues/926): updates to kurtosis labeling on frontend
+* Updates for pandas 3
+* front-end package upgrades
+
 ### 3.18.2 (2025-7-28)
 * [#920](https://github.com/man-group/dtale/issues/920): support for arcticdb libraries with '/' character in name
 
