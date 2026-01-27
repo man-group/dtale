@@ -25,7 +25,7 @@ except (IOError, ImportError, OSError):
 
 setup(
     name="dtale",
-    version="3.18.2",
+    version="3.19.0",
     author="MAN Alpha Technology",
     author_email="ManAlphaTech@man.com",
     description="Web Client for Visualizing Pandas Objects",
