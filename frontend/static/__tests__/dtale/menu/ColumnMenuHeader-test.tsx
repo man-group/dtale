@@ -13,9 +13,9 @@ describe('ColumnMenuHeader tests', () => {
   });
 
   it('correctly renders kurtosis message', () => {
-    expect(render(<KurtMsg kurt={4} />).container.textContent).toBe('(leptokurtic)');
-    expect(render(<KurtMsg kurt={3} />).container.textContent).toBe('(mesokurtic)');
-    expect(render(<KurtMsg kurt={2} />).container.textContent).toBe('(platykurtic)');
+    expect(render(<KurtMsg kurt={1} />).container.textContent).toBe('(leptokurtic)');
+    expect(render(<KurtMsg kurt={0.4} />).container.textContent).toBe('(fairly mesokurtic)');
+    expect(render(<KurtMsg kurt={-1} />).container.textContent).toBe('(platykurtic)');
     expect(render(<KurtMsg kurt="nan" />).container.innerHTML).toBe('');
   });
 });
