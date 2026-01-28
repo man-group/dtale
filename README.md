@@ -1617,18 +1617,117 @@ $ npm run watch
 $ npm run build
 ```
 
-### Running tests
+### Running Tests
 
-The usual npm test command works:
+D-Tale has both a React front-end and a Flask/Python back-end, each with their own test suites.
 
+#### Front-End Tests (JavaScript/React)
+
+Front-end tests are located in `frontend/static/__tests__/` and use Jest.
+
+**Node.js version:** CI uses Node.js **24.4.0**. To check your version:
+```bash
+$ node --version
+$ npm --version
+$ yarn --version
 ```
+
+**Install dependencies:**
+```bash
+$ cd frontend
+$ yarn install --frozen-lockfile
+```
+
+**Run all front-end tests:**
+```bash
+$ cd frontend
 $ npm test
 ```
 
-You can run individual test files:
-
+**Run tests with coverage:**
+```bash
+$ cd frontend
+$ yarn run test-with-coverage -w 1
 ```
+
+**Run individual test files:**
+```bash
+$ cd frontend
 $ npm run test -- static/__tests__/dtale/DataViewer-base-test.jsx
+```
+
+#### Back-End Tests (Python)
+
+Back-end tests are located in the `tests/` directory and use pytest.
+
+**Set up a virtual environment and install dependencies:**
+```bash
+$ virtualenv venv
+$ source venv/bin/activate  # On Windows: venv\Scripts\activate
+$ pip install -r requirements.txt
+$ python setup.py develop
+```
+
+**Install test dependencies:**
+```bash
+# Core test dependencies
+$ pip install -e ".[tests]"
+
+# Optional feature test dependencies
+$ pip install -e ".[arcticdb]"  # ArcticDB integration tests
+$ pip install -e ".[dash-bio]"  # Dash Bio component tests
+$ pip install -e ".[ngrok]"     # ngrok tunnel tests
+$ pip install -e ".[redis]"     # Redis storage backend tests
+$ pip install -e ".[r]"         # R integration tests (requires R to be installed)
+```
+
+**Installing R (required for R integration tests):**
+```bash
+# Ubuntu/Debian
+$ sudo apt update
+$ sudo apt -y install r-base
+
+# macOS (using Homebrew)
+$ brew install r
+```
+
+**Run all back-end tests:**
+```bash
+$ pytest tests -v
+```
+
+**Run tests with coverage:**
+```bash
+$ pytest tests --cov dtale --cov-report html --cov-report xml -v
+```
+
+**Run a specific test file:**
+```bash
+$ pytest tests/dtale/test_views.py -v
+```
+
+**Run a specific test function:**
+```bash
+$ pytest tests/dtale/test_views.py::test_head_data_id -v
+```
+
+#### Running All Tests (CI-style)
+
+To run both front-end and back-end tests as they run in CI:
+
+```bash
+# Build front-end first (required for back-end tests)
+$ cd frontend
+$ yarn install --frozen-lockfile
+$ yarn run build
+$ cd ..
+
+# Install all optional dependencies
+$ source venv/bin/activate
+$ pip install -e ".[arcticdb,dash-bio,ngrok,redis,r,tests]"
+
+# Run back-end tests
+$ pytest tests --cov dtale -v
 ```
 
 ### Linting
