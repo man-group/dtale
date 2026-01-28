@@ -45,14 +45,14 @@ export const SkewMsg: React.FC<{ skew: string | number }> = ({ skew }) => {
 export const kurtMsgText = (kurt?: string | number): string | undefined => {
   const kurtFloat = parseFloat(`${kurt}`);
   if (kurtFloat || kurtFloat === 0) {
-    if (kurtFloat > 2) {
+    if (kurtFloat > 0.5) {
       return 'leptokurtic';
     } else if (kurtFloat === 0) {
       return 'mesokurtic';
-    } else if (kurtFloat < -2) {
+    } else if (kurtFloat < -0.5) {
       return 'platykurtic';
     } else {
-      // -2 < kurtosis < 0 or 0 < kurtosis < 2
+      // - 0.5 < kurtosis < 0 or 0 < kurtosis < 0.5
       return 'fairly mesokurtic';
     }
   }
