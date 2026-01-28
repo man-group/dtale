@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.19.1 (2026-1-28)
+* [#926](https://github.com/man-group/dtale/issues/926): additional updates to kurtosis labeling
+
 ### 3.19.0 (2026-1-27)
 * [#926](https://github.com/man-group/dtale/issues/926): updates to kurtosis labeling on frontend
 * Updates for pandas 3
