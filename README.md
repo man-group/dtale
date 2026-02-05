@@ -598,55 +598,126 @@ d
 
 Here's a short description of each instance setting available:
 
-#### show_columns
-A list of column names you would like displayed in your grid. Anything else will be hidden.
-
-#### hide_columns
-A list of column names you would like initially hidden from the grid display.
+| Option | Type | Default | Description |
+|:-------|:-----|:--------|:------------|
+| `show_columns` | list | `None` | A list of column names you would like displayed in your grid. Anything else will be hidden. |
+| `hide_columns` | list | `None` | A list of column names you would like initially hidden from the grid display. |
+| `column_formats` | dict | `None` | A dictionary of column name keys and their front-end display configuration. See [column_formats](#column_formats) below. |
+| `nan_display` | str | `None` | Converts any `nan` values in your dataframe to this when sent to the browser (doesn't change the dataframe). |
+| `sort` | list | `None` | List of tuples which sort your dataframe. See [sort](#sort) below. |
+| `locked` | list | `None` | List of column names which will be locked to the right side of your grid while you scroll to the left. |
+| `background_mode` | str | `None` | A string denoting one of the background display modes. See [background_mode](#background_mode) below. |
+| `range_highlights` | dict | `None` | Dictionary of column name keys and range configurations for conditional highlighting. See [range_highlights](#range_highlights) below. |
+| `vertical_headers` | bool | `False` | If `True`, headers in your grid will be rotated 90 degrees vertically to conserve width. See [vertical_headers](#vertical_headers) below. |
+| `precision` | int | `2` | The default decimal precision for float values. |
+| `theme` | str | `"light"` | Display theme for the app. Options are `"light"` and `"dark"`. |
+| `main_title` | str | `None` | Custom title to display in the header and browser tab (replaces "D-Tale"). |
+| `main_title_font` | str | `None` | Custom font family to use for the main title (e.g., `"Arial"`, `"Helvetica"`). |
+| `auto_hide_empty_columns` | bool | `False` | If `True`, auto-hide any columns comprised entirely of NaN values. |
+| `highlight_filter` | bool | `False` | If `True`, highlight rows that match a filter rather than hiding them. |
+| `hide_shutdown` | bool | `None` | If `True`, hide the "Shutdown" button from users. |
+| `hide_header_editor` | bool | `None` | If `True`, hide the header editor when editing cells. |
+| `lock_header_menu` | bool | `None` | If `True`, always display the header menu (normally only shows on hover). |
+| `hide_header_menu` | bool | `None` | If `True`, hide the header menu from the screen. |
+| `hide_main_menu` | bool | `None` | If `True`, hide the main menu from the screen. |
+| `hide_column_menus` | bool | `None` | If `True`, hide the column menus from the screen. |
+| `hide_row_expanders` | bool | `None` | If `True`, hide the row expanders from the screen. |
+| `column_edit_options` | dict | `None` | Options to allow on the front-end when editing a cell for specific columns. See [column_edit_options](#column_edit_options) below. |
+| `enable_custom_filters` | bool | `None` | If `True`, enable users to create custom filters from the UI. |
+| `enable_web_uploads` | bool | `None` | If `True`, enable users to upload files using URLs from the UI. |
 
 #### column_formats
+
 A dictionary of column name keys and their front-end display configuration. Here are examples of the different format configurations:
-* Numeric: `{'fmt': '0.00000'}`
-* String:
-  * `{'fmt': {'truncate': 10}}` truncate string values to no more than 10 characters followed by an ellipses 
-  * `{'fmt': {'link': True}}` if your strings are URLs convert them to clickable links
-  * `{'fmt': {'html': True}}` if your strings are HTML fragments render them as HTML
-* Date: `{'fmt': 'MMMM Do YYYY, h:mm:ss a'}` uses [Moment.js formatting](https://momentjs.com/docs/#/displaying/format/)
 
-#### nan_display
-Converts any `nan` values in your dataframe to this when it is sent to the browser (doesn't actually change the state of your dataframe)
+| Data Type | Format | Description |
+|:----------|:-------|:------------|
+| Numeric | `{'fmt': '0.00000'}` | Format number with 5 decimal places |
+| String | `{'fmt': {'truncate': 10}}` | Truncate string values to no more than 10 characters followed by an ellipsis |
+| String | `{'fmt': {'link': True}}` | If your strings are URLs, convert them to clickable links |
+| String | `{'fmt': {'html': True}}` | If your strings are HTML fragments, render them as HTML |
+| Date | `{'fmt': 'MMMM Do YYYY, h:mm:ss a'}` | Uses [Moment.js formatting](https://momentjs.com/docs/#/displaying/format/) |
 
-#### sort
-List of tuples which sort your dataframe (EX: `[('a', 'ASC'), ('b', 'DESC')]`)
-
-#### locked
-List of column names which will be locked to the right side of your grid while you scroll to the left.
-
-#### background_mode
-A string denoting one of the many background displays available in D-Tale. Options are:
-* heatmap-all: turn on heatmap for all numeric columns where the colors are determined by the range of values over all numeric columns combined
-* heatmap-col: turn on heatmap for all numeric columns where the colors are determined by the range of values in the column
-* heatmap-col-[column name]: turn on heatmap highlighting for a specific column
-* dtypes: highlight columns based on it's data type
-* missing: highlight any missing values (np.nan, empty strings, strings of all spaces)
-* outliers: highlight any outliers
-* range: highlight values for any matchers entered in the "range_highlights" option
-* lowVariance: highlight values with a low variance
-
-#### range_highlights
-Dictionary of column name keys and range configurations which if the value for that column exists then it will be shaded that color.  Here is an example input:
-```
-'a': {
-  'active': True,
-  'equals': {'active': True, 'value': 3, 'color': {'r': 255, 'g': 245, 'b': 157, 'a': 1}}, # light yellow
-  'greaterThan': {'active': True, 'value': 3, 'color': {'r': 80, 'g': 227, 'b': 194, 'a': 1}}, # mint green
-  'lessThan': {'active': True, 'value': 3, 'color': {'r': 245, 'g': 166, 'b': 35, 'a': 1}}, # orange
+Example:
+```python
+column_formats={
+    'price': {'fmt': '0.00'},
+    'url': {'fmt': {'link': True}},
+    'description': {'fmt': {'truncate': 50}},
+    'created_date': {'fmt': 'YYYY-MM-DD'}
 }
 ```
 
+#### sort
+
+List of tuples which sort your dataframe. Each tuple contains the column name and sort direction (`'ASC'` or `'DESC'`).
+
+Example:
+```python
+sort=[('date', 'DESC'), ('name', 'ASC')]
+```
+
+#### background_mode
+
+A string denoting one of the many background displays available in D-Tale.
+
+| Value | Description |
+|:------|:------------|
+| `heatmap-all` | Turn on heatmap for all numeric columns where colors are determined by the range of values over all numeric columns combined. |
+| `heatmap-col` | Turn on heatmap for all numeric columns where colors are determined by the range of values in each column. |
+| `heatmap-col-[column name]` | Turn on heatmap highlighting for a specific column (e.g., `heatmap-col-price`). |
+| `dtypes` | Highlight columns based on their data type. |
+| `missing` | Highlight any missing values (`np.nan`, empty strings, strings of all spaces). |
+| `outliers` | Highlight any outliers. |
+| `range` | Highlight values for any matchers entered in the `range_highlights` option. |
+| `lowVariance` | Highlight values with a low variance. |
+
+#### range_highlights
+
+Dictionary of column name keys and range configurations. If the value for that column matches a condition, it will be shaded with the specified color.
+
+Example:
+```python
+range_highlights={
+    'a': {
+        'active': True,
+        'equals': {'active': True, 'value': 3, 'color': {'r': 255, 'g': 245, 'b': 157, 'a': 1}},      # light yellow
+        'greaterThan': {'active': True, 'value': 3, 'color': {'r': 80, 'g': 227, 'b': 194, 'a': 1}},  # mint green
+        'lessThan': {'active': True, 'value': 3, 'color': {'r': 245, 'g': 166, 'b': 35, 'a': 1}},     # orange
+    }
+}
+```
+
+Each column can have the following range conditions:
+
+| Condition | Description |
+|:----------|:------------|
+| `equals` | Highlight cells where the value equals the specified value |
+| `greaterThan` | Highlight cells where the value is greater than the specified value |
+| `lessThan` | Highlight cells where the value is less than the specified value |
+
+Each condition has these properties:
+- `active`: Whether this condition is enabled (`True`/`False`)
+- `value`: The value to compare against
+- `color`: RGBA color object with keys `r`, `g`, `b`, `a` (values 0-255 for RGB, 0-1 for alpha)
+
 #### vertical_headers
+
 If set to `True` then the headers in your grid will be rotated 90 degrees vertically to conserve width.
+
 ![](https://raw.githubusercontent.com/aschonfeld/dtale-media/master/images/vertical_headers.png)
+
+#### column_edit_options
+
+Dictionary of column name keys and lists of allowed values. When editing a cell in the specified column, users will be presented with a dropdown of the allowed values instead of free-form text input.
+
+Example:
+```python
+column_edit_options={
+    'status': ['pending', 'approved', 'rejected'],
+    'priority': ['low', 'medium', 'high', 'critical']
+}
+```
 
 
 ### Predefined Filters
