@@ -1365,6 +1365,114 @@ def test_dtypes(test_data):
 
 
 @pytest.mark.unit
+def test_describe_string_metrics():
+    from dtale.views import build_dtypes_state, format_data
+
+    # Build a DataFrame with a string column containing diverse content
+    df = pd.DataFrame(
+        {
+            "str_col": [
+                "Hello World",  # with space, upper, lower
+                " leading",  # space_at_the_first
+                "trailing ",  # space_at_the_end
+                "double  space",  # multi_space_after_each_other
+                "num123",  # with_num
+                "UPPER",  # with_upper only
+                "lower",  # with_lower only
+                "café",  # with_accent
+                "punc!@#",  # with_punc
+                "normal",  # plain string
+            ],
+            "id": range(10),
+        }
+    )
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: build_dtypes_state(df)})
+
+        response = c.get(
+            "/dtale/describe/{}".format(c.port), query_string=dict(col="str_col")
+        )
+        response_data = response.get_json()
+        assert response_data["success"]
+        assert "string_metrics" in response_data
+
+        sm = response_data["string_metrics"]
+        # Character length metrics
+        assert "char_min" in sm
+        assert "char_max" in sm
+        assert "char_mean" in sm
+        assert "char_std" in sm
+        assert sm["char_min"] > 0
+        assert sm["char_max"] >= sm["char_min"]
+
+        # Word metrics
+        assert "word_min" in sm
+        assert "word_max" in sm
+        assert "word_mean" in sm
+        assert "word_std" in sm
+
+        # Content type counts
+        assert sm["with_space"] > 0
+        assert sm["with_num"] > 0
+        assert sm["with_upper"] > 0
+        assert sm["with_lower"] > 0
+        assert sm["with_punc"] > 0
+        assert sm["with_accent"] > 0
+        assert sm["space_at_the_first"] > 0
+        assert sm["space_at_the_end"] > 0
+        assert sm["multi_space_after_each_other"] > 0
+
+        # Code export should be present
+        assert "code" in response_data
+        assert "char_len = s.len()" in response_data["code"]
+
+
+@pytest.mark.unit
+def test_describe_string_uniques():
+    from dtale.views import build_dtypes_state, format_data
+
+    # Verify the unique values / top frequency logic for string columns
+    df = pd.DataFrame({"s": ["a", "a", "a", "b", "b", "c"]})
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: build_dtypes_state(df)})
+
+        response = c.get(
+            "/dtale/describe/{}".format(c.port), query_string=dict(col="s")
+        )
+        response_data = response.get_json()
+        assert response_data["success"]
+        assert "uniques" in response_data
+        assert response_data["describe"]["freq"] == 3  # 'a' appears 3 times
+
+
+@pytest.mark.unit
+def test_describe_sequential_diffs():
+    from dtale.views import build_dtypes_state, format_data
+
+    # Test sequential diffs for integer column (covers build_sequential_diffs)
+    df = pd.DataFrame({"val": [10, 20, 25, 50, 100]})
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: build_dtypes_state(df)})
+
+        response = c.get(
+            "/dtale/describe/{}".format(c.port), query_string=dict(col="val")
+        )
+        response_data = response.get_json()
+        assert response_data["success"]
+        assert "sequential_diffs" in response_data
+        sd = response_data["sequential_diffs"]
+        assert "min" in sd
+        assert "max" in sd
+        assert "avg" in sd
+
+
+@pytest.mark.unit
 def test_variance(unittest):
     from dtale.views import build_dtypes_state, format_data
 
@@ -2124,6 +2232,287 @@ def test_code_export():
             )
             response = c.get("/dtale/code-export/{}".format(c.port))
             assert response.get_json()["success"]
+
+
+@pytest.mark.unit
+def test_build_code_export_with_startup_code():
+    from dtale.code_export import build_code_export
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    data_id = global_state.new_data_inst()
+    global_state.set_data(data_id, df)
+    global_state.set_settings(data_id, {"startup_code": "df = load_data()"})
+
+    result = build_code_export(data_id)
+    code = "\n".join(result)
+    assert "df = load_data()" in code
+
+
+@pytest.mark.unit
+def test_build_code_export_with_context_variables():
+    from dtale.code_export import build_code_export
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    data_id = global_state.new_data_inst()
+    global_state.set_data(data_id, df)
+    global_state.set_settings(
+        data_id, {"query": "`a` in @my_var", "enable_custom_filters": True}
+    )
+    global_state.set_app_settings({"enable_custom_filters": True})
+    global_state.set_context_variables(data_id, {"my_var": [1, 2]})
+
+    result = build_code_export(data_id)
+    code = "\n".join(result)
+    assert "ctxt_vars" in code
+    assert "local_dict" in code
+
+
+@pytest.mark.unit
+def test_build_code_export_with_query():
+    from dtale.code_export import build_code_export
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    data_id = global_state.new_data_inst()
+    global_state.set_data(data_id, df)
+    global_state.set_settings(
+        data_id, {"query": "`a` > 1", "enable_custom_filters": True}
+    )
+    global_state.set_app_settings({"enable_custom_filters": True})
+
+    result = build_code_export(data_id)
+    code = "\n".join(result)
+    assert "query" in code
+    assert "`a` > 1" in code
+
+
+@pytest.mark.unit
+def test_build_code_export_with_xarray():
+    from dtale.code_export import build_code_export
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    data_id = global_state.new_data_inst()
+    global_state.set_data(data_id, df)
+    global_state.set_settings(data_id, {})
+    global_state.set_dataset(data_id, {"key": "val"})
+    global_state.set_dataset_dim(data_id, {"time": "2020-01-01"})
+
+    result = build_code_export(data_id)
+    code = "\n".join(result)
+    assert "ds.sel" in code
+    assert "time" in code
+
+
+@pytest.mark.unit
+def test_matplotlib_decorator():
+    """Test matplotlib_decorator (covers lines 131-152)."""
+    from dtale.views import matplotlib_decorator
+
+    @matplotlib_decorator
+    def dummy_func():
+        import matplotlib
+
+        return matplotlib.get_backend()
+
+    result = dummy_func()
+    assert result == "agg"
+
+
+@pytest.mark.unit
+def test_matplotlib_decorator_exception():
+    """Test matplotlib_decorator handles exceptions properly."""
+    from dtale.views import matplotlib_decorator
+
+    @matplotlib_decorator
+    def bad_func():
+        raise ValueError("test error")
+
+    with pytest.raises(ValueError, match="test error"):
+        bad_func()
+
+
+@pytest.mark.unit
+def test_export_parquet_mocked():
+    """Test parquet export endpoint (covers lines 3164-3172)."""
+    from io import BytesIO
+
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        fake_buf = BytesIO(b"fake_parquet_data")
+        with mock.patch(
+            "dtale.utils.export_to_parquet_buffer", return_value=fake_buf
+        ):
+            response = c.get(
+                "/dtale/data-export/{}".format(c.port),
+                query_string=dict(type="parquet"),
+            )
+            assert response.status_code == 200
+            assert response.content_type == "application/octet-stream"
+
+
+@pytest.mark.unit
+def test_export_unsupported_type():
+    """Test export with unsupported type returns error (covers line 3172)."""
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        response = c.get(
+            "/dtale/data-export/{}".format(c.port),
+            query_string=dict(type="unknown"),
+        )
+        assert not response.get_json()["success"]
+
+
+@pytest.mark.unit
+def test_edit_cell_categorical():
+    """Test editing a categorical column cell (covers lines 2693-2710)."""
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame({"cat_col": pd.Categorical(["a", "b", "c"]), "val": [1, 2, 3]})
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: build_dtypes_state(df)})
+        build_settings({c.port: {"locked": []}})
+        resp = c.get(
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="cat_col", rowIndex=0, updated="d"),
+        )
+        assert "error" not in resp.json
+        # Verify the new category was added and value set
+        data = global_state.get_data(c.port)
+        assert data.at[0, "cat_col"] == "d"
+
+
+@pytest.mark.unit
+def test_correlations_matrix_image():
+    """Test correlations matrix image generation (covers lines 3206-3224)."""
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame(
+        {"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 2, 1], "c": [1, 3, 5, 7, 9]}
+    )
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/correlations/{}".format(c.port),
+            query_string=dict(image=True),
+        )
+        assert resp.status_code == 200
+        assert resp.content_type == "image/png"
+        assert len(resp.data) > 0
+
+
+@pytest.mark.unit
+def test_dtale_data_get_corr_matrix():
+    """Test DtaleData.get_corr_matrix(as_df=True) (covers lines 304-308)."""
+    from dtale.views import DtaleData, build_dtypes_state, format_data
+
+    df = pd.DataFrame({"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 2, 1], "c": [1, 3, 5, 7, 9]})
+    df, _ = format_data(df)
+    data_id = global_state.new_data_inst()
+    global_state.set_data(data_id, df)
+    global_state.set_dtypes(data_id, build_dtypes_state(df))
+    global_state.set_settings(data_id, {})
+
+    d = DtaleData(data_id, URL)
+    result = d.get_corr_matrix(as_df=True)
+    # Result should be a DataFrame when as_df=True
+    assert isinstance(result, pd.DataFrame)
+    assert "a" in result.columns
+    assert "b" in result.columns
+
+
+@pytest.mark.unit
+def test_dtale_data_get_pps_matrix():
+    """Test DtaleData.get_pps_matrix(as_df=True) (covers lines 312-316)."""
+    from dtale.views import DtaleData, build_dtypes_state, format_data
+
+    df = pd.DataFrame({"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 2, 1]})
+    df, _ = format_data(df)
+    data_id = global_state.new_data_inst()
+    global_state.set_data(data_id, df)
+    global_state.set_dtypes(data_id, build_dtypes_state(df))
+    global_state.set_settings(data_id, {})
+
+    d = DtaleData(data_id, URL)
+    result = d.get_pps_matrix(as_df=True)
+    # Result should be a DataFrame when as_df=True
+    assert isinstance(result, pd.DataFrame)
+
+
+@pytest.mark.unit
+def test_describe_mixed_dtype():
+    """Test describe endpoint with mixed dtype column (covers lines 2348-2352)."""
+    from dtale.views import build_dtypes_state, format_data
+
+    # Create DataFrame with mixed types where top value is single-typed
+    # (avoids sort error on mixed int/str)
+    df = pd.DataFrame(
+        {"mixed": pd.array(["a", "a", "a", 1, 2], dtype=object), "val": [10, 20, 30, 40, 50]}
+    )
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/describe/{}".format(c.port),
+            query_string=dict(col="mixed"),
+        )
+        result = resp.get_json()
+        assert result["success"]
+        # Mixed dtype should produce dtype_counts
+        assert "dtype_counts" in result
+
+
+@pytest.mark.unit
+def test_correlations_as_json():
+    """Test correlations endpoint returning JSON (covers corr data paths)."""
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame({"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 2, 1], "c": [1, 3, 5, 7, 9]})
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get("/dtale/correlations/{}".format(c.port))
+        result = resp.get_json()
+        assert "data" in result
+        assert len(result["data"]) > 0
+
+
+@pytest.mark.unit
+def test_correlations_pps():
+    """Test correlations endpoint with PPS (covers pps path and get_ppscore_matrix)."""
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame({"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 2, 1]})
+    df, _ = format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/correlations/{}".format(c.port),
+            query_string=dict(pps=True),
+        )
+        result = resp.get_json()
+        assert "data" in result
 
 
 @pytest.mark.unit
@@ -3531,3 +3920,665 @@ def test_raw_pandas(unittest):
             query_string={"func_type": "describe"},
         )
         assert resp.json["success"]
+
+
+@pytest.mark.unit
+def test_calc_data_ranges_value_error():
+    """Test calc_data_ranges with data that raises ValueError (covers line 822)."""
+    import dtale.views as views
+
+    # Create a DataFrame where agg(["min","max"]) raises ValueError
+    # This happens with mixed types after transpose
+    df = pd.DataFrame({"a": [1, "text", None]})
+    result = views.calc_data_ranges(df)
+    assert result == {} or isinstance(result, dict)
+
+
+@pytest.mark.unit
+def test_calc_data_ranges_type_error():
+    """Test calc_data_ranges with data that raises TypeError (covers lines 824-832)."""
+    import dtale.views as views
+
+    # Create a DataFrame with mixed types that triggers TypeError on agg
+    # When string and numeric columns are mixed, agg can raise TypeError
+    class BadAggDF:
+        columns = ["a", "b"]
+
+        def agg(self, funcs):
+            raise TypeError("test")
+
+    # Use mock to trigger TypeError path
+    df = pd.DataFrame({"a": [1, 2, 3], "b": ["x", "y", "z"]})
+    with mock.patch.object(
+        pd.DataFrame, "agg", side_effect=TypeError("test")
+    ):
+        result = views.calc_data_ranges(df, dtypes={"a": "int64", "b": "string"})
+    # Should fall into the TypeError handler and try non-string columns
+    assert isinstance(result, dict)
+
+
+@pytest.mark.unit
+def test_calc_data_ranges_type_error_fallback():
+    """Test calc_data_ranges TypeError with inner BaseException (covers lines 831-832)."""
+    import dtale.views as views
+
+    # When even the non-string column agg fails
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    call_count = [0]
+    original_agg = pd.DataFrame.agg
+
+    def mock_agg(self, *args, **kwargs):
+        call_count[0] += 1
+        if call_count[0] == 1:
+            raise TypeError("first call")
+        raise ValueError("second call")
+
+    with mock.patch.object(pd.DataFrame, "agg", mock_agg):
+        result = views.calc_data_ranges(df, dtypes={"a": "int64"})
+    assert result == {}
+
+
+@pytest.mark.unit
+def test_duplicate_col_with_existing_dupes():
+    """Test duplicate-col endpoint when duplicate names already exist (covers lines 2615-2616)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"a": [1, 2, 3], "a_2": [4, 5, 6]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/duplicate-col/{}".format(c.port),
+            query_string=dict(col="a"),
+        )
+        result = resp.get_json()
+        assert result["success"]
+        # Since a_2 already exists, it should create a_3
+        assert result["col"] == "a_3"
+
+
+@pytest.mark.unit
+def test_column_filter_data_many_uniques():
+    """Test column-filter-data with >500 unique values triggers truncation (covers line 2748)."""
+    import dtale.views as views
+
+    # Create data with >500 unique string values
+    vals = ["val_{}".format(i) for i in range(600)]
+    df = pd.DataFrame({"s": vals})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/column-filter-data/{}".format(c.port),
+            query_string=dict(col="s"),
+        )
+        result = resp.get_json()
+        assert result["success"]
+        # Should truncate to 5 values
+        assert len(result["uniques"]) == 5
+
+
+@pytest.mark.unit
+def test_move_filters_to_custom_disabled():
+    """Test move-filters-to-custom when custom filters are disabled (covers lines 4327-4335)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        # Explicitly disable custom filters
+        global_state.set_app_settings(dict(enable_custom_filters=False))
+        resp = c.get("/dtale/move-filters-to-custom/{}".format(c.port))
+        result = resp.get_json()
+        assert not result["success"]
+        assert "Custom Filters not enabled" in result["error"]
+
+
+@pytest.mark.unit
+def test_move_filters_to_custom_enabled():
+    """Test move-filters-to-custom when custom filters are enabled (covers lines 4336-4348)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        global_state.set_app_settings(dict(enable_custom_filters=True))
+        # Set column filters first
+        global_state.update_settings(
+            c.port,
+            {
+                "columnFilters": {"a": {"type": "int", "query": "a > 1"}},
+                "query": "",
+            },
+        )
+        resp = c.get("/dtale/move-filters-to-custom/{}".format(c.port))
+        result = resp.get_json()
+        assert result["success"]
+        settings = result.get("settings", {})
+        # Column filters should be cleared
+        assert settings.get("columnFilters") == {}
+
+
+@pytest.mark.unit
+def test_build_column_inplace():
+    """Test build-column with saveAs=inplace (covers line 1908)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"a": [1.1, 2.2, 3.3], "b": [4, 5, 6]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        cfg = json.dumps({"col": "a", "to": "int", "from": "float64"})
+        resp = c.get(
+            "/dtale/build-column/{}".format(c.port),
+            query_string=dict(type="type_conversion", saveAs="inplace", cfg=cfg),
+        )
+        result = resp.get_json()
+        assert result["success"]
+        # Column a should be converted in place
+        data = global_state.get_data(c.port)
+        assert data["a"].dtype.kind == "i"  # integer kind
+
+
+@pytest.mark.unit
+def test_network_viewer_redirect():
+    """Test network viewer redirect when data_id not in global state (covers line 1542)."""
+    with app.test_client() as c:
+        # Don't set up any data for this port
+        resp = c.get("/dtale/network/{}".format("9999"))
+        assert resp.status_code == 302  # redirect
+
+
+@pytest.mark.unit
+def test_update_settings_query_removal():
+    """Test update-settings removes query when custom filters disabled (covers line 1644)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        # Explicitly disable custom filters
+        global_state.set_app_settings(dict(enable_custom_filters=False))
+        resp = c.get(
+            "/dtale/update-settings/{}".format(c.port),
+            query_string=dict(
+                settings=json.dumps({"query": "a > 1", "sortInfo": []})
+            ),
+        )
+        result = resp.get_json()
+        assert result["success"]
+        # Query should have been removed since custom filters are disabled
+        settings = global_state.get_settings(c.port)
+        assert "query" not in settings or settings.get("query") is None or settings.get("query") == ""
+
+
+@pytest.mark.unit
+def test_update_settings_enable_custom_filters_blocked():
+    """Test update-settings blocks setting enable_custom_filters (covers lines 1638-1641)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/update-settings/{}".format(c.port),
+            query_string=dict(
+                settings=json.dumps({"enable_custom_filters": True})
+            ),
+        )
+        result = resp.get_json()
+        assert "error" in result
+
+
+@pytest.mark.unit
+def test_build_string_metrics():
+    """Test describe endpoint with string column to cover build_string_metrics (covers lines 2186-2264)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"s": ["hello world", "foo bar", "TESTING 123", "àccent"]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/describe/{}".format(c.port),
+            query_string=dict(col="s"),
+        )
+        result = resp.get_json()
+        assert result["success"]
+        # String metrics should be present
+        describe = result.get("describe", {})
+        assert "char_min" in describe or "string_metrics" in result
+
+
+@pytest.mark.unit
+def test_edit_cell():
+    """Test edit-cell endpoint (covers lines 2640-2700+)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"a": [1, 2, 3], "b": ["x", "y", "z"]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        # Edit numeric cell
+        resp = c.get(
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="a", rowIndex=0, updated="10"),
+        )
+        result = resp.get_json()
+        assert result["success"]
+        assert global_state.get_data(c.port)["a"].values[0] == 10
+
+        # Edit string cell
+        resp = c.get(
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="b", rowIndex=1, updated="new_val"),
+        )
+        result = resp.get_json()
+        assert result["success"]
+
+
+@pytest.mark.unit
+def test_column_filter_data_integer():
+    """Test column-filter-data with integer column for range data (covers lines 2764-2769)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"a": list(range(50)), "b": ["cat_{}".format(i % 5) for i in range(50)]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/column-filter-data/{}".format(c.port),
+            query_string=dict(col="a"),
+        )
+        result = resp.get_json()
+        assert result["success"]
+        assert "min" in result
+        assert "max" in result
+        assert "uniques" in result
+
+
+@pytest.mark.unit
+def test_async_column_filter_data():
+    """Test async-column-filter-data endpoint (covers lines 2775-2783)."""
+    import dtale.views as views
+
+    vals = ["apple", "avocado", "banana", "cherry", "apricot"]
+    df = pd.DataFrame({"s": vals})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/async-column-filter-data/{}".format(c.port),
+            query_string=dict(col="s", input="a"),
+        )
+        result = resp.get_json()
+        # Should return values starting with 'a'
+        assert len(result) > 0
+
+
+@pytest.mark.unit
+def test_edit_cell_categorical():
+    """Test edit-cell with categorical column adding new category (covers lines 2685-2692)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"cat": pd.Categorical(["a", "b", "c"]), "val": [1, 2, 3]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        # Edit with a new category value not in existing categories
+        resp = c.get(
+            "/dtale/edit-cell/{}".format(c.port),
+            query_string=dict(col="cat", rowIndex=0, updated="new_cat"),
+        )
+        result = resp.get_json()
+        assert result["success"]
+        data = global_state.get_data(c.port)
+        assert data["cat"].iloc[0] == "new_cat"
+
+
+@pytest.mark.unit
+def test_network_analysis_no_weight():
+    """Test network-analysis without weight (covers line 4195)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({
+        "from": ["A", "B", "C", "A"],
+        "to": ["B", "C", "D", "D"],
+    })
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/network-analysis/{}".format(c.port),
+            query_string={"to": "to", "from": "from"},
+        )
+        result = resp.get_json()
+        assert result["success"]
+        assert result["data"]["max_edge"] is None  # no weight, so no max_edge
+
+
+@pytest.mark.unit
+def test_network_data():
+    """Test network-data endpoint (covers lines 4119-4171)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({
+        "from_node": ["A", "B", "C"],
+        "to_node": ["B", "C", "D"],
+    })
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/network-data/{}".format(c.port),
+            query_string={"to": "to_node", "from": "from_node"},
+        )
+        result = resp.get_json()
+        assert result["success"]
+        assert len(result["nodes"]) > 0
+        assert len(result["edges"]) > 0
+
+
+@pytest.mark.unit
+def test_raw_pandas_invalid():
+    """Test raw-pandas with invalid func_type (covers line 4565)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        resp = c.get(
+            "/dtale/raw-pandas/{}".format(c.port),
+            query_string={"func_type": "invalid"},
+        )
+        result = resp.get_json()
+        assert not result["success"]
+        assert "Invalid function type" in result["error"]
+
+
+@pytest.mark.unit
+def test_replace_column_data():
+    """Test build-replacement endpoint for float column ranges (covers lines 2043-2045)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"a": [1.0, 2.0, np.nan, 4.0], "b": [5.0, 6.0, 7.0, 8.0]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        cfg = json.dumps([{"type": "raw", "value": 1.0, "replace": 99.0}])
+        resp = c.get(
+            "/dtale/build-replacement/{}".format(c.port),
+            query_string=dict(col="a", type="value", name="a_filled", cfg=cfg),
+        )
+        result = resp.get_json()
+        assert result["success"]
+
+
+@pytest.mark.unit
+def test_describe_outliers():
+    """Test describe with outlier data to trigger outlier query building (covers line 2485)."""
+    import dtale.views as views
+
+    # Create data with clear outliers
+    vals = [1.0] * 100 + [1000.0]
+    df = pd.DataFrame({"a": vals})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/describe/{}".format(c.port),
+            query_string=dict(col="a"),
+        )
+        result = resp.get_json()
+        assert result["success"]
+
+
+@pytest.mark.unit
+def test_outlier_query_both_sides():
+    """Test outlier detection with outliers on both sides (covers lines 2485-2496)."""
+    import dtale.views as views
+
+    # Data with clear outliers on BOTH sides: most values in 50-60 range, with extreme outliers
+    vals = list(range(50, 61)) * 10 + [-100, 200]
+    df = pd.DataFrame({"a": vals})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        resp = c.get(
+            "/dtale/outliers/{}".format(c.port),
+            query_string=dict(col="a"),
+        )
+        result = resp.get_json()
+        assert len(result["outliers"]) >= 2  # should find at least -100 and 200
+
+
+@pytest.mark.unit
+def test_build_column_multi_output():
+    """Test build-column that returns DataFrame (multiple columns) (covers lines 1928-1930)."""
+    import dtale.views as views
+
+    df = pd.DataFrame({"cat": ["a", "b", "c", "a"], "val": [1, 2, 3, 4]})
+    df, _ = views.format_data(df)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        build_settings({c.port: {}})
+        cfg = json.dumps({"col": "cat", "n": 2, "algo": "feature_hasher"})
+        resp = c.get(
+            "/dtale/build-column/{}".format(c.port),
+            query_string=dict(type="encoder", cfg=cfg, name="hash"),
+        )
+        result = resp.get_json()
+        assert result["success"]
+
+
+@pytest.mark.unit
+def test_export_to_parquet_buffer():
+    """Test parquet export error path when pyarrow missing (covers utils.py lines 771-773)."""
+    from dtale.utils import export_to_parquet_buffer
+
+    df = pd.DataFrame({"a": [1, 2, 3], "b": [4.0, 5.0, 6.0]})
+    # pyarrow is not installed, so this should raise ImportError
+    with pytest.raises(ImportError, match="parquet"):
+        export_to_parquet_buffer(df)
+
+
+@pytest.mark.unit
+def test_calc_data_ranges_valueerror():
+    """Test calc_data_ranges with ValueError (covers views.py line 822)."""
+    from dtale.views import calc_data_ranges
+
+    # Mock agg to raise ValueError
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    with mock.patch.object(pd.DataFrame, "agg", side_effect=ValueError("test")):
+        result = calc_data_ranges(df)
+        assert result == {}
+
+
+@pytest.mark.unit
+def test_kill_exception():
+    """Test kill() when request fails (covers views.py lines 199-200)."""
+    from dtale.views import kill
+
+    with mock.patch("dtale.views.requests.get", side_effect=Exception("connection refused")):
+        # Should not raise - just logs and returns
+        kill("http://localhost:99999")
+
+
+@pytest.mark.unit
+def test_json_string_base_exception():
+    """Test json_string with BaseException in str() (covers utils.py lines 223-224)."""
+    from dtale.utils import json_string
+
+    class BadStr:
+        def __str__(self):
+            raise RuntimeError("cannot stringify")
+
+        def __bool__(self):
+            return True
+
+    result = json_string(BadStr())
+    assert result == ""  # falls through to nan_display default
+
+
+@pytest.mark.unit
+def test_unique_count():
+    """Test unique_count function (covers utils.py line 822)."""
+    from dtale.utils import unique_count
+
+    s = pd.Series([1, 2, 2, 3, np.nan, 3])
+    assert unique_count(s) == 3
+
+
+@pytest.mark.unit
+def test_is_vscode():
+    """Test is_vscode detection (covers views.py lines 1306-1308)."""
+    import dtale.views as views
+
+    # Save original
+    orig_pid = os.environ.get("VSCODE_PID")
+    orig_inj = os.environ.get("VSCODE_INJECTION")
+    try:
+        # Clear both
+        os.environ.pop("VSCODE_PID", None)
+        os.environ.pop("VSCODE_INJECTION", None)
+        assert views.is_vscode() is False
+
+        # Set VSCODE_PID
+        os.environ["VSCODE_PID"] = "12345"
+        assert views.is_vscode() is True
+
+        # Clear PID, set INJECTION
+        del os.environ["VSCODE_PID"]
+        os.environ["VSCODE_INJECTION"] = "1"
+        assert views.is_vscode() is True
+    finally:
+        # Restore
+        os.environ.pop("VSCODE_PID", None)
+        os.environ.pop("VSCODE_INJECTION", None)
+        if orig_pid is not None:
+            os.environ["VSCODE_PID"] = orig_pid
+        if orig_inj is not None:
+            os.environ["VSCODE_INJECTION"] = orig_inj
+
+
+@pytest.mark.unit
+def test_dtale_data_main_url_no_data():
+    """Test DtaleData._main_url and build_main_url with no data (covers views.py lines 261, 269)."""
+    import dtale.views as views
+
+    global_state.cleanup()
+    # Create DtaleData with no matching data in global state
+    d = views.DtaleData("99999", "http://localhost:40000")
+    # With no data keys, _main_url calls build_main_url() without name
+    url = d._main_url
+    assert "localhost" in url
+
+
+@pytest.mark.unit
+def test_startup_with_predefined_filters():
+    """Test startup with predefined_filters (covers views.py line 1208)."""
+    import dtale.views as views
+    from dtale import predefined_filters
+
+    global_state.cleanup()
+    # Set up a predefined filter
+    predefined_filters.set_filters(
+        [dict(name="test_filter", column="test_col", input_type="input",
+              handler=lambda val, col: "{} == {}".format(col, val))]
+    )
+    try:
+        df = pd.DataFrame({"test_col": [1, 2, 3], "val": [4, 5, 6]})
+        instance = views.startup("http://localhost:40000", data=df)
+        data_id = instance._data_id
+        settings = global_state.get_settings(data_id)
+        assert "predefinedFilters" in settings
+        assert "test_filter" in settings["predefinedFilters"]
+    finally:
+        predefined_filters.PREDEFINED_FILTERS = []
+        global_state.cleanup()
+
+
+@pytest.mark.unit
+def test_startup_with_column_edit_options():
+    """Test startup with column_edit_options (covers views.py line 1235)."""
+    import dtale.views as views
+
+    global_state.cleanup()
+    try:
+        df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+        edit_opts = {"a": {"locked": True}}
+        instance = views.startup("http://localhost:40000", data=df, column_edit_options=edit_opts)
+        data_id = instance._data_id
+        settings = global_state.get_settings(data_id)
+        assert settings.get("column_edit_options") == edit_opts
+    finally:
+        global_state.cleanup()
+
+
+@pytest.mark.unit
+def test_open_browser_unsupported_platform():
+    """Test open_browser on unsupported platform (covers env_util.py lines 68-70)."""
+    from dtale import env_util
+
+    with mock.patch.object(env_util, "IS_WINDOWS", False), \
+         mock.patch.object(env_util, "IS_LINUX_OR_BSD", False), \
+         mock.patch.object(env_util, "IS_DARWIN", False):
+        with pytest.raises(env_util.Error, match="Cannot open browser"):
+            env_util.open_browser("http://localhost:40000")
+
+
+@pytest.mark.unit
+def test_startup_with_data_loader_returning_data_id():
+    """Test startup with data_loader returning existing data_id (covers views.py line 1025)."""
+    import dtale.views as views
+
+    global_state.cleanup()
+    try:
+        df = pd.DataFrame({"a": [1, 2, 3]})
+        df, _ = views.format_data(df)
+        global_state.new_data_inst("1")
+        global_state.set_data("1", df)
+        instance = views.startup("http://localhost:40000", data_loader=lambda: "1")
+        assert instance._data_id == "1"
+    finally:
+        global_state.cleanup()

@@ -347,3 +347,25 @@ def test_matrix():
         if (score["x"] == "Survived" and score["y"] == "Age_datetime")
     ][0]
     assert invalid_score["ppscore"] == 0
+
+
+@pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python 3.6 or higher")
+def test_score_random_seed_none():
+    """Test score with random_seed=None generates random seed (covers calculation.py lines 448-450)."""
+    df = pd.DataFrame({"x": [1, 2, 3, 4, 5], "y": [2, 4, 6, 8, 10]})
+    result = pps.score(df, "x", "y", random_seed=None)
+    assert "ppscore" in result
+    assert result["is_valid_score"] is True
+
+
+@pytest.mark.skipif(sys.version_info < (3, 6), reason="requires python 3.6 or higher")
+def test_is_column_in_df_exception():
+    """Test _is_column_in_df with non-standard df (covers calculation.py lines 305-306)."""
+    from dtale.ppscore.calculation import _is_column_in_df
+    from unittest import mock
+
+    # Create a mock object where accessing .columns raises an exception
+    bad_df = mock.MagicMock()
+    bad_df.columns = mock.PropertyMock(side_effect=Exception("bad columns"))
+    type(bad_df).columns = mock.PropertyMock(side_effect=Exception("bad columns"))
+    assert _is_column_in_df("x", bad_df) is False

@@ -61,6 +61,78 @@ def test_build_saved_header(unittest):
     header = build_saved_header(config)
     assert len(header.children[1].children[1]) == 50
 
+    # Test funnel chart type (covers saved_charts.py lines 91-94)
+    funnel_config = {
+        "data_id": "1",
+        "chart_type": "funnel",
+        "query": None,
+        "agg": None,
+        "funnel_group": None,
+        "funnel_value": "val",
+        "funnel_label": "lbl",
+        "cpg": False,
+        "cpy": False,
+        "animate": False,
+    }
+    header = build_saved_header(funnel_config)
+    assert header is not None
+
+    # Test clustergram chart type (covers saved_charts.py lines 95-98)
+    clustergram_config = {
+        "data_id": "1",
+        "chart_type": "clustergram",
+        "query": None,
+        "agg": None,
+        "clustergram_group": None,
+        "clustergram_value": "val",
+        "clustergram_label": "lbl",
+        "cpg": False,
+        "cpy": False,
+        "animate": False,
+    }
+    header = build_saved_header(clustergram_config)
+    assert header is not None
+
+    # Test geojson-id loc_mode (covers saved_charts.py line 79-80)
+    geojson_config = {
+        "data_id": "1",
+        "chart_type": "maps",
+        "query": None,
+        "agg": None,
+        "map_group": None,
+        "map_type": "choropleth",
+        "loc_mode": "geojson-id",
+        "loc": "loc",
+        "map_val": "val",
+        "geojson": "geo.json",
+        "featureidkey": "properties.id",
+        "cpg": False,
+        "cpy": False,
+        "animate": False,
+        "animate_by": None,
+    }
+    header = build_saved_header(geojson_config)
+    assert header is not None
+
+    # Test animate flag (covers saved_charts.py line 134-135)
+    animate_config = {
+        "data_id": "1",
+        "chart_type": "line",
+        "query": None,
+        "agg": None,
+        "group": None,
+        "x": "x",
+        "y": ["y"],
+        "animate": True,
+        "animate_by": None,
+        "cpg": False,
+        "cpy": False,
+        "trendline": False,
+        "group_val": None,
+    }
+    header = build_saved_header(animate_config)
+    assert header is not None
+
 
 @pytest.mark.unit
 def test_save_chart(unittest):

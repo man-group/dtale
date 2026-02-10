@@ -268,3 +268,306 @@ def test_build_data_id():
     for k, v in data.items():
         global_state.set_data(k, v)
     assert global_state.build_data_id() == "11"
+
+
+@pytest.mark.unit
+def test_build_data_id_with_non_int_keys():
+    global_state.cleanup()
+    df = pd.DataFrame([1, 2, 3])
+    global_state.set_data("abc", df)
+    # Non-int keys should be filtered out, resulting in "1"
+    assert global_state.build_data_id() == "1"
+
+
+@pytest.mark.unit
+def test_dtale_instance():
+    from dtale.global_state import DtaleInstance
+
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    inst = DtaleInstance(df)
+
+    # Test basic properties
+    assert inst.rows() == 3
+    assert inst.is_large is False
+    assert inst.data is not None
+    assert len(inst.data) == 3
+    assert inst.name == ""
+    assert inst.dataset is None
+    assert inst.dataset_dim is None
+    assert inst.dtypes is None
+    assert inst.metadata is None
+    assert inst.context_variables is None
+    assert inst.history is None
+    assert inst.settings is None
+    assert inst.is_xarray_dataset is False
+
+    # Test setters
+    inst.data = pd.DataFrame({"b": [4, 5]})
+    assert len(inst.data) == 2
+
+    inst.name = "test_name"
+    assert inst.name == "test_name"
+
+    inst.dataset = {"key": "value"}
+    assert inst.dataset == {"key": "value"}
+    assert inst.is_xarray_dataset is True
+
+    inst.dataset_dim = {"dim": 1}
+    assert inst.dataset_dim == {"dim": 1}
+
+    inst.dtypes = [{"name": "a", "dtype": "int64"}]
+    assert inst.dtypes == [{"name": "a", "dtype": "int64"}]
+
+    inst.context_variables = {"var1": "val1"}
+    assert inst.context_variables == {"var1": "val1"}
+
+    inst.metadata = {"meta": "data"}
+    assert inst.metadata == {"meta": "data"}
+
+    inst.history = ["action1", "action2"]
+    assert inst.history == ["action1", "action2"]
+
+    inst.settings = {"locked": []}
+    assert inst.settings == {"locked": []}
+
+
+@pytest.mark.unit
+def test_dtale_instance_none_data():
+    from dtale.global_state import DtaleInstance
+
+    inst = DtaleInstance(None)
+    assert inst.rows() == 0
+    assert inst.load_data() is None
+
+
+@pytest.mark.unit
+def test_dtale_base_store():
+    from dtale.global_state import DtaleBaseStore
+
+    store = DtaleBaseStore()
+    inst = store.build_instance("1")
+    assert inst is not None
+    assert inst.rows() == 0
+
+
+@pytest.mark.unit
+def test_default_store_contains():
+    assert global_state.contains(None) is False
+    global_state.set_data("1", pd.DataFrame({"a": [1]}))
+    assert global_state.contains("1") is True
+    assert global_state.contains("999") is False
+
+
+@pytest.mark.unit
+def test_default_store_get_data_inst():
+    # None data_id should return a new instance
+    inst = global_state.get_data_inst(None)
+    assert inst is not None
+
+    # Non-existent data_id should create a new one
+    inst = global_state.get_data_inst("999")
+    assert inst is not None
+
+
+@pytest.mark.unit
+def test_default_store_new_data_inst():
+    # Auto-generated ID
+    data_id = global_state.new_data_inst()
+    assert data_id == "1"
+
+    # Explicit ID
+    data_id = global_state.new_data_inst("42")
+    assert data_id == "42"
+
+
+@pytest.mark.unit
+def test_set_data_creates_instance():
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    global_state.set_data(val=df)
+    assert global_state.size() > 0
+
+
+@pytest.mark.unit
+def test_set_name_operations(test_data):
+    initialize_store(test_data)
+
+    # Setting None/empty name should be a no-op
+    global_state.set_name("1", None)
+    global_state.set_name("1", "")
+
+    # Duplicate name should raise
+    with pytest.raises(Exception, match="already exists"):
+        global_state.set_name("2", "test_name1")
+
+
+@pytest.mark.unit
+def test_get_data_id_by_name(test_data):
+    initialize_store(test_data)
+    data_id = global_state.get_data_id_by_name("test_name1")
+    assert data_id == "1"
+
+    # Non-existent name
+    data_id = global_state.get_data_id_by_name("nonexistent")
+    assert data_id is None
+
+
+@pytest.mark.unit
+def test_update_id(test_data):
+    initialize_store(test_data)
+    new_id = global_state.update_id("1", "100")
+    assert new_id == "100"
+    assert global_state.contains("100")
+    assert not global_state.contains("1")
+
+    # Duplicate ID should raise
+    with pytest.raises(Exception, match="Data already exists"):
+        global_state.update_id("2", "100")
+
+
+@pytest.mark.unit
+def test_get_dtype_info(test_data):
+    initialize_store(test_data)
+    # Existing column
+    dtype_info = global_state.get_dtype_info("1", "foo")
+    assert dtype_info is not None
+    assert dtype_info["name"] == "foo"
+
+    # Non-existent column
+    dtype_info = global_state.get_dtype_info("1", "nonexistent")
+    assert dtype_info is None
+
+
+@pytest.mark.unit
+def test_update_settings(test_data):
+    initialize_store(test_data)
+    global_state.update_settings("1", {"new_key": "new_value"})
+    settings = global_state.get_settings("1")
+    assert settings["new_key"] == "new_value"
+    assert settings["locked"] == []  # Original setting preserved
+
+
+@pytest.mark.unit
+def test_set_app_settings():
+    original = dict(global_state.APP_SETTINGS)
+
+    # Basic setting
+    global_state.set_app_settings({"theme": "dark"})
+    assert global_state.get_app_settings()["theme"] == "dark"
+
+    # Test with instances that should propagate
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    global_state.set_data("1", df)
+    global_state.set_settings("1", {})
+    global_state.set_app_settings({
+        "hide_shutdown": True,
+        "hide_header_editor": True,
+        "lock_header_menu": True,
+        "hide_header_menu": True,
+        "hide_main_menu": True,
+        "hide_column_menus": True,
+        "hide_row_expanders": True,
+        "theme": "dark",
+        "enable_custom_filters": True,
+        "enable_web_uploads": True,
+    })
+    settings = global_state.get_settings("1")
+    assert settings.get("hide_shutdown") is True
+    assert settings.get("hide_header_editor") is True
+    assert settings.get("theme") == "dark"
+
+    # Reset
+    for prop, val in original.items():
+        global_state.APP_SETTINGS[prop] = val
+
+
+@pytest.mark.unit
+def test_auth_settings():
+    global_state.set_auth_settings({"active": True, "username": "admin"})
+    settings = global_state.get_auth_settings()
+    assert settings["active"] is True
+    assert settings["username"] == "admin"
+
+    # Reset
+    global_state.set_auth_settings({"active": False, "username": None, "password": None})
+
+
+@pytest.mark.unit
+def test_chart_settings():
+    global_state.set_chart_settings({"scatter_points": 20000})
+    settings = global_state.get_chart_settings()
+    assert settings["scatter_points"] == 20000
+
+    # Reset
+    global_state.set_chart_settings({"scatter_points": 15000, "3d_points": 40000})
+
+
+@pytest.mark.unit
+def test_drop_punctuation():
+    result = global_state.drop_punctuation("hello, world!")
+    assert result == "hello world"
+    result = global_state.drop_punctuation("no_punct")
+    assert "nopunct" == result
+
+
+@pytest.mark.unit
+def test_convert_name_to_url_path():
+    assert global_state.convert_name_to_url_path(None) is None
+    assert global_state.convert_name_to_url_path("Hello World") == "hello_world"
+    assert global_state.convert_name_to_url_path("Test!Data") == "testdata"
+
+
+@pytest.mark.unit
+def test_get_query(test_data):
+    initialize_store(test_data)
+
+    # Without enable_custom_filters, query should be None
+    result = global_state.get_query("1")
+    assert result is None
+
+    # With enable_custom_filters and a query
+    global_state.set_settings("1", {"query": "`foo` == 1"})
+    global_state.set_app_settings({"enable_custom_filters": True})
+    result = global_state.get_query("1")
+    assert result == "`foo` == 1"
+
+    # Reset
+    global_state.set_app_settings({"enable_custom_filters": False})
+
+
+@pytest.mark.unit
+def test_set_dataset(test_data):
+    initialize_store(test_data)
+    global_state.set_dataset("1", {"xarray": True})
+    assert global_state.get_dataset("1") == {"xarray": True}
+
+
+@pytest.mark.unit
+def test_set_dataset_dim(test_data):
+    initialize_store(test_data)
+    global_state.set_dataset_dim("1", {"dim1": 10})
+    assert global_state.get_dataset_dim("1") == {"dim1": 10}
+
+
+@pytest.mark.unit
+def test_set_metadata(test_data):
+    initialize_store(test_data)
+    global_state.set_metadata("1", {"info": "test"})
+    assert global_state.get_metadata("1") == {"info": "test"}
+
+
+@pytest.mark.unit
+def test_delete_instance_nonexistent():
+    # Deleting non-existent instance should not raise
+    global_state.delete_instance("999")
+
+
+@pytest.mark.unit
+def test_load_flag_app_settings(test_data):
+    initialize_store(test_data)
+    # Test with app_settings having the flag
+    global_state.set_app_settings({"hide_shutdown": True})
+    global_state.set_settings("1", {})
+    result = global_state.load_flag("1", "hide_shutdown", False)
+    assert result is True
+    # Reset
+    global_state.set_app_settings({"hide_shutdown": False})

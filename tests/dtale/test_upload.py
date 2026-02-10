@@ -212,6 +212,87 @@ def test_web_upload(unittest):
             )
             global_state.set_app_settings(dict(enable_web_uploads=True))
 
+            # Test parquet web upload
+            load_parquet = stack.enter_context(
+                mock.patch(
+                    "dtale.cli.loaders.parquet_loader.loader_func",
+                    mock.Mock(return_value=pd.DataFrame(dict(x=[1], y=[2]))),
+                )
+            )
+            params = {"type": "parquet", "url": "http://test.com/data.parquet"}
+            c.get("/dtale/web-upload", query_string=params)
+            load_parquet.assert_called_once()
+
+
+@pytest.mark.unit
+def test_upload_separator_types(unittest):
+    import dtale.views as views
+    import dtale.global_state as global_state
+
+    global_state.clear_store()
+    df, _ = views.format_data(pd.DataFrame([1, 2, 3]))
+
+    # Test tab separator
+    with build_app(url=URL).test_client() as c:
+        build_data_inst({c.port: df})
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
+        tab_data = BytesIO(str.encode("a\tb\tc\n1\t2\t3\n4\t5\t6"))
+        c.post(
+            "/dtale/upload",
+            data={
+                "tests_df.csv": (tab_data, "test_df.csv"),
+                "separatorType": "tab",
+            },
+        )
+        assert global_state.size() == 2
+
+    # Test upload with header=false
+    with build_app(url=URL).test_client() as c:
+        global_state.clear_store()
+        build_data_inst({c.port: df})
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
+        csv_data = BytesIO(str.encode("1,2,3\n4,5,6"))
+        c.post(
+            "/dtale/upload",
+            data={
+                "tests_df.csv": (csv_data, "test_df.csv"),
+                "separatorType": "comma",
+                "header": "false",
+            },
+        )
+        assert global_state.size() == 2
+
+    # Test parquet file upload
+    with build_app(url=URL).test_client() as c:
+        with ExitStack() as stack:
+            global_state.clear_store()
+            build_data_inst({c.port: df})
+            global_state.set_dtypes(c.port, views.build_dtypes_state(df))
+            stack.enter_context(
+                mock.patch(
+                    "dtale.views.pd.read_parquet",
+                    mock.Mock(return_value=pd.DataFrame(dict(x=[1], y=[2]))),
+                )
+            )
+            fake_parquet = BytesIO(b"fake_parquet_data")
+            c.post(
+                "/dtale/upload",
+                data={"test.parquet": (fake_parquet, "test.parquet")},
+            )
+            assert global_state.size() == 2
+
+    # Test unsupported file type
+    with build_app(url=URL).test_client() as c:
+        global_state.clear_store()
+        build_data_inst({c.port: df})
+        global_state.set_dtypes(c.port, views.build_dtypes_state(df))
+        fake_file = BytesIO(b"data")
+        resp = c.post(
+            "/dtale/upload",
+            data={"test.xyz": (fake_file, "test.xyz")},
+        )
+        assert "error" in resp.get_json()
+
 
 @pytest.mark.unit
 def test_covid_dataset():

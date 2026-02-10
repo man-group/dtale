@@ -366,3 +366,201 @@ def test_resample(unittest):
         assert len(global_state.get_data(new_key)) == 90
         assert global_state.get_settings(new_key).get("startup_code") is not None
         c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
+        # Test resample without columns (covers lines 311, 328, 332)
+        reshape_cfg = dict(index="index", columns=None, freq="17min", agg="mean")
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="resample", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        assert response_data["data_id"] == new_key
+        assert len(global_state.keys()) == 2
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
+
+@pytest.mark.unit
+def test_aggregate_no_index(unittest):
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]})
+    df, _ = format_data(df)
+    global_state.clear_store()
+    with app.test_client() as c:
+        data = {c.port: df}
+        dtypes = {c.port: build_dtypes_state(df)}
+        settings = {c.port: {}}
+
+        build_data_inst(data)
+        build_dtypes(dtypes)
+        build_settings(settings)
+
+        # Test aggregate without index, func type with cols (covers lines 170-177)
+        reshape_cfg = dict(
+            index=None, agg=dict(type="func", func="sum", cols=["a", "b"])
+        )
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        new_key = str(c.port + 1)
+        assert response_data["data_id"] == new_key
+        assert len(global_state.keys()) == 2
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
+        # Test aggregate without index, func type with gmean (covers gmean path)
+        reshape_cfg = dict(
+            index=None, agg=dict(type="func", func="gmean", cols=["a", "b"])
+        )
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        assert response_data["data_id"] == new_key
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
+
+@pytest.mark.unit
+def test_aggregate_no_index_func(unittest):
+    from dtale.views import build_dtypes_state, format_data
+
+    df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
+    df, _ = format_data(df)
+    global_state.clear_store()
+    with app.test_client() as c:
+        data = {c.port: df}
+        dtypes = {c.port: build_dtypes_state(df)}
+        settings = {c.port: {}}
+
+        build_data_inst(data)
+        build_dtypes(dtypes)
+        build_settings(settings)
+
+        # Test aggregate without index, func type (covers line 93 for PivotBuilder no agg)
+        reshape_cfg = dict(index=None, agg=dict(type="func", func="mean", cols=["a", "b"]))
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        new_key = str(c.port + 1)
+        assert response_data["data_id"] == new_key
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
+
+@pytest.mark.unit
+def test_data_reshaper_unknown_type():
+    """Test that unknown shape type raises NotImplementedError (covers line 39)."""
+    with pytest.raises(NotImplementedError, match="unknown data re-shaper not implemented"):
+        from dtale.data_reshapers import DataReshaper
+        DataReshaper("1", "unknown", {})
+
+
+@pytest.mark.unit
+def test_pivot_build_code_no_aggfunc():
+    """Test PivotBuilder.build_code without aggfunc (covers data_reshapers.py line 93)."""
+    from dtale.data_reshapers import PivotBuilder
+
+    cfg = dict(index="date", columns="category", values=["val"], aggfunc=None)
+    builder = PivotBuilder(cfg)
+    code = builder.build_code()
+    assert "df.pivot(" in code
+    assert "index='date'" in code
+
+
+@pytest.mark.unit
+def test_aggregate_no_index_col_type_build_code():
+    """Test AggregateBuilder.build_code without index, col type (covers data_reshapers.py lines 245-256)."""
+    from dtale.data_reshapers import AggregateBuilder
+
+    cfg = dict(
+        index=None,
+        agg=dict(type="col", cols={"Col0": ["sum", "mean"], "Col1": ["count"]}),
+    )
+    builder = AggregateBuilder(cfg)
+    code = builder.build_code()
+    # code should be a list with aggregate dict and to_frame
+    code_str = "\n".join(code) if isinstance(code, list) else code
+    assert "aggregate" in code_str
+    assert "Col0" in code_str
+    assert "Col1" in code_str
+    assert "to_frame" in code_str
+
+
+@pytest.mark.unit
+def test_aggregate_no_index_func_build_code():
+    """Test AggregateBuilder.build_code without index, func type (covers data_reshapers.py lines 241-243)."""
+    from dtale.data_reshapers import AggregateBuilder
+
+    cfg = dict(
+        index=None,
+        agg=dict(type="func", func="mean"),
+    )
+    builder = AggregateBuilder(cfg)
+    code = builder.build_code()
+    code_str = "\n".join(code) if isinstance(code, list) else code
+    assert "to_frame" in code_str
+    assert "df = df" in code_str
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("custom_data", [dict(rows=100, cols=3)], indirect=True)
+def test_aggregate_count_pct_reshape(custom_data, unittest):
+    """Test aggregate count_pct reshape path (covers data_reshapers.py lines 146-150)."""
+    from dtale.views import build_dtypes_state
+
+    global_state.clear_store()
+    with app.test_client() as c:
+        data = {c.port: custom_data}
+        dtypes = {c.port: build_dtypes_state(custom_data)}
+        settings = {c.port: {}}
+
+        build_data_inst(data)
+        build_dtypes(dtypes)
+        build_settings(settings)
+
+        reshape_cfg = dict(
+            index=["bool_val"], agg=dict(type="func", func="count_pct"), dropna=False
+        )
+        resp = c.get(
+            "/dtale/reshape/{}".format(c.port),
+            query_string=dict(
+                output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
+            ),
+        )
+        response_data = json.loads(resp.data)
+        new_key = str(c.port + 1)
+        assert response_data["data_id"] == new_key
+        new_data = global_state.get_data(new_key)
+        assert "Count" in new_data.columns
+        assert "Percentage" in new_data.columns
+        c.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
+
+
+@pytest.mark.unit
+def test_custom_agg_handler_gmean():
+    """Test custom_agg_handler with gmean (covers data_reshapers.py line 108)."""
+    from scipy import stats as scipy_stats
+    from dtale.data_reshapers import custom_agg_handler
+
+    result = custom_agg_handler("gmean")
+    assert result == scipy_stats.gmean
+
+
+@pytest.mark.unit
+def test_custom_str_handler_gmean_and_str_joiner():
+    """Test custom_str_handler with gmean and str_joiner (covers data_reshapers.py lines 124, 126)."""
+    from dtale.data_reshapers import custom_str_handler
+
+    result = custom_str_handler(["gmean", "str_joiner", "sum"])
+    assert result == ["gmean", "'|'.join", "'sum'"]

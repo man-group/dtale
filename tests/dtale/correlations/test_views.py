@@ -318,6 +318,26 @@ def test_get_correlations_ts(unittest, rolling_data):
             response_data["success"], True, "should return rolling correlation"
         )
 
+    # Test rolling correlation with min_periods (covers views.py line 3533)
+    df, _ = views.format_data(rolling_data)
+    with app.test_client() as c:
+        build_data_inst({c.port: df})
+        build_dtypes({c.port: views.build_dtypes_state(df)})
+        params = dict(
+            dateCol="date",
+            cols=json.dumps(["0", "1"]),
+            rolling=True,
+            rollingWindow="4",
+            minPeriods="2",
+        )
+        response = c.get(
+            "/dtale/correlations-ts/{}".format(c.port), query_string=params
+        )
+        response_data = response.get_json()
+        unittest.assertEqual(
+            response_data["success"], True, "should return rolling correlation with min_periods"
+        )
+
     with app.test_client() as c:
         build_data_inst({c.port: test_data})
         global_state.set_app_settings(dict(enable_custom_filters=True))
