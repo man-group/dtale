@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 from builtins import str
 
