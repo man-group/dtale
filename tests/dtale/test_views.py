@@ -4422,12 +4422,21 @@ def test_build_column_multi_output():
 @pytest.mark.unit
 def test_export_to_parquet_buffer():
     """Test parquet export error path when pyarrow missing (covers utils.py lines 771-773)."""
+    import builtins
+
     from dtale.utils import export_to_parquet_buffer
 
+    real_import = builtins.__import__
+
+    def mock_import(name, *args, **kwargs):
+        if name == "pyarrow":
+            raise ImportError("No module named 'pyarrow'")
+        return real_import(name, *args, **kwargs)
+
     df = pd.DataFrame({"a": [1, 2, 3], "b": [4.0, 5.0, 6.0]})
-    # pyarrow is not installed, so this should raise ImportError
-    with pytest.raises(ImportError, match="parquet"):
-        export_to_parquet_buffer(df)
+    with mock.patch("builtins.__import__", side_effect=mock_import):
+        with pytest.raises(ImportError, match="parquet"):
+            export_to_parquet_buffer(df)
 
 
 @pytest.mark.unit
