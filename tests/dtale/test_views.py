@@ -2437,6 +2437,7 @@ def test_dtale_data_get_corr_matrix():
     assert "b" in result.columns
 
 
+@pytest.mark.skipif(not PY3, reason="ppscore requires python 3")
 @pytest.mark.unit
 def test_dtale_data_get_pps_matrix():
     """Test DtaleData.get_pps_matrix(as_df=True) (covers lines 312-316)."""
@@ -2502,6 +2503,7 @@ def test_correlations_as_json():
         assert len(result["data"]) > 0
 
 
+@pytest.mark.skipif(not PY3, reason="ppscore requires python 3")
 @pytest.mark.unit
 def test_correlations_pps():
     """Test correlations endpoint with PPS (covers pps path and get_ppscore_matrix)."""
@@ -4423,9 +4425,16 @@ def test_build_column_multi_output():
 @pytest.mark.unit
 def test_export_to_parquet_buffer():
     """Test parquet export error path when pyarrow missing (covers utils.py lines 771-773)."""
-    import builtins
-
     from dtale.utils import export_to_parquet_buffer
+
+    if PY3:
+        import builtins
+
+        builtins_module = "builtins"
+    else:
+        import __builtin__ as builtins
+
+        builtins_module = "__builtin__"
 
     real_import = builtins.__import__
 
@@ -4435,7 +4444,7 @@ def test_export_to_parquet_buffer():
         return real_import(name, *args, **kwargs)
 
     df = pd.DataFrame({"a": [1, 2, 3], "b": [4.0, 5.0, 6.0]})
-    with mock.patch("builtins.__import__", side_effect=mock_import):
+    with mock.patch(builtins_module + ".__import__", side_effect=mock_import):
         with pytest.raises(ImportError, match="parquet"):
             export_to_parquet_buffer(df)
 

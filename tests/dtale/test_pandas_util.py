@@ -6,14 +6,18 @@ import dtale.pandas_util as pandas_util
 
 @pytest.mark.unit
 def test_check_pandas_version():
-    assert pandas_util.check_pandas_version("0.25.0") is True
-    assert pandas_util.check_pandas_version("1.0.0") is True
+    assert pandas_util.check_pandas_version("0.20.0") is True
     assert pandas_util.check_pandas_version("999.0.0") is False
 
 
 @pytest.mark.unit
 def test_has_dropna():
-    assert pandas_util.has_dropna() is True
+    result = pandas_util.has_dropna()
+    assert isinstance(result, bool)
+    if pandas_util.check_pandas_version("1.1.0"):
+        assert result is True
+    else:
+        assert result is False
 
 
 @pytest.mark.unit
@@ -31,10 +35,12 @@ def test_groupby_code():
     code = pandas_util.groupby_code(["col1", "col2"])
     assert "col1" in code
     assert "col2" in code
-    assert "dropna" in code
+    if pandas_util.has_dropna():
+        assert "dropna" in code
 
     code = pandas_util.groupby_code(["col1"], dropna=False)
-    assert "dropna=False" in code
+    if pandas_util.has_dropna():
+        assert "dropna=False" in code
 
 
 @pytest.mark.unit
