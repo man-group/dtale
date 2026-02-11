@@ -295,7 +295,11 @@ def test_column_filter_with_data():
     from dtale.views import build_dtypes_state
 
     df = pd.DataFrame(
-        {"name": ["Alice", "Bob", "Charlie"], "age": [25, 30, 35], "score": [1.5, 2.5, 3.5]}
+        {
+            "name": ["Alice", "Bob", "Charlie"],
+            "age": [25, 30, 35],
+            "score": [1.5, 2.5, 3.5],
+        }
     )
     data_id = global_state.new_data_inst()
     global_state.set_data(data_id, df)
@@ -344,7 +348,7 @@ def test_column_filter_date():
 
 @pytest.mark.unit
 def test_string_filter_missing_and_populated():
-    df = pd.DataFrame(dict(foo=["a", None, "c"]))
+    pd.DataFrame(dict(foo=["a", None, "c"]))
 
     # Test string filter with missing
     cfg = dict(action="equals", operand="=", value=[], missing=True, type="string")

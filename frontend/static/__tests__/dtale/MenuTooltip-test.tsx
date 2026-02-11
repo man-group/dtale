@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, RenderResult } from '@testing-library/react';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 
@@ -7,7 +7,7 @@ import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML } from '../test-utils';
 
 describe('MenuTooltip', () => {
-  const buildMock = (stateOverrides: Record<string, any> = {}) => {
+  const buildMock = (stateOverrides: Record<string, any> = {}): RenderResult => {
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({}, store);
     if (stateOverrides.menuTooltip) {

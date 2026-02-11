@@ -52,10 +52,12 @@ def test_statistics_class():
     from dtale.gage_rnr import Statistics, Component, Result
 
     # 3D array: 2 operators x 3 parts x 2 measurements
-    data = np.array([
-        [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]],
-        [[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]],
-    ])
+    data = np.array(
+        [
+            [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]],
+            [[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]],
+        ]
+    )
 
     # Test with labels provided (covers line 66)
     labels = {"Operator": ["Op1", "Op2"], "Part": ["P1", "P2", "P3"]}

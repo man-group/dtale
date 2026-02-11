@@ -84,24 +84,25 @@ describe('DataViewer highlighting tests', () => {
     expect(cells.filter((c) => window.getComputedStyle(c).background !== 'rgba(0, 0, 0, 0)')).toHaveLength(0);
   });
 
-  it('DataViewer: dtype highlighting', async () => {
+  it('DataViewer: dtype, missing, and outlier highlighting toggles', async () => {
     await clickMainMenuButton('Highlight Dtypes');
     expect(store.getState().settings.backgroundMode).toBe('dtypes');
     await clickMainMenuButton('Highlight Dtypes');
     expect(store.getState().settings.backgroundMode).toBe(undefined);
-  });
 
-  it('DataViewer: missing highlighting', async () => {
     await clickMainMenuButton('Highlight Missing');
     expect(store.getState().settings.backgroundMode).toBe('missing');
     await clickMainMenuButton('Highlight Missing');
     expect(store.getState().settings.backgroundMode).toBe(undefined);
-  });
 
-  it('DataViewer: outlier highlighting', async () => {
     await clickMainMenuButton('Highlight Outliers');
     expect(store.getState().settings.backgroundMode).toBe('outliers');
     await clickMainMenuButton('Highlight Outliers');
+    expect(store.getState().settings.backgroundMode).toBe(undefined);
+
+    await clickMainMenuButton('Low Variance Flag');
+    expect(store.getState().settings.backgroundMode).toBe('lowVariance');
+    await clickMainMenuButton('Low Variance Flag');
     expect(store.getState().settings.backgroundMode).toBe(undefined);
   });
 
@@ -149,12 +150,5 @@ describe('DataViewer highlighting tests', () => {
       fireEvent.click(allRange().getElementsByClassName('ico-remove-circle')[0]);
     });
     expect(Object.keys(store.getState().settings.rangeHighlight)).toHaveLength(0);
-  });
-
-  it('DataViewer: low variance highlighting', async () => {
-    await clickMainMenuButton('Low Variance Flag');
-    expect(store.getState().settings.backgroundMode).toBe('lowVariance');
-    await clickMainMenuButton('Low Variance Flag');
-    expect(store.getState().settings.backgroundMode).toBe(undefined);
   });
 });

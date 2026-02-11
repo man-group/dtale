@@ -90,7 +90,7 @@ describe('Correlations tests', () => {
     );
   };
 
-  it('Correlations rendering data', async () => {
+  it('Correlations rendering data and export', async () => {
     await buildResult();
     await act(async () => {
       await fireEvent.click(result.querySelectorAll('div.cell')[1]);
@@ -105,6 +105,15 @@ describe('Correlations tests', () => {
       await fireEvent.change(result.querySelector('select.custom-select')!, { target: { value: 'col5' } });
     });
     expect(getByText(screen.getByTestId('corr-selected-date'), 'col4')).toHaveAttribute('selected');
+
+    // Export image
+    await act(async () => {
+      await fireEvent.click(screen.getByText('Export Image'));
+    });
+    expect(openSpy).toHaveBeenLastCalledWith(
+      '/dtale/correlations/1?encodeStrings=false&pps=false&image=true',
+      '_blank',
+    );
   });
 
   it('Correlations rendering data and filtering it', async () => {
@@ -229,16 +238,5 @@ describe('Correlations tests', () => {
 
   it('Correlations - percent formatting', () => {
     expect(percent('N/A')).toBe('N/A');
-  });
-
-  it('Opens exported image', async () => {
-    await buildResult();
-    await act(async () => {
-      await fireEvent.click(screen.getByText('Export Image'));
-    });
-    expect(openSpy).toHaveBeenLastCalledWith(
-      '/dtale/correlations/1?encodeStrings=false&pps=false&image=true',
-      '_blank',
-    );
   });
 });

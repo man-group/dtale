@@ -89,10 +89,10 @@ def test_run_query_pct_tail():
 
 @pytest.mark.unit
 def test_run_query_pct_stratified():
-    df = pd.DataFrame(
-        {"a": range(100), "group": ["A"] * 50 + ["B"] * 50}
+    df = pd.DataFrame({"a": range(100), "group": ["A"] * 50 + ["B"] * 50})
+    result = query.run_query(
+        df, "", pct=20, pct_type="stratified", stratified_group="group"
     )
-    result = query.run_query(df, "", pct=20, pct_type="stratified", stratified_group="group")
     assert len(result) <= 20
 
 
@@ -182,9 +182,7 @@ def test_load_index_filter():
         data_id,
         {
             "indexes": ["date"],
-            "columnFilters": {
-                "date": {"start": "20200101", "end": "20200201"}
-            },
+            "columnFilters": {"date": {"start": "20200101", "end": "20200201"}},
         },
     )
     result = query.load_index_filter(data_id)
@@ -198,9 +196,7 @@ def test_load_index_filter():
         data_id,
         {
             "indexes": ["date"],
-            "columnFilters": {
-                "date": {"start": "20200101"}
-            },
+            "columnFilters": {"date": {"start": "20200101"}},
         },
     )
     result = query.load_index_filter(data_id)
@@ -213,9 +209,7 @@ def test_load_index_filter():
         data_id,
         {
             "indexes": ["date"],
-            "columnFilters": {
-                "date": {"end": "20200201"}
-            },
+            "columnFilters": {"date": {"end": "20200201"}},
         },
     )
     result = query.load_index_filter(data_id)

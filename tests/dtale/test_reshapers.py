@@ -445,7 +445,9 @@ def test_aggregate_no_index_func(unittest):
         build_settings(settings)
 
         # Test aggregate without index, func type (covers line 93 for PivotBuilder no agg)
-        reshape_cfg = dict(index=None, agg=dict(type="func", func="mean", cols=["a", "b"]))
+        reshape_cfg = dict(
+            index=None, agg=dict(type="func", func="mean", cols=["a", "b"])
+        )
         resp = c.get(
             "/dtale/reshape/{}".format(c.port),
             query_string=dict(
@@ -461,8 +463,11 @@ def test_aggregate_no_index_func(unittest):
 @pytest.mark.unit
 def test_data_reshaper_unknown_type():
     """Test that unknown shape type raises NotImplementedError (covers line 39)."""
-    with pytest.raises(NotImplementedError, match="unknown data re-shaper not implemented"):
+    with pytest.raises(
+        NotImplementedError, match="unknown data re-shaper not implemented"
+    ):
         from dtale.data_reshapers import DataReshaper
+
         DataReshaper("1", "unknown", {})
 
 

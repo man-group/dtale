@@ -1,5 +1,5 @@
-import { buildBodyAndTitle } from '../../popups/popupUtils';
 import * as gu from '../../dtale/gridUtils';
+import { buildBodyAndTitle } from '../../popups/popupUtils';
 import { PopupType } from '../../redux/state/AppState';
 
 describe('popupUtils', () => {
@@ -8,7 +8,7 @@ describe('popupUtils', () => {
   const mergeRefresher = jest.fn().mockResolvedValue(undefined);
   const dataId = '1';
 
-  const buildProps = (type: PopupType, extraChartData: Record<string, any> = {}) => ({
+  const buildProps = (type: PopupType, extraChartData: Record<string, any> = {}): Record<string, any> => ({
     propagateState,
     mergeRefresher,
     dataId,
@@ -161,9 +161,7 @@ describe('popupUtils', () => {
   });
 
   it('builds view row popup', () => {
-    const result = buildBodyAndTitle(
-      buildProps(PopupType.VIEW_ROW, { row: { [gu.IDX]: { view: '0' } } }) as any,
-    );
+    const result = buildBodyAndTitle(buildProps(PopupType.VIEW_ROW, { row: { [gu.IDX]: { view: '0' } } }) as any);
     expect(result.title).toBeDefined();
     expect(result.body).toBeDefined();
   });

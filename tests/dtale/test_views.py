@@ -2344,9 +2344,7 @@ def test_export_parquet_mocked():
         build_dtypes({c.port: build_dtypes_state(df)})
         build_settings({c.port: {}})
         fake_buf = BytesIO(b"fake_parquet_data")
-        with mock.patch(
-            "dtale.utils.export_to_parquet_buffer", return_value=fake_buf
-        ):
+        with mock.patch("dtale.utils.export_to_parquet_buffer", return_value=fake_buf):
             response = c.get(
                 "/dtale/data-export/{}".format(c.port),
                 query_string=dict(type="parquet"),
@@ -2421,7 +2419,9 @@ def test_dtale_data_get_corr_matrix():
     """Test DtaleData.get_corr_matrix(as_df=True) (covers lines 304-308)."""
     from dtale.views import DtaleData, build_dtypes_state, format_data
 
-    df = pd.DataFrame({"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 2, 1], "c": [1, 3, 5, 7, 9]})
+    df = pd.DataFrame(
+        {"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 2, 1], "c": [1, 3, 5, 7, 9]}
+    )
     df, _ = format_data(df)
     data_id = global_state.new_data_inst()
     global_state.set_data(data_id, df)
@@ -2462,7 +2462,10 @@ def test_describe_mixed_dtype():
     # Create DataFrame with mixed types where top value is single-typed
     # (avoids sort error on mixed int/str)
     df = pd.DataFrame(
-        {"mixed": pd.array(["a", "a", "a", 1, 2], dtype=object), "val": [10, 20, 30, 40, 50]}
+        {
+            "mixed": pd.array(["a", "a", "a", 1, 2], dtype=object),
+            "val": [10, 20, 30, 40, 50],
+        }
     )
     df, _ = format_data(df)
     with app.test_client() as c:
@@ -2484,7 +2487,9 @@ def test_correlations_as_json():
     """Test correlations endpoint returning JSON (covers corr data paths)."""
     from dtale.views import build_dtypes_state, format_data
 
-    df = pd.DataFrame({"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 2, 1], "c": [1, 3, 5, 7, 9]})
+    df = pd.DataFrame(
+        {"a": [1, 2, 3, 4, 5], "b": [5, 4, 3, 2, 1], "c": [1, 3, 5, 7, 9]}
+    )
     df, _ = format_data(df)
     with app.test_client() as c:
         build_data_inst({c.port: df})
@@ -3949,9 +3954,7 @@ def test_calc_data_ranges_type_error():
 
     # Use mock to trigger TypeError path
     df = pd.DataFrame({"a": [1, 2, 3], "b": ["x", "y", "z"]})
-    with mock.patch.object(
-        pd.DataFrame, "agg", side_effect=TypeError("test")
-    ):
+    with mock.patch.object(pd.DataFrame, "agg", side_effect=TypeError("test")):
         result = views.calc_data_ranges(df, dtypes={"a": "int64", "b": "string"})
     # Should fall into the TypeError handler and try non-string columns
     assert isinstance(result, dict)
@@ -3965,7 +3968,6 @@ def test_calc_data_ranges_type_error_fallback():
     # When even the non-string column agg fails
     df = pd.DataFrame({"a": [1, 2, 3]})
     call_count = [0]
-    original_agg = pd.DataFrame.agg
 
     def mock_agg(self, *args, **kwargs):
         call_count[0] += 1
@@ -4116,15 +4118,17 @@ def test_update_settings_query_removal():
         global_state.set_app_settings(dict(enable_custom_filters=False))
         resp = c.get(
             "/dtale/update-settings/{}".format(c.port),
-            query_string=dict(
-                settings=json.dumps({"query": "a > 1", "sortInfo": []})
-            ),
+            query_string=dict(settings=json.dumps({"query": "a > 1", "sortInfo": []})),
         )
         result = resp.get_json()
         assert result["success"]
         # Query should have been removed since custom filters are disabled
         settings = global_state.get_settings(c.port)
-        assert "query" not in settings or settings.get("query") is None or settings.get("query") == ""
+        assert (
+            "query" not in settings
+            or settings.get("query") is None
+            or settings.get("query") == ""
+        )
 
 
 @pytest.mark.unit
@@ -4140,9 +4144,7 @@ def test_update_settings_enable_custom_filters_blocked():
         build_settings({c.port: {}})
         resp = c.get(
             "/dtale/update-settings/{}".format(c.port),
-            query_string=dict(
-                settings=json.dumps({"enable_custom_filters": True})
-            ),
+            query_string=dict(settings=json.dumps({"enable_custom_filters": True})),
         )
         result = resp.get_json()
         assert "error" in result
@@ -4204,7 +4206,9 @@ def test_column_filter_data_integer():
     """Test column-filter-data with integer column for range data (covers lines 2764-2769)."""
     import dtale.views as views
 
-    df = pd.DataFrame({"a": list(range(50)), "b": ["cat_{}".format(i % 5) for i in range(50)]})
+    df = pd.DataFrame(
+        {"a": list(range(50)), "b": ["cat_{}".format(i % 5) for i in range(50)]}
+    )
     df, _ = views.format_data(df)
     with app.test_client() as c:
         build_data_inst({c.port: df})
@@ -4243,7 +4247,7 @@ def test_async_column_filter_data():
 
 
 @pytest.mark.unit
-def test_edit_cell_categorical():
+def test_edit_cell_categorical_new_category():
     """Test edit-cell with categorical column adding new category (covers lines 2685-2692)."""
     import dtale.views as views
 
@@ -4269,10 +4273,12 @@ def test_network_analysis_no_weight():
     """Test network-analysis without weight (covers line 4195)."""
     import dtale.views as views
 
-    df = pd.DataFrame({
-        "from": ["A", "B", "C", "A"],
-        "to": ["B", "C", "D", "D"],
-    })
+    df = pd.DataFrame(
+        {
+            "from": ["A", "B", "C", "A"],
+            "to": ["B", "C", "D", "D"],
+        }
+    )
     df, _ = views.format_data(df)
     with app.test_client() as c:
         build_data_inst({c.port: df})
@@ -4292,10 +4298,12 @@ def test_network_data():
     """Test network-data endpoint (covers lines 4119-4171)."""
     import dtale.views as views
 
-    df = pd.DataFrame({
-        "from_node": ["A", "B", "C"],
-        "to_node": ["B", "C", "D"],
-    })
+    df = pd.DataFrame(
+        {
+            "from_node": ["A", "B", "C"],
+            "to_node": ["B", "C", "D"],
+        }
+    )
     df, _ = views.format_data(df)
     with app.test_client() as c:
         build_data_inst({c.port: df})
@@ -4439,7 +4447,9 @@ def test_kill_exception():
     """Test kill() when request fails (covers views.py lines 199-200)."""
     from dtale.views import kill
 
-    with mock.patch("dtale.views.requests.get", side_effect=Exception("connection refused")):
+    with mock.patch(
+        "dtale.views.requests.get", side_effect=Exception("connection refused")
+    ):
         # Should not raise - just logs and returns
         kill("http://localhost:99999")
 
@@ -4523,8 +4533,14 @@ def test_startup_with_predefined_filters():
     global_state.cleanup()
     # Set up a predefined filter
     predefined_filters.set_filters(
-        [dict(name="test_filter", column="test_col", input_type="input",
-              handler=lambda val, col: "{} == {}".format(col, val))]
+        [
+            dict(
+                name="test_filter",
+                column="test_col",
+                input_type="input",
+                handler=lambda val, col: "{} == {}".format(col, val),
+            )
+        ]
     )
     try:
         df = pd.DataFrame({"test_col": [1, 2, 3], "val": [4, 5, 6]})
@@ -4547,7 +4563,9 @@ def test_startup_with_column_edit_options():
     try:
         df = pd.DataFrame({"a": [1, 2, 3], "b": [4, 5, 6]})
         edit_opts = {"a": {"locked": True}}
-        instance = views.startup("http://localhost:40000", data=df, column_edit_options=edit_opts)
+        instance = views.startup(
+            "http://localhost:40000", data=df, column_edit_options=edit_opts
+        )
         data_id = instance._data_id
         settings = global_state.get_settings(data_id)
         assert settings.get("column_edit_options") == edit_opts
@@ -4560,9 +4578,9 @@ def test_open_browser_unsupported_platform():
     """Test open_browser on unsupported platform (covers env_util.py lines 68-70)."""
     from dtale import env_util
 
-    with mock.patch.object(env_util, "IS_WINDOWS", False), \
-         mock.patch.object(env_util, "IS_LINUX_OR_BSD", False), \
-         mock.patch.object(env_util, "IS_DARWIN", False):
+    with mock.patch.object(env_util, "IS_WINDOWS", False), mock.patch.object(
+        env_util, "IS_LINUX_OR_BSD", False
+    ), mock.patch.object(env_util, "IS_DARWIN", False):
         with pytest.raises(env_util.Error, match="Cannot open browser"):
             env_util.open_browser("http://localhost:40000")
 

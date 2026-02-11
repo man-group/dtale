@@ -458,18 +458,20 @@ def test_set_app_settings():
     df = pd.DataFrame({"a": [1, 2, 3]})
     global_state.set_data("1", df)
     global_state.set_settings("1", {})
-    global_state.set_app_settings({
-        "hide_shutdown": True,
-        "hide_header_editor": True,
-        "lock_header_menu": True,
-        "hide_header_menu": True,
-        "hide_main_menu": True,
-        "hide_column_menus": True,
-        "hide_row_expanders": True,
-        "theme": "dark",
-        "enable_custom_filters": True,
-        "enable_web_uploads": True,
-    })
+    global_state.set_app_settings(
+        {
+            "hide_shutdown": True,
+            "hide_header_editor": True,
+            "lock_header_menu": True,
+            "hide_header_menu": True,
+            "hide_main_menu": True,
+            "hide_column_menus": True,
+            "hide_row_expanders": True,
+            "theme": "dark",
+            "enable_custom_filters": True,
+            "enable_web_uploads": True,
+        }
+    )
     settings = global_state.get_settings("1")
     assert settings.get("hide_shutdown") is True
     assert settings.get("hide_header_editor") is True
@@ -488,7 +490,9 @@ def test_auth_settings():
     assert settings["username"] == "admin"
 
     # Reset
-    global_state.set_auth_settings({"active": False, "username": None, "password": None})
+    global_state.set_auth_settings(
+        {"active": False, "username": None, "password": None}
+    )
 
 
 @pytest.mark.unit

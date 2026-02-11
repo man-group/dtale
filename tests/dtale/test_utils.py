@@ -277,9 +277,7 @@ def test_coord_type():
 @pytest.mark.unit
 def test_format_data_tuple_columns():
     """Test format_data with tuple column names (covers utils.py lines 880-885)."""
-    df = pd.DataFrame(
-        {("Col0", "sum"): [1, 2, 3], ("Col1", "mean"): [4.0, 5.0, 6.0]}
-    )
+    df = pd.DataFrame({("Col0", "sum"): [1, 2, 3], ("Col1", "mean"): [4.0, 5.0, 6.0]})
     result, index = utils.format_data(df)
     assert "Col0_sum" in result.columns
     assert "Col1_mean" in result.columns
@@ -288,9 +286,7 @@ def test_format_data_tuple_columns():
 @pytest.mark.unit
 def test_format_data_tuple_columns_with_empty():
     """Test format_data with tuple columns containing empty values."""
-    df = pd.DataFrame(
-        {("Col0", ""): [1, 2, 3], ("Col1", "mean"): [4.0, 5.0, 6.0]}
-    )
+    df = pd.DataFrame({("Col0", ""): [1, 2, 3], ("Col1", "mean"): [4.0, 5.0, 6.0]})
     result, index = utils.format_data(df)
     assert "Col0" in result.columns
     assert "Col1_mean" in result.columns
@@ -320,7 +316,10 @@ def test_format_data_complex_dtype():
     df = pd.DataFrame({"list_col": [[1, 2], [3, 4], [5, 6]], "val": [1, 2, 3]})
     result, index = utils.format_data(df)
     # List column should be converted to string type
-    assert "str" in str(result["list_col"].dtype).lower() or result["list_col"].dtype == object
+    assert (
+        "str" in str(result["list_col"].dtype).lower()
+        or result["list_col"].dtype == object
+    )
 
 
 @pytest.mark.unit

@@ -335,7 +335,9 @@ def test_get_correlations_ts(unittest, rolling_data):
         )
         response_data = response.get_json()
         unittest.assertEqual(
-            response_data["success"], True, "should return rolling correlation with min_periods"
+            response_data["success"],
+            True,
+            "should return rolling correlation with min_periods",
         )
 
     with app.test_client() as c:

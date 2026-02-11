@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { render, RenderResult } from '@testing-library/react';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 
@@ -6,13 +6,12 @@ import FilterDisplay, { Queries } from '../../../dtale/export/FilterDisplay';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
-const encodeSettings = (obj: Record<string, any>): string =>
-  JSON.stringify(obj).replace(/"/g, '&quot;');
+const encodeSettings = (obj: Record<string, any>): string => JSON.stringify(obj).replace(/"/g, '&quot;');
 
 describe('export/FilterDisplay', () => {
   const setMenuOpen = jest.fn();
 
-  const buildMock = (settingsOverrides: Record<string, any> = {}) => {
+  const buildMock = (settingsOverrides: Record<string, any> = {}): RenderResult => {
     const settings = { ...settingsOverrides };
     const store = reduxUtils.createDtaleStore();
     buildInnerHTML({ settings: encodeSettings(settings) }, store);

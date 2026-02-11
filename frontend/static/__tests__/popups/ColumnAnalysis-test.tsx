@@ -153,8 +153,9 @@ describe('ColumnAnalysis tests', () => {
 
   const input = (): HTMLInputElement => result.getElementsByTagName('input')[0];
 
-  it('ColumnAnalysis rendering float data', async () => {
+  it('ColumnAnalysis rendering float data and chart tabs', async () => {
     await updateProps();
+    // Histogram tab (default)
     expect(screen.getByText('Geolocation')).toBeDefined();
     expect(input().value).toBe('20');
     expect(getLastChart(createChartSpy).type).toBe('bar');
@@ -188,16 +189,8 @@ describe('ColumnAnalysis tests', () => {
         bins: 50,
       }),
     );
-  });
 
-  it('ColumnAnalysis chart functionality', async () => {
-    createChartSpy.mockReset();
-    await updateProps({ visible: false });
-    expect(createChartSpy).not.toHaveBeenCalled();
-  });
-
-  it('ColumnAnalysis additional functions', async () => {
-    await updateProps();
+    // Categories tab
     await act(async () => {
       await fireEvent.click(screen.getByText('Categories'));
     });
@@ -216,25 +209,27 @@ describe('ColumnAnalysis tests', () => {
         type: 'categories',
       }),
     );
-  });
 
-  it('geolocation chart functionality', async () => {
-    await updateProps();
+    // Geolocation tab
     await act(async () => {
       await fireEvent.click(screen.getByText('Geolocation'));
     });
     const latitudeFilter = screen.getByText('Latitude:');
     expect(latitudeFilter).toBeDefined();
     expect(latitudeFilter.parentElement!.textContent).toBe('Latitude:barLongitude:lon');
-  });
 
-  it('qq plot chart functionality', async () => {
-    await updateProps();
+    // Q-Q Plot tab
     const qqSpy = jest.spyOn(chartUtils, 'createQQ');
     await act(async () => {
       await fireEvent.click(screen.getByText('Q-Q Plot'));
     });
     expect(qqSpy).toHaveBeenCalled();
+  });
+
+  it('ColumnAnalysis chart functionality when hidden', async () => {
+    createChartSpy.mockReset();
+    await updateProps({ visible: false });
+    expect(createChartSpy).not.toHaveBeenCalled();
   });
 
   it('ColumnAnalysis rendering int data', async () => {

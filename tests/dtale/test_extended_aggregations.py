@@ -71,8 +71,8 @@ def test_toggle_modal_open():
     local_agg_inputs = list(agg_inputs)
     local_col_values = [local_agg_inputs.pop(0) for _ in INPUT_IDS]
     local_agg_values = [local_agg_inputs.pop(0) for _ in INPUT_IDS]
-    local_window_values = [local_agg_inputs.pop(0) for _ in INPUT_IDS]
-    local_rolling_comp_values = [local_agg_inputs.pop(0) for _ in INPUT_IDS]
+    [local_agg_inputs.pop(0) for _ in INPUT_IDS]
+    [local_agg_inputs.pop(0) for _ in INPUT_IDS]
 
     assert is_open
     assert not is_apply
@@ -80,7 +80,6 @@ def test_toggle_modal_open():
     assert not is_clear
 
     # Test the open path logic
-    errors = []
     ext_aggs = curr_ext_aggs  # is_open keeps current ext_aggs
     final_is_modal_open = not is_modal_open  # should toggle
 
@@ -104,8 +103,6 @@ def test_toggle_modal_open():
 @pytest.mark.unit
 def test_toggle_modal_apply_success():
     """Test toggle_modal apply path with valid entries (covers lines 282-316)."""
-    from dtale.utils import make_list
-
     num_inputs = len(INPUT_IDS)
     col_values = ["Col1"] + [None] * (num_inputs - 1)
     agg_values = ["mean"] + [None] * (num_inputs - 1)
@@ -129,11 +126,11 @@ def test_toggle_modal_apply_success():
                 errors.append("Entry {} is missing a rolling window!".format(i))
                 continue
             if not rolling_comp:
-                errors.append(
-                    "Entry {} is missing a rolling computation!".format(i)
-                )
+                errors.append("Entry {} is missing a rolling computation!".format(i))
                 continue
-        ext_aggs.append(dict(col=col, agg=agg, window=window, rolling_comp=rolling_comp))
+        ext_aggs.append(
+            dict(col=col, agg=agg, window=window, rolling_comp=rolling_comp)
+        )
 
     assert len(errors) == 0
     assert len(ext_aggs) == 1
@@ -167,11 +164,11 @@ def test_toggle_modal_apply_errors():
                 errors.append("Entry {} is missing a rolling window!".format(i))
                 continue
             if not rolling_comp:
-                errors.append(
-                    "Entry {} is missing a rolling computation!".format(i)
-                )
+                errors.append("Entry {} is missing a rolling computation!".format(i))
                 continue
-        ext_aggs.append(dict(col=col, agg=agg, window=window, rolling_comp=rolling_comp))
+        ext_aggs.append(
+            dict(col=col, agg=agg, window=window, rolling_comp=rolling_comp)
+        )
 
     # Should have 3 errors: missing agg, missing rolling window, missing rolling computation
     assert len(errors) == 3
@@ -191,10 +188,6 @@ def test_toggle_modal_apply_errors():
 @pytest.mark.unit
 def test_toggle_modal_no_action():
     """Test toggle_modal when no button was clicked (covers lines 327-335)."""
-    num_inputs = len(INPUT_IDS)
-    col_values = [None] * num_inputs
-    agg_values = [None] * num_inputs
-
     # When no button is clicked, all click counts equal prev counts
     is_open = False
     is_apply = False
@@ -215,10 +208,8 @@ def test_toggle_modal_no_action():
 def test_toggle_modal_clear():
     """Test toggle_modal clear path (covers lines 257, 264-267)."""
     # When clear is clicked, ext_aggs should be empty list
-    is_clear = True
-    is_open = False
-    is_apply = False
     is_close = False
+    is_open = False
 
     ext_aggs = [] if not (is_close or is_open) else [{"col": "A"}]
     assert ext_aggs == []

@@ -2,8 +2,6 @@ import mock
 import pandas as pd
 import pytest
 
-from dtale.app import build_app
-
 URL = "http://localhost:40000"
 
 
@@ -33,8 +31,6 @@ def test_load_zip():
 @pytest.mark.unit
 def test_simpsons_dataset():
     """Test simpsons dataset loader with mocked dependencies."""
-    import dtale.global_state as global_state
-
     episodes_df = pd.DataFrame(
         {
             "id": [1, 2],
@@ -50,11 +46,9 @@ def test_simpsons_dataset():
     def mock_load_zip(url):
         yield "scripts.csv", None
 
-    with mock.patch(
-        "dtale.datasets.load_csv", create=True
-    ) as mock_csv, mock.patch(
+    with mock.patch("dtale.datasets.load_csv", create=True), mock.patch(
         "dtale.datasets.load_zip", return_value=iter([("scripts.csv", None)])
-    ) as mock_zip, mock.patch(
+    ), mock.patch(
         "dtale.cli.loaders.csv_loader.loader_func", return_value=episodes_df
     ), mock.patch(
         "pandas.read_csv", return_value=scripts_df
