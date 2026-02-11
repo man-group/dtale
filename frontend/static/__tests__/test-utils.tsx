@@ -315,8 +315,6 @@ export class FakeMouseEvent extends MouseEvent {
 export const selectOption = async (selectElement: HTMLElement, option: Matcher | Matcher[]): Promise<void> => {
   await act(async () => {
     await selectEvent.openMenu(selectElement);
-  });
-  await act(async () => {
     await selectEvent.select(selectElement, option, { container: document.body });
   });
 };

@@ -116,7 +116,8 @@ describe('Duplicates', () => {
       await toggleType('Remove Duplicate Columns');
     });
 
-    it('handles duplicates', async () => {
+    it('handles duplicates, no duplicates, and errors', async () => {
+      // Duplicates
       expect(screen.getByText('View Duplicates')).toBeDefined();
       await selectOption(selects(), 'First');
       await act(async () => {
@@ -126,17 +127,15 @@ describe('Duplicates', () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
       expect(assignSpy).toHaveBeenCalledWith('http://localhost:8080/dtale/main/1');
-    });
 
-    it('handles no duplicates', async () => {
+      // No duplicates
       await selectOption(selects(), 'Last');
       await act(async () => {
         await fireEvent.click(screen.getByText('View Duplicates'));
       });
       expect(screen.getByText('No duplicate columns exist.')).toBeDefined();
-    });
 
-    it('handles error', async () => {
+      // Error
       await selectOption(selects(), 'None');
       await act(async () => {
         await fireEvent.click(screen.getByText('View Duplicates'));
@@ -150,7 +149,8 @@ describe('Duplicates', () => {
       await toggleType('Remove Duplicate Column Names');
     });
 
-    it('handles duplicates', async () => {
+    it('handles duplicates, no duplicates, and errors', async () => {
+      // Duplicates
       expect(screen.getByText('View Duplicates')).toBeDefined();
       await selectOption(selects(), 'First');
       await act(async () => {
@@ -160,17 +160,15 @@ describe('Duplicates', () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
       expect(assignSpy).toHaveBeenCalledWith('http://localhost:8080/dtale/main/1');
-    });
 
-    it('handles no duplicates', async () => {
+      // No duplicates
       await selectOption(selects(), 'Last');
       await act(async () => {
         await fireEvent.click(screen.getByText('View Duplicates'));
       });
       expect(screen.getByText('No duplicate column names exist.')).toBeDefined();
-    });
 
-    it('handles error', async () => {
+      // Error
       await selectOption(selects(), 'None');
       await act(async () => {
         await fireEvent.click(screen.getByText('View Duplicates'));
@@ -184,7 +182,8 @@ describe('Duplicates', () => {
       await toggleType('Remove Duplicate Rows');
     });
 
-    it('handles duplicates', async () => {
+    it('handles duplicates, no duplicates, and errors', async () => {
+      // Duplicates
       expect(screen.getByText('View Duplicates')).toBeDefined();
       await selectOption(selects(1), ['foo', 'bar']);
       await act(async () => {
@@ -197,18 +196,16 @@ describe('Duplicates', () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
       expect(assignSpy).toHaveBeenCalledWith('http://localhost:8080/dtale/main/1');
-    });
 
-    it('handles no duplicate rows', async () => {
+      // No duplicate rows
       await selectOption(selects(), 'Last');
       await selectOption(selects(1), ['foo', 'bar']);
       await act(async () => {
         await fireEvent.click(screen.getByText('View Duplicates'));
       });
       expect(screen.getByText('No duplicate rows exist for the column(s): foo, bar')).toBeDefined();
-    });
 
-    it('handles error', async () => {
+      // Error
       await selectOption(selects(), 'None');
       await act(async () => {
         await fireEvent.click(screen.getByText('View Duplicates'));
@@ -222,7 +219,8 @@ describe('Duplicates', () => {
       await toggleType('Show Duplicates');
     });
 
-    it('handles duplicates', async () => {
+    it('handles duplicates and select all', async () => {
+      // Duplicates
       expect(screen.queryAllByTestId('view-duplicates')).toHaveLength(0);
       await selectOption(selects(), 'foo');
       expect(screen.getByText('View Duplicates')).toBeDefined();
@@ -234,13 +232,8 @@ describe('Duplicates', () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
       expect(assignSpy).toHaveBeenCalledWith('http://localhost:8080/dtale/main/1');
-    });
 
-    it('handles duplicates w/ select all', async () => {
-      expect(screen.queryAllByTestId('view-duplicates')).toHaveLength(0);
-      await selectOption(selects(), 'foo');
-      expect(screen.getByText('View Duplicates')).toBeDefined();
-      // await selectOption(selects(), 'bar');
+      // Select all
       await act(async () => {
         await fireEvent.click(screen.getByTestId('select-all-btn'));
       });
@@ -250,7 +243,6 @@ describe('Duplicates', () => {
       await act(async () => {
         await fireEvent.click(screen.getByText('Execute'));
       });
-      expect(assignSpy).toHaveBeenCalledWith('http://localhost:8080/dtale/main/1');
       expect(dupesSpy).toHaveBeenCalledWith('1', {
         action: DuplicatesActionType.EXECUTE,
         cfg: { filter: undefined, group: ['bar', 'baz', 'biz', 'foo'] },

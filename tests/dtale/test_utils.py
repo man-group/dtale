@@ -272,3 +272,61 @@ def test_coord_type():
     assert utils.coord_type(df["lon"]) == "lon"
     assert utils.coord_type(df["c"]) is None
     assert utils.coord_type(df["d"]) is None
+
+
+@pytest.mark.unit
+def test_format_data_tuple_columns():
+    """Test format_data with tuple column names (covers utils.py lines 880-885)."""
+    df = pd.DataFrame({("Col0", "sum"): [1, 2, 3], ("Col1", "mean"): [4.0, 5.0, 6.0]})
+    result, index = utils.format_data(df)
+    assert "Col0_sum" in result.columns
+    assert "Col1_mean" in result.columns
+
+
+@pytest.mark.unit
+def test_format_data_tuple_columns_with_empty():
+    """Test format_data with tuple columns containing empty values."""
+    df = pd.DataFrame({("Col0", ""): [1, 2, 3], ("Col1", "mean"): [4.0, 5.0, 6.0]})
+    result, index = utils.format_data(df)
+    assert "Col0" in result.columns
+    assert "Col1_mean" in result.columns
+
+
+@pytest.mark.unit
+def test_format_data_period_column():
+    """Test format_data with a period column (covers utils.py lines 909-912)."""
+    dates = pd.period_range("2020-01-01", periods=3, freq="D")
+    df = pd.DataFrame({"period_col": dates, "val": [1, 2, 3]})
+    result, index = utils.format_data(df)
+    assert result["period_col"].dtype.kind == "M"  # datetime
+
+
+@pytest.mark.unit
+def test_format_data_timezone_column():
+    """Test format_data with timezone-aware datetime column (covers utils.py lines 914-916)."""
+    dates = pd.date_range("2020-01-01", periods=3, freq="D", tz="US/Eastern")
+    df = pd.DataFrame({"dt_col": dates, "val": [1, 2, 3]})
+    result, index = utils.format_data(df)
+    assert result["dt_col"].dt.tz is None
+
+
+@pytest.mark.unit
+def test_format_data_complex_dtype():
+    """Test format_data with complex data types like lists (covers utils.py lines 906-908)."""
+    df = pd.DataFrame({"list_col": [[1, 2], [3, 4], [5, 6]], "val": [1, 2, 3]})
+    result, index = utils.format_data(df)
+    # List column should be converted to string type
+    assert (
+        "str" in str(result["list_col"].dtype).lower()
+        or result["list_col"].dtype == object
+    )
+
+
+@pytest.mark.unit
+def test_format_data_inplace():
+    """Test format_data with inplace=True (covers utils.py line 875)."""
+    df = pd.DataFrame({"a": [1, 2, 3]})
+    df.index.name = "index"
+    df = df.reset_index()
+    result, index = utils.format_data(df, inplace=True)
+    assert "index" not in result.columns

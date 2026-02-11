@@ -3295,7 +3295,8 @@ def build_correlations_matrix(data_id, is_pps=False, encode_strings=False, image
         "corr_data.index.name = str('column')\ncorr_data = corr_data.reset_index()"
     )
     code = "\n".join(code)
-    data.index.name = str("column")
+    if isinstance(data, pd.DataFrame):
+        data.index.name = str("column")
     if image:
         return build_correlations_matrix_image(
             data,

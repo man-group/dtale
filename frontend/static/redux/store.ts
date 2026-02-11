@@ -19,6 +19,7 @@ export const createAppStore = <T>(extendedReducers: Reducer<T>): Store<T> =>
       getDefaultMiddleware({
         serializableCheck: false,
         immutableCheck: {
+          warnAfter: 128,
           ignoredPaths: [
             'selectedColRef',
             'instances',
