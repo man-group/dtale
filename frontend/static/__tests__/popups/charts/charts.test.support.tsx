@@ -9,6 +9,7 @@ import Charts from '../../../popups/charts/Charts';
 import { AppActions } from '../../../redux/actions/AppActions';
 import { BaseOption, PopupType } from '../../../redux/state/AppState';
 import * as ChartsRepository from '../../../repository/ChartsRepository';
+import { BaseSpies } from '../../BaseSpies.test.support';
 import DimensionsHelper from '../../DimensionsHelper';
 import { mockColumnDef } from '../../mocks/MockColumnDef';
 import reduxUtils from '../../redux-test-utils';
@@ -22,7 +23,7 @@ import {
 } from '../../test-utils';
 
 /** Bundles alot of jest setup for Charts component tests */
-export class Spies {
+export class Spies extends BaseSpies {
   public createChartSpy: CreateChartSpy;
   public openMenuSpy: jest.SpyInstance<
     (e: React.MouseEvent) => void,
@@ -46,6 +47,7 @@ export class Spies {
 
   /** Initializes all spy instances */
   constructor() {
+    super();
     this.createChartSpy = jest.spyOn(chartUtils, 'createChart');
     this.openMenuSpy = jest.spyOn(menuUtils, 'openMenu');
     this.chartsRepositorySpy = jest.spyOn(ChartsRepository, 'load');
@@ -95,10 +97,10 @@ export class Spies {
     mockD3Cloud();
   }
 
-  /** Cleanup after all jest tests */
+  /** @override Cleanup after all jest tests */
   public afterAll(): void {
     this.dimensions.afterAll();
-    jest.restoreAllMocks();
+    super.afterAll();
   }
 
   /**

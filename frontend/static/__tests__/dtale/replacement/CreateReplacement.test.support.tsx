@@ -9,6 +9,7 @@ import { CreateReplacementSaveParams, ReplacementType } from '../../../popups/re
 import { AppActions } from '../../../redux/actions/AppActions';
 import { PopupType } from '../../../redux/state/AppState';
 import * as CreateReplacementRepository from '../../../repository/CreateReplacementRepository';
+import { BaseSpies } from '../../BaseSpies.test.support';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
@@ -17,8 +18,8 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-/** Bundles alot of jest setup for CreateColumn component tests */
-export class Spies {
+/** Bundles alot of jest setup for CreateReplacement component tests */
+export class Spies extends BaseSpies {
   public saveSpy: jest.SpyInstance<
     Promise<CreateReplacementRepository.SaveResponse | undefined>,
     [dataId: string, params: CreateReplacementSaveParams]
@@ -30,6 +31,7 @@ export class Spies {
 
   /** Initializes all spy instances */
   constructor() {
+    super();
     this.saveSpy = jest.spyOn(CreateReplacementRepository, 'save');
     this.propagateStateSpy = jest.fn();
   }
@@ -39,16 +41,6 @@ export class Spies {
     this.useDispatchMock.mockImplementation(() => this.mockDispatch);
     (axios.get as any).mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
     this.saveSpy.mockResolvedValue({ success: true });
-  }
-
-  /** Cleanup after each jest tests */
-  public afterEach(): void {
-    jest.resetAllMocks();
-  }
-
-  /** Cleanup after all jest tests */
-  public afterAll(): void {
-    jest.restoreAllMocks();
   }
 
   /**

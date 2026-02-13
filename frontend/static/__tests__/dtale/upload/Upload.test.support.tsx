@@ -7,11 +7,12 @@ import { Store } from 'redux';
 import Upload from '../../../popups/upload/Upload';
 import { Dataset, DataType } from '../../../popups/upload/UploadState';
 import * as UploadRepository from '../../../repository/UploadRepository';
+import { BaseSpies } from '../../BaseSpies.test.support';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
-/** Bundles alot of jest setup for CreateColumn component tests */
-export class Spies {
+/** Bundles alot of jest setup for Upload component tests */
+export class Spies extends BaseSpies {
   public uploadSpy: jest.SpyInstance<Promise<UploadRepository.UploadResponse | undefined>, [params: FormData]>;
   public webUploadSpy: jest.SpyInstance<
     Promise<UploadRepository.UploadResponse | undefined>,
@@ -24,6 +25,7 @@ export class Spies {
 
   /** Initializes all spy instances */
   constructor() {
+    super();
     this.uploadSpy = jest.spyOn(UploadRepository, 'upload');
     this.webUploadSpy = jest.spyOn(UploadRepository, 'webUpload');
     this.presetUploadSpy = jest.spyOn(UploadRepository, 'presetUpload');
@@ -38,16 +40,6 @@ export class Spies {
     this.uploadSpy.mockResolvedValue({ success: true, data_id: '2' });
     this.webUploadSpy.mockResolvedValue({ success: true, data_id: '2' });
     this.presetUploadSpy.mockResolvedValue({ success: true, data_id: '2' });
-  }
-
-  /** Cleanup after each jest tests */
-  public afterEach(): void {
-    jest.resetAllMocks();
-  }
-
-  /** Cleanup after all jest tests */
-  public afterAll(): void {
-    jest.restoreAllMocks();
   }
 
   /**

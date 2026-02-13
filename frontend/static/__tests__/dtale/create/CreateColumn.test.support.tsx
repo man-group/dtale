@@ -9,6 +9,7 @@ import { CreateColumnSaveParams, CreateColumnType, SaveAs } from '../../../popup
 import { AppActions } from '../../../redux/actions/AppActions';
 import { PopupType } from '../../../redux/state/AppState';
 import * as CreateColumnRepository from '../../../repository/CreateColumnRepository';
+import { BaseSpies } from '../../BaseSpies.test.support';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
@@ -18,7 +19,7 @@ jest.mock('react-redux', () => ({
 }));
 
 /** Bundles alot of jest setup for CreateColumn component tests */
-export class Spies {
+export class Spies extends BaseSpies {
   public saveSpy: jest.SpyInstance<
     Promise<CreateColumnRepository.SaveResponse | undefined>,
     [dataId: string, params: CreateColumnSaveParams, route?: string]
@@ -30,6 +31,7 @@ export class Spies {
 
   /** Initializes all spy instances */
   constructor() {
+    super();
     this.saveSpy = jest.spyOn(CreateColumnRepository, 'save');
     this.propagateStateSpy = jest.fn();
   }
@@ -58,16 +60,6 @@ export class Spies {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
     this.saveSpy.mockResolvedValue({ success: true });
-  }
-
-  /** Cleanup after each jest tests */
-  public afterEach(): void {
-    jest.resetAllMocks();
-  }
-
-  /** Cleanup after all jest tests */
-  public afterAll(): void {
-    jest.restoreAllMocks();
   }
 
   /**

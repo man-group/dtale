@@ -7,13 +7,14 @@ import { Store } from 'redux';
 import { DataViewer } from '../../../dtale/DataViewer';
 import { ColumnFormat } from '../../../dtale/DataViewerState';
 import * as serverState from '../../../dtale/serverStateManagement';
+import { BaseSpies } from '../../BaseSpies.test.support';
 import DimensionsHelper from '../../DimensionsHelper';
 import { clickColMenuButton } from '../../iframe/iframe-utils';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
-/** Bundles alot of jest setup for CreateColumn component tests */
-export class Spies {
+/** Bundles alot of jest setup for Formatting component tests */
+export class Spies extends BaseSpies {
   public updateFormatsSpy: jest.SpyInstance<
     serverState.BaseReturn,
     [dataId: string, col: string, format: ColumnFormat, all: boolean, nanDisplay: string]
@@ -26,6 +27,7 @@ export class Spies {
 
   /** Initializes all spy instances */
   constructor() {
+    super();
     this.updateFormatsSpy = jest.spyOn(serverState, 'updateFormats');
   }
 
@@ -40,10 +42,10 @@ export class Spies {
     this.dimensions.beforeAll();
   }
 
-  /** Cleanup after all jest tests */
+  /** @override Cleanup after all jest tests */
   public afterAll(): void {
     this.dimensions.afterAll();
-    jest.restoreAllMocks();
+    super.afterAll();
   }
 
   /**

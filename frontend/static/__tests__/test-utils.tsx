@@ -1,5 +1,5 @@
 /* eslint max-classes-per-file: "off" */
-import { act, fireEvent, Matcher, screen } from '@testing-library/react';
+import { act, fireEvent, Matcher, render, RenderResult, screen } from '@testing-library/react';
 import {
   ChartConfiguration,
   ChartData,
@@ -13,6 +13,7 @@ import {
 } from 'chart.js';
 import { TFunction } from 'i18next';
 import * as React from 'react';
+import { Provider } from 'react-redux';
 import selectEvent from 'react-select-event';
 import { Store } from 'redux';
 
@@ -317,4 +318,53 @@ export const selectOption = async (selectElement: HTMLElement, option: Matcher |
     await selectEvent.openMenu(selectElement);
     await selectEvent.select(selectElement, option, { container: document.body });
   });
+};
+
+export const encodeSettings = (settings: Record<string, any>): string =>
+  JSON.stringify(settings).replace(/"/g, '&quot;');
+
+export const renderWithStore = (
+  component: React.ReactElement,
+  options?: {
+    store?: Store;
+    innerHTMLProps?: Record<string, string | undefined>;
+  },
+): RenderResult => {
+  const reduxUtils = require('./redux-test-utils').default;
+  const store = options?.store ?? reduxUtils.createDtaleStore();
+  if (options?.innerHTMLProps !== undefined || !document.getElementById('settings')) {
+    buildInnerHTML(options?.innerHTMLProps ?? {}, store);
+  }
+  return render(<Provider store={store}>{component}</Provider>, {
+    container: document.getElementById('content') as HTMLElement,
+  });
+};
+
+export class WindowMock {
+  public openSpy: jest.SpyInstance;
+  public closeSpy: jest.Mock;
+  private origOpen: typeof window.open;
+  private origOpener: typeof window.opener;
+
+  constructor() {
+    this.origOpen = window.open;
+    this.origOpener = window.opener;
+    this.openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+    this.closeSpy = jest.fn();
+    delete (window as any).opener;
+    (window as any).opener = { close: this.closeSpy, location: { reload: jest.fn() } };
+  }
+
+  restore(): void {
+    this.openSpy.mockRestore();
+    window.open = this.origOpen;
+    window.opener = this.origOpener;
+  }
+}
+
+export const setupUseDispatchMock = (): jest.Mock => {
+  const mockDispatch = jest.fn();
+  const redux = require('react-redux');
+  jest.spyOn(redux, 'useDispatch').mockReturnValue(mockDispatch);
+  return mockDispatch;
 };
