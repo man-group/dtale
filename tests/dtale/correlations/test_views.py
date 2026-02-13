@@ -14,13 +14,6 @@ from tests.dtale.test_views import app, build_ts_data
 from tests.dtale import build_data_inst, build_settings, build_dtypes
 
 
-def setup_function(function):
-    global_state.cleanup()
-
-
-def teardown_function(function):
-    global_state.cleanup()
-
 
 CORRELATIONS_CODE = """# DISCLAIMER: 'df' refers to the data you passed in when calling 'dtale.show'
 

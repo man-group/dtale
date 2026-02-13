@@ -6,15 +6,6 @@ import dtale.global_state as global_state
 from dtale.views import build_dtypes_state
 
 
-def setup_function(function):
-    global_state.cleanup()
-    global_state.use_default_store()
-
-
-def teardown_function(function):
-    global_state.cleanup()
-    global_state.use_default_store()
-
 
 def initialize_store(test_data):
     """Helper function that sets up a default store with some data in it"""

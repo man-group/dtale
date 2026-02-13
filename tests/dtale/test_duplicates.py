@@ -8,8 +8,7 @@ from dtale.duplicate_checks import (
     NoDuplicatesToShowException,
     RemoveAllDataException,
 )
-from tests.dtale.test_views import app
-from tests.dtale import build_data_inst, build_dtypes
+from tests.dtale import build_data, build_data_inst
 
 
 def duplicates_data():
@@ -222,35 +221,30 @@ def test_show_duplicates(unittest):
 
 
 @pytest.mark.unit
-def test_view(unittest):
-    from dtale.views import build_dtypes_state
+def test_view(unittest, client):
     import dtale.global_state as global_state
 
     global_state.clear_store()
     df = duplicates_data()
-    with app.test_client() as c:
-        data = {c.port: df}
-        dtypes = {c.port: build_dtypes_state(df)}
-        build_data_inst(data)
-        build_dtypes(dtypes)
-        resp = c.get(
-            "/dtale/duplicates/{}".format(c.port),
-            query_string=dict(
-                type="not_implemented", action="execute", cfg=json.dumps({})
-            ),
-        )
-        response_data = resp.json
-        assert (
-            response_data["error"]
-            == "'not_implemented' duplicate check not implemented yet!"
-        )
+    build_data(client.port, df)
+    resp = client.get(
+        "/dtale/duplicates/{}".format(client.port),
+        query_string=dict(
+            type="not_implemented", action="execute", cfg=json.dumps({})
+        ),
+    )
+    response_data = resp.json
+    assert (
+        response_data["error"]
+        == "'not_implemented' duplicate check not implemented yet!"
+    )
 
-        params = dict(type="columns", action="test", cfg=json.dumps({"keep": "first"}))
-        resp = c.get("/dtale/duplicates/{}".format(c.port), query_string=params)
-        response_data = resp.json
-        unittest.assertEqual(response_data, {"results": {"Foo": ["foo"]}})
+    params = dict(type="columns", action="test", cfg=json.dumps({"keep": "first"}))
+    resp = client.get("/dtale/duplicates/{}".format(client.port), query_string=params)
+    response_data = resp.json
+    unittest.assertEqual(response_data, {"results": {"Foo": ["foo"]}})
 
-        params["action"] = "execute"
-        resp = c.get("/dtale/duplicates/{}".format(c.port), query_string=params)
-        response_data = resp.json
-        assert response_data["data_id"] == str(c.port)
+    params["action"] = "execute"
+    resp = client.get("/dtale/duplicates/{}".format(client.port), query_string=params)
+    response_data = resp.json
+    assert response_data["data_id"] == str(client.port)

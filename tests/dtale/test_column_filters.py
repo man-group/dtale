@@ -18,15 +18,6 @@ from dtale.pandas_util import check_pandas_version
 from dtale.query import run_query
 
 
-def setup_function(function):
-    global_state.cleanup()
-    global_state.use_default_store()
-
-
-def teardown_function(function):
-    global_state.cleanup()
-    global_state.use_default_store()
-
 
 @pytest.mark.unit
 def test_numeric():

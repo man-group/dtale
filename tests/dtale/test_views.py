@@ -25,13 +25,6 @@ URL = "http://localhost:40000"
 app = build_app(url=URL)
 
 
-def setup_function(function):
-    global_state.cleanup()
-
-
-def teardown_function(function):
-    global_state.cleanup()
-
 
 @pytest.mark.unit
 def test_head_endpoint():

@@ -177,10 +177,8 @@ def test_invalid_filters():
 
 
 def setup_function(function):
-    global_state.cleanup()
     predefined_filters.set_filters([])
 
 
 def teardown_function(function):
-    global_state.cleanup()
     predefined_filters.set_filters([])
