@@ -340,13 +340,15 @@ export const renderWithStore = (
   });
 };
 
+/** Encapsulates window.open and window.opener mocking for tests. */
 export class WindowMock {
   public openSpy: jest.SpyInstance;
   public closeSpy: jest.Mock;
   private origOpen: typeof window.open;
   private origOpener: typeof window.opener;
 
-  constructor() {
+  /** Sets up window.open spy and window.opener mock. */
+  public constructor() {
     this.origOpen = window.open;
     this.origOpener = window.opener;
     this.openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
@@ -355,7 +357,8 @@ export class WindowMock {
     (window as any).opener = { close: this.closeSpy, location: { reload: jest.fn() } };
   }
 
-  restore(): void {
+  /** Restores original window.open and window.opener. */
+  public restore(): void {
     this.openSpy.mockRestore();
     window.open = this.origOpen;
     window.opener = this.origOpener;

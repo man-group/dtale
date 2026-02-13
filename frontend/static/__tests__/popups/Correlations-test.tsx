@@ -20,14 +20,7 @@ import { CorrelationsPopupData, PopupType } from '../../redux/state/AppState';
 import correlationsData from '../data/correlations.json';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import {
-  CreateChartSpy,
-  getLastChart,
-  MockChart,
-  mockChartJS,
-  renderWithStore,
-  WindowMock,
-} from '../test-utils';
+import { CreateChartSpy, getLastChart, MockChart, mockChartJS, renderWithStore, WindowMock } from '../test-utils';
 
 const chartData: CorrelationsPopupData = {
   visible: true,
@@ -63,13 +56,10 @@ describe('Correlations tests', () => {
   });
 
   afterEach(() => {
-    (axios.get as any).mockRestore();
-    jest.clearAllMocks();
     jest.restoreAllMocks();
   });
 
   afterAll(() => {
-    jest.restoreAllMocks();
     dimensions.afterAll();
     windowMock.restore();
   });
