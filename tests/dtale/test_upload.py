@@ -5,12 +5,9 @@ import pandas as pd
 import pytest
 from six import BytesIO, PY3
 
-from dtale.app import build_app
 from dtale.pandas_util import check_pandas_version
 from tests import ExitStack
 from tests.dtale import build_data_inst
-
-URL = "http://localhost:40000"
 
 
 def build_upload_data(
@@ -22,13 +19,12 @@ def build_upload_data(
 
 
 @pytest.mark.unit
-def test_upload(unittest):
+def test_upload(unittest, dtale_app):
     import dtale.views as views
     import dtale.global_state as global_state
 
-    global_state.clear_store()
     df, _ = views.format_data(pd.DataFrame([1, 2, 3]))
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
 
@@ -46,7 +42,7 @@ def test_upload(unittest):
         new_key = next((k for k in global_state.keys() if k != str(c.port)), None)
         assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
 
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         global_state.clear_store()
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
@@ -66,7 +62,7 @@ def test_upload(unittest):
         new_key = next((k for k in global_state.keys() if k != str(c.port)), None)
         assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
 
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         global_state.clear_store()
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
@@ -87,7 +83,7 @@ def test_upload(unittest):
             new_key = next((k for k in global_state.keys() if k != str(c.port)), None)
             assert list(global_state.get_data(new_key).columns) == ["a", "b", "c"]
 
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         with ExitStack() as stack:
             global_state.clear_store()
             data = {c.port: df}
@@ -124,12 +120,11 @@ def test_upload(unittest):
 
 
 @pytest.mark.unit
-def test_web_upload(unittest):
+def test_web_upload(unittest, dtale_app):
     import dtale.global_state as global_state
 
-    global_state.clear_store()
     global_state.set_app_settings(dict(enable_web_uploads=True))
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         with ExitStack() as stack:
             load_csv = stack.enter_context(
                 mock.patch(
@@ -225,15 +220,14 @@ def test_web_upload(unittest):
 
 
 @pytest.mark.unit
-def test_upload_separator_types(unittest):
+def test_upload_separator_types(unittest, dtale_app):
     import dtale.views as views
     import dtale.global_state as global_state
 
-    global_state.clear_store()
     df, _ = views.format_data(pd.DataFrame([1, 2, 3]))
 
     # Test tab separator
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
         tab_data = BytesIO(str.encode("a\tb\tc\n1\t2\t3\n4\t5\t6"))
@@ -247,7 +241,7 @@ def test_upload_separator_types(unittest):
         assert global_state.size() == 2
 
     # Test upload with header=false
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         global_state.clear_store()
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
@@ -263,7 +257,7 @@ def test_upload_separator_types(unittest):
         assert global_state.size() == 2
 
     # Test parquet file upload
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         with ExitStack() as stack:
             global_state.clear_store()
             build_data_inst({c.port: df})
@@ -282,7 +276,7 @@ def test_upload_separator_types(unittest):
             assert global_state.size() == 2
 
     # Test unsupported file type
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         global_state.clear_store()
         build_data_inst({c.port: df})
         global_state.set_dtypes(c.port, views.build_dtypes_state(df))
@@ -295,10 +289,8 @@ def test_upload_separator_types(unittest):
 
 
 @pytest.mark.unit
-def test_covid_dataset():
+def test_covid_dataset(dtale_app):
     import dtale.global_state as global_state
-
-    global_state.clear_store()
 
     def mock_load_csv(**kwargs):
         if (
@@ -313,7 +305,7 @@ def test_covid_dataset():
             return pd.DataFrame(dict(State=["a"], Abbreviation=["A"]))
         return None
 
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(
                 mock.patch("dtale.cli.loaders.csv_loader.loader_func", mock_load_csv)
@@ -323,15 +315,13 @@ def test_covid_dataset():
 
 
 @pytest.mark.unit
-def test_seinfeld_dataset():
+def test_seinfeld_dataset(dtale_app):
     import dtale.global_state as global_state
-
-    global_state.clear_store()
 
     def mock_load_csv(**kwargs):
         return pd.DataFrame(dict(SEID=["a"]))
 
-    with build_app(url=URL).test_client() as c:
+    with dtale_app.test_client() as c:
         with ExitStack() as stack:
             stack.enter_context(
                 mock.patch("dtale.cli.loaders.csv_loader.loader_func", mock_load_csv)
@@ -341,10 +331,8 @@ def test_seinfeld_dataset():
 
 
 @pytest.mark.unit
-def test_time_dataframe_dataset():
+def test_time_dataframe_dataset(client):
     import dtale.global_state as global_state
 
-    global_state.clear_store()
-    with build_app(url=URL).test_client() as c:
-        c.get("/dtale/datasets", query_string=dict(dataset="time_dataframe"))
-        assert global_state.get_data(1)["A"].isnull().sum() == 0
+    client.get("/dtale/datasets", query_string=dict(dataset="time_dataframe"))
+    assert global_state.get_data(1)["A"].isnull().sum() == 0

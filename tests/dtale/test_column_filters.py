@@ -18,7 +18,6 @@ from dtale.pandas_util import check_pandas_version
 from dtale.query import run_query
 
 
-
 @pytest.mark.unit
 def test_numeric():
     assert NumericFilter("foo", "I", None).build_filter() is None

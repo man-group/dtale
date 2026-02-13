@@ -229,9 +229,7 @@ def test_view(unittest, client):
     build_data(client.port, df)
     resp = client.get(
         "/dtale/duplicates/{}".format(client.port),
-        query_string=dict(
-            type="not_implemented", action="execute", cfg=json.dumps({})
-        ),
+        query_string=dict(type="not_implemented", action="execute", cfg=json.dumps({})),
     )
     response_data = resp.json
     assert (

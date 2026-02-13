@@ -89,9 +89,7 @@ def test_edit_timestamp(client):
     build_data(client.port, df, {"locked": ["a"]})
     resp = client.get(
         "/dtale/edit-cell/{}".format(client.port),
-        query_string=dict(
-            col="e", rowIndex=0, updated="20000101 11:58:59.999999999"
-        ),
+        query_string=dict(col="e", rowIndex=0, updated="20000101 11:58:59.999999999"),
     )
     assert "error" not in resp.json
     import dtale.global_state as global_state

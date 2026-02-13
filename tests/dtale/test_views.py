@@ -25,7 +25,6 @@ URL = "http://localhost:40000"
 app = build_app(url=URL)
 
 
-
 @pytest.mark.unit
 def test_head_endpoint():
     import dtale.views as views
@@ -3111,7 +3110,8 @@ def test_jinja_output():
     df = pd.DataFrame([1, 2, 3])
     df, _ = views.format_data(df)
     url = "http://localhost.localdomain:40000"
-    with build_app(url=url).test_client() as c:
+    test_app = build_app(url=url)
+    with test_app.test_client() as c:
         with ExitStack():
             build_data_inst({c.port: df})
             build_dtypes({c.port: views.build_dtypes_state(df)})
@@ -3120,7 +3120,7 @@ def test_jinja_output():
             response = c.get("/dtale/charts/{}".format(c.port))
             assert 'span id="forkongithub"' not in str(response.data)
 
-    with build_app(url=url).test_client() as c:
+    with test_app.test_client() as c:
         with ExitStack() as stack:
             build_data_inst({c.port: df})
             build_dtypes({c.port: views.build_dtypes_state(df)})
@@ -3131,7 +3131,7 @@ def test_jinja_output():
             response = c.get("/dtale/main/{}".format(c.port))
             assert 'span id="forkongithub"' in str(response.data)
 
-    with build_app(url=url).test_client() as c:
+    with test_app.test_client() as c:
         with ExitStack():
             build_data_inst({c.port: df})
             build_dtypes({c.port: views.build_dtypes_state(df)})

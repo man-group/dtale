@@ -83,9 +83,7 @@ def test_aggregate(custom_data, unittest, client):
     )
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     new_key = str(client.port + 1)
@@ -104,9 +102,7 @@ def test_aggregate(custom_data, unittest, client):
     )
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     assert response_data["data_id"] == new_key
@@ -124,9 +120,7 @@ def test_aggregate(custom_data, unittest, client):
     )
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     assert response_data["data_id"] == new_key
@@ -144,9 +138,7 @@ def test_aggregate(custom_data, unittest, client):
     )
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     assert response_data["data_id"] == new_key
@@ -158,14 +150,10 @@ def test_aggregate(custom_data, unittest, client):
     assert global_state.get_settings(new_key).get("startup_code") is not None
     client.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
-    reshape_cfg = dict(
-        index="date", agg=dict(type="func", func="mean", dropna=True)
-    )
+    reshape_cfg = dict(index="date", agg=dict(type="func", func="mean", dropna=True))
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     assert response_data["data_id"] == new_key
@@ -183,9 +171,7 @@ def test_aggregate(custom_data, unittest, client):
     )
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     assert response_data["data_id"] == new_key
@@ -212,9 +198,7 @@ def test_aggregate_str_joiner(unittest, client):
     )
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     new_key = str(client.port + 1)
@@ -240,9 +224,7 @@ def test_transpose(custom_data, unittest, client):
     reshape_cfg = dict(index=["security_id"], columns=["Col0"])
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="transpose", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="transpose", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     new_key = str(client.port + 1)
@@ -262,9 +244,7 @@ def test_transpose(custom_data, unittest, client):
     reshape_cfg = dict(index=["date", "security_id"], columns=["Col0"])
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="transpose", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="transpose", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     assert response_data["data_id"] == new_key
@@ -308,9 +288,7 @@ def test_resample(unittest, client):
     reshape_cfg = dict(index="index", columns=["col1"], freq="17min", agg="mean")
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="resample", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="resample", cfg=json.dumps(reshape_cfg)),
     )
 
     response_data = json.loads(resp.data)
@@ -329,9 +307,7 @@ def test_resample(unittest, client):
     reshape_cfg = dict(index="index", columns=None, freq="17min", agg="mean")
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="resample", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="resample", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     assert response_data["data_id"] == new_key
@@ -349,14 +325,10 @@ def test_aggregate_no_index(unittest, client):
     build_data(client.port, df)
 
     # Test aggregate without index, func type with cols (covers lines 170-177)
-    reshape_cfg = dict(
-        index=None, agg=dict(type="func", func="sum", cols=["a", "b"])
-    )
+    reshape_cfg = dict(index=None, agg=dict(type="func", func="sum", cols=["a", "b"]))
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     new_key = str(client.port + 1)
@@ -365,14 +337,10 @@ def test_aggregate_no_index(unittest, client):
     client.get("/dtale/cleanup-datasets", query_string=dict(dataIds=new_key))
 
     # Test aggregate without index, func type with gmean (covers gmean path)
-    reshape_cfg = dict(
-        index=None, agg=dict(type="func", func="gmean", cols=["a", "b"])
-    )
+    reshape_cfg = dict(index=None, agg=dict(type="func", func="gmean", cols=["a", "b"]))
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     assert response_data["data_id"] == new_key
@@ -389,14 +357,10 @@ def test_aggregate_no_index_func(unittest, client):
     build_data(client.port, df)
 
     # Test aggregate without index, func type (covers line 93 for PivotBuilder no agg)
-    reshape_cfg = dict(
-        index=None, agg=dict(type="func", func="mean", cols=["a", "b"])
-    )
+    reshape_cfg = dict(index=None, agg=dict(type="func", func="mean", cols=["a", "b"]))
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     new_key = str(client.port + 1)
@@ -474,9 +438,7 @@ def test_aggregate_count_pct_reshape(custom_data, unittest, client):
     )
     resp = client.get(
         "/dtale/reshape/{}".format(client.port),
-        query_string=dict(
-            output="new", type="aggregate", cfg=json.dumps(reshape_cfg)
-        ),
+        query_string=dict(output="new", type="aggregate", cfg=json.dumps(reshape_cfg)),
     )
     response_data = json.loads(resp.data)
     new_key = str(client.port + 1)
