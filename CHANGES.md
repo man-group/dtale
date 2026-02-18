@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.20.0 (2026-2-18)
+* updates to `save-column-filter` endpoint to guard against code injection
+
 ### 3.19.1 (2026-1-28)
 * [#926](https://github.com/man-group/dtale/issues/926): additional updates to kurtosis labeling
 
