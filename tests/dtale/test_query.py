@@ -8,16 +8,6 @@ import dtale.query as query
 from dtale.pandas_util import check_pandas_version
 
 
-def setup_function(function):
-    global_state.cleanup()
-    global_state.use_default_store()
-
-
-def teardown_function(function):
-    global_state.cleanup()
-    global_state.use_default_store()
-
-
 @pytest.mark.unit
 def test_run_query():
     df = pd.DataFrame([dict(a=1, b=2, c=3), dict(a=2, b=3, c=4), dict(a=3, b=4, c=5)])

@@ -7,6 +7,7 @@ import { ColumnFilter as ColumnFilterObj } from '../../dtale/DataViewerState';
 import { default as ColumnFilter, ColumnFilterProps } from '../../filters/ColumnFilter';
 import * as ColumnFilterRepository from '../../repository/ColumnFilterRepository';
 import * as GenericRepository from '../../repository/GenericRepository';
+import { BaseSpies } from '../BaseSpies.test.support';
 import { mockColumnDef } from '../mocks/MockColumnDef';
 import reduxUtils from '../redux-test-utils';
 import { buildInnerHTML } from '../test-utils';
@@ -16,8 +17,8 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-/** Bundles alot of jest setup for CreateColumn component tests */
-export class Spies {
+/** Bundles alot of jest setup for ColumnFilter component tests */
+export class Spies extends BaseSpies {
   public saveSpy: jest.SpyInstance<
     Promise<ColumnFilterRepository.SaveFilterResponse | undefined>,
     [string, string, ColumnFilterObj?]
@@ -29,6 +30,7 @@ export class Spies {
 
   /** Initializes all spy instances */
   constructor() {
+    super();
     this.saveSpy = jest.spyOn(ColumnFilterRepository, 'save');
     this.fetchJsonSpy = jest.spyOn(GenericRepository, 'getDataFromService');
   }
@@ -38,16 +40,6 @@ export class Spies {
     this.useDispatchMock.mockImplementation(() => this.mockDispatch);
     (axios.get as any).mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
     this.saveSpy.mockResolvedValue(Promise.resolve({ success: true, currFilters: {} }));
-  }
-
-  /** Cleanup after each jest tests */
-  public afterEach(): void {
-    jest.resetAllMocks();
-  }
-
-  /** Cleanup after all jest tests */
-  public afterAll(): void {
-    jest.restoreAllMocks();
   }
 
   /**

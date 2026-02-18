@@ -9,6 +9,7 @@ import { ReshapeSaveParams, ReshapeType } from '../../../popups/reshape/ReshapeS
 import { AppActions } from '../../../redux/actions/AppActions';
 import { PopupType } from '../../../redux/state/AppState';
 import * as ReshapeRepository from '../../../repository/ReshapeRepository';
+import { BaseSpies } from '../../BaseSpies.test.support';
 import reduxUtils from '../../redux-test-utils';
 import { buildInnerHTML } from '../../test-utils';
 
@@ -18,7 +19,7 @@ jest.mock('react-redux', () => ({
 }));
 
 /** Bundles alot of jest setup for Reshape component tests */
-export class Spies {
+export class Spies extends BaseSpies {
   public saveSpy: jest.SpyInstance<
     Promise<ReshapeRepository.SaveResponse | undefined>,
     [dataId: string, params: ReshapeSaveParams]
@@ -29,6 +30,7 @@ export class Spies {
 
   /** Initializes all spy instances */
   constructor() {
+    super();
     this.saveSpy = jest.spyOn(ReshapeRepository, 'save');
   }
 
@@ -37,16 +39,6 @@ export class Spies {
     this.useDispatchMock.mockImplementation(() => this.mockDispatch);
     (axios.get as any).mockImplementation(async (url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
     this.saveSpy.mockResolvedValue({ success: true, data_id: '2' });
-  }
-
-  /** Cleanup after each jest tests */
-  public afterEach(): void {
-    jest.resetAllMocks();
-  }
-
-  /** Cleanup after all jest tests */
-  public afterAll(): void {
-    jest.restoreAllMocks();
   }
 
   /**

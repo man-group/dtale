@@ -848,6 +848,22 @@ def use_redis_store(directory, *args, **kwargs):
     except ImportError:
         raise Exception("redislite must be installed")
 
+    # redis-py 7.2.0 accesses conn.host/conn.port for observability on all
+    # connection types, but UnixDomainSocketConnection only sets 'path'.
+    # Patch in fallbacks so redislite (which uses Unix sockets) doesn't break.
+    from redis.connection import UnixDomainSocketConnection as _UDS
+
+    _orig_uds_init = _UDS.__init__
+
+    def _patched_uds_init(self, *a, **kw):
+        _orig_uds_init(self, *a, **kw)
+        if not hasattr(self, "port"):
+            self.port = 0
+        if not hasattr(self, "host"):
+            self.host = self.path
+
+    _UDS.__init__ = _patched_uds_init
+
     class DtaleRedis(DtaleBaseStore, Redis):
         """Wrapper class around Redis() to make it work as a global data store in dtale."""
 

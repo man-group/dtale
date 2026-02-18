@@ -165,6 +165,7 @@ def test_jupyter_server_proxy_is_proxy():
             mock.patch("dtale.views.in_ipython_frontend", return_value=True)
         )
         mock_requests = stack.enter_context(mock.patch("requests.get", mock.Mock()))
+        build_data_inst({"9999": pd.DataFrame({"a": [1]})})
         instance = DtaleData(
             "9999",
             "user/root/proxy/40000",

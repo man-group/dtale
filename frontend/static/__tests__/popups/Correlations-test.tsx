@@ -1,8 +1,7 @@
-import { act, fireEvent, getByText, render, screen } from '@testing-library/react';
+import { act, fireEvent, getByText, screen } from '@testing-library/react';
 import axios from 'axios';
 import { Chart, ChartEvent } from 'chart.js';
 import * as React from 'react';
-import { Provider } from 'react-redux';
 
 jest.mock('../../dtale/side/SidePanelButtons', () => {
   const { createMockComponent } = require('../mocks/createMockComponent');
@@ -21,7 +20,7 @@ import { CorrelationsPopupData, PopupType } from '../../redux/state/AppState';
 import correlationsData from '../data/correlations.json';
 import DimensionsHelper from '../DimensionsHelper';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, CreateChartSpy, getLastChart, MockChart, mockChartJS } from '../test-utils';
+import { CreateChartSpy, getLastChart, MockChart, mockChartJS, renderWithStore, WindowMock } from '../test-utils';
 
 const chartData: CorrelationsPopupData = {
   visible: true,
@@ -31,22 +30,18 @@ const chartData: CorrelationsPopupData = {
 };
 
 describe('Correlations tests', () => {
-  const { opener, open } = window;
   const dimensions = new DimensionsHelper({
     offsetWidth: 500,
     offsetHeight: 500,
   });
-  const openSpy = jest.fn();
+  let windowMock: WindowMock;
 
   let result: Element;
   let createChartSpy: CreateChartSpy;
 
   beforeAll(() => {
     dimensions.beforeAll();
-    delete (window as any).open;
-    window.open = openSpy;
-    delete window.opener;
-    window.opener = { location: { reload: jest.fn() } };
+    windowMock = new WindowMock();
     mockChartJS();
   });
 
@@ -58,35 +53,26 @@ describe('Correlations tests', () => {
     (axios.get as any).mockImplementation((url: string) => {
       return Promise.resolve({ data: reduxUtils.urlFetcher(url) });
     });
-
-    buildInnerHTML({ settings: '' });
   });
 
   afterEach(() => {
-    (axios.get as any).mockRestore();
-    jest.clearAllMocks();
     jest.restoreAllMocks();
   });
 
   afterAll(() => {
-    jest.restoreAllMocks();
     dimensions.afterAll();
-    window.open = open;
-    window.opener = opener;
+    windowMock.restore();
   });
 
   const buildResult = async (overrides?: Partial<CorrelationsPopupData>): Promise<void> => {
     const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '' }, store);
     store.dispatch(AppActions.OpenChartAction({ ...chartData, ...overrides }));
     result = await act(
       () =>
-        render(
-          <Provider store={store}>
-            <Correlations />
-          </Provider>,
-          { container: document.getElementById('content') ?? undefined },
-        ).container,
+        renderWithStore(<Correlations />, {
+          store,
+          innerHTMLProps: { settings: '' },
+        }).container,
     );
   };
 
@@ -110,7 +96,7 @@ describe('Correlations tests', () => {
     await act(async () => {
       await fireEvent.click(screen.getByText('Export Image'));
     });
-    expect(openSpy).toHaveBeenLastCalledWith(
+    expect(windowMock.openSpy).toHaveBeenLastCalledWith(
       '/dtale/correlations/1?encodeStrings=false&pps=false&image=true',
       '_blank',
     );

@@ -1,14 +1,13 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import axios from 'axios';
 import * as React from 'react';
-import { Provider } from 'react-redux';
 
 import { DataViewer } from '../../dtale/DataViewer';
 import * as windowUtils from '../../location';
 import DimensionsHelper from '../DimensionsHelper';
 import { validateHeaders } from '../iframe/iframe-utils';
 import reduxUtils from '../redux-test-utils';
-import { buildInnerHTML, clickMainMenuButton, mockChartJS, PREDEFINED_FILTERS } from '../test-utils';
+import { clickMainMenuButton, mockChartJS, PREDEFINED_FILTERS, renderWithStore } from '../test-utils';
 
 describe('DataViewer tests', () => {
   const dimensions = new DimensionsHelper({
@@ -35,18 +34,11 @@ describe('DataViewer tests', () => {
   it('DataViewer: base operations (column selection, locking, sorting, moving to front, col-analysis,...', async () => {
     const locationMock = { reload: jest.fn(), pathname: '' };
     jest.spyOn(windowUtils, 'getLocation').mockReturnValue(locationMock as any);
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '', predefinedFilters: PREDEFINED_FILTERS }, store);
     const container = await act(
       async () =>
-        render(
-          <Provider store={store}>
-            <DataViewer />
-          </Provider>,
-          {
-            container: document.getElementById('content') ?? undefined,
-          },
-        ).container,
+        renderWithStore(<DataViewer />, {
+          innerHTMLProps: { settings: '', predefinedFilters: PREDEFINED_FILTERS },
+        }).container,
     );
     validateHeaders(['col1', 'col2', 'col3', 'col4']);
     await act(async () => {
@@ -70,18 +62,11 @@ describe('DataViewer tests', () => {
   });
 
   it('DataViewer: available menu items when arcticDB is used', async () => {
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '', isArcticDB: '100' }, store);
     await act(
       async () =>
-        render(
-          <Provider store={store}>
-            <DataViewer />
-          </Provider>,
-          {
-            container: document.getElementById('content') ?? undefined,
-          },
-        ).container,
+        renderWithStore(<DataViewer />, {
+          innerHTMLProps: { settings: '', isArcticDB: '100' },
+        }).container,
     );
     expect(
       [...screen.getByTestId('data-viewer-menu').querySelectorAll('ul li span.font-weight-bold')].map(
@@ -97,18 +82,11 @@ describe('DataViewer tests', () => {
   });
 
   it('DataViewer: available menu items when large arcticDB is used', async () => {
-    const store = reduxUtils.createDtaleStore();
-    buildInnerHTML({ settings: '', isArcticDB: '2000000' }, store);
     await act(
       async () =>
-        render(
-          <Provider store={store}>
-            <DataViewer />
-          </Provider>,
-          {
-            container: document.getElementById('content') ?? undefined,
-          },
-        ).container,
+        renderWithStore(<DataViewer />, {
+          innerHTMLProps: { settings: '', isArcticDB: '2000000' },
+        }).container,
     );
     expect(
       [...screen.getByTestId('data-viewer-menu').querySelectorAll('ul li span.font-weight-bold')].map(

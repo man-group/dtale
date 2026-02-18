@@ -88,13 +88,6 @@ jest.mock('../popups/variance/Variance', () => {
   const { createMockComponent } = require('./mocks/createMockComponent');
   return { __esModule: true, default: createMockComponent('Variance', () => 'Variance') };
 });
-jest.mock('../popups/replacement/CreateReplacement', () => {
-  const { createMockComponent } = require('./mocks/createMockComponent');
-  return {
-    __esModule: true,
-    default: createMockComponent('CreateReplacement', () => 'CreateReplacement'),
-  };
-});
 
 require('react');
 
@@ -105,7 +98,6 @@ describe('main tests', () => {
   const reloadSpy = jest.fn();
 
   beforeEach(() => {
-    jest.resetModules();
     (axios.get as any).mockImplementation((url: string) => Promise.resolve({ data: reduxUtils.urlFetcher(url) }));
 
     jest.mock('@blueprintjs/datetime', () => {
