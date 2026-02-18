@@ -15,7 +15,7 @@ from dtale.column_filters import (
     handle_ne,
 )
 from dtale.pandas_util import check_pandas_version
-from dtale.query import run_query
+from dtale.query import run_query, validate_query_safety
 
 
 @pytest.mark.unit
@@ -232,10 +232,10 @@ def test_numeric_filter_operators():
     assert "==" in fltr["query"]
     assert len(run_query(df, fltr["query"])) == 1
 
-    # Test unknown operand
+    # Test unknown operand raises ValueError
     cfg = dict(operand="unknown", type="int")
-    fltr = NumericFilter("foo", "I", cfg).build_filter()
-    assert fltr is None
+    with pytest.raises(ValueError, match="Invalid operand"):
+        NumericFilter("foo", "I", cfg).build_filter()
 
 
 @pytest.mark.unit
@@ -375,3 +375,164 @@ def test_numeric_filter_missing_and_populated():
     fltr = NumericFilter("foo", "I", cfg).build_filter()
     assert fltr is not None
     assert "~" in fltr["query"]
+
+
+@pytest.mark.unit
+def test_security_string_filter_injection():
+    """Test that code injection attempts via string filters are blocked."""
+    # __import__ in value
+    cfg = dict(
+        action="equals",
+        operand="=",
+        value=["__import__('os').system('rm -rf /')"],
+        type="string",
+    )
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        StringFilter("foo", "S", cfg).build_filter()
+
+    # exec() in raw
+    cfg = dict(action="startswith", operand="=", raw="exec('malicious')", type="string")
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        StringFilter("foo", "S", cfg).build_filter()
+
+    # eval() in raw
+    cfg = dict(action="contains", operand="=", raw="eval('bad')", type="string")
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        StringFilter("foo", "S", cfg).build_filter()
+
+    # @ reference in raw (can access local variables in query scope)
+    cfg = dict(action="contains", operand="=", raw="@var", type="string")
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        StringFilter("foo", "S", cfg).build_filter()
+
+    # os module access
+    cfg = dict(action="equals", operand="=", value=["os.system('ls')"], type="string")
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        StringFilter("foo", "S", cfg).build_filter()
+
+    # Invalid action
+    cfg = dict(action="__import__", operand="=", raw="test", type="string")
+    with pytest.raises(ValueError, match="Invalid string filter action"):
+        StringFilter("foo", "S", cfg).build_filter()
+
+    # Invalid operand
+    cfg = dict(
+        action="equals", operand="__import__('os')", value=["test"], type="string"
+    )
+    with pytest.raises(ValueError, match="Invalid operand"):
+        StringFilter("foo", "S", cfg).build_filter()
+
+
+@pytest.mark.unit
+def test_security_numeric_filter_injection():
+    """Test that code injection attempts via numeric filters are blocked."""
+    # Non-numeric value
+    cfg = dict(operand="=", value=["__import__('os')"], type="int")
+    with pytest.raises(ValueError):
+        NumericFilter("foo", "I", cfg).build_filter()
+
+    # Non-numeric comparison value
+    cfg = dict(operand=">", value="exec('bad')", type="int")
+    with pytest.raises(ValueError):
+        NumericFilter("foo", "I", cfg).build_filter()
+
+    # Non-numeric min/max
+    cfg = dict(operand="[]", min="__import__('os')", max=10, type="int")
+    with pytest.raises(ValueError):
+        NumericFilter("foo", "I", cfg).build_filter()
+
+
+@pytest.mark.unit
+def test_security_date_filter_injection():
+    """Test that code injection attempts via date filters are blocked."""
+    cfg = dict(start="__import__('os').system('ls')", type="date")
+    with pytest.raises(ValueError, match="invalid characters"):
+        DateFilter("date_col", "D", cfg).build_filter()
+
+    cfg = dict(end="'); os.system('ls", type="date")
+    with pytest.raises(ValueError, match="invalid characters"):
+        DateFilter("date_col", "D", cfg).build_filter()
+
+
+@pytest.mark.unit
+def test_security_outlier_filter_injection():
+    """Test that code injection attempts via outlier filters are blocked."""
+    cfg = dict(query="__import__('os').system('rm -rf /')", type="outliers")
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        OutlierFilter("foo", "I", cfg).build_filter()
+
+    cfg = dict(query="exec('bad_code')", type="outliers")
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        OutlierFilter("foo", "I", cfg).build_filter()
+
+
+@pytest.mark.unit
+def test_security_length_filter_injection():
+    """Test that length filter validates numeric inputs."""
+    # Non-numeric length value
+    cfg = dict(action="length", operand="=", raw="exec('bad')", type="string")
+    with pytest.raises(ValueError):
+        StringFilter("foo", "S", cfg).build_filter()
+
+    # Non-numeric range values
+    cfg = dict(action="length", operand="=", raw="1,exec('bad')", type="string")
+    with pytest.raises(ValueError):
+        StringFilter("foo", "S", cfg).build_filter()
+
+    # Valid length values should still work
+    cfg = dict(action="length", operand="=", raw="3", type="string")
+    fltr = StringFilter("foo", "S", cfg).build_filter()
+    assert fltr is not None
+
+    cfg = dict(action="length", operand="=", raw="1,3", type="string")
+    fltr = StringFilter("foo", "S", cfg).build_filter()
+    assert fltr is not None
+
+
+@pytest.mark.unit
+def test_security_validate_query_safety():
+    """Test the defense-in-depth query validation in run_query."""
+    # These should raise ValueError
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        validate_query_safety("__import__('os').system('ls')")
+
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        validate_query_safety("`col` == 1 and exec('bad')")
+
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        validate_query_safety("eval('malicious_code')")
+
+    with pytest.raises(ValueError, match="potentially unsafe"):
+        validate_query_safety("os.system('rm -rf /')")
+
+    # These should pass (legitimate queries)
+    validate_query_safety("`foo` == 1")
+    validate_query_safety("`foo` in (1, 2, 3)")
+    validate_query_safety(
+        "`foo`.str.contains('bar', na=False, case=False, regex=False)"
+    )
+    validate_query_safety("`foo` >= '20200101' and `foo` <= '20200201'")
+    validate_query_safety(None)
+    validate_query_safety("")
+
+
+@pytest.mark.unit
+def test_security_valid_filters_still_work():
+    """Ensure that legitimate filter operations are not blocked by security checks."""
+    df = pd.DataFrame(dict(foo=["AAA", "BBB", "CCC"], bar=[1, 2, 3]))
+
+    # String equals
+    cfg = dict(action="equals", operand="=", value=["AAA"], type="string")
+    fltr = StringFilter("foo", "S", cfg).build_filter()
+    assert len(run_query(df, fltr["query"])) == 1
+
+    # Numeric range
+    cfg = dict(operand="[]", min=1, max=2, type="int")
+    fltr = NumericFilter("bar", "I", cfg).build_filter()
+    assert len(run_query(df, fltr["query"])) == 2
+
+    # Date filter
+    cfg = dict(start="20200101", end="20200201", type="date")
+    fltr = DateFilter("date_col", "D", cfg).build_filter()
+    assert fltr is not None
+    assert "query" in fltr

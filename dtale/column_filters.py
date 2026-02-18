@@ -1,10 +1,120 @@
 import json
+import re
+
 import numpy as np
 import pandas as pd
+from six import string_types
 
 import dtale.global_state as global_state
 from dtale.utils import classify_type, find_dtype, format_data, make_list
 from dtale.query import build_col_key
+
+# Patterns that could enable code execution via pandas.DataFrame.query()
+_DANGEROUS_PATTERNS = re.compile(
+    r"(__\w+__"  # dunder attributes (__import__, __class__, etc.)
+    r"|(?<!\w)import\s*\("  # import() calls
+    r"|(?<!\w)exec\s*\("  # exec() calls
+    r"|(?<!\w)eval\s*\("  # eval() calls
+    r"|(?<!\w)compile\s*\("  # compile() calls
+    r"|(?<!\w)open\s*\("  # open() calls
+    r"|(?<!\w)getattr\s*\("  # getattr() calls
+    r"|(?<!\w)setattr\s*\("  # setattr() calls
+    r"|(?<!\w)delattr\s*\("  # delattr() calls
+    r"|(?<!\w)globals\s*\("  # globals() calls
+    r"|(?<!\w)locals\s*\("  # locals() calls
+    r"|(?<!\w)vars\s*\("  # vars() calls
+    r"|(?<!\w)dir\s*\("  # dir() calls
+    r"|(?<!\w)type\s*\("  # type() calls
+    r"|(?<!\w)os\."  # os module access
+    r"|(?<!\w)sys\."  # sys module access
+    r"|(?<!\w)subprocess"  # subprocess module access
+    r"|(?<!\w)shutil\."  # shutil module access
+    r"|@\w+"  # @ references to local variables in query scope
+    r")",
+    re.IGNORECASE,
+)
+
+
+class ColumnFilterSecurity(object):
+    """Validation helpers to guard against code injection via DataFrame.query()."""
+
+    @staticmethod
+    def validate_string_value(val):
+        """Validate a string value used in filter queries."""
+        if not isinstance(val, string_types):
+            val = str(val)
+        if _DANGEROUS_PATTERNS.search(val):
+            raise ValueError(
+                "Filter value contains potentially unsafe content: {}".format(repr(val))
+            )
+        return val
+
+    @staticmethod
+    def validate_numeric_value(val):
+        """Validate that a value is actually numeric. Returns the original value if valid."""
+        if val is None:
+            return val
+        if isinstance(val, (int, float, np.integer, np.floating)):
+            return val
+        # Try to parse string as a number (validation only, return original value)
+        try:
+            if isinstance(val, string_types):
+                stripped = val.strip()
+                if _DANGEROUS_PATTERNS.search(stripped):
+                    raise ValueError(
+                        "Numeric filter value contains potentially unsafe content: {}".format(
+                            repr(val)
+                        )
+                    )
+                float(stripped)  # validate it parses as a number
+                return val  # return original to preserve existing query format
+        except (ValueError, TypeError):
+            pass
+        raise ValueError("Expected numeric value, got: {}".format(repr(val)))
+
+    @staticmethod
+    def validate_date_value(val):
+        """Validate that a value is a safe date string."""
+        if val is None:
+            return val
+        if not isinstance(val, string_types):
+            val = str(val)
+        # Date values should only contain digits, dashes, colons, T, Z, dots, spaces, +
+        if not re.match(r"^[\d\-/:T Z.+]+$", val):
+            raise ValueError(
+                "Date filter value contains invalid characters: {}".format(repr(val))
+            )
+        if _DANGEROUS_PATTERNS.search(val):
+            raise ValueError(
+                "Date filter value contains potentially unsafe content: {}".format(
+                    repr(val)
+                )
+            )
+        return val
+
+    @staticmethod
+    def validate_operand(operand, allowed):
+        """Validate that the operand is in the allowed set."""
+        if operand not in allowed:
+            raise ValueError(
+                "Invalid operand: {}. Allowed: {}".format(repr(operand), allowed)
+            )
+        return operand
+
+    @staticmethod
+    def validate_outlier_query(query):
+        """Validate an outlier filter query string."""
+        if query is None:
+            return query
+        if not isinstance(query, string_types):
+            raise ValueError("Outlier query must be a string")
+        if _DANGEROUS_PATTERNS.search(query):
+            raise ValueError(
+                "Outlier filter query contains potentially unsafe content: {}".format(
+                    repr(query)
+                )
+            )
+        return query
 
 
 class ArcticDBColumnFilter(object):
@@ -76,6 +186,7 @@ class OutlierFilter(object):
     def build_filter(self):
         if self.cfg.get("query") is None:
             return None
+        ColumnFilterSecurity.validate_outlier_query(self.cfg.get("query"))
         return self.cfg
 
 
@@ -144,6 +255,16 @@ class StringFilter(MissingOrPopulatedFilter):
             return super(StringFilter, self).handle_missing_or_populated(None)
 
         action = self.cfg.get("action", "equals")
+        # Validate action
+        if action not in (
+            "equals",
+            "startswith",
+            "endswith",
+            "contains",
+            "regex",
+            "length",
+        ):
+            raise ValueError("Invalid string filter action: {}".format(repr(action)))
         if action == "equals" and not len(self.cfg.get("value", [])):
             return super(StringFilter, self).handle_missing_or_populated(None)
         elif action != "equals" and not self.cfg.get("raw"):
@@ -153,6 +274,14 @@ class StringFilter(MissingOrPopulatedFilter):
         case_sensitive = self.cfg.get("caseSensitive", False)
         operand = self.cfg.get("operand", "=")
         raw = self.cfg.get("raw")
+
+        # Validate inputs
+        ColumnFilterSecurity.validate_operand(operand, {"=", "ne"})
+        if raw is not None:
+            ColumnFilterSecurity.validate_string_value(raw)
+        for v in state:
+            ColumnFilterSecurity.validate_string_value(v)
+
         fltr = dict(
             value=state,
             operand=operand,
@@ -199,12 +328,16 @@ class StringFilter(MissingOrPopulatedFilter):
             )
             fltr["query"] = handle_ne(fltr["query"], operand)
         elif action == "length":
+            # Validate length values are numeric
             if "," in raw:
                 start, end = raw.split(",")
+                ColumnFilterSecurity.validate_numeric_value(start.strip())
+                ColumnFilterSecurity.validate_numeric_value(end.strip())
                 fltr["query"] = "{start} <= {col}.str.len() <= {end}".format(
                     col=build_col_key(self.column), start=start, end=end
                 )
             else:
+                ColumnFilterSecurity.validate_numeric_value(raw.strip())
                 fltr["query"] = "{}.str.len() == {}".format(
                     build_col_key(self.column), raw
                 )
@@ -272,6 +405,12 @@ class NumericFilter(MissingOrPopulatedFilter):
             self.cfg.get(p) for p in ["value", "operand", "min", "max"]
         )
 
+        # Validate operand (allow None for missing/populated-only filters)
+        if cfg_operand is not None:
+            ColumnFilterSecurity.validate_operand(
+                cfg_operand, {"=", "ne", "<", ">", "<=", ">=", "[]", "()"}
+            )
+
         base_fltr = dict(
             operand=cfg_operand,
             meta={
@@ -284,6 +423,8 @@ class NumericFilter(MissingOrPopulatedFilter):
             state = make_list(cfg_val or [])
             if not len(state):
                 return super(NumericFilter, self).handle_missing_or_populated(None)
+            # Validate all values are numeric
+            state = [ColumnFilterSecurity.validate_numeric_value(v) for v in state]
             fltr = dict(value=cfg_val, **base_fltr)
             if len(state) == 1:
                 fltr["query"] = "{} {} {}".format(
@@ -301,6 +442,7 @@ class NumericFilter(MissingOrPopulatedFilter):
         if cfg_operand in ["<", ">", "<=", ">="]:
             if cfg_val is None:
                 return super(NumericFilter, self).handle_missing_or_populated(None)
+            cfg_val = ColumnFilterSecurity.validate_numeric_value(cfg_val)
             fltr = dict(
                 value=cfg_val,
                 query="{} {} {}".format(
@@ -313,6 +455,7 @@ class NumericFilter(MissingOrPopulatedFilter):
             fltr = dict(**base_fltr)
             queries = []
             if cfg_min is not None:
+                cfg_min = ColumnFilterSecurity.validate_numeric_value(cfg_min)
                 fltr["min"] = cfg_min
                 queries.append(
                     "{} >{} {}".format(
@@ -322,6 +465,7 @@ class NumericFilter(MissingOrPopulatedFilter):
                     )
                 )
             if cfg_max is not None:
+                cfg_max = ColumnFilterSecurity.validate_numeric_value(cfg_max)
                 fltr["max"] = cfg_max
                 queries.append(
                     "{} <{} {}".format(
@@ -403,6 +547,11 @@ class DateFilter(MissingOrPopulatedFilter):
             return super(DateFilter, self).handle_missing_or_populated(None)
 
         start, end = (self.cfg.get(p) for p in ["start", "end"])
+        # Validate date values
+        if start:
+            ColumnFilterSecurity.validate_date_value(start)
+        if end:
+            ColumnFilterSecurity.validate_date_value(end)
         fltr = dict(
             start=start,
             end=end,

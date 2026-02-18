@@ -1,9 +1,50 @@
+import re
+
 import pandas as pd
 
 import dtale.global_state as global_state
 
 from dtale.pandas_util import check_pandas_version, is_pandas3
 from dtale.utils import format_data, get_bool_arg
+
+# Patterns that could enable code execution via pandas.DataFrame.query()
+_DANGEROUS_QUERY_PATTERNS = re.compile(
+    r"(__\w+__"  # dunder attributes (__import__, __class__, etc.)
+    r"|(?<!\w)import\s*\("  # import() calls
+    r"|(?<!\w)exec\s*\("  # exec() calls
+    r"|(?<!\w)eval\s*\("  # eval() calls
+    r"|(?<!\w)compile\s*\("  # compile() calls
+    r"|(?<!\w)open\s*\("  # open() calls
+    r"|(?<!\w)getattr\s*\("  # getattr() calls
+    r"|(?<!\w)setattr\s*\("  # setattr() calls
+    r"|(?<!\w)delattr\s*\("  # delattr() calls
+    r"|(?<!\w)globals\s*\("  # globals() calls
+    r"|(?<!\w)locals\s*\("  # locals() calls
+    r"|(?<!\w)vars\s*\("  # vars() calls
+    r"|(?<!\w)dir\s*\("  # dir() calls
+    r"|(?<!\w)os\."  # os module access
+    r"|(?<!\w)sys\."  # sys module access
+    r"|(?<!\w)subprocess"  # subprocess module access
+    r"|(?<!\w)shutil\."  # shutil module access
+    r")",
+    re.IGNORECASE,
+)
+
+
+def validate_query_safety(query):
+    """Defense-in-depth validation of query strings before passing to DataFrame.query().
+
+    This catches dangerous patterns that could enable code execution, even if
+    upstream filter construction is compromised.
+    """
+    if not query:
+        return
+    if _DANGEROUS_QUERY_PATTERNS.search(query):
+        raise ValueError(
+            "Query contains potentially unsafe content and has been blocked: {}".format(
+                repr(query[:200])
+            )
+        )
 
 
 def build_col_key(col):
@@ -148,6 +189,8 @@ def run_query(
         if highlight_filter:
             return _load_pct(df), []
         return _load_pct(df)
+
+    validate_query_safety(query)
 
     is_pandas25 = check_pandas_version("0.25.0")
     curr_app_settings = global_state.get_app_settings()
