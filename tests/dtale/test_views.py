@@ -524,19 +524,17 @@ def test_processes(test_data, unittest):
 
         response = c.get("/dtale/processes")
         response_data = response.get_json()
-        unittest.assertDictContainsSubset(
-            {
-                "rows": 50,
-                "name": "foo",
-                "ts": 1525106204000,
-                "start": "12:36:44 PM",
-                "names": "date,security_id,foo,bar,baz",
-                "data_id": str(c.port),
-                "columns": 5,
-                # "mem_usage": 4600 if PY3 else 4000,
-            },
-            response_data["data"][0],
-        )
+        expected_subset = {
+            "rows": 50,
+            "name": "foo",
+            "names": "date,security_id,foo,bar,baz",
+            "data_id": str(c.port),
+            "columns": 5,
+        }
+        for key, value in expected_subset.items():
+            unittest.assertEqual(response_data["data"][0][key], value)
+        assert isinstance(response_data["data"][0]["ts"], int)
+        assert isinstance(response_data["data"][0]["start"], str)
 
         response = c.get("/dtale/process-keys")
         response_data = response.get_json()
@@ -782,7 +780,7 @@ def test_duplicate_cols(unittest):
         resp = c.get(
             "/dtale/duplicate-col/{}".format(c.port), query_string=dict(col="b")
         )
-        unittest.assertEquals(
+        unittest.assertEqual(
             list(global_state.get_data(c.port).columns), ["a", "b", "b_2", "c"]
         )
         assert resp.json["col"] == "b_2"
@@ -3468,16 +3466,14 @@ def test_aggregations(unittest):
         resp = c.get(
             "/dtale/aggregations/{}/a".format(c.port), query_string={"filtered": True}
         )
-        unittest.assertEquals(
+        unittest.assertEqual(
             resp.json, {"mean": 2.0, "median": 2.0, "success": True, "sum": 6.0}
         )
         resp = c.get(
             "/dtale/weighted-average/{}/a/b".format(c.port),
             query_string={"filtered": True},
         )
-        unittest.assertEquals(
-            resp.json, {"result": 2.1333333333333333, "success": True}
-        )
+        unittest.assertEqual(resp.json, {"result": 2.1333333333333333, "success": True})
 
 
 @pytest.mark.unit

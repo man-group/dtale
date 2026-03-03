@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -199,8 +201,8 @@ def test_from_date():
 
     cfg = {"col": "date", "to": "int", "from": "datetime64", "unit": "ms"}
     builder = ColumnBuilder(data_id, column_type, "Col{}".format(++i), cfg)
-    # this fails due to local machine timezone. The time here is "Jan 01 2020 05:00:00 GMT+0000"
-    verify_builder(builder, lambda col: col.values[0] == 1577854800)
+    expected = int(time.mktime(df.loc[0, "date"].timetuple()))
+    verify_builder(builder, lambda col: col.values[0] == expected)
 
 
 @pytest.mark.unit
