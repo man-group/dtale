@@ -82,7 +82,7 @@ def test_formatters(unittest):
                 "date": "2018-04-30",
                 "float": 1.666667,
                 "str": "hello",
-                "timestamp": 1525060800000,
+                "timestamp": utils.json_timestamp(date),
                 "json": {"a": 1},
                 "ts_date": "2018-04-30 12:36:44.000001",
             }
@@ -119,16 +119,15 @@ def test_formatters(unittest):
         ],
     )
 
+    list_data = pd.DataFrame(
+        data,
+        columns=["str", "int", "float", "date", "timestamp", "json", "ts_date"],
+    )
     unittest.assertEqual(
-        formatters.format_lists(
-            pd.DataFrame(
-                data,
-                columns=["str", "int", "float", "date", "timestamp", "json", "ts_date"],
-            )
-        ),
+        formatters.format_lists(list_data),
         {
             "int": [1],
-            "timestamp": [1525075200000],
+            "timestamp": [utils.json_timestamp(list_data["timestamp"].values[0])],
             "float": [1.666667],
             "ts_date": ["2018-04-30 16:36:44.000001"],
             "json": [{"a": 1}],

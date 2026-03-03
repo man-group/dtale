@@ -1731,6 +1731,12 @@ $ npm run test -- static/__tests__/dtale/DataViewer-base-test.jsx
 
 Back-end tests are located in the `tests/` directory and use pytest.
 
+**Quick start:**
+```bash
+$ pip install -e ".[tests]"
+$ pytest
+```
+
 **Set up a virtual environment and install dependencies:**
 ```bash
 $ virtualenv venv
@@ -1764,12 +1770,12 @@ $ brew install r
 
 **Run all back-end tests:**
 ```bash
-$ pytest tests -v
+$ pytest -v
 ```
 
 **Run tests with coverage:**
 ```bash
-$ pytest tests --cov dtale --cov-report html --cov-report xml -v
+$ pytest --cov dtale --cov-report html --cov-report xml -v
 ```
 
 **Run a specific test file:**
@@ -1787,7 +1793,7 @@ $ pytest tests/dtale/test_views.py::test_head_data_id -v
 To run both front-end and back-end tests as they run in CI:
 
 ```bash
-# Build front-end first (required for back-end tests)
+# Build front-end first (recommended to validate JS bundles)
 $ cd frontend
 $ yarn install --frozen-lockfile
 $ yarn run build
@@ -1798,7 +1804,7 @@ $ source venv/bin/activate
 $ pip install -e ".[arcticdb,dash-bio,ngrok,redis,r,tests]"
 
 # Run back-end tests
-$ pytest tests --cov dtale -v
+$ pytest --cov dtale -v
 ```
 
 ### Linting

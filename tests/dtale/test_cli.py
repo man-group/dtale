@@ -1,6 +1,5 @@
 import os
 import sys
-from imp import reload
 
 import mock
 import pandas as pd
@@ -11,6 +10,11 @@ from dtale.cli import loaders, script
 from dtale.cli.clickutils import run
 from dtale.pandas_util import check_pandas_version
 from tests import ExitStack, pdt
+
+try:
+    from importlib import reload
+except ImportError:
+    from imp import reload
 
 
 @pytest.mark.unit
