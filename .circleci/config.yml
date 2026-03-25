@@ -148,6 +148,9 @@ python: &python
             sudo apt update
             sudo apt -y upgrade
             sudo apt -y install r-base
+            if [ "${CIRCLE_JOB}" == "build_3_14" ]; then
+              sudo apt -y install libtirpc-dev
+            fi
       - run:
           name: Create and activate virtualenv
           command: |
@@ -322,6 +325,13 @@ jobs:
     environment:
       <<: *python_variables
     <<: *python
+  build_3_14:
+    working_directory: ~/man-group/dtale_3_14
+    docker:
+      - image: cimg/python:3.14-node
+    environment:
+      <<: *python_variables
+    <<: *python
 workflows:
   version: 2
   build_all:
@@ -353,6 +363,10 @@ workflows:
             - build_JS
             - check_python_formatting
       - build_3_11:
+          requires:
+            - build_JS
+            - check_python_formatting
+      - build_3_14:
           requires:
             - build_JS
             - check_python_formatting
