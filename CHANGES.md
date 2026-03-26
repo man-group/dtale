@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.21.0 (2026-3-26)
+* Support for Python 3.14
+
 ### 3.20.0 (2026-2-18)
 * updates to `save-column-filter` endpoint to guard against code injection
 

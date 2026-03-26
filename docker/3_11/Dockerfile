@@ -1,4 +1,4 @@
-FROM node:10.16.0-alpine as node_build
+FROM node:24.4.0-alpine as node_build
 
 RUN set -eux \
   ; apk add git

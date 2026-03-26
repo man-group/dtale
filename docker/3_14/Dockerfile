@@ -44,4 +44,4 @@ WORKDIR /app
 
 RUN set -eux \
   ; . /root/.bashrc \
-  ; easy_install "dtale-${VERSION}-py3.9.egg"
+  ; easy_install "dtale-${VERSION}-py3.14.egg"
