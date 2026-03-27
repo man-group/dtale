@@ -753,6 +753,10 @@ def test_streamlit(unittest):
 @pytest.mark.skipif(not PY3, reason="requires python 3 or higher")
 def test_r_loader_integration(unittest):
     pytest.importorskip("rpy2")
+    try:
+        import rpy2.robjects  # noqa: F401
+    except Exception:
+        pytest.skip("rpy2 is incompatible with the installed R version")
 
     path = os.path.join(os.path.dirname(__file__), "..", "data", "admissions.rda")
 

@@ -486,7 +486,13 @@ def test_shutdown(unittest):
             unittest.fail()
         except:  # noqa
             pass
-        if parse_version(werkzeug.__version__) < parse_version("2.1.0"):
+        try:
+            _werkzeug_version = werkzeug.__version__
+        except AttributeError:
+            from importlib.metadata import version as pkg_version
+
+            _werkzeug_version = pkg_version("werkzeug")
+        if parse_version(_werkzeug_version) < parse_version("2.1.0"):
             mock_shutdown = mock.Mock()
             resp = c.get(
                 "/shutdown", environ_base={"werkzeug.server.shutdown": mock_shutdown}
