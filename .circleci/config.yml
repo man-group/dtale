@@ -145,11 +145,8 @@ python: &python
       - run:
           name: Install R
           command: |
-            sudo apt update
-            sudo apt -y upgrade
-            sudo apt -y install software-properties-common
             wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
-            sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+            echo "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" | sudo tee /etc/apt/sources.list.d/cran-r.list
             sudo apt update
             sudo apt -y install r-base
             if [ "${CIRCLE_JOB}" == "build_3_14" ]; then
