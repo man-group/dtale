@@ -926,7 +926,7 @@ def use_shelve_store(directory):
                 return iter([k.decode() for k in db.keys()])
 
         def clear(self):
-            with self._open(flag="n") as db:
+            with self._open(flag="n"):
                 pass
 
         def to_dict(self):
