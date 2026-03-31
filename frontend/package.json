@@ -107,7 +107,7 @@
     "resolve": "1.22.11",
     "sass": "1.98.0",
     "sass-loader": "16.0.7",
-    "serialize-javascript": "7.0.4",
+    "serialize-javascript": "7.0.5",
     "style-loader": "4.0.0",
     "terser": "5.46.0",
     "terser-webpack-plugin": "5.4.0",
@@ -179,6 +179,7 @@
     "d3-color": "3.1.0",
     "lodash": "4.17.23",
     "lodash-es": "4.17.23",
-    "micromatch": "4.0.8"
+    "micromatch": "4.0.8",
+    "handlebars": "4.7.9"
   }
 }
