@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.22.0 (2026-3-31)
+* Fix CWE-502: unsafe deserialization in Redis and Shelve storage backends
+* Bump vulnerable transitive npm dependencies to patched versions
+
 ### 3.21.0 (2026-3-26)
 * Support for Python 3.14
 
