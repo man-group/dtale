@@ -47,6 +47,7 @@ from dtale.dash_application.layout.layout import (
     show_input_handler,
     show_yaxis_ranges,
     bootstrap_checkbox_prop,
+    boolean_switch_prop,
     get_num_cols,
 )
 from dtale.dash_application.layout.utils import show_style
@@ -66,11 +67,14 @@ class DtaleDash(dash.Dash):
 
     def __init__(self, *args, **kwargs):
         server = kwargs.get("server")
-        kwargs["external_stylesheets"] = [
+        stylesheets = [
             "/dtale/static/css/main.css",
             "/dtale/static/css/dash.css",
             "/dtale/static/css/github_fork.css",
         ]
+        if PY3:
+            stylesheets.append("/dtale/static/css/switch.css")
+        kwargs["external_stylesheets"] = stylesheets
         kwargs["external_scripts"] = [
             "/dtale/static/dash/components_bundle.js",
             "/dtale/static/dash/custom_bundle.js",
@@ -781,7 +785,7 @@ def init_callbacks(dash_app):
             Input("funnel-label-dropdown", "value"),
             Input("funnel-group-dropdown", "value"),
             Input("funnel-dropna-checkbox", bootstrap_checkbox_prop()),
-            Input("funnel-stack-toggle", "on"),
+            Input("funnel-stack-toggle", boolean_switch_prop()),
         ],
         [State("data-tabs", "value")],
     )(funnel_callback)
@@ -868,13 +872,13 @@ def init_callbacks(dash_app):
     @dash_app.callback(
         Output("chart-input-data", "data"),
         [
-            Input("cpg-toggle", "on"),
-            Input("cpy-toggle", "on"),
+            Input("cpg-toggle", boolean_switch_prop()),
+            Input("cpy-toggle", boolean_switch_prop()),
             Input("barmode-dropdown", "value"),
             Input("barsort-dropdown", "value"),
             Input("top-bars", "value"),
             Input("colorscale-picker", "colorscale"),
-            Input("animate-toggle", "on"),
+            Input("animate-toggle", boolean_switch_prop()),
             Input("animate-by-dropdown", "value"),
             Input("trendline-dropdown", "value"),
             Input("yaxis-scale", "value"),
@@ -911,7 +915,9 @@ def init_callbacks(dash_app):
             scale=scale,
         )
 
-    @dash_app.callback(Output("load-btn", "style"), [Input("auto-load-toggle", "on")])
+    @dash_app.callback(
+        Output("load-btn", "style"), [Input("auto-load-toggle", boolean_switch_prop())]
+    )
     def load_style(auto_load):
         return dict(display="block" if not auto_load else "none")
 
@@ -987,7 +993,7 @@ def init_callbacks(dash_app):
             State("pareto-input-data", "data"),
             State("histogram-input-data", "data"),
             State("last-chart-input-data", "data"),
-            State("auto-load-toggle", "on"),
+            State("auto-load-toggle", boolean_switch_prop()),
             State("load-clicks", "data"),
             State("extended-aggregations", "data"),
         ],

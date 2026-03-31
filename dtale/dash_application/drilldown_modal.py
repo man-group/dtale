@@ -12,6 +12,7 @@ from dtale.dash_application.charts import (
     chart_builder_passthru,
 )
 from dtale.dash_application.exceptions import DtalePreventUpdate
+from dtale.dash_application.layout.layout import boolean_switch_prop
 from dtale.dash_application.layout.utils import (
     build_cols,
     build_option,
@@ -345,7 +346,7 @@ def init_callbacks(dash_app):
             [
                 State("drilldown-modal-{}".format(i), "is_open"),
                 State("input-data", "data"),
-                State("drilldown-toggle", "on"),
+                State("drilldown-toggle", boolean_switch_prop()),
             ],
         )(toggle_modal)
         dash_app.callback(
@@ -360,7 +361,7 @@ def init_callbacks(dash_app):
                 State("yaxis-data", "data"),
                 State("map-input-data", "data"),
                 State("chart-click-data-{}".format(i), "data"),
-                State("drilldown-toggle", "on"),
+                State("drilldown-toggle", boolean_switch_prop()),
             ],
         )(update_click_data)
         dash_app.callback(
@@ -392,6 +393,6 @@ def init_callbacks(dash_app):
                 State("yaxis-data", "data"),
                 State("map-input-data", "data"),
                 State("chart-click-data-{}".format(i), "data"),
-                State("drilldown-toggle", "on"),
+                State("drilldown-toggle", boolean_switch_prop()),
             ],
         )(load_drilldown_content)

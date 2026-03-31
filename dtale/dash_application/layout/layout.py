@@ -1,10 +1,12 @@
 import json
 
 import dash_bootstrap_components as dbc
-import dash_daq as daq
 import os
 import plotly
 from six import PY3
+
+if not PY3:
+    import dash_daq as daq
 
 from dtale.dash_application import dcc, html
 import dtale.dash_application.components as dash_components
@@ -924,6 +926,21 @@ def bootstrap_checkbox_prop():
     return "checked"
 
 
+def boolean_switch_prop():
+    if parse_version(dbc.__version__) >= parse_version("1.0.0"):
+        return "value"
+    return "on"
+
+
+def build_boolean_switch(switch_id, on, color=None):
+    if parse_version(dbc.__version__) >= parse_version("1.0.0"):
+        return dbc.Switch(id=switch_id, value=on)
+    kwargs = {"id": switch_id, "on": on}
+    if color is not None:
+        kwargs["color"] = color
+    return daq.BooleanSwitch(**kwargs)
+
+
 def build_dropna(dropna, prop=None):
     if PY3:
         checkbox_kwargs = dict(
@@ -1031,7 +1048,7 @@ def build_funnel_inputs(inputs, df, group_options):
     stacked_toggle = build_input(
         "{}?".format(text("Stack")),
         html.Div(
-            daq.BooleanSwitch(id="funnel-stack-toggle", on=False),
+            build_boolean_switch("funnel-stack-toggle", False),
             className="toggle-wrapper",
         ),
         id="funnel-stack-input",
@@ -2330,9 +2347,7 @@ def charts_layout(df, settings, **inputs):
                                 build_input(
                                     text("Drilldowns"),
                                     html.Div(
-                                        daq.BooleanSwitch(
-                                            id="drilldown-toggle", on=False
-                                        ),
+                                        build_boolean_switch("drilldown-toggle", False),
                                         className="toggle-wrapper",
                                     ),
                                     id="drilldown-input",
@@ -2412,8 +2427,9 @@ def charts_layout(df, settings, **inputs):
                         build_input(
                             text("Bins"),
                             [
-                                daq.NumericInput(
+                                dbc.Input(
                                     id="bins-val-input",
+                                    type="number",
                                     min=1,
                                     max=30,
                                     value=inputs.get("bins_val") or 5,
@@ -2481,9 +2497,7 @@ def charts_layout(df, settings, **inputs):
                 build_input(
                     text("Chart Per\nGroup"),
                     html.Div(
-                        daq.BooleanSwitch(
-                            id="cpg-toggle", on=inputs.get("cpg") or False
-                        ),
+                        build_boolean_switch("cpg-toggle", inputs.get("cpg") or False),
                         className="toggle-wrapper",
                     ),
                     id="cpg-input",
@@ -2493,9 +2507,7 @@ def charts_layout(df, settings, **inputs):
                 build_input(
                     text("Chart Per\nY"),
                     html.Div(
-                        daq.BooleanSwitch(
-                            id="cpy-toggle", on=inputs.get("cpy") or False
-                        ),
+                        build_boolean_switch("cpy-toggle", inputs.get("cpy") or False),
                         className="toggle-wrapper",
                     ),
                     id="cpy-input",
@@ -2618,8 +2630,8 @@ def charts_layout(df, settings, **inputs):
                 build_input(
                     text("Animate"),
                     html.Div(
-                        daq.BooleanSwitch(
-                            id="animate-toggle", on=inputs.get("animate") or False
+                        build_boolean_switch(
+                            "animate-toggle", inputs.get("animate") or False
                         ),
                         className="toggle-wrapper",
                     ),
@@ -2652,9 +2664,7 @@ def charts_layout(df, settings, **inputs):
                         top="120%",
                     ),
                     html.Div(
-                        daq.BooleanSwitch(
-                            id="auto-load-toggle", on=True, color="green"
-                        ),
+                        build_boolean_switch("auto-load-toggle", True, color="green"),
                         className="toggle-wrapper",
                     ),
                     id="auto-load-input",
