@@ -1,4 +1,3 @@
-import dbm
 import io
 import pickle
 import string
@@ -885,6 +884,11 @@ def use_shelve_store(directory):
     :return: None
     """
     from os.path import join
+
+    try:
+        import dbm
+    except ImportError:
+        import anydbm as dbm  # Python 2
 
     class SafeShelfStore(DtaleBaseStore):
         """DBM-backed store with safe deserialization."""
