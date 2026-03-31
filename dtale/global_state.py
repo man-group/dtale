@@ -253,8 +253,14 @@ class DtaleBaseStore(dict):
 
 
 class RestrictedUnpickler(pickle.Unpickler):
-    """Restrict unpickling to known-safe types used by DtaleInstance."""
+    """Restrict unpickling to known-safe types used by DtaleInstance.
 
+    Uses exact-module matching for sensitive standard-library modules and
+    prefix-based matching for numpy/pandas (whose internal module paths
+    change across Python and library versions).
+    """
+
+    # Exact module -> allowed names (for std-lib and dtale modules)
     ALLOWED_MODULES = {
         "builtins": {
             "set",
@@ -279,6 +285,11 @@ class RestrictedUnpickler(pickle.Unpickler):
         "datetime": {"datetime", "date", "time", "timedelta", "timezone"},
         "_codecs": {"encode"},
         "copyreg": {"_reconstructor"},
+        "dtale.global_state": {"DtaleInstance"},
+    }
+
+    # Prefix -> allowed names (handles version-varying submodule paths)
+    ALLOWED_PREFIXES = {
         "numpy": {
             "ndarray",
             "dtype",
@@ -289,29 +300,28 @@ class RestrictedUnpickler(pickle.Unpickler):
             "str_",
             "bytes_",
             "nan",
+            "scalar",
+            "_reconstruct",
+            "_frombuffer",
         },
-        "numpy.core.multiarray": {"scalar", "_reconstruct"},
-        "numpy._core.multiarray": {"scalar", "_reconstruct"},
-        "numpy.core.numeric": {"_frombuffer"},
         "pandas": {
             "DataFrame",
             "Series",
             "Index",
+            "_new_Index",
             "RangeIndex",
+            "DatetimeIndex",
+            "Int64Index",
+            "Float64Index",
+            "MultiIndex",
             "Categorical",
             "Timestamp",
             "Timedelta",
             "NaT",
+            "NaTType",
             "StringDtype",
-        },
-        "pandas.core.frame": {"DataFrame"},
-        "pandas.core.series": {"Series"},
-        "pandas.core.indexes.base": {"Index", "_new_Index"},
-        "pandas.core.indexes.range": {"RangeIndex"},
-        "pandas.core.indexes.datetimes": {"DatetimeIndex"},
-        "pandas.core.indexes.numeric": {"Int64Index", "Float64Index"},
-        "pandas.core.indexes.multi": {"MultiIndex"},
-        "pandas.core.arrays": {
+            "CategoricalDtype",
+            "DatetimeTZDtype",
             "DatetimeArray",
             "TimedeltaArray",
             "IntervalArray",
@@ -321,12 +331,11 @@ class RestrictedUnpickler(pickle.Unpickler):
             "IntegerArray",
             "FloatingArray",
             "ArrowExtensionArray",
-        },
-        "pandas.core.dtypes.dtypes": {"CategoricalDtype", "DatetimeTZDtype"},
-        "pandas.tslibs.timestamps": {"Timestamp"},
-        "pandas.tslibs.timedeltas": {"Timedelta"},
-        "pandas.tslibs.nattype": {"NaTType"},
-        "pandas.tslibs.offsets": {
+            "BlockManager",
+            "SingleBlockManager",
+            "new_block",
+            "_unpickle_block",
+            "__pyx_unpickle_NDArrayBacked",
             "MonthEnd",
             "BusinessDay",
             "Day",
@@ -334,39 +343,19 @@ class RestrictedUnpickler(pickle.Unpickler):
             "Minute",
             "Second",
         },
-        "pandas._libs.tslibs.timestamps": {"Timestamp"},
-        "pandas._libs.tslibs.timedeltas": {"Timedelta"},
-        "pandas._libs.tslibs.nattype": {"NaTType"},
-        "pandas._libs.tslibs.offsets": {
-            "MonthEnd",
-            "BusinessDay",
-            "Day",
-            "Hour",
-            "Minute",
-            "Second",
-        },
-        "pandas.core.internals.managers": {"BlockManager", "SingleBlockManager"},
-        "pandas.core.internals.blocks": {"new_block"},
-        "pandas._libs.internals": {"_unpickle_block"},
-        "pandas._libs.arrays": {"__pyx_unpickle_NDArrayBacked"},
-        "pandas.arrays": {
-            "StringArray",
-            "BooleanArray",
-            "IntegerArray",
-            "FloatingArray",
-            "ArrowExtensionArray",
-            "DatetimeArray",
-            "TimedeltaArray",
-            "IntervalArray",
-            "SparseArray",
-        },
-        "dtale.global_state": {"DtaleInstance"},
     }
 
     def find_class(self, module, name):
-        allowed = self.ALLOWED_MODULES.get(module, set())
-        if name in allowed:
+        # Check exact module match first
+        allowed = self.ALLOWED_MODULES.get(module)
+        if allowed is not None and name in allowed:
             return super().find_class(module, name)
+
+        # Check prefix-based match for numpy/pandas submodules
+        for prefix, names in self.ALLOWED_PREFIXES.items():
+            if (module == prefix or module.startswith(prefix + ".")) and name in names:
+                return super().find_class(module, name)
+
         raise pickle.UnpicklingError("Forbidden unpickle: {}.{}".format(module, name))
 
 
