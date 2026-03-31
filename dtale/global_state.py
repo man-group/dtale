@@ -284,6 +284,7 @@ class RestrictedUnpickler(pickle.Unpickler):
         "datetime": {"datetime", "date", "time", "timedelta", "timezone"},
         "_codecs": {"encode"},
         "copyreg": {"_reconstructor"},
+        "copy_reg": {"_reconstructor"},  # Python 2
         "functools": {"partial"},
         "dtale.global_state": {"DtaleInstance"},
     }
@@ -890,6 +891,8 @@ def use_shelve_store(directory):
     except ImportError:
         import anydbm as dbm  # Python 2
 
+    from contextlib import closing
+
     class SafeShelfStore(DtaleBaseStore):
         """DBM-backed store with safe deserialization."""
 
@@ -897,7 +900,7 @@ def use_shelve_store(directory):
             self.path = path
 
         def _open(self, flag="r"):
-            return dbm.open(self.path, flag)
+            return closing(dbm.open(self.path, flag))
 
         def __contains__(self, key):
             with self._open() as db:
@@ -923,7 +926,7 @@ def use_shelve_store(directory):
                 return iter([k.decode() for k in db.keys()])
 
         def clear(self):
-            with self._open(flag="n"):
+            with self._open(flag="n") as db:
                 pass
 
         def to_dict(self):
