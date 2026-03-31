@@ -285,6 +285,7 @@ class RestrictedUnpickler(pickle.Unpickler):
         "datetime": {"datetime", "date", "time", "timedelta", "timezone"},
         "_codecs": {"encode"},
         "copyreg": {"_reconstructor"},
+        "functools": {"partial"},
         "dtale.global_state": {"DtaleInstance"},
     }
 
