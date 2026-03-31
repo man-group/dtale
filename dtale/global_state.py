@@ -350,12 +350,12 @@ class RestrictedUnpickler(pickle.Unpickler):
         # Check exact module match first
         allowed = self.ALLOWED_MODULES.get(module)
         if allowed is not None and name in allowed:
-            return super(RestrictedUnpickler, self).find_class(module, name)
+            return pickle.Unpickler.find_class(self, module, name)
 
         # Check prefix-based match for numpy/pandas submodules
         for prefix, names in self.ALLOWED_PREFIXES.items():
             if (module == prefix or module.startswith(prefix + ".")) and name in names:
-                return super(RestrictedUnpickler, self).find_class(module, name)
+                return pickle.Unpickler.find_class(self, module, name)
 
         raise pickle.UnpicklingError("Forbidden unpickle: {}.{}".format(module, name))
 
