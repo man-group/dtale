@@ -620,8 +620,9 @@ div#pareto-inputs > div{
   padding-bottom: 0.25rem !important;
 }
 
-div#bins-val-input input {
+#bins-val-input {
   border-radius: 0 3px 3px 0 !important;
+  height: 36px;
 }
 
 #mapbox-token-input {
@@ -668,10 +669,6 @@ div#bins-val-input input {
   font-family: "Istok", "Helvetica", Arial, sans-serif;
 }
 
-#bins-val-input,
-#bins-val-input input {
-  height: 36px;
-}
 #bin-type-input .input-group-addon {
   min-width: initial;
 }

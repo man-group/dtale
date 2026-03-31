@@ -1,3 +1,6 @@
+import dbm
+import io
+import pickle
 import string
 import inspect
 
@@ -247,6 +250,129 @@ class DtaleArcticDBInstance(DtaleInstance):
 class DtaleBaseStore(dict):
     def build_instance(self, data_id, data=None):
         return DtaleInstance(data)
+
+
+class RestrictedUnpickler(pickle.Unpickler):
+    """Restrict unpickling to known-safe types used by DtaleInstance."""
+
+    ALLOWED_MODULES = {
+        "builtins": {
+            "set",
+            "frozenset",
+            "dict",
+            "list",
+            "tuple",
+            "bytes",
+            "bytearray",
+            "True",
+            "False",
+            "None",
+            "complex",
+            "float",
+            "int",
+            "str",
+            "slice",
+            "range",
+            "type",
+        },
+        "collections": {"OrderedDict", "defaultdict", "deque"},
+        "datetime": {"datetime", "date", "time", "timedelta", "timezone"},
+        "_codecs": {"encode"},
+        "copyreg": {"_reconstructor"},
+        "numpy": {
+            "ndarray",
+            "dtype",
+            "array",
+            "int64",
+            "float64",
+            "bool_",
+            "str_",
+            "bytes_",
+            "nan",
+        },
+        "numpy.core.multiarray": {"scalar", "_reconstruct"},
+        "numpy._core.multiarray": {"scalar", "_reconstruct"},
+        "numpy.core.numeric": {"_frombuffer"},
+        "pandas": {
+            "DataFrame",
+            "Series",
+            "Index",
+            "RangeIndex",
+            "Categorical",
+            "Timestamp",
+            "Timedelta",
+            "NaT",
+            "StringDtype",
+        },
+        "pandas.core.frame": {"DataFrame"},
+        "pandas.core.series": {"Series"},
+        "pandas.core.indexes.base": {"Index", "_new_Index"},
+        "pandas.core.indexes.range": {"RangeIndex"},
+        "pandas.core.indexes.datetimes": {"DatetimeIndex"},
+        "pandas.core.indexes.numeric": {"Int64Index", "Float64Index"},
+        "pandas.core.indexes.multi": {"MultiIndex"},
+        "pandas.core.arrays": {
+            "DatetimeArray",
+            "TimedeltaArray",
+            "IntervalArray",
+            "SparseArray",
+            "StringArray",
+            "BooleanArray",
+            "IntegerArray",
+            "FloatingArray",
+            "ArrowExtensionArray",
+        },
+        "pandas.core.dtypes.dtypes": {"CategoricalDtype", "DatetimeTZDtype"},
+        "pandas.tslibs.timestamps": {"Timestamp"},
+        "pandas.tslibs.timedeltas": {"Timedelta"},
+        "pandas.tslibs.nattype": {"NaTType"},
+        "pandas.tslibs.offsets": {
+            "MonthEnd",
+            "BusinessDay",
+            "Day",
+            "Hour",
+            "Minute",
+            "Second",
+        },
+        "pandas._libs.tslibs.timestamps": {"Timestamp"},
+        "pandas._libs.tslibs.timedeltas": {"Timedelta"},
+        "pandas._libs.tslibs.nattype": {"NaTType"},
+        "pandas._libs.tslibs.offsets": {
+            "MonthEnd",
+            "BusinessDay",
+            "Day",
+            "Hour",
+            "Minute",
+            "Second",
+        },
+        "pandas.core.internals.managers": {"BlockManager", "SingleBlockManager"},
+        "pandas.core.internals.blocks": {"new_block"},
+        "pandas._libs.internals": {"_unpickle_block"},
+        "pandas._libs.arrays": {"__pyx_unpickle_NDArrayBacked"},
+        "pandas.arrays": {
+            "StringArray",
+            "BooleanArray",
+            "IntegerArray",
+            "FloatingArray",
+            "ArrowExtensionArray",
+            "DatetimeArray",
+            "TimedeltaArray",
+            "IntervalArray",
+            "SparseArray",
+        },
+        "dtale.global_state": {"DtaleInstance"},
+    }
+
+    def find_class(self, module, name):
+        allowed = self.ALLOWED_MODULES.get(module, set())
+        if name in allowed:
+            return super().find_class(module, name)
+        raise pickle.UnpicklingError("Forbidden unpickle: {}.{}".format(module, name))
+
+
+def safe_loads(data):
+    """Deserialize pickle data using RestrictedUnpickler."""
+    return RestrictedUnpickler(io.BytesIO(data)).load()
 
 
 class DtaleArcticDB(DtaleBaseStore):
@@ -768,47 +894,47 @@ def use_shelve_store(directory):
     :type directory: str
     :return: None
     """
-    import shelve
-    import time
     from os.path import join
-    from threading import Thread
 
-    class DtaleShelf(DtaleBaseStore):
-        """Interface allowing dtale to use 'shelf' databases for global data storage."""
+    class SafeShelfStore(DtaleBaseStore):
+        """DBM-backed store with safe deserialization."""
 
-        def __init__(self, filename):
-            self.filename = filename
-            self.db = shelve.open(self.filename, flag="c", writeback=True)
-            # super hacky autosave
-            t = Thread(target=self.save_db)
-            t.daemon = True
-            t.start()
+        def __init__(self, path):
+            self.path = path
 
-        def get(self, key):
-            # using str here because shelve doesn't support int keys
-            key = str(key)
-            return self.db.get(key)
-
-        def __setitem__(self, key, value):
-            key = str(key)
-            self.db[key] = value
-            self.db.sync()
-
-        def __delitem__(self, key):
-            key = str(key)
-            del self.db[key]
-            self.db.sync()
+        def _open(self, flag="r"):
+            return dbm.open(self.path, flag)
 
         def __contains__(self, key):
-            key = str(key)
-            return key in self.db
+            with self._open() as db:
+                return str(key).encode() in db
+
+        def get(self, key):
+            with self._open() as db:
+                raw = db.get(str(key).encode())
+                if raw is None:
+                    return None
+                return safe_loads(raw)
+
+        def __setitem__(self, key, value):
+            with self._open(flag="c") as db:
+                db[str(key).encode()] = pickle.dumps(value)
+
+        def __delitem__(self, key):
+            with self._open(flag="w") as db:
+                del db[str(key).encode()]
+
+        def __iter__(self):
+            with self._open() as db:
+                return iter([k.decode() for k in db.keys()])
 
         def clear(self):
-            self.db.clear()
-            self.db.sync()
+            with self._open(flag="n"):
+                pass
 
         def to_dict(self):
-            return dict(self.db)
+            with self._open() as db:
+                return {k.decode(): safe_loads(db[k]) for k in db.keys()}
 
         def items(self):
             return self.to_dict().items()
@@ -817,18 +943,14 @@ def use_shelve_store(directory):
             return self.to_dict().keys()
 
         def __len__(self):
-            return len(self.db)
-
-        def save_db(self):
-            while True:
-                self.db.sync()
-                time.sleep(5)
+            with self._open() as db:
+                return len(db.keys())
 
     def create_shelf(name):
         file_path = join(directory, name)
-        return DtaleShelf(file_path)
+        return SafeShelfStore(file_path)
 
-    use_store(DtaleShelf, create_shelf)
+    use_store(SafeShelfStore, create_shelf)
 
 
 def use_redis_store(directory, *args, **kwargs):
@@ -840,7 +962,6 @@ def use_redis_store(directory, *args, **kwargs):
     :param kwargs: All other keyword arguments supported by the redislite.Redis() class
     :return: None
     """
-    import pickle
     from os.path import join
 
     try:
@@ -885,7 +1006,7 @@ def use_redis_store(directory, *args, **kwargs):
         def get(self, name, *args, **kwargs):
             value = super(Redis, self).get(name, *args, **kwargs)
             if value is not None:
-                return pickle.loads(value)
+                return safe_loads(value)
 
         def keys(self):
             return [str(k) for k in super(Redis, self).keys()]

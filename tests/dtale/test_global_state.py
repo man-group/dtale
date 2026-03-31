@@ -1,8 +1,11 @@
+import pickle
+
 import mock
 import pandas as pd
 import pytest
 
 import dtale.global_state as global_state
+from dtale.global_state import safe_loads, DtaleInstance
 from dtale.views import build_dtypes_state
 
 
@@ -565,3 +568,63 @@ def test_load_flag_app_settings(test_data):
     assert result is True
     # Reset
     global_state.set_app_settings({"hide_shutdown": False})
+
+
+# --- Security tests for RestrictedUnpickler / safe_loads ---
+
+
+def _make_malicious_pickle(module, qualname, *args):
+    """Build a pickle payload that attempts to call module.qualname(*args)."""
+
+    class _Exploit:
+        def __reduce__(self):
+            import importlib
+
+            fn = getattr(importlib.import_module(module), qualname)
+            return (fn, args)
+
+    return pickle.dumps(_Exploit())
+
+
+@pytest.mark.unit
+def test_restricted_unpickler_blocks_os_system():
+    payload = _make_malicious_pickle("os", "system", "echo pwned")
+    with pytest.raises(pickle.UnpicklingError, match="Forbidden unpickle"):
+        safe_loads(payload)
+
+
+@pytest.mark.unit
+def test_restricted_unpickler_blocks_subprocess():
+    payload = _make_malicious_pickle("subprocess", "Popen", "echo pwned")
+    with pytest.raises(pickle.UnpicklingError, match="Forbidden unpickle"):
+        safe_loads(payload)
+
+
+@pytest.mark.unit
+def test_restricted_unpickler_blocks_eval():
+    payload = _make_malicious_pickle("builtins", "eval", "1+1")
+    with pytest.raises(pickle.UnpicklingError, match="Forbidden unpickle"):
+        safe_loads(payload)
+
+
+@pytest.mark.unit
+def test_safe_loads_allows_dataframe():
+    df = pd.DataFrame({"a": [1, 2, 3], "b": [4.0, 5.0, 6.0]})
+    data = pickle.dumps(df)
+    result = safe_loads(data)
+    assert isinstance(result, pd.DataFrame)
+    assert list(result.columns) == ["a", "b"]
+    assert len(result) == 3
+
+
+@pytest.mark.unit
+def test_safe_loads_allows_dtale_instance():
+    df = pd.DataFrame({"x": [10, 20]})
+    inst = DtaleInstance(df)
+    inst.name = "test"
+    inst.settings = {"locked": []}
+    data = pickle.dumps(inst)
+    result = safe_loads(data)
+    assert isinstance(result, DtaleInstance)
+    assert result.name == "test"
+    assert len(result.data) == 2
