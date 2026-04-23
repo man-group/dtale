@@ -169,7 +169,7 @@
     "string.prototype.startswith": "1.0.1",
     "styled-components": "6.3.11",
     "typescript": "5.9.3",
-    "uuid": "13.0.0",
+    "uuid": "14.0.0",
     "vis-data": "8.0.3",
     "vis-network": "10.0.2"
   },
