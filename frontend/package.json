@@ -29,7 +29,7 @@
   "private": true,
   "license": "SEE LICENSE IN proprietary",
   "devDependencies": {
-    "@babel/core": "7.29.0",
+    "@babel/core": "7.29.6",
     "@babel/eslint-parser": "7.28.6",
     "@babel/eslint-plugin": "7.27.1",
     "@babel/helper-remap-async-to-generator": "7.27.1",
