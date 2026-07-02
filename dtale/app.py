@@ -1,14 +1,13 @@
 from __future__ import absolute_import, print_function
 
+import binascii
 import getpass
 import jinja2
 import logging
 import os
-import numpy as np
 import pandas as pd
 import random
 import socket
-import string
 import sys
 import time
 import traceback
@@ -296,10 +295,10 @@ class DtaleFlask(Flask):
 
 def build_secret_key():
     """
-    Builds a string of 10 randomly chosen characters to be used as the Flask app's SECRET_KEY
+    Builds a cryptographically secure random string to be used as the Flask app's SECRET_KEY
     """
 
-    return "".join(np.random.choice(list(string.ascii_uppercase + string.digits), 10))
+    return binascii.hexlify(os.urandom(32)).decode("ascii")
 
 
 def build_app(
