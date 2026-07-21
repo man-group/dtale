@@ -217,7 +217,7 @@ def is_up(base):
 class DtaleData(object):
     """
     Wrapper class to abstract the global state of a D-Tale process while allowing
-    a user to programatically interact with a running D-Tale instance
+    a user to programmatically interact with a running D-Tale instance
 
     :param data_id: integer string identifier for a D-Tale process's data
     :type data_id: str
