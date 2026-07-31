@@ -1064,7 +1064,7 @@ def use_arcticdb_store(*args, **kwargs):
     :type uri: str
     :param library: default library to load from arcticdb URI
     :type library: str
-    :param symbol: defualt symbol to load from library
+    :param symbol: default symbol to load from library
     :type symbol: str
     :return: None
     """

@@ -538,7 +538,7 @@ def build_app(
 
 def initialize_process_props(host=None, port=None, force=False):
     """
-    Helper function to initalize global state corresponding to the host & port being used for your
+    Helper function to initialize global state corresponding to the host & port being used for your
     :class:`flask:flask.Flask` process
 
     :param host: hostname to use otherwise it will default to the output of :func:`python:socket.gethostname`
