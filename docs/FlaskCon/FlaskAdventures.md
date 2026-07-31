@@ -300,5 +300,5 @@ def test_200():
 
 Easy, right? :rofl:
 
-Feel free to submit and questions or issues with these tips as an issue on [D-Tale's repo](https://github.com/man-group/dtale/issues).  Hope this helps you avoid some of the headaches that I came accross and I'll be adding more tips to this as time goes on.  Thanks.
+Feel free to submit and questions or issues with these tips as an issue on [D-Tale's repo](https://github.com/man-group/dtale/issues).  Hope this helps you avoid some of the headaches that I came across and I'll be adding more tips to this as time goes on.  Thanks.
     
