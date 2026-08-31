@@ -217,9 +217,14 @@ class GageRnR(Statistics):
         Var = dict()
 
         Var[Component.MEASUREMENT] = MS[Component.MEASUREMENT]
+        # The expected mean square for the interaction is sigma^2 + r * sigma^2_interaction,
+        # where r is the number of replicate measurements, so the divisor is self.measurements.
+        # Dividing by self.parts understates the interaction by a factor of r / p. The operator
+        # and part terms below already divide by their own expected-mean-square coefficients,
+        # both of which include self.measurements.
         Var[Component.OPERATOR_BY_PART] = (
             MS[Component.OPERATOR_BY_PART] - MS[Component.MEASUREMENT]
-        ) / self.parts
+        ) / self.measurements
         Var[Component.OPERATOR] = (
             MS[Component.OPERATOR] - MS[Component.OPERATOR_BY_PART]
         ) / (self.parts * self.measurements)

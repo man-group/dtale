@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.22.1 (unreleased)
+* Fix Gage R&R operator-by-part variance, which divided by the number of parts instead of the number of replicate measurements and so understated the interaction by a factor of r / p
+
 ### 3.22.0 (2026-3-31)
 * Fix CWE-502: unsafe deserialization in Redis and Shelve storage backends
 * Bump vulnerable transitive npm dependencies to patched versions
