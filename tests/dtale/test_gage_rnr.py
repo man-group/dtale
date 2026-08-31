@@ -118,3 +118,84 @@ def test_failure():
         )
         resp = resp.json
         assert "error" in resp
+
+
+@pytest.mark.unit
+def test_interaction_variance_uses_replicate_count():
+    """The operator-by-part variance divides by the replicate count, not the part count.
+
+    For a crossed random-effects design the expected mean square for the interaction is
+    sigma^2 + r * sigma^2_interaction, where r is the number of replicate measurements.
+    So sigma^2_interaction = (MS_interaction - MS_measurement) / r. Dividing by the number
+    of parts understates it by a factor of r / p.
+    """
+    import numpy as np
+    from dtale.gage_rnr import GageRnR, Component, Result
+
+    # 3 operators x 4 parts x 2 measurements, so parts != measurements and the divisor
+    # matters. The operator effects reverse across parts, giving a large positive
+    # interaction that is not clamped to zero.
+    data = np.array(
+        [
+            [[10.0, 10.2], [12.0, 12.1], [14.0, 14.2], [16.0, 16.1]],
+            [[12.0, 12.1], [11.0, 11.2], [16.0, 15.9], [14.0, 14.2]],
+            [[14.0, 13.9], [16.0, 16.2], [10.0, 10.1], [12.0, 12.0]],
+        ]
+    )
+    operators, parts, measurements = data.shape
+
+    gage = GageRnR(data)
+    result = gage.calculate()
+    ms = result[Result.MS]
+    var = result[Result.Var]
+
+    expected = (
+        ms[Component.OPERATOR_BY_PART] - ms[Component.MEASUREMENT]
+    ) / measurements
+    wrong = (ms[Component.OPERATOR_BY_PART] - ms[Component.MEASUREMENT]) / parts
+
+    assert expected > 0, "the fixture must produce an unclamped interaction"
+    assert var[Component.OPERATOR_BY_PART] == pytest.approx(expected)
+    assert var[Component.OPERATOR_BY_PART] != pytest.approx(wrong)
+    assert var[Component.OPERATOR_BY_PART] == pytest.approx(7.9543055556)
+
+
+@pytest.mark.unit
+def test_variance_components_match_expected_mean_squares():
+    """All four variance components follow the expected-mean-square relations."""
+    import numpy as np
+    from dtale.gage_rnr import GageRnR, Component, Result
+
+    data = np.array(
+        [
+            [[10.0, 10.2], [12.0, 12.1], [14.0, 14.2], [16.0, 16.1]],
+            [[12.0, 12.1], [11.0, 11.2], [16.0, 15.9], [14.0, 14.2]],
+            [[14.0, 13.9], [16.0, 16.2], [10.0, 10.1], [12.0, 12.0]],
+        ]
+    )
+    operators, parts, measurements = data.shape
+
+    result = GageRnR(data).calculate()
+    ms, var = result[Result.MS], result[Result.Var]
+
+    assert var[Component.MEASUREMENT] == pytest.approx(ms[Component.MEASUREMENT])
+    assert var[Component.OPERATOR_BY_PART] == pytest.approx(
+        max(
+            (ms[Component.OPERATOR_BY_PART] - ms[Component.MEASUREMENT]) / measurements,
+            0,
+        )
+    )
+    assert var[Component.OPERATOR] == pytest.approx(
+        max(
+            (ms[Component.OPERATOR] - ms[Component.OPERATOR_BY_PART])
+            / (parts * measurements),
+            0,
+        )
+    )
+    assert var[Component.PART] == pytest.approx(
+        max(
+            (ms[Component.PART] - ms[Component.OPERATOR_BY_PART])
+            / (operators * measurements),
+            0,
+        )
+    )
