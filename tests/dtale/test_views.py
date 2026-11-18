@@ -3601,6 +3601,29 @@ def test_build_dtypes_state(test_data):
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    ("dtype", "values"),
+    [
+        ("float64[pyarrow]", [1.5, None, 4.5]),
+        ("uint64[pyarrow]", [1, None, 4]),
+    ],
+)
+def test_build_dtypes_state_includes_arrow_numeric_ranges(dtype, values):
+    import dtale.views as views
+
+    pytest.importorskip("pyarrow")
+    if not hasattr(pd, "ArrowDtype"):
+        pytest.skip("pandas does not support Arrow-backed dtypes")
+
+    series = pd.Series(values, dtype=dtype)
+    state = views.build_dtypes_state(pd.DataFrame({"value": series}))
+    assert state[0]["dtype"] == series.dtype.name
+    assert state[0]["min"] == values[0]
+    assert state[0]["max"] == values[2]
+    assert state[0]["hasMissing"] == 1
+
+
+@pytest.mark.unit
 def test_update_theme():
     import dtale.views as views
 

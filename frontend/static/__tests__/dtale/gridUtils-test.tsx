@@ -10,6 +10,14 @@ describe('gridUtils tests', () => {
     expect(dataProps.view).toBe('');
   });
 
+  it.each([
+    ['double[pyarrow]', gu.ColumnType.FLOAT],
+    ['uint64[pyarrow]', gu.ColumnType.INT],
+    ['string[pyarrow]', gu.ColumnType.STRING],
+  ])('classifies %s as %s', (dtype, type) => {
+    expect(gu.findColType(dtype)).toBe(type);
+  });
+
   it('gridUtils: calcColWidth resized', () => {
     expect(gu.calcColWidth(mockColumnDef({ resized: true, width: 100 }), {}, 1)).toEqual({
       width: 100,
