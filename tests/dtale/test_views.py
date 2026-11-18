@@ -3634,6 +3634,7 @@ def test_build_dtypes_state_includes_arrow_numeric_ranges(dtype, values):
 
     assert response.status_code == 200
     assert response.json["ranges"]["value"] == {"min": values[2], "max": values[2]}
+    assert response.json["dtypes"]["value"]["dtype"] == series.dtype.name
 
 
 @pytest.mark.unit
