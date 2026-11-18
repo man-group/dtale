@@ -4268,9 +4268,15 @@ def build_missingno_chart(chart_type, data_id):
         date_index = get_str_arg(request, "date_index")
         freq = get_str_arg(request, "freq")
         if date_index:
-            figure = msno.matrix(df.set_index(date_index), freq=freq)
-        else:
-            figure = msno.matrix(df)
+            df = df.set_index(date_index)
+        missing_percent = df.isnull().mean() * 100
+        labels = [
+            "{} ({:.1f}% missing)".format(column, percent)
+            for column, percent in missing_percent.items()
+        ]
+        figure = msno.matrix(
+            df.set_axis(labels, axis=1), freq=freq if date_index else None
+        )
     elif chart_type == "bar":
         figure = msno.bar(df)
     elif chart_type == "heatmap":
@@ -4279,7 +4285,11 @@ def build_missingno_chart(chart_type, data_id):
         figure = msno.dendrogram(df)
 
     output = BytesIO()
-    FigureCanvas(figure.get_figure()).print_png(output)
+    canvas = FigureCanvas(figure.get_figure())
+    if chart_type == "matrix":
+        canvas.print_figure(output, format="png", bbox_inches="tight")
+    else:
+        canvas.print_png(output)
     if get_bool_arg(request, "file"):
         fname = "missingno_{}.png".format(chart_type)
         return send_file(output.getvalue(), fname, "image/png")
