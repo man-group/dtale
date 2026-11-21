@@ -436,9 +436,9 @@ def classify_type(type_name):
         return "S"
     if lower_type_name.startswith("bool"):
         return "B"
-    if lower_type_name.startswith("float"):
+    if lower_type_name.startswith("float") or lower_type_name == "double[pyarrow]":
         return "F"
-    if lower_type_name.startswith("int"):
+    if lower_type_name.startswith(("int", "uint")):
         return "I"
     if any([t for t in ["timestamp", "datetime"] if lower_type_name.startswith(t)]):
         return "D"

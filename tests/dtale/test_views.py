@@ -3601,6 +3601,43 @@ def test_build_dtypes_state(test_data):
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    ("dtype", "values"),
+    [
+        ("float64[pyarrow]", [1.5, None, 4.5]),
+        ("uint64[pyarrow]", [1, None, 4]),
+    ],
+)
+def test_build_dtypes_state_includes_arrow_numeric_ranges(dtype, values):
+    import dtale.views as views
+
+    pytest.importorskip("pyarrow")
+    if not hasattr(pd, "ArrowDtype"):
+        pytest.skip("pandas does not support Arrow-backed dtypes")
+
+    series = pd.Series(values, dtype=dtype)
+    state = views.build_dtypes_state(pd.DataFrame({"value": series}))
+    assert state[0]["dtype"] == series.dtype.name
+    assert state[0]["min"] == values[0]
+    assert state[0]["max"] == values[2]
+    assert state[0]["hasMissing"] == 1
+
+    data = pd.DataFrame({"value": series, "row_number": [1, 2, 3]})
+    with build_app(url=URL).test_client() as c:
+        build_data_inst({c.port: data})
+        build_dtypes({c.port: views.build_dtypes_state(data)})
+        build_settings(
+            {c.port: {"columnFilters": {"row_number": {"query": "row_number > 1"}}}}
+        )
+
+        response = c.get("/dtale/load-filtered-ranges/{}".format(c.port))
+
+    assert response.status_code == 200
+    assert response.json["ranges"]["value"] == {"min": values[2], "max": values[2]}
+    assert response.json["dtypes"]["value"]["dtype"] == series.dtype.name
+
+
+@pytest.mark.unit
 def test_update_theme():
     import dtale.views as views
 
