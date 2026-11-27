@@ -2513,6 +2513,34 @@ def test_matplotlib_decorator_exception():
 
 
 @pytest.mark.unit
+@pytest.mark.parametrize(
+    "available, expected",
+    [
+        (["Noto Sans CJK JP", "Noto Sans CJK SC"], ["Noto Sans CJK SC"]),
+        (["Noto Sans CJK JP", "Heiti TC"], ["Noto Sans CJK JP"]),
+        (["SimHei"], ["SimHei"]),
+        (["Heiti TC"], ["Heiti TC"]),
+        ([], ["DejaVu Sans"]),
+    ],
+)
+def test_matplotlib_decorator_font_selection(available, expected):
+    import matplotlib
+    from matplotlib import font_manager
+    from dtale.views import matplotlib_decorator
+
+    fonts = [font_manager.FontEntry(name=name) for name in available]
+
+    @matplotlib_decorator
+    def get_font():
+        return list(matplotlib.rcParams["font.family"])
+
+    with matplotlib.rc_context({"font.family": ["DejaVu Sans"]}):
+        with mock.patch.object(font_manager.fontManager, "ttflist", fonts):
+            assert get_font() == expected
+        assert matplotlib.rcParams["font.family"] == ["DejaVu Sans"]
+
+
+@pytest.mark.unit
 def test_export_parquet_mocked():
     """Test parquet export endpoint (covers lines 3164-3172)."""
     from io import BytesIO

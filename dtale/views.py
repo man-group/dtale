@@ -136,18 +136,25 @@ def matplotlib_decorator(func):
             matplotlib.use("agg")  # noqa: E261
 
             import matplotlib.pyplot as plt
+            from matplotlib import font_manager
 
-            plt.rcParams["font.sans-serif"] = [
-                "SimHei"
-            ]  # Or any other Chinese characters
-            matplotlib.rcParams["font.family"] = ["Heiti TC"]
-
-            return func(*args, **kwargs)
+            available_fonts = {font.name for font in font_manager.fontManager.ttflist}
+            cjk_fonts = (
+                "Noto Sans CJK SC",
+                "Noto Sans CJK TC",
+                "Noto Sans CJK JP",
+                "Noto Sans CJK KR",
+                "SimHei",
+                "Heiti TC",
+            )
+            font = next((name for name in cjk_fonts if name in available_fonts), None)
+            with matplotlib.rc_context({"font.family": [font]} if font else {}):
+                return func(*args, **kwargs)
         except BaseException as e:
             raise e
         finally:
             try:
-                matplotlib.pyplot.switch_backend(current_backend)
+                plt.switch_backend(current_backend)
             except BaseException:
                 pass
 
